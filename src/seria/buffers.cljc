@@ -1,19 +1,29 @@
 (ns seria.buffers
-  (:import [java.nio ByteBuffer])
-  (:require [seria.utils :refer :all]))
+  #?(:clj
+     (:import [java.nio ByteBuffer])))
 
 (set! *warn-on-reflection* true)
 
+(defn primitive-size [schema]
+  (case schema
+    :s/byte 1
+    :s/short 2
+    :s/int 4
+    :s/float 4
+    :s/double 8
+    :s/char 2
+    :s/boolean 1))
+
 (defprotocol HybridBuffer
-  (read! [this type position])
-  (write! [this data type position]))
+  (read! [this schema position])
+  (write! [this schema position data]))
 
 (do #?(:clj  (extend-type ByteBuffer
                HybridBuffer
-               (read! [this type position]
+               (read! [this schema position]
                  (let [p @position]
-                   (swap! position + (primitive-size type))
-                   (case type
+                   (vswap! position + (primitive-size schema))
+                   (case schema
                      :s/byte (.get this ^int p)
                      :s/short (.getShort this p)
                      :s/int (.getInt this p)
@@ -24,10 +34,10 @@
                                     (.get ^int (quot p 8))
                                     (bit-test (rem p 8)))
                      nil)))
-               (write! [this data type position]
+               (write! [this schema position data]
                  (let [p @position]
-                   (swap! position + (primitive-size type))
-                   (case type
+                   (vswap! position + (primitive-size schema))
+                   (case schema
                      :s/byte (.put this p (byte data))
                      :s/short (.putShort this p (short data))
                      :s/int (.putInt this p (int data))
@@ -43,10 +53,10 @@
 
        :cljs (extend-type js/DataView
                HybridBuffer
-               (read! [this type position]
+               (read! [this schema position]
                  (let [p @position]
-                   (swap! position (+ p (primitive-size type)))
-                   (case type
+                   (vswap! position (+ p (primitive-size schema)))
+                   (case schema
                      :s/byte (.getInt8 this p)
                      :s/short (.getInt16 this p)
                      :s/int (.getInt32 this p)
@@ -57,10 +67,10 @@
                                     (.getInt8 (quot p 8))
                                     (bit-test (rem p 8)))
                      nil)))
-               (write! [this data type position]
+               (write! [this schema position data]
                  (let [p @position]
-                   (swap! position (+ p (primitive-size type)))
-                   (case type
+                   (vswap! position (+ p (primitive-size schema)))
+                   (case schema
                      :s/byte (.setInt8 this p data)
                      :s/short (.setInt16 this p data)
                      :s/int (.setInt32 this p data)
@@ -74,43 +84,39 @@
                      nil))))))
 
 (defn make-wbuffer [max-bits max-bytes]
-  (let [size (+ max-bits max-bytes)]
+  (let [size (+ 4 max-bits max-bytes)]
     {:buffer        #?(:clj  (ByteBuffer/allocate size)
                        :cljs (js/DataView. (js/ArrayBuffer. size)))
-     :bit-position  (atom 0)
-     :byte-position (atom 0)
+     :bit-position  (volatile! 0)
+     :byte-position (volatile! 0)
      :max-bits      max-bits}))
 
 (defn reset-wbuffer! [{:keys [bit-position byte-position max-bits]}]
-  (reset! bit-position 16)
-  (reset! byte-position (+ 2 max-bits)))
+  (vreset! bit-position 32)
+  (vreset! byte-position (+ 4 max-bits)))
 
 (defn unwrap-wbuffer [{:keys [bit-position byte-position max-bits buffer]}]
-  (let [bits-length  (int (Math/ceil (/ (- @bit-position 16) 8)))
-        bytes-length (- @byte-position max-bits 2)
-        total-length (+ 4 bits-length bytes-length)]
+  (let [length-1     (int (Math/ceil (/ @bit-position 8)))
+        length-2     (- @byte-position max-bits 4)
+        total-length (+ length-1 length-2)]
+    (write! buffer :s/short (volatile! 2) (- length-1 4))
     #?(:clj  (let [buffer-bytes (.array ^ByteBuffer buffer)
                    bytes        (byte-array total-length)]
-               (System/arraycopy buffer-bytes 0 bytes 0 2)
-               (System/arraycopy (short->bytes bits-length) 0 bytes 2 2)
-               (System/arraycopy buffer-bytes 2 bytes 4 bits-length)
-               (System/arraycopy buffer-bytes (+ 2 max-bits) bytes (+ 4 bits-length) bytes-length)
+               (System/arraycopy buffer-bytes 0 bytes 0 length-1)
+               (System/arraycopy buffer-bytes (+ 4 max-bits) bytes length-1 length-2)
                bytes)
        :cljs (let [array-buffer (.-buffer buffer)
                    byte-view    (js/Int8Array. total-length)]
-               (.set byte-view (js/Int8Array. (.slice array-buffer 0 2)) 0)
-               (.set byte-view (short->bytes bits-length) 2)
-               (.set byte-view (js/Int8Array. (.slice array-buffer 2 (+ 2 bits-length))) 4)
-               (.set byte-view (js/Int8Array. (.slice array-buffer max-bits (+ max-bits bytes-length)))
-                     (+ 4 bits-length))
+               (.set byte-view (js/Int8Array. (.slice array-buffer 0 length-1)) 0)
+               (.set byte-view (js/Int8Array. (.slice array-buffer (+ 4 max-bits) (+ 4 max-bits length-2))) length-1)
                (.-buffer byte-view)))))
 
 (defn wrap-bytes [bytes]
   (let [buffer #?(:clj (ByteBuffer/wrap bytes)
                   :cljs (js/DataView. bytes))
-        schema-code    (read! buffer :s/short (atom 0))
-        bit-length     (read! buffer :s/short (atom 2))]
+        schema-code    (read! buffer :s/short (volatile! 0))
+        bit-length     (read! buffer :s/short (volatile! 2))]
     [schema-code
      {:buffer        buffer
-      :bit-position  (atom 32)
-      :byte-position (atom (+ 4 bit-length))}]))
+      :bit-position  (volatile! 32)
+      :byte-position (volatile! (+ 4 bit-length))}]))

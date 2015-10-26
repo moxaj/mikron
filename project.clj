@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.145"]
                  [criterium "0.4.3"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]]
+                 [com.taoensso/nippy "2.10.0"]]
   :main ^:skip-aot seria.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

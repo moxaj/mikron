@@ -1,20 +1,19 @@
 (ns seria.serialization
+  #?(:clj
+     (:import [java.util Date]))
   (:require [seria.buffers :refer :all]))
 
 (set! *warn-on-reflection* true)
 
-(def primitives
-  #{:s/byte :s/short :s/int :s/float :s/double :s/char :s/boolean})
+(defn primitive? [schema]
+  (#{:s/byte :s/short :s/int :s/float :s/double :s/char :s/boolean} schema))
 
-(defn primitive? [type]
-  (primitives type))
-
-(def composites
-  #{:s/list :s/vector :s/set :s/map :s/tuple :s/record})
+(defn advanced? [schema]
+  (#{:s/string :s/long-string :s/keyword :s/date} schema))
 
 (defn composite? [schema]
-  (and (vector? schema)
-       (composites (first schema))))
+  (and (sequential? schema)
+       (#{:s/list :s/vector :s/set :s/map :s/tuple :s/record} (first schema))))
 
 (defn disj-composite [[a b & more]]
   (let [u  a
@@ -29,149 +28,179 @@
       [u v w])))
 
 
-(declare serialize-any)
-(declare deserialize-any)
 
 
-(defn serialize-primitive [schema _config buffer bit-position byte-position data]
+(defn dispatch [schema {:keys [schema-map]} & _]
+  (cond
+    (primitive? schema) :s/primitive
+    (advanced? schema) schema
+    (composite? schema) (let [sub-type (first schema)]
+                          (if (#{:s/list :s/vector :s/set} sub-type)
+                            :s/coll
+                            sub-type))
+    (schema-map schema) :s/sub-schema))
+
+(defmulti serialize* dispatch)
+
+(defmulti deserialize* dispatch)
+
+
+(defmethod serialize* :s/primitive
+  [schema _ buffer bit-position byte-position data]
   (let [position (if (= :s/boolean schema) bit-position byte-position)]
-    `(write! ~buffer ~data ~schema ~position)))
+    `(write! ~buffer ~schema ~position ~data)))
 
-(defn deserialize-primitive [schema _config buffer bit-position byte-position]
+(defmethod deserialize* :s/primitive
+  [schema _ buffer bit-position byte-position]
   (let [position (if (= :s/boolean schema) bit-position byte-position)]
     `(read! ~buffer ~schema ~position)))
 
 
-(defn serialize-string [_schema _config buffer _bit-position byte-position data]
+(defmethod serialize* :s/string
+  [_ _ buffer _ byte-position data]
   (let [char (gensym "char_")]
-    `(do (write! ~buffer (count ~data) :s/short ~byte-position)
-         (run! (fn [~char] (write! ~buffer ~char :s/char ~byte-position))
+    `(do (write! ~buffer :s/byte ~byte-position (count ~data))
+         (run! (fn [~char] (write! ~buffer :s/char ~byte-position ~char))
                ~data))))
 
-(defn deserialize-string [_schema _config buffer _bit-position byte-position]
-  `(->> (repeatedly (read! ~buffer :s/short ~byte-position)
+(defmethod deserialize* :s/string
+  [_ _ buffer _ byte-position]
+  `(->> (repeatedly (read! ~buffer :s/byte ~byte-position)
                     (fn [] (read! ~buffer :s/char ~byte-position)))
-        (doall)
         (apply str)))
 
 
-(defn serialize-keyword [_schema {:keys [keyword-map]} buffer _bit-position byte-position data]
-  `(write! ~buffer (get ~keyword-map ~data) :s/short ~byte-position))
+(defmethod serialize* :s/long-string
+  [_ _ buffer _ byte-position data]
+  (let [char (gensym "char_")]
+    `(do (write! ~buffer :s/short ~byte-position (count ~data))
+         (run! (fn [~char] (write! ~buffer :s/char ~byte-position ~char))
+               ~data))))
 
-(defn deserialize-keyword [_schema {:keys [keyword-map]} buffer _bit-position byte-position]
+(defmethod deserialize* :s/long-string
+  [_ _ buffer _ byte-position]
+  `(->> (repeatedly (read! ~buffer :s/short ~byte-position)
+                    (fn [] (read! ~buffer :s/char ~byte-position)))
+        (apply str)))
+
+
+(defmethod serialize* :s/keyword
+  [_ {:keys [keyword-map]} buffer _ byte-position data]
+  (write! ~buffer :s/short ~byte-position (get ~keyword-map ~data)))
+
+(defmethod deserialize* :s/keyword
+  [_ {:keys [keyword-map]} buffer _ byte-position]
   `(get ~keyword-map (read! ~buffer :s/short ~byte-position)))
 
 
-(defn serialize-coll [schema config buffer bit-position byte-position data]
-  (let [[_ _ [sub-schema]] (disj-composite schema)
+(defmethod serialize* :s/date
+  [_ _ buffer _ byte-position data]
+  (write! ~buffer :s/double ~byte-position #?(:clj  (.getTime ^Date ~data)
+                                              :cljs (.getTime ~data))))
+
+(defmethod deserialize* :s/date
+  [_ _ buffer _ byte-position]
+  (#?(:clj  (Date. (long (read! ~buffer :s/double ~byte-position)))
+      :cljs (js/Date. (read! ~buffer :s/double ~byte-position)))))
+
+
+(defmethod serialize* :s/coll
+  [schema config buffer bit-position byte-position data]
+  (let [[_ {:keys [size] :or {size :s/byte}} [sub-schema]] (disj-composite schema)
         coll-item (gensym "coll-item__")]
-    `(do (write! ~buffer (count ~data) :s/short ~byte-position)
+    `(do (write! ~buffer ~size ~byte-position (count ~data))
          (run! (fn [~coll-item]
-                 ~(serialize-any sub-schema config buffer bit-position byte-position coll-item))
+                 ~(serialize* sub-schema config buffer bit-position byte-position coll-item))
                ~data))))
 
-(defn deserialize-coll [schema config buffer bit-position byte-position]
-  (let [[coll-type _ [sub-schema]] (disj-composite schema)]
-    `(->> (repeatedly (read! ~buffer :s/short ~byte-position)
-                      (fn [] ~(deserialize-any sub-schema config buffer bit-position byte-position)))
-          (doall)
-          ~(case coll-type
-             :s/vector vec
-             :s/list seq
-             :s/set set))))
+(defmethod deserialize* :s/coll
+  [schema config buffer bit-position byte-position]
+  (let [[coll-type {:keys [size sorted?]
+                    :or   {size :s/byte sorted? false}} [sub-schema]] (disj-composite schema)]
+    `(->> (repeatedly (read! ~buffer ~size ~byte-position)
+                      (fn [] ~(deserialize* sub-schema config buffer bit-position byte-position)))
+          ~(case [coll-type sorted?]
+             [:s/vector true] (comp vec sort)
+             [:s/vector false] vec
+             [:s/list true] sort
+             [:s/list false] seq
+             [:s/set true] (partial into (sorted-set))
+             [:s/set false] set)
+          (doall))))
 
 
-(defn serialize-map [schema config buffer bit-position byte-position data]
-  (let [[_ _ [key-schema value-schema]] (disj-composite schema)
+(defmethod serialize* :s/map
+  [schema config buffer bit-position byte-position data]
+  (let [[_ {:keys [size] :or {size :s/byte}} [key-schema value-schema]] (disj-composite schema)
         key   (gensym "key_")
         value (gensym "value_")]
-    `(do (write! ~buffer (count ~data) :s/short ~byte-position)
+    `(do (write! ~buffer ~size ~byte-position (count ~data))
          (run! (fn [[~key ~value]]
-                 ~(serialize-any key-schema config buffer bit-position byte-position key)
-                 ~(serialize-any value-schema config buffer bit-position byte-position value))
+                 ~(serialize* key-schema config buffer bit-position byte-position key)
+                 ~(serialize* value-schema config buffer bit-position byte-position value))
                ~data))))
 
-(defn deserialize-map [schema config buffer bit-position byte-position]
-  (let [[_ _ [key-schema value-schema]] (disj-composite schema)]
-    `(->> (repeatedly (read! ~buffer :s/short ~byte-position)
-                      (fn [] [~(deserialize-any key-schema config buffer bit-position byte-position)
-                              ~(deserialize-any value-schema config buffer bit-position byte-position)]))
-          (doall)
-          (into {}))))
+(defmethod deserialize* :s/map
+  [schema config buffer bit-position byte-position]
+  (let [[_ {:keys [size sorted?]
+            :or   {size :s/byte sorted? false}} [key-schema value-schema]] (disj-composite schema)]
+    `(->> (repeatedly (read! ~buffer ~size ~byte-position)
+                      (fn [] [~(deserialize* key-schema config buffer bit-position byte-position)
+                              ~(deserialize* value-schema config buffer bit-position byte-position)]))
+          (into ~(if sorted? (sorted-set) {}))
+          (doall))))
 
 
-(defn serialize-tuple [schema config buffer bit-position byte-position data]
+(defmethod serialize* :s/tuple
+  [schema config buffer bit-position byte-position data]
   (let [[_ _ sub-schemas] (disj-composite schema)
-        symbols  (repeatedly (count sub-schemas) #(gensym "tup-item_"))
-        let-body (mapcat (fn [symbol index] [symbol `(get ~data ~index)])
-                         symbols
-                         (range))]
-    `(let [~@let-body]
-       ~@(->> (map vector symbols sub-schemas)
-              (map (fn [[symbol sub-schema]]
-                     (serialize-any sub-schema config buffer bit-position byte-position symbol)))
-              (doall)))))
+        symbols (repeatedly (count sub-schemas) #(gensym "tup-item_"))
+        let-arg (mapcat (fn [symbol index] [symbol `(get ~data ~index)])
+                        symbols
+                        (range))]
+    `(let [~@let-arg]
+       ~@(map (fn [symbol sub-schema]
+                (serialize* sub-schema config buffer bit-position byte-position symbol))
+              symbols
+              sub-schemas))))
 
-(defn deserialize-tuple [schema config buffer bit-position byte-position]
+(defmethod deserialize* :s/tuple
+  [schema config buffer bit-position byte-position]
   (let [[_ _ sub-schemas] (disj-composite schema)]
-    `(vector ~@(doall (map (fn [sub-schema]
-                             (deserialize-any sub-schema config buffer bit-position byte-position))
-                           sub-schemas)))))
+    `(vector ~@(map (fn [sub-schema]
+                      (deserialize* sub-schema config buffer bit-position byte-position))
+                    sub-schemas))))
 
 
-(defn serialize-record [schema config buffer bit-position byte-position data]
+(defmethod serialize* :s/record
+  [schema config buffer bit-position byte-position data]
   (let [[_ _ args] (disj-composite schema)
-        arg-pairs      (partition 2 args)
-        symbols        (repeatedly (count arg-pairs) #(gensym "rec-item_"))
-        let-body       (mapcat (fn [symbol [key _]] [symbol `(get ~data ~key)])
-                               symbols
-                               arg-pairs)
-        symbol-schemas (map (fn [symbol [_ schema]] [symbol schema])
-                            symbols
-                            arg-pairs)]
-    `(let [~@let-body]
-       ~@(doall (map (fn [[symbol value-schema]]
-                       (serialize-any value-schema config buffer bit-position byte-position symbol))
-                     symbol-schemas)))))
+        arg-pairs (partition 2 args)
+        symbols   (repeatedly (count arg-pairs) #(gensym "rec-item_"))
+        let-arg   (mapcat (fn [symbol [key _]] [symbol `(get ~data ~key)])
+                          symbols
+                          arg-pairs)]
+    `(let [~@let-arg]
+       ~@(map (fn [symbol [_ sub-schema]]
+                (serialize* sub-schema config buffer bit-position byte-position symbol))
+              symbols
+              arg-pairs))))
 
-(defn deserialize-record [schema config buffer bit-position byte-position]
+(defmethod deserialize* :s/record
+  [schema config buffer bit-position byte-position]
   (let [[_ _ args] (disj-composite schema)]
-    `(hash-map ~@(->> args
-                      (partition 2)
+    `(hash-map ~@(->> (partition 2 args)
                       (mapcat (fn [[key value-schema]]
-                                [key (deserialize-any value-schema config buffer bit-position byte-position)]))
-                      (doall)))))
+                                [key (deserialize* value-schema config buffer bit-position byte-position)]))))))
 
 
-(defn serialize-sub-schema [schema config buffer bit-position byte-position data]
-  (serialize-any (get-in config [:schemas schema]) config buffer bit-position byte-position data))
+(defmethod serialize* :s/sub-schema
+  [schema config buffer bit-position byte-position data]
+  (serialize* (get-in config [:schemas schema]) config buffer bit-position byte-position data))
 
-(defn deserialize-sub-schema [schema config buffer bit-position byte-position]
-  (deserialize-any (get-in config [:schemas schema]) config buffer bit-position byte-position))
-
-
-(defn get-processor [schema {:keys [schema-map]}]
-  (cond
-    (primitive? schema) [serialize-primitive deserialize-primitive]
-    (= :s/string schema) [serialize-string deserialize-string]
-    (= :s/keyword schema) [serialize-keyword deserialize-keyword]
-    (composite? schema) (case (first schema)
-                          :s/list [serialize-coll deserialize-coll]
-                          :s/vector [serialize-coll deserialize-coll]
-                          :s/set [serialize-coll deserialize-coll]
-                          :s/map [serialize-map deserialize-map]
-                          :s/tuple [serialize-tuple deserialize-tuple]
-                          :s/record [serialize-record deserialize-record])
-    (schema-map schema) [serialize-sub-schema deserialize-sub-schema]
-    :else [nil nil]))
-
-(defn serialize-any [schema config buffer bit-position byte-position data]
-  (when-let [f (first (get-processor schema config))]
-    (f schema config buffer bit-position byte-position data)))
-
-(defn deserialize-any [schema config buffer bit-position byte-position]
-  (when-let [f (second (get-processor schema config))]
-    (f schema config buffer bit-position byte-position)))
+(defmethod deserialize* :s/sub-schema
+  [schema config buffer bit-position byte-position]
+  (deserialize* (get-in config [:schemas schema]) config buffer bit-position byte-position))
 
 
 (defn make-serializer [schema config]
@@ -180,13 +209,11 @@
         bit-position  (gensym "bit-position_")
         byte-position (gensym "byte-position_")]
     `(fn [~data ~buffer ~bit-position ~byte-position]
-       ~(serialize-any schema config buffer bit-position byte-position data))))
+       ~(serialize* schema config buffer bit-position byte-position data))))
 
 (defn make-deserializer [schema config]
   (let [buffer        (gensym "buffer_")
         bit-position  (gensym "bit-position_")
         byte-position (gensym "byte-position_")]
     `(fn [~buffer ~bit-position ~byte-position]
-       ~(deserialize-any schema config buffer bit-position byte-position))))
-
-;; TODO date, long-string, coll/map/tuple/record options?
+       ~(deserialize* schema config buffer bit-position byte-position))))
