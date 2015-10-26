@@ -4,84 +4,50 @@
 
 (set! *warn-on-reflection* true)
 
-(defn primitive-size [schema]
-  (case schema
-    :s/byte 1
-    :s/short 2
-    :s/int 4
-    :s/float 4
-    :s/double 8
-    :s/char 2
-    :s/boolean 1))
-
 (defprotocol HybridBuffer
-  (read! [this schema position])
-  (write! [this schema position data]))
+  (read-byte! [this position])
+  (read-short! [this position])
+  (read-int! [this position])
+  (read-float! [this position])
+  (read-double! [this position])
+  (read-char! [this position])
+  (read-boolean! [this position])
+
+  (write-byte! [this position data])
+  (write-short! [this position data])
+  (write-int! [this position data])
+  (write-float! [this position data])
+  (write-double! [this position data])
+  (write-char! [this position data])
+  (write-boolean! [this position data]))
 
 (do #?(:clj  (extend-type ByteBuffer
                HybridBuffer
-               (read! [this schema position]
-                 (let [p @position]
-                   (vswap! position + (primitive-size schema))
-                   (case schema
-                     :s/byte (.get this ^int p)
-                     :s/short (.getShort this p)
-                     :s/int (.getInt this p)
-                     :s/float (.getFloat this p)
-                     :s/double (.getDouble this p)
-                     :s/char (.getChar this p)
-                     :s/boolean (-> this
-                                    (.get ^int (quot p 8))
-                                    (bit-test (rem p 8)))
-                     nil)))
-               (write! [this schema position data]
-                 (let [p @position]
-                   (vswap! position + (primitive-size schema))
-                   (case schema
-                     :s/byte (.put this p (byte data))
-                     :s/short (.putShort this p (short data))
-                     :s/int (.putInt this p (int data))
-                     :s/float (.putFloat this p (float data))
-                     :s/double (.putDouble this p (double data))
-                     :s/char (.putChar this p (char data))
-                     :s/boolean (when data
-                                  (.put this (quot p 8) (-> this
-                                                            (.get ^int (quot p 8))
-                                                            (bit-set (rem p 8))
-                                                            (unchecked-byte))))
-                     nil))))
+               (read-byte! [this position] (.get this ^int position))
+               (read-short! [this position] (.getShort this position))
+               (read-int! [this position] (.getInt this position))
+               (read-float! [this position] (.getFloat this position))
+               (read-double! [this position] (.getDouble this position))
+               (read-char! [this position] (.getChar this position))
+               (read-boolean! [this position] (-> this
+                                                  (.get ^int (quot position 8))
+                                                  (bit-test (rem position 8))))
+
+               (write-byte! [this position data] (.put this position (byte data)))
+               (write-short! [this position data] (.putShort this position (short data)))
+               (write-int! [this position data] (.putInt this position (int data)))
+               (write-float! [this position data] (.putFloat this position (float data)))
+               (write-double! [this position data] (.putDouble this position (double data)))
+               (write-char! [this position data] (.putChar this position (char data)))
+               (write-boolean! [this position data] (when data
+                                                      (.put this (quot position 8)
+                                                            (-> this
+                                                                (.get ^int (quot position 8))
+                                                                (bit-set (rem position 8)))))))
 
        :cljs (extend-type js/DataView
-               HybridBuffer
-               (read! [this schema position]
-                 (let [p @position]
-                   (vswap! position (+ p (primitive-size schema)))
-                   (case schema
-                     :s/byte (.getInt8 this p)
-                     :s/short (.getInt16 this p)
-                     :s/int (.getInt32 this p)
-                     :s/float (.getFloat32 this p)
-                     :s/double (.getFloat64 this p)
-                     :s/char (.getUint8 this p)
-                     :s/boolean (-> this
-                                    (.getInt8 (quot p 8))
-                                    (bit-test (rem p 8)))
-                     nil)))
-               (write! [this schema position data]
-                 (let [p @position]
-                   (vswap! position (+ p (primitive-size schema)))
-                   (case schema
-                     :s/byte (.setInt8 this p data)
-                     :s/short (.setInt16 this p data)
-                     :s/int (.setInt32 this p data)
-                     :s/float (.setFloat32 this p data)
-                     :s/double (.setFloat64 this p data)
-                     :s/char (.setUint8 this p data)
-                     :s/boolean (.setInt8 this (-> this
-                                                   (.getInt8 (quot p 8))
-                                                   (bit-set (rem p 8))
-                                                   (unchecked-byte)))
-                     nil))))))
+               ;; TODO implement
+               )))
 
 (defn make-wbuffer [max-bits max-bytes]
   (let [size (+ 4 max-bits max-bytes)]
@@ -99,7 +65,7 @@
   (let [length-1     (int (Math/ceil (/ @bit-position 8)))
         length-2     (- @byte-position max-bits 4)
         total-length (+ length-1 length-2)]
-    (write! buffer :s/short (volatile! 2) (- length-1 4))
+    (write-short! buffer 2 (- length-1 4))
     #?(:clj  (let [buffer-bytes (.array ^ByteBuffer buffer)
                    bytes        (byte-array total-length)]
                (System/arraycopy buffer-bytes 0 bytes 0 length-1)
@@ -114,8 +80,8 @@
 (defn wrap-bytes [bytes]
   (let [buffer #?(:clj (ByteBuffer/wrap bytes)
                   :cljs (js/DataView. bytes))
-        schema-code    (read! buffer :s/short (volatile! 0))
-        bit-length     (read! buffer :s/short (volatile! 2))]
+        schema-code    (read-short! buffer 0)
+        bit-length     (read-short! buffer 2)]
     [schema-code
      {:buffer        buffer
       :bit-position  (volatile! 32)

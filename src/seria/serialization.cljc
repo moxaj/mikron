@@ -27,7 +27,15 @@
       [u v w1]
       [u v w])))
 
-
+(defn primitive-size [schema]
+  (case schema
+    :s/byte 1
+    :s/short 2
+    :s/int 4
+    :s/float 4
+    :s/double 8
+    :s/char 2
+    :s/boolean 1))
 
 
 (defn dispatch [schema {:keys [schema-map]} & _]
@@ -47,68 +55,89 @@
 
 (defmethod serialize* :s/primitive
   [schema _ buffer bit-position byte-position data]
-  (let [position (if (= :s/boolean schema) bit-position byte-position)]
-    `(write! ~buffer ~schema ~position ~data)))
+  (let [position (if (= :s/boolean schema) bit-position byte-position)
+        p        (gensym "p_")]
+    `(let [~p (deref ~position)]
+       (vswap! ~position + ~(primitive-size schema))
+       ~(case schema
+          :s/byte `(write-byte! ~buffer ~p ~data)
+          :s/short `(write-short! ~buffer ~p ~data)
+          :s/int `(write-int! ~buffer ~p ~data)
+          :s/float `(write-float! ~buffer ~p ~data)
+          :s/double `(write-double! ~buffer ~p ~data)
+          :s/char `(write-char! ~buffer ~p ~data)
+          :s/boolean `(write-boolean! ~buffer ~p ~data)
+          nil))))
 
 (defmethod deserialize* :s/primitive
   [schema _ buffer bit-position byte-position]
-  (let [position (if (= :s/boolean schema) bit-position byte-position)]
-    `(read! ~buffer ~schema ~position)))
+  (let [position (if (= :s/boolean schema) bit-position byte-position)
+        p        (gensym "p_")]
+    `(let [~p (deref ~position)]
+       (vswap! ~position + ~(primitive-size schema))
+       ~(case schema
+          :s/byte `(read-byte! ~buffer ~p)
+          :s/short `(read-short! ~buffer ~p)
+          :s/int `(read-int! ~buffer ~p)
+          :s/float `(read-float! ~buffer ~p)
+          :s/double `(read-double! ~buffer ~p)
+          :s/char `(read-char! ~buffer ~p)
+          :s/boolean `(read-boolean! ~buffer ~p)
+          nil))))
 
 
 (defmethod serialize* :s/string
-  [_ _ buffer _ byte-position data]
+  [_ config buffer bit-position byte-position data]
   (let [char (gensym "char_")]
-    `(do (write! ~buffer :s/byte ~byte-position (count ~data))
-         (run! (fn [~char] (write! ~buffer :s/char ~byte-position ~char))
+    `(do ~(serialize* :s/byte config buffer bit-position byte-position `(count ~data))
+         (run! (fn [~char] ~(serialize* :s/char config buffer bit-position byte-position char))
                ~data))))
 
 (defmethod deserialize* :s/string
-  [_ _ buffer _ byte-position]
-  `(->> (repeatedly (read! ~buffer :s/byte ~byte-position)
-                    (fn [] (read! ~buffer :s/char ~byte-position)))
+  [_ config buffer bit-position byte-position]
+  `(->> (repeatedly ~(deserialize* :s/byte config buffer bit-position byte-position)
+                    (fn [] ~(deserialize* :s/char config buffer bit-position byte-position)))
         (apply str)))
 
 
 (defmethod serialize* :s/long-string
-  [_ _ buffer _ byte-position data]
+  [_ config buffer bit-position byte-position data]
   (let [char (gensym "char_")]
-    `(do (write! ~buffer :s/short ~byte-position (count ~data))
-         (run! (fn [~char] (write! ~buffer :s/char ~byte-position ~char))
+    `(do ~(serialize* :s/short config buffer bit-position byte-position `(count ~data))
+         (run! (fn [~char] ~(serialize* :s/char config buffer bit-position byte-position char))
                ~data))))
 
 (defmethod deserialize* :s/long-string
-  [_ _ buffer _ byte-position]
-  `(->> (repeatedly (read! ~buffer :s/short ~byte-position)
-                    (fn [] (read! ~buffer :s/char ~byte-position)))
+  [_ config buffer bit-position byte-position]
+  `(->> (repeatedly ~(deserialize* :s/short config buffer bit-position byte-position)
+                    (fn [] ~(deserialize* :s/char config buffer bit-position byte-position)))
         (apply str)))
 
 
 (defmethod serialize* :s/keyword
-  [_ {:keys [keyword-map]} buffer _ byte-position data]
-  (write! ~buffer :s/short ~byte-position (get ~keyword-map ~data)))
+  [_ {:keys [keyword-map] :as config} buffer bit-position byte-position data]
+  (serialize* :s/short config buffer bit-position byte-position `(get ~keyword-map ~data)))
 
 (defmethod deserialize* :s/keyword
-  [_ {:keys [keyword-map]} buffer _ byte-position]
-  `(get ~keyword-map (read! ~buffer :s/short ~byte-position)))
+  [_ {:keys [keyword-map] :as config} buffer bit-position byte-position]
+  `(get ~keyword-map ~(deserialize* :s/short config buffer bit-position byte-position)))
 
 
 (defmethod serialize* :s/date
-  [_ _ buffer _ byte-position data]
-  (write! ~buffer :s/double ~byte-position #?(:clj  (.getTime ^Date ~data)
-                                              :cljs (.getTime ~data))))
+  [_ config buffer bit-position byte-position data]
+  (serialize* :s/double config buffer bit-position byte-position `(.getTime ~data)))
 
 (defmethod deserialize* :s/date
-  [_ _ buffer _ byte-position]
-  (#?(:clj  (Date. (long (read! ~buffer :s/double ~byte-position)))
-      :cljs (js/Date. (read! ~buffer :s/double ~byte-position)))))
+  [_ config buffer bit-position byte-position]
+  (#?(:clj  (Date. (long (deserialize* :s/double config buffer bit-position byte-position)))
+      :cljs (js/Date. (deserialize* :s/double config buffer bit-position byte-position)))))
 
 
 (defmethod serialize* :s/coll
   [schema config buffer bit-position byte-position data]
   (let [[_ {:keys [size] :or {size :s/byte}} [sub-schema]] (disj-composite schema)
         coll-item (gensym "coll-item__")]
-    `(do (write! ~buffer ~size ~byte-position (count ~data))
+    `(do ~(serialize* size config buffer bit-position byte-position `(count ~data))
          (run! (fn [~coll-item]
                  ~(serialize* sub-schema config buffer bit-position byte-position coll-item))
                ~data))))
@@ -117,7 +146,7 @@
   [schema config buffer bit-position byte-position]
   (let [[coll-type {:keys [size sorted?]
                     :or   {size :s/byte sorted? false}} [sub-schema]] (disj-composite schema)]
-    `(->> (repeatedly (read! ~buffer ~size ~byte-position)
+    `(->> (repeatedly ~(deserialize* size config buffer bit-position byte-position)
                       (fn [] ~(deserialize* sub-schema config buffer bit-position byte-position)))
           ~(case [coll-type sorted?]
              [:s/vector true] (comp vec sort)
@@ -134,7 +163,7 @@
   (let [[_ {:keys [size] :or {size :s/byte}} [key-schema value-schema]] (disj-composite schema)
         key   (gensym "key_")
         value (gensym "value_")]
-    `(do (write! ~buffer ~size ~byte-position (count ~data))
+    `(do ~(serialize* size config buffer bit-position byte-position `(count ~data))
          (run! (fn [[~key ~value]]
                  ~(serialize* key-schema config buffer bit-position byte-position key)
                  ~(serialize* value-schema config buffer bit-position byte-position value))
@@ -144,7 +173,7 @@
   [schema config buffer bit-position byte-position]
   (let [[_ {:keys [size sorted?]
             :or   {size :s/byte sorted? false}} [key-schema value-schema]] (disj-composite schema)]
-    `(->> (repeatedly (read! ~buffer ~size ~byte-position)
+    `(->> (repeatedly ~(deserialize* size config buffer bit-position byte-position)
                       (fn [] [~(deserialize* key-schema config buffer bit-position byte-position)
                               ~(deserialize* value-schema config buffer bit-position byte-position)]))
           (into ~(if sorted? (sorted-set) {}))

@@ -34,7 +34,7 @@
   (when-let [serialize! (get-in processors [schema :serializer])]
     (let [{:keys [buffer bit-position byte-position]} wbuffer]
       (reset-wbuffer! wbuffer)
-      (write! buffer :s/short (volatile! 0) (schema-map schema))
+      (write-short! buffer 0 (schema-map schema))
       (serialize! data buffer bit-position byte-position)
       (unwrap-wbuffer wbuffer))))
 
