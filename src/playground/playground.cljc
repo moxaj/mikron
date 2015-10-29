@@ -16,18 +16,26 @@
 (defmacro make-deserializer-m [schema config]
   (make-deserializer (eval schema) (eval config)))
 
-;(mm '(make-serializer-m :a config-1))
+(mm '(make-deserializer-m :my-map c))
+
+
+(defconfig c {:my-map [:sorted-map [:tuple :int :int] :double]})
+(def d (into (sorted-map) (mapv vector (map-indexed vector (range 100)) (range 100))))
+(serialize d :my-map c)
+(deserialize *1 c)
+(let [c (make-config {})
+      d (into (sorted-map) (mapv vector (range 100) (range 100)))]
+  )
+
 
 (comment
   (defconfig config-1
-             {:a [:s/vector (identity :b)]
-              :b [:s/record {}
-                  :foo [:s/tuple :s/int :s/int]
-                  :bar [:s/record {}
-                        :qux :s/int]
-                  :baz [:s/vector :s/boolean]]}
-             {:max-bits    10000
-              :max-bytes   10000})
+             {:a [:vector (identity :b)]
+              :b [:record {}
+                  :foo [:tuple :int :int]
+                  :bar [:record {}
+                        :qux :int]
+                  :baz [:vector :boolean]]})
   (def data [{:foo [1 2]
               :bar {:qux 3}
               :baz [true false true true false]}
@@ -38,22 +46,26 @@
   (deserialize *1 config-1)
   (crit/with-progress-reporting
     (crit/quick-bench
-      (dotimes [_ 10000]
-        (serialize data :a config-1))))
+      (dotimes [_ 100]
+        (nippy/freeze data))))                              ;(serialize data :a config-1)
   (count *1)
 
 
-
   (defconfig config-2
-             {:a [:s/vector {:size :s/short} :s/double]}
-             {})
+             {:a [:vector {:size :short} :double]}
+             :buffer-count 4)
   (def data-2 (repeatedly 1000 rand))
+  (run! deref (serialize-all (repeat 1000 data-2) :a config-2 identity))
+
+
+  (crit/with-progress-reporting
+    (crit/quick-bench
+      (serialize-all (repeat 100 data-2) :a config-2)))
+
   (crit/with-progress-reporting
     (crit/quick-bench
       (dotimes [_ 100]
         (serialize data-2 :a config-2))))
-  (count (nippy/freeze data-2))
-  (serialize data-2 :a config-2)
   (crit/with-progress-reporting
     (crit/quick-bench
       (dotimes [_ 100]

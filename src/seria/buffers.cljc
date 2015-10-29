@@ -2,8 +2,6 @@
   #?(:clj
      (:import [java.nio ByteBuffer])))
 
-(set! *warn-on-reflection* true)
-
 (defprotocol HybridBuffer
   (read-byte! [this position])
   (read-short! [this position])
@@ -39,11 +37,12 @@
                (write-float! [this position data] (.putFloat this position (float data)))
                (write-double! [this position data] (.putDouble this position (double data)))
                (write-char! [this position data] (.putChar this position (char data)))
-               (write-boolean! [this position data] (when data
-                                                      (.put this (quot position 8)
-                                                            (-> this
-                                                                (.get ^int (quot position 8))
-                                                                (bit-set (rem position 8)))))))
+               (write-boolean! [this position data] (.put this (quot position 8)
+                                                          (-> this
+                                                              (.get ^int (quot position 8))
+                                                              ((if data bit-set bit-clear)
+                                                                (rem position 8))
+                                                              (unchecked-byte)))))
 
        :cljs (extend-type js/DataView
                ;; TODO implement
