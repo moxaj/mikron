@@ -11,22 +11,10 @@
           (pprint (macroexpand %))))
 
 (defmacro make-serializer-m [schema config]
-  (make-serializer (eval schema) (eval config)))
+  (make-serializer schema config))
 
 (defmacro make-deserializer-m [schema config]
-  (make-deserializer (eval schema) (eval config)))
-
-(mm '(make-deserializer-m :my-map c))
-
-
-(defconfig c {:my-map [:sorted-map [:tuple :int :int] :double]})
-(def d (into (sorted-map) (mapv vector (map-indexed vector (range 100)) (range 100))))
-(serialize d :my-map c)
-(deserialize *1 c)
-(let [c (make-config {})
-      d (into (sorted-map) (mapv vector (range 100) (range 100)))]
-  )
-
+  (make-deserializer schema config))
 
 (comment
   (defconfig config-1
@@ -36,40 +24,30 @@
                   :bar [:record {}
                         :qux :int]
                   :baz [:vector :boolean]]})
-  (def data [{:foo [1 2]
-              :bar {:qux 3}
-              :baz [true false true true false]}
-             {:foo [4 5]
-              :bar {:qux 6}
-              :baz [true true]}])
-  (serialize data :a config-1)
+  (def data-1 [{:foo [1 2]
+                :bar {:qux 3}
+                :baz [true false true true false]}
+               {:foo [4 5]
+                :bar {:qux 6}
+                :baz [true true]}])
+  (serialize data-1 :a config-1)
   (deserialize *1 config-1)
-  (crit/with-progress-reporting
-    (crit/quick-bench
-      (dotimes [_ 100]
-        (nippy/freeze data))))                              ;(serialize data :a config-1)
-  (count *1)
-
 
   (defconfig config-2
              {:a [:vector {:size :short} :double]}
              :buffer-count 4)
-  (def data-2 (repeatedly 1000 rand))
-  (run! deref (serialize-all (repeat 1000 data-2) :a config-2 identity))
-
-
-  (crit/with-progress-reporting
-    (crit/quick-bench
-      (serialize-all (repeat 100 data-2) :a config-2)))
+  (def data-2 (repeatedly 1000 #(rand)))
 
   (crit/with-progress-reporting
     (crit/quick-bench
       (dotimes [_ 100]
         (serialize data-2 :a config-2))))
+
   (crit/with-progress-reporting
     (crit/quick-bench
       (dotimes [_ 100]
         (nippy/freeze data-2))))
 
-  (count (pr-str data-2))
-  (count (serialize data-2 :a config-2)))
+  (count (pr-str data-1))
+  (count (serialize data-1 :a config-1))
+  (count (nippy/freeze data-1)))

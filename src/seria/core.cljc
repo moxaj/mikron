@@ -2,32 +2,50 @@
   #?(:clj
      (:import [java.nio ByteBuffer]))
   (:require [seria.buffers :refer :all]
-            [seria.serialization :refer :all]))
+            [seria.serialization :refer :all]
+            [seria.utils :refer :all]
+            [seria.analyze :refer :all]))
 
-(defn bimap [items]
-  (->> items
-       (map-indexed #(vector (- %1 32768) %2))
-       (mapcat (fn [[a b]] [[a b] [b a]]))
-       (into {})))
+(defn make-config [schemas & args]
+  {:pre [(valid-schemas? schemas)]}
+  (let [{:keys [buffer-count max-bits max-bytes]
+         :or   {buffer-count 4 max-bits 10000 max-bytes 10000}} (apply hash-map args)
+        config-id  (unique-int)
+        config     {:schemas    schemas
+                    :wbuffers   (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
+                    :schema-map (bimap (keys schemas))
+                    :enum-map   (bimap (find-enum-values schemas))
+                    :multi-map  (bimap (find-multi-cases schemas))
+                    :config-id  config-id}
+        processors (do (swap! seria.serialization/non-embeddables
+                              assoc config-id (bimap (find-non-embeddables schemas)))
+                       (into {} (for [schema (keys schemas)]
+                                  [schema {:serializer   (eval (make-serializer schema config))
+                                           :deserializer (eval (make-deserializer schema config))}])))]
+    (assoc config :processors processors)))
 
-(defn make-config
-  ([schemas & args]
-   (let [{:keys [keywords buffer-count max-bits max-bytes]
-          :or   {keywords [] buffer-count 4 max-bits 10000 max-bytes 10000}} (apply hash-map args)
-         config     {:schemas     schemas
-                     :wbuffers    (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
-                     :schema-map  (bimap (keys schemas))
-                     :keyword-map (bimap keywords)}
-         processors (into {} (for [schema (keys schemas)]
-                               [schema {:serializer   (eval (make-serializer schema config))
-                                        :deserializer (eval (make-deserializer schema config))}]))]
-     (assoc config :processors processors))))
+(defmacro defconfig [name schemas & args]
+  `(let [schemas# ~schemas
+         args#    (or ~args [])]
+     (def ~name (apply make-config schemas# args#))))
 
-(defmacro defconfig
-  ([name schemas & args]
-   `(let [schemas# ~schemas
-          args#    (or ~args [])]
-      (def ~name (apply make-config schemas# args#)))))
+(comment
+  (defmacro make-config [schemas & args]
+    `(let [{:keys [keywords# buffer-count# max-bits# max-bytes#]
+            :or   {keywords# [] buffer-count# 4 max-bits# 10000 max-bytes# 10000}} (apply hash-map ~args)
+           config#     {:schemas     '~schemas
+                        :wbuffers    (repeatedly buffer-count# #(make-wbuffer max-bits# max-bytes#))
+                        :schema-map  (bimap (keys ~schemas))
+                        :keyword-map (bimap keywords#)
+                        :choose-map  {:a 10 10 :a}}         ;todo
+           processors# (into {} (for [schema# (keys ~schemas)]
+                                  [schema# {:serializer   (eval (make-serializer schema# config#))
+                                            :deserializer (eval (make-deserializer schema# config#))}]))]
+       (assoc config# :processors processors#)))
+
+  (defmacro defconfig [name schemas & args]
+    `(def ~name (make-config ~schemas ~@(or args []))))
+  )
 
 (defn serialize
   ([data schema {:keys [wbuffers] :as config}]
