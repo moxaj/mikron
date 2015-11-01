@@ -12,11 +12,11 @@
        (into {})))
 
 (defn find-by* [f form]
-  (let [value (if (f form) [{:found form}] [])]
-    (concat value (if (or (sequential? form)
-                          (map? form))
-                    (map (partial find-by* f) form)
-                    []))))
+  (concat (if (f form) [{:found form}] [])
+          (if (or (sequential? form)
+                  (map? form))
+            (map (partial find-by* f) form)
+            [])))
 
 (defn find-by [f form]
   {:pre [(ifn? f)]}

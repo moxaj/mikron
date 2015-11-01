@@ -5,8 +5,7 @@
             [seria.utils :refer :all]
             [seria.analyze :refer :all]))
 
-(def verbose-dispatch? (atom false))
-(reset! verbose-dispatch? true)
+(def verbose-dispatch? (atom true))
 
 (def non-embeddables (atom {}))
 
@@ -22,7 +21,7 @@
                             #{:list :vector :set :sorted-set} :coll
                             #{:map :sorted-map} :map
                             composite-type))
-    (contains? schema-map schema) :sub-schema
+    (contains? schema-map schema) :top-schema
     :else (when @verbose-dispatch?
             (println "Couldn't dispatch on" schema))))
 
@@ -111,6 +110,15 @@
   `(keyword ~(deserialize* :string config)))
 
 
+(defmethod serialize* :symbol
+  [_ config data]
+  (serialize* :string config `(name ~data)))
+
+(defmethod deserialize* :symbol
+  [_ config]
+  `(symbol ~(deserialize* :string config)))
+
+
 (defmethod serialize* :coll
   [schema config data]
   (let [[_ {:keys [size] :or {size :byte}} [sub-schema]] (disj-composite schema)
@@ -129,7 +137,7 @@
              :list `seq
              :vector `vec
              :set `set
-             :sorted-set `(into (sorted-set)))
+             :sorted-set '(into (sorted-set)))
           (doall))))
 
 
@@ -244,11 +252,11 @@
   `(get ~enum-map ~(deserialize* :short config)))
 
 
-(defmethod serialize* :sub-schema
+(defmethod serialize* :top-schema
   [schema config data]
   (serialize* (get-in config [:schemas schema]) config data))
 
-(defmethod deserialize* :sub-schema
+(defmethod deserialize* :top-schema
   [schema config]
   (deserialize* (get-in config [:schemas schema]) config))
 

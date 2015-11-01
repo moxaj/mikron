@@ -31,6 +31,7 @@
                 :bar {:qux 6}
                 :baz [true true]}])
   (serialize data-1 :a config-1)
+  (seq *1)
   (deserialize *1 config-1)
 
   (defconfig config-2

@@ -29,24 +29,6 @@
          args#    (or ~args [])]
      (def ~name (apply make-config schemas# args#))))
 
-(comment
-  (defmacro make-config [schemas & args]
-    `(let [{:keys [keywords# buffer-count# max-bits# max-bytes#]
-            :or   {keywords# [] buffer-count# 4 max-bits# 10000 max-bytes# 10000}} (apply hash-map ~args)
-           config#     {:schemas     '~schemas
-                        :wbuffers    (repeatedly buffer-count# #(make-wbuffer max-bits# max-bytes#))
-                        :schema-map  (bimap (keys ~schemas))
-                        :keyword-map (bimap keywords#)
-                        :choose-map  {:a 10 10 :a}}         ;todo
-           processors# (into {} (for [schema# (keys ~schemas)]
-                                  [schema# {:serializer   (eval (make-serializer schema# config#))
-                                            :deserializer (eval (make-deserializer schema# config#))}]))]
-       (assoc config# :processors processors#)))
-
-  (defmacro defconfig [name schemas & args]
-    `(def ~name (make-config ~schemas ~@(or args []))))
-  )
-
 (defn serialize
   ([data schema {:keys [wbuffers] :as config}]
    (serialize data schema config (first wbuffers)))
@@ -66,7 +48,6 @@
                               (serialize data schema config wbuffer))
                             datas-partition)))
             wbuffers)
-       (doall)
        (map deref)
        (doall)))
 
