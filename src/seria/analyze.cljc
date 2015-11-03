@@ -9,6 +9,8 @@
 (def composites #{:list :vector :set :sorted-set :map :sorted-map
                   :tuple :record :optional :multi :enum})
 
+(def size-types #{:byte :short})
+
 (def built-ins (union primitives advanceds composites))
 
 (defn primitive? [schema]
@@ -18,92 +20,100 @@
   (contains? advanceds schema))
 
 (defn composite? [schema]
-  (and (sequential? schema)
+  (and (vector? schema)
        (contains? composites (first schema))))
 
 (defn built-in? [kw]
   (contains? built-ins kw))
 
-(defn disj-composite [[a b & more]]
-  (let [u a]
-    (if (nil? b)
-      [u {} []]
-      (let [v (if (map? b) b {})
-            w (if (map? b) more (cons b more))
-            [w1 & ws] w]
-        (if (nil? w1)
-          [u v []]
-          (if (and (empty? ws)
-                   (sequential? w1)
-                   (not (composite? w1)))
-            [u v w1]
-            [u v w]))))))
+(defn size-type? [schema]
+  (contains? size-types schema))
 
-(declare valid-schema?)
+(defn with-options [[a b & rest :as composite]]
+  (if (and (map? b) (seq rest))
+    composite
+    (vec (concat [a {} b] rest))))
 
-(defn valid-composite? [top-schemas schema]
-  (and (composite? schema)
-       (let [[composite-type _ args] (disj-composite schema)
-             arg-count (count args)]
-         (and (pos? arg-count)
-              (condp contains? composite-type
-                #{:list :vector :set :sorted-set :optional}
-                (and (= 1 arg-count)
-                     (valid-schema? top-schemas (first args)))
+(declare validate)
 
-                #{:map :sorted-map}
-                (and (= 2 arg-count)
-                     (valid-schema? top-schemas (first args))
-                     (valid-schema? top-schemas (second args)))
+(defn validate-dispatch [_ [composite-type]]
+  (condp contains? composite-type
+    #{:list :vector :set :sorted-set} :coll
+    #{:map :sorted-map} :map
+    composite-type))
 
-                #{:tuple}
-                (every? (partial valid-schema? top-schemas) args)
+(defmulti validate-composite validate-dispatch)
 
-                #{:record}
-                (and (even? arg-count)
-                     (every? (fn [[key sub-schema]]
-                               (and (keyword? key)
-                                    (valid-schema? top-schemas sub-schema)))
-                             (partition 2 args)))
+(defmethod validate-composite :coll [schemas [composite-type options schema]]
+  (assert schema "todo")
+  (if-let [size-option (:size options)]
+    (assert (size-type? size-option) "todo"))
+  [composite-type options (validate schemas schema)])
 
-                #{:enum}
-                (every? keyword? args)
+(defmethod validate-composite :map [schemas [composite-type options schema-1 schema-2]]
+  (assert schema-1 "todo")
+  (assert schema-2 "todo")
+  (if-let [size-option (:size options)]
+    (assert (size-type? size-option) "todo"))
+  [composite-type options (validate schemas schema-1) (validate schemas schema-2)])
 
-                #{:multi}
-                (and (odd? arg-count)
-                     (fn? (first args))
-                     (every? (fn [[multi-case sub-schema]]
-                               (and (keyword? multi-case)
-                                    (valid-schema? top-schemas sub-schema)))
-                             (partition 2 (rest args)))))))))
+(defmethod validate-composite :optional [schemas [_ options schema]]
+  (assert schema "todo")
+  [:optional options (validate schemas schema)])
 
-(defn valid-schema? [top-schemas schema]
-  (or (primitive? schema)
-      (advanced? schema)
-      (valid-composite? top-schemas schema)
-      (contains? top-schemas schema)))
+(defmethod validate-composite :enum [_ [_ options args]]
+  (assert (sequential? args) "todo")
+  (assert (seq args) "todo")
+  (assert (every? keyword? args) "todo")
+  [:enum options args])
 
-(defn valid-schemas? [schemas]
-  (when-let [top-schemas (set (keys schemas))]
-    (and (not-any? built-in? top-schemas)
-         (every? (partial valid-schema? top-schemas) (vals schemas)))))
+(defmethod validate-composite :tuple [schemas [_ options sub-schemas]]
+  (assert (sequential? sub-schemas) "todo")
+  (assert (seq sub-schemas) "todo")
+  [:tuple options (mapv (partial validate schemas) sub-schemas)])
+
+(defmethod validate-composite :record [schemas [_ options arg-map]]
+  (assert (map? arg-map) "todo")
+  (let [fields      (keys arg-map)
+        sub-schemas (vals arg-map)]
+    (assert (every? keyword? fields) "todo")
+    [:record options (zipmap fields (mapv (partial validate schemas) sub-schemas))]))
+
+(defmethod validate-composite :multi [schemas [_ options selector arg-map]]
+  (assert (ifn? selector) "todo")
+  (assert (map? arg-map) "todo")
+  (let [multi-cases (keys arg-map)
+        sub-schemas (vals arg-map)]
+    [:multi options selector (zipmap multi-cases (mapv (partial validate schemas) sub-schemas))]))
+
+(defn validate
+  ([schemas]
+   (assert (not-any? built-in? (keys schemas)) "todo")
+   (into {} (for [[top-schema schema] schemas]
+              [top-schema (validate schemas schema)])))
+  ([schemas schema]
+   (cond
+     (or (primitive? schema)
+         (advanced? schema)
+         (contains? schemas schema)) schema
+     (composite? schema) (validate-composite schemas (with-options schema))
+     :else (throw (Exception. (str "Unknown schema type " schema))))))
+
 
 (defn find-multi-cases [schemas]
   (->> schemas
        (find-by (fn [form]
                   (and (sequential? form)
                        (= :multi (first form)))))
-       (mapcat (fn [multi]
-                 (->> (nth (disj-composite multi) 2)
-                      (rest)
-                      (take-nth 2))))))
+       (mapcat (fn [[_ _ _ multi-map]]
+                 (keys multi-map)))))
 
 (defn find-enum-values [schemas]
   (->> schemas
        (find-by (fn [form]
                   (and (sequential? form)
                        (= :enum (first form)))))
-       (mapcat (fn [enum] (nth (disj-composite enum) 2)))))
+       (mapcat (fn [[_ _ values]] values))))
 
 (defn find-non-embeddables [schemas]
   (find-by fn? schemas))

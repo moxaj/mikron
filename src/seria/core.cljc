@@ -7,10 +7,10 @@
             [seria.analyze :refer :all]))
 
 (defn make-config [schemas & args]
-  {:pre [(valid-schemas? schemas)]}
   (let [{:keys [buffer-count max-bits max-bytes]
          :or   {buffer-count 4 max-bits 10000 max-bytes 10000}} (apply hash-map args)
         config-id  (unique-int)
+        schemas    (validate schemas)
         config     {:schemas    schemas
                     :wbuffers   (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
                     :schema-map (bimap (keys schemas))
@@ -52,6 +52,7 @@
        (doall)))
 
 (defn deserialize [bytes {:keys [processors schema-map]}]
-  (let [[schema-code {:keys [buffer bit-position byte-position]}] (wrap-bytes bytes)]
-    (when-let [deserialize! (get-in processors [(get schema-map schema-code) :deserializer])]
-      (deserialize! buffer bit-position byte-position))))
+  (let [[schema-code {:keys [buffer bit-position byte-position]}] (wrap-bytes bytes)
+        schema (get schema-map schema-code)]
+    (when-let [deserialize! (get-in processors [schema :deserializer])]
+      [schema (deserialize! buffer bit-position byte-position)])))

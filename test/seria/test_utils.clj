@@ -1,12 +1,9 @@
 (ns seria.test-utils
   (:require [clojure.test :refer :all]
-            [seria.core :refer :all]
-            [seria.utils :refer :all]
-            [seria.analyze :refer :all]
-            [seria.test-utils :refer :all]))
+            [seria.core :refer :all]))
 
 (defn roundtrip [data schema config]
-  (deserialize (serialize data schema config) config))
+  (second (deserialize (serialize data schema config) config)))
 
 (defn equal-after-roundtrip? [data schema config]
   (= data (roundtrip data schema config)))
@@ -38,9 +35,9 @@
 (defn random-byte-seq []
   (take (rand-int 128) (repeatedly random-byte)))
 
-(defmacro schema-test [name config-spec top-schema datas]
+(defmacro schema-test [name config-spec datas]
   `(deftest ~(symbol name)
      (let [config# (make-config ~config-spec)]
        (testing ~name
          (doseq [data# ~datas]
-           (is (equal-after-roundtrip? data# ~top-schema config#)))))))
+           (is (equal-after-roundtrip? data# :a config#)))))))
