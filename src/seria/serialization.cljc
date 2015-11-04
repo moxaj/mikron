@@ -20,6 +20,16 @@
     :char 2
     :boolean 1))
 
+(defn unroll-record [schemas [_ {:keys [extends] :as options} record-map :as record]]
+  (if-not extends
+    record
+    [:record options (merge (->> extends
+                                 (map #(nth (->> (get schemas %)
+                                                 (unroll-record schemas))
+                                            2))
+                                 (apply merge))
+                            record-map)]))
+
 
 (defn serialize-dispatch [schema {:keys [schema-map]} & _]
   (when @verbose-dispatch?
@@ -110,6 +120,13 @@
   `(symbol ~(deserialize* :string config)))
 
 
+(defmethod serialize* :any [_ config data]
+  (serialize* :string config `(pr-str ~data)))
+
+(defmethod deserialize* :any [_ config]
+  `(read-string ~(deserialize* :string config)))
+
+
 (defmethod serialize* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]
   (let [coll-item (gensym "coll-item__")]
     `(do ~(serialize* size config `(count ~data))
@@ -121,7 +138,7 @@
   `(->> (repeatedly ~(deserialize* size config)
                     (fn [] ~(deserialize* sub-schema config)))
         ~(case coll-type
-           :list `seq
+           :list `identity
            :vector `vec
            :set `set
            :sorted-set '(into (sorted-set)))
@@ -164,8 +181,9 @@
                   sub-schemas)))
 
 
-(defmethod serialize* :record [[_ _ arg-map] config data]
-  (let [symbols (repeatedly (count arg-map) #(gensym "rec-item_"))
+(defmethod serialize* :record [schema {:keys [schemas] :as config} data]
+  (let [[_ _ arg-map] (unroll-record schemas schema)
+        symbols (repeatedly (count arg-map) #(gensym "rec-item_"))
         let-arg (mapcat (fn [symbol [key _]] [symbol `(get ~data ~key)])
                         symbols
                         arg-map)]
@@ -175,10 +193,11 @@
               symbols
               arg-map))))
 
-(defmethod deserialize* :record [[_ _ arg-map] config]
-  `(hash-map ~@(mapcat (fn [[key value-schema]]
-                         [key (deserialize* value-schema config)])
-                       arg-map)))
+(defmethod deserialize* :record [schema {:keys [schemas] :as config}]
+  (let [[_ _ arg-map] (unroll-record schemas schema)]
+    `(hash-map ~@(mapcat (fn [[key value-schema]]
+                           [key (deserialize* value-schema config)])
+                         arg-map))))
 
 
 (defmethod serialize* :optional [[_ _ sub-schema] config data]

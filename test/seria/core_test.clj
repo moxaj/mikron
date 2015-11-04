@@ -33,6 +33,12 @@
 (schema-test "Keyword-test" {:a :keyword}
              (repeatedly 16 #(keyword (random-safe-string 10))))
 
+(schema-test "Symbol-test" {:a :symbol}
+             (repeatedly 16 gensym))
+
+(schema-test "Any-test" {:a [:vector :any]}
+             [[1 :a 'u [3 4] 0.4] [:b 'cat [:dog "Grandma"]]])
+
 (schema-test "List-test" {:a [:list :byte]}
              (repeatedly 4 random-byte-seq))
 
@@ -73,5 +79,10 @@
 (schema-test "Top-schema-test" {:a [:list :b]
                                 :b :byte}
              (repeatedly 4 random-byte-seq))
+
+(schema-test "Record extends text" {:c [:record {:c1 :int :c2 :byte}]
+                                    :b [:record {:extends [:c]} {:b1 :string}]
+                                    :a [:record {:extends [:b]} {:a1 [:tuple [:int :int]]}]}
+             [{:a1 [2 3] :b1 "kutya-cica-mérési-hiba" :c1 2000 :c2 0}])
 
 (run-tests)

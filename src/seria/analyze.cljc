@@ -4,7 +4,7 @@
 
 (def primitives #{:byte :short :int :float :double :char :boolean})
 
-(def advanceds #{:string :long-string :keyword :symbol})
+(def advanceds #{:string :long-string :keyword :symbol :any})
 
 (def composites #{:list :vector :set :sorted-set :map :sorted-map
                   :tuple :record :optional :multi :enum})
@@ -46,12 +46,12 @@
 (defmulti validate-composite validate-dispatch)
 
 (defmethod validate-composite :coll [schemas [composite-type options schema]]
-  (if-let [size-option (:size options)]
+  (when-let [size-option (:size options)]
     (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
   [composite-type options (validate schemas schema)])
 
 (defmethod validate-composite :map [schemas [composite-type options key-schema value-schema]]
-  (if-let [size-option (:size options)]
+  (when-let [size-option (:size options)]
     (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
   [composite-type options (validate schemas key-schema) (validate schemas value-schema)])
 
@@ -71,6 +71,11 @@
 
 (defmethod validate-composite :record [schemas [_ options arg-map]]
   (assert (map? arg-map) (str ":record | Invalid record map (must be a map): " arg-map))
+  (when-let [extends-option (:extends options)]
+    (assert (sequential? extends-option)
+            (str ":record | Invalid record schemas (extends option must be sequential): " extends-option))
+    (assert (every? (partial contains? schemas) extends-option)
+            (str ":record | Invalid record schemas in extends option: " extends-option)))
   (let [fields      (keys arg-map)
         sub-schemas (vals arg-map)]
     (assert (every? keyword? fields) (str ":record | Invalid record fields (must be keywords): " fields))
