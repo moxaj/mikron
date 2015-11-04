@@ -34,6 +34,7 @@
     composite
     (vec (concat [a {} b] rest))))
 
+
 (declare validate)
 
 (defn validate-dispatch [_ [composite-type]]
@@ -45,50 +46,46 @@
 (defmulti validate-composite validate-dispatch)
 
 (defmethod validate-composite :coll [schemas [composite-type options schema]]
-  (assert schema "todo")
   (if-let [size-option (:size options)]
-    (assert (size-type? size-option) "todo"))
+    (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
   [composite-type options (validate schemas schema)])
 
-(defmethod validate-composite :map [schemas [composite-type options schema-1 schema-2]]
-  (assert schema-1 "todo")
-  (assert schema-2 "todo")
+(defmethod validate-composite :map [schemas [composite-type options key-schema value-schema]]
   (if-let [size-option (:size options)]
-    (assert (size-type? size-option) "todo"))
-  [composite-type options (validate schemas schema-1) (validate schemas schema-2)])
+    (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
+  [composite-type options (validate schemas key-schema) (validate schemas value-schema)])
 
 (defmethod validate-composite :optional [schemas [_ options schema]]
-  (assert schema "todo")
   [:optional options (validate schemas schema)])
 
-(defmethod validate-composite :enum [_ [_ options args]]
-  (assert (sequential? args) "todo")
-  (assert (seq args) "todo")
-  (assert (every? keyword? args) "todo")
-  [:enum options args])
+(defmethod validate-composite :enum [_ [_ options values]]
+  (assert (sequential? values) (str ":enum | Invalid values (must be sequential): " values))
+  (assert (seq values) (str ":enum | Invalid values (must be non-empty): " values))
+  (assert (every? keyword? values) (str ":enum | Invalid values (must contain keywords only): " values))
+  [:enum options values])
 
 (defmethod validate-composite :tuple [schemas [_ options sub-schemas]]
-  (assert (sequential? sub-schemas) "todo")
-  (assert (seq sub-schemas) "todo")
+  (assert (sequential? sub-schemas) (str ":tuple | Invalid schemas (must be sequential): " sub-schemas))
+  (assert (seq sub-schemas) (str ":tuple | Invalid schemas (must be non-empty): " sub-schemas))
   [:tuple options (mapv (partial validate schemas) sub-schemas)])
 
 (defmethod validate-composite :record [schemas [_ options arg-map]]
-  (assert (map? arg-map) "todo")
+  (assert (map? arg-map) (str ":record | Invalid record map (must be a map): " arg-map))
   (let [fields      (keys arg-map)
         sub-schemas (vals arg-map)]
-    (assert (every? keyword? fields) "todo")
+    (assert (every? keyword? fields) (str ":record | Invalid record fields (must be keywords): " fields))
     [:record options (zipmap fields (mapv (partial validate schemas) sub-schemas))]))
 
 (defmethod validate-composite :multi [schemas [_ options selector arg-map]]
-  (assert (ifn? selector) "todo")
-  (assert (map? arg-map) "todo")
+  (assert (ifn? selector) (str ":multi | Invalid selector (must implement IFn): " selector))
+  (assert (map? arg-map) (str ":multi | Invalid multi map (must be a map): " arg-map))
   (let [multi-cases (keys arg-map)
         sub-schemas (vals arg-map)]
     [:multi options selector (zipmap multi-cases (mapv (partial validate schemas) sub-schemas))]))
 
 (defn validate
   ([schemas]
-   (assert (not-any? built-in? (keys schemas)) "todo")
+   (assert (not-any? built-in? (keys schemas)) "Built-in schema used as a top-level schema.")
    (into {} (for [[top-schema schema] schemas]
               [top-schema (validate schemas schema)])))
   ([schemas schema]
@@ -97,7 +94,7 @@
          (advanced? schema)
          (contains? schemas schema)) schema
      (composite? schema) (validate-composite schemas (with-options schema))
-     :else (throw (Exception. (str "Unknown schema type " schema))))))
+     :else (throw (Exception. (str "Unknown schema type: " schema))))))
 
 
 (defn find-multi-cases [schemas]
