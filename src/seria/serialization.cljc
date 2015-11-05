@@ -124,7 +124,8 @@
   (serialize* :string config `(pr-str ~data)))
 
 (defmethod deserialize* :any [_ config]
-  `(read-string ~(deserialize* :string config)))
+  `(#?(:clj  read-string
+       :cljs cljs.reader/read-string) ~(deserialize* :string config)))
 
 
 (defmethod serialize* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]

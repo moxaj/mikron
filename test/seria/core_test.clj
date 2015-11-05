@@ -80,7 +80,7 @@
                                 :b :byte}
              (repeatedly 4 random-byte-seq))
 
-(schema-test "Record extends text" {:c [:record {:c1 :int :c2 :byte}]
+(schema-test "Record-extends-text" {:c [:record {:c1 :int :c2 :byte}]
                                     :b [:record {:extends [:c]} {:b1 :string}]
                                     :a [:record {:extends [:b]} {:a1 [:tuple [:int :int]]}]}
              [{:a1 [2 3] :b1 "kutya-cica-mérési-hiba" :c1 2000 :c2 0}])
