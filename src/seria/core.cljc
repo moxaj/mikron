@@ -5,7 +5,8 @@
             [seria.serialization :refer :all]
             [seria.utils :refer :all]
             [seria.validate :refer :all]
-            [seria.analyze :refer :all]))
+            [seria.analyze :refer :all]
+            [seria.delta :refer :all]))
 
 (defn make-config [schemas & args]
   (let [{:keys [buffer-count max-bits max-bytes]
@@ -21,8 +22,18 @@
         processors (do (swap! seria.serialization/non-embeddables
                               assoc config-id (bimap (find-non-embeddables schemas)))
                        (into {} (for [schema (keys schemas)]
-                                  [schema {:serializer   (eval (make-serializer schema config))
-                                           :deserializer (eval (make-deserializer schema config))}])))]
+                                  (let [serializer   (make-serializer schema config)
+                                        deserializer (make-deserializer schema config)
+                                        differ       (make-differ schema config)
+                                        undiffer     (make-undiffer schema config)]
+                                    [schema {:serializer          (eval serializer)
+                                             :deserializer        (eval deserializer)
+                                             :differ              (eval differ)
+                                             :undiffer            (eval undiffer)
+                                             :serializer-source   serializer
+                                             :deserializer-source deserializer
+                                             :differ-source       differ
+                                             :undiffer-source     undiffer}]))))]
     (assoc config :processors processors)))
 
 (defmacro defconfig [name schemas & args]
@@ -58,3 +69,11 @@
         deserialize! (get-in processors [schema :deserializer])]
     (when (and schema deserialize!)
       [schema (deserialize! buffer bit-position byte-position)])))
+
+(defn diff [data-1 data-2 schema {:keys [processors]}]
+  (when-let [diff! (get-in processors [schema :differ])]
+    (diff! data-1 data-2)))
+
+(defn undiff [data-1 data-2 schema {:keys [processors]}]
+  (when-let [undiff! (get-in processors [schema :undiffer])]
+    (undiff! data-1 data-2)))
