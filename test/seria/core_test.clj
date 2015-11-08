@@ -1,6 +1,5 @@
 (ns seria.core-test
   (:require [clojure.test :refer :all]
-            [seria.analyze :refer :all]
             [seria.test-utils :refer :all]))
 
 (schema-test "Byte-test" {:a :byte}
@@ -83,6 +82,10 @@
 (schema-test "Record-extends-text" {:c [:record {:c1 :int :c2 :byte}]
                                     :b [:record {:extends [:c]} {:b1 :string}]
                                     :a [:record {:extends [:b]} {:a1 [:tuple [:int :int]]}]}
-             [{:a1 [2 3] :b1 "kutya-cica-mérési-hiba" :c1 2000 :c2 0}])
+             [{:a1 [2 3] :b1 "dog-cat-measurement-error" :c1 2000 :c2 0}])
+
+(defrecord Foo [u v])
+(schema-test "Record-constructor-test" {:a [:record {:constructor map->Foo} {:u :int :v :int}]}
+             [(map->Foo {:u 10 :v 20})])
 
 (run-tests)

@@ -4,6 +4,7 @@
   (:require [seria.buffers :refer :all]
             [seria.serialization :refer :all]
             [seria.utils :refer :all]
+            [seria.validate :refer :all]
             [seria.analyze :refer :all]))
 
 (defn make-config [schemas & args]
@@ -43,16 +44,17 @@
 (defn serialize-all [datas schema {:keys [wbuffers] :as config}]
   (->> datas
        (partition-all (/ (count datas) (count wbuffers)))
-       (map (fn [wbuffer datas-partition]
-              (future (run! (fn [data]
-                              (serialize data schema config wbuffer))
-                            datas-partition)))
-            wbuffers)
+       (mapcat (fn [wbuffer data-chunk]
+                 (future (doall (map #(serialize % schema config wbuffer)
+                                     data-chunk))))
+               wbuffers)
+       (doall)
        (map deref)
        (doall)))
 
 (defn deserialize [bytes {:keys [processors schema-map]}]
   (let [[schema-code {:keys [buffer bit-position byte-position]}] (wrap-bytes bytes)
-        schema (get schema-map schema-code)]
-    (when-let [deserialize! (get-in processors [schema :deserializer])]
+        schema       (get schema-map schema-code)
+        deserialize! (get-in processors [schema :deserializer])]
+    (when (and schema deserialize!)
       [schema (deserialize! buffer bit-position byte-position)])))

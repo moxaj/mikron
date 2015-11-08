@@ -3,9 +3,9 @@
      (:import [java.util Date]))
   (:require [seria.buffers :refer :all]
             [seria.utils :refer :all]
-            [seria.analyze :refer :all]))
+            [seria.validate :refer :all]))
 
-(def verbose-dispatch? (atom true))
+(def verbose-dispatch? (atom false))
 
 ; ugly hack crying out for help
 (def non-embeddables (atom {}))
@@ -165,16 +165,12 @@
         (doall)))
 
 
-(defmethod serialize* :tuple [[_ _ sub-schemas] config data]
-  (let [symbols (repeatedly (count sub-schemas) #(gensym "tup-item_"))
-        let-arg (mapcat (fn [symbol index] [symbol `(get ~data ~index)])
-                        symbols
-                        (range))]
-    `(let [~@let-arg]
-       ~@(map (fn [symbol sub-schema]
+(defmethod serialize* :tuple [schema config data]
+  (let [disjoined (disj-indexed schema data)]
+    `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
+       ~@(map (fn [{:keys [symbol sub-schema]}]
                 (serialize* sub-schema config symbol))
-              symbols
-              sub-schemas))))
+              disjoined))))
 
 (defmethod deserialize* :tuple [[_ _ sub-schemas] config]
   `(vector ~@(map (fn [sub-schema]
@@ -183,22 +179,22 @@
 
 
 (defmethod serialize* :record [schema {:keys [schemas] :as config} data]
-  (let [[_ _ arg-map] (unroll-record schemas schema)
-        symbols (repeatedly (count arg-map) #(gensym "rec-item_"))
-        let-arg (mapcat (fn [symbol [key _]] [symbol `(get ~data ~key)])
-                        symbols
-                        arg-map)]
-    `(let [~@let-arg]
-       ~@(map (fn [symbol [_ sub-schema]]
+  (let [disjoined (disj-indexed (unroll-record schemas schema) data)]
+    `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
+       ~@(map (fn [{:keys [symbol sub-schema]}]
                 (serialize* sub-schema config symbol))
-              symbols
-              arg-map))))
+              disjoined))))
 
-(defmethod deserialize* :record [schema {:keys [schemas] :as config}]
-  (let [[_ _ arg-map] (unroll-record schemas schema)]
-    `(hash-map ~@(mapcat (fn [[key value-schema]]
-                           [key (deserialize* value-schema config)])
-                         arg-map))))
+
+(defmethod deserialize* :record [schema {:keys [schemas config-id] :as config}]
+  (let [[_ {:keys [constructor]} arg-map] (unroll-record schemas schema)
+        constructor-key (get-in @non-embeddables [config-id constructor])]
+    `(~(if constructor
+         `(comp (get-in @non-embeddables [~config-id ~constructor-key]) hash-map)
+         `hash-map)
+       ~@(mapcat (fn [[key value-schema]]
+                   [key (deserialize* value-schema config)])
+                 arg-map))))
 
 
 (defmethod serialize* :optional [[_ _ sub-schema] config data]

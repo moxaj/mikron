@@ -1,6 +1,5 @@
-(ns seria.analyze
-  (:require [seria.utils :refer :all]
-            [clojure.set :refer [union]]))
+(ns seria.validate
+  (:require [clojure.set :refer [union]]))
 
 (def primitives #{:byte :short :int :float :double :char :boolean})
 
@@ -34,16 +33,13 @@
     composite
     (vec (concat [a {} b] rest))))
 
-
 (declare validate)
 
-(defn validate-dispatch [_ [composite-type]]
-  (condp contains? composite-type
-    #{:list :vector :set :sorted-set} :coll
-    #{:map :sorted-map} :map
-    composite-type))
-
-(defmulti validate-composite validate-dispatch)
+(defmulti validate-composite (fn [_ [composite-type]]
+                               (condp contains? composite-type
+                                 #{:list :vector :set :sorted-set} :coll
+                                 #{:map :sorted-map} :map
+                                 composite-type)))
 
 (defmethod validate-composite :coll [schemas [composite-type options schema]]
   (when-let [size-option (:size options)]
@@ -90,7 +86,7 @@
 
 (defn validate
   ([schemas]
-   (assert (not-any? built-in? (keys schemas)) "Built-in schema used as a top-level schema.")
+   (assert (not-any? built-in? (keys schemas)) "Built-in schemas cannot be used as top-level schemas.")
    (into {} (for [[top-schema schema] schemas]
               [top-schema (validate schemas schema)])))
   ([schemas schema]
@@ -99,23 +95,6 @@
          (advanced? schema)
          (contains? schemas schema)) schema
      (composite? schema) (validate-composite schemas (with-options schema))
-     :else (throw (Exception. (str "Unknown schema type: " schema))))))
+     :else (throw #?(:clj  (Exception. (str "Unknown schema type: " schema))
+                     :cljs (js/Error. (str "Unknown schema type: " schema)))))))
 
-
-(defn find-multi-cases [schemas]
-  (->> schemas
-       (find-by (fn [form]
-                  (and (sequential? form)
-                       (= :multi (first form)))))
-       (mapcat (fn [[_ _ _ multi-map]]
-                 (keys multi-map)))))
-
-(defn find-enum-values [schemas]
-  (->> schemas
-       (find-by (fn [form]
-                  (and (sequential? form)
-                       (= :enum (first form)))))
-       (mapcat (fn [[_ _ values]] values))))
-
-(defn find-non-embeddables [schemas]
-  (find-by fn? schemas))
