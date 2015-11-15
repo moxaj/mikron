@@ -1,12 +1,16 @@
 (ns seria.serialization
   #?(:clj
      (:import [java.util Date]))
-  (:require [seria.buffers :refer :all]
-            [seria.utils :refer :all]
-            [seria.validate :refer :all]
-            [seria.delta :refer :all]))
-
-(def verbose-dispatch? (atom false))
+  (:require [seria.buffers :refer [read-byte! read-short! read-int!
+                                   read-float! read-double!
+                                   read-char! read-boolean!
+                                   write-byte! write-short! write-int!
+                                   write-float! write-double!
+                                   write-char! write-boolean!
+                                   HybridBuffer]]
+            [seria.utils :refer [disj-indexed]]
+            [seria.validate :refer [primitive? advanced? composite?]]
+            [seria.delta :refer [dnil? dnil]]))
 
 ; ugly hack crying out for help
 (def non-embeddables (atom {}))
@@ -32,9 +36,7 @@
                             record-map)]))
 
 
-(defn serialize-dispatch [schema {:keys [schema-map]} & _]
-  (when @verbose-dispatch?
-    (println "Dispatching on" schema))
+(defn pack-dispatch [schema {:keys [schema-map]} & _]
   (cond
     (primitive? schema) :primitive
     (advanced? schema) schema
@@ -43,18 +45,16 @@
                             #{:list :vector :set :sorted-set} :coll
                             #{:map :sorted-map} :map
                             composite-type))
-    (contains? schema-map schema) :top-schema
-    :else (when @verbose-dispatch?
-            (println "Couldn't dispatch on" schema))))
+    (contains? schema-map schema) :top-schema))
 
-(defmulti serialize* serialize-dispatch)
+(defmulti pack* pack-dispatch)
 
-(defmulti deserialize* serialize-dispatch)
+(defmulti unpack* pack-dispatch)
 
 
-(defmethod serialize* :primitive [schema _ data]
+(defmethod pack* :primitive [schema _ data]
   (let [position (if (= :boolean schema) 'bit-position 'byte-position)
-        p        (gensym "p_")]
+        p        (gensym "pos_")]
     `(let [~p (deref ~position)]
        (vswap! ~position unchecked-add ~(primitive-size schema))
        ~(case schema
@@ -67,9 +67,9 @@
           :boolean `(write-boolean! ~'buffer ~p ~data)
           nil))))
 
-(defmethod deserialize* :primitive [schema _]
+(defmethod unpack* :primitive [schema _]
   (let [position (if (= :boolean schema) 'bit-position 'byte-position)
-        p        (gensym "p_")]
+        p        (gensym "pos_")]
     `(let [~p (deref ~position)]
        (vswap! ~position unchecked-add ~(primitive-size schema))
        ~(case schema
@@ -83,62 +83,62 @@
           nil))))
 
 
-(defmethod serialize* :string [_ config data]
+(defmethod pack* :string [_ config data]
   (let [char (gensym "char_")]
-    `(do ~(serialize* :byte config `(count ~data))
-         (run! (fn [~char] ~(serialize* :char config char))
+    `(do ~(pack* :byte config `(count ~data))
+         (run! (fn [~char] ~(pack* :char config char))
                ~data))))
 
-(defmethod deserialize* :string [_ config]
-  `(->> (repeatedly ~(deserialize* :byte config)
-                    (fn [] ~(deserialize* :char config)))
+(defmethod unpack* :string [_ config]
+  `(->> (repeatedly ~(unpack* :byte config)
+                    (fn [] ~(unpack* :char config)))
         (apply str)))
 
 
-(defmethod serialize* :long-string [_ config data]
+(defmethod pack* :long-string [_ config data]
   (let [char (gensym "char_")]
-    `(do ~(serialize* :short config `(count ~data))
-         (run! (fn [~char] ~(serialize* :char config char))
+    `(do ~(pack* :short config `(count ~data))
+         (run! (fn [~char] ~(pack* :char config char))
                ~data))))
 
-(defmethod deserialize* :long-string [_ config]
-  `(->> (repeatedly ~(deserialize* :short config)
-                    (fn [] ~(deserialize* :char config)))
+(defmethod unpack* :long-string [_ config]
+  `(->> (repeatedly ~(unpack* :short config)
+                    (fn [] ~(unpack* :char config)))
         (apply str)))
 
 
-(defmethod serialize* :keyword [_ config data]
-  (serialize* :string config `(name ~data)))
+(defmethod pack* :keyword [_ config data]
+  (pack* :string config `(name ~data)))
 
-(defmethod deserialize* :keyword [_ config]
-  `(keyword ~(deserialize* :string config)))
-
-
-(defmethod serialize* :symbol [_ config data]
-  (serialize* :string config `(name ~data)))
-
-(defmethod deserialize* :symbol [_ config]
-  `(symbol ~(deserialize* :string config)))
+(defmethod unpack* :keyword [_ config]
+  `(keyword ~(unpack* :string config)))
 
 
-(defmethod serialize* :any [_ config data]
-  (serialize* :string config `(pr-str ~data)))
+(defmethod pack* :symbol [_ config data]
+  (pack* :string config `(name ~data)))
 
-(defmethod deserialize* :any [_ config]
+(defmethod unpack* :symbol [_ config]
+  `(symbol ~(unpack* :string config)))
+
+
+(defmethod pack* :any [_ config data]
+  (pack* :string config `(pr-str ~data)))
+
+(defmethod unpack* :any [_ config]
   `(#?(:clj  read-string
-       :cljs cljs.reader/read-string) ~(deserialize* :string config)))
+       :cljs cljs.reader/read-string) ~(unpack* :string config)))
 
 
-(defmethod serialize* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]
+(defmethod pack* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]
   (let [coll-item (gensym "coll-item__")]
-    `(do ~(serialize* size config `(count ~data))
+    `(do ~(pack* size config `(count ~data))
          (run! (fn [~coll-item]
-                 ~(serialize* sub-schema config coll-item))
+                 ~(pack* sub-schema config coll-item))
                ~data))))
 
-(defmethod deserialize* :coll [[coll-type {:keys [size] :or {size :byte}} sub-schema] config]
-  `(->> (repeatedly ~(deserialize* size config)
-                    (fn [] ~(deserialize* sub-schema config)))
+(defmethod unpack* :coll [[coll-type {:keys [size] :or {size :byte}} sub-schema] config]
+  `(->> (repeatedly ~(unpack* size config)
+                    (fn [] ~(unpack* sub-schema config)))
         ~(case coll-type
            :list `identity
            :vector `vec
@@ -147,33 +147,33 @@
         (doall)))
 
 
-(defmethod serialize* :map [[_ {:keys [size delta] :or {size :byte}} key-schema value-schema] config data]
+(defmethod pack* :map [[_ {:keys [size delta] :or {size :byte}} key-schema value-schema] config data]
   (let [key      (gensym "key_")
         value    (gensym "value_")
         is-dnil? (gensym "is-dnil?_")]
-    `(do ~(serialize* size config `(count ~data))
+    `(do ~(pack* size config `(count ~data))
          (run! (fn [[~key ~value]]
                  ~@(if-not (:enabled delta)
-                     [(serialize* key-schema config key)
-                      (serialize* value-schema config value)]
+                     [(pack* key-schema config key)
+                      (pack* value-schema config value)]
                      [`(let [~is-dnil? (dnil? ~value)]
-                         ~(serialize* :boolean config ~is-dnil?)
-                         ~(serialize* key-schema config key)
+                         ~(pack* :boolean config ~is-dnil?)
+                         ~(pack* key-schema config key)
                          (when-not ~is-dnil?
-                           ~(serialize* value-schema config value)))]))
+                           ~(pack* value-schema config value)))]))
                ~data))))
 
-(defmethod deserialize* :map [[map-type {:keys [size delta] :or {size :byte}} key-schema value-schema] config]
+(defmethod unpack* :map [[map-type {:keys [size delta] :or {size :byte}} key-schema value-schema] config]
   (let [is-dnil? (gensym "is-dnil?_")
         key      (gensym "key_")]
-    `(->> (repeatedly ~(deserialize* size config)
+    `(->> (repeatedly ~(unpack* size config)
                       (fn [] ~(if-not (:enabled delta)
-                                [(deserialize* key-schema config)
-                                 (deserialize* value-schema config)]
-                                `(let [~is-dnil? ~(deserialize* :boolean config)
-                                       ~key ~(deserialize* key-schema config)]
+                                [(unpack* key-schema config)
+                                 (unpack* value-schema config)]
+                                `(let [~is-dnil? ~(unpack* :boolean config)
+                                       ~key ~(unpack* key-schema config)]
                                    (if-not ~is-dnil?
-                                     [~key ~(deserialize* value-schema config)]
+                                     [~key ~(unpack* value-schema config)]
                                      [~key ~dnil])))))
           (into ~(if (= map-type :sorted-map)
                    `(sorted-map)
@@ -181,44 +181,44 @@
           (doall))))
 
 
-(defmethod serialize* :tuple [[_ {:keys [delta]} :as schema] config data]
+(defmethod pack* :tuple [[_ {:keys [delta]} :as schema] config data]
   (let [disjoined (disj-indexed schema data)
         is-dnil?  (gensym "is-dnil?_")]
     `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
        ~@(map (fn [{:keys [symbol sub-schema]}]
                 (if-not (:enabled delta)
-                  (serialize* sub-schema config symbol)
+                  (pack* sub-schema config symbol)
                   `(let [~is-dnil? (dnil? ~symbol)]
-                     ~(serialize* :boolean config is-dnil?)
+                     ~(pack* :boolean config is-dnil?)
                      (when-not ~is-dnil?
-                       ~(serialize* sub-schema config symbol)))))
+                       ~(pack* sub-schema config symbol)))))
               disjoined))))
 
-(defmethod deserialize* :tuple [[_ {:keys [delta]} sub-schemas] config]
+(defmethod unpack* :tuple [[_ {:keys [delta]} sub-schemas] config]
   `(vector ~@(map (fn [sub-schema]
                     (if-not (:enabled delta)
-                      (deserialize* sub-schema config)
-                      `(if ~(deserialize* :boolean config)
+                      (unpack* sub-schema config)
+                      `(if ~(unpack* :boolean config)
                          ~dnil
-                         ~(deserialize* sub-schema config))))
+                         ~(unpack* sub-schema config))))
                   sub-schemas)))
 
 
-(defmethod serialize* :record [[_ {:keys [delta]} :as schema] {:keys [schemas] :as config} data]
+(defmethod pack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas] :as config} data]
   (let [disjoined (disj-indexed (unroll-record schemas schema) data)
         is-dnil?  (gensym "is-dnil?_")]
     `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
        ~@(map (fn [{:keys [symbol sub-schema]}]
                 (if-not (:enabled delta)
-                  (serialize* sub-schema config symbol)
+                  (pack* sub-schema config symbol)
                   `(let [~is-dnil? (dnil? ~symbol)]
-                     ~(serialize* :boolean config is-dnil?)
+                     ~(pack* :boolean config is-dnil?)
                      (when-not ~is-dnil?
-                       ~(serialize* sub-schema config symbol)))))
+                       ~(pack* sub-schema config symbol)))))
               disjoined))))
 
 
-(defmethod deserialize* :record [[_ {:keys [delta]} :as schema] {:keys [schemas config-id] :as config}]
+(defmethod unpack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas config-id] :as config}]
   (let [[_ {:keys [constructor]} arg-map] (unroll-record schemas schema)
         constructor-key (get-in @non-embeddables [config-id constructor])]
     `(~(if constructor
@@ -226,61 +226,61 @@
          `(partial into {}))
        ~(mapv (fn [[key value-schema]]
                 (if-not (:enabled delta)
-                  [key (deserialize* value-schema config)]
-                  `(if ~(deserialize* :boolean config)
+                  [key (unpack* value-schema config)]
+                  `(if ~(unpack* :boolean config)
                      [~key ~dnil]
-                     [~key ~(deserialize* value-schema config)])))
+                     [~key ~(unpack* value-schema config)])))
               arg-map))))
 
 
-(defmethod serialize* :optional [[_ _ sub-schema] config data]
+(defmethod pack* :optional [[_ _ sub-schema] config data]
   `(if ~data
-     (do ~(serialize* :boolean config true)
-         ~(serialize* sub-schema config data))
-     ~(serialize* :boolean config false)))
+     (do ~(pack* :boolean config true)
+         ~(pack* sub-schema config data))
+     ~(pack* :boolean config false)))
 
-(defmethod deserialize* :optional [[_ _ sub-schema] config]
-  `(when ~(deserialize* :boolean config)
-     ~(deserialize* sub-schema config)))
+(defmethod unpack* :optional [[_ _ sub-schema] config]
+  `(when ~(unpack* :boolean config)
+     ~(unpack* sub-schema config)))
 
 
-(defmethod serialize* :multi
+(defmethod pack* :multi
   [[_ _ selector arg-map] {:keys [multi-map config-id] :as config} data]
   (let [selector-key (get-in @non-embeddables [config-id selector])
         case-body    (mapcat (fn [[multi-case sub-schema]]
-                               [multi-case `(do ~(serialize* :short config (get multi-map multi-case))
-                                                ~(serialize* sub-schema config data))])
+                               [multi-case `(do ~(pack* :short config (get multi-map multi-case))
+                                                ~(pack* sub-schema config data))])
                              arg-map)]
     `(case ((get-in @non-embeddables [~config-id ~selector-key]) ~data)
        ~@case-body)))
 
-(defmethod deserialize* :multi
+(defmethod unpack* :multi
   [[_ _ _ arg-map] {:keys [multi-map] :as config}]
   (let [case-body (mapcat (fn [[condition sub-schema]]
-                            [condition (deserialize* sub-schema config)])
+                            [condition (unpack* sub-schema config)])
                           arg-map)]
-    `(case (get ~multi-map ~(deserialize* :short config))
+    `(case (get ~multi-map ~(unpack* :short config))
        ~@case-body)))
 
 
-(defmethod serialize* :enum [_ {:keys [enum-map] :as config} data]
-  (serialize* :short config `(get ~enum-map ~data)))
+(defmethod pack* :enum [_ {:keys [enum-map] :as config} data]
+  (pack* :short config `(get ~enum-map ~data)))
 
-(defmethod deserialize* :enum [_ {:keys [enum-map] :as config}]
-  `(get ~enum-map ~(deserialize* :short config)))
-
-
-(defmethod serialize* :top-schema [schema config data]
-  (serialize* (get-in config [:schemas schema]) config data))
-
-(defmethod deserialize* :top-schema [schema config]
-  (deserialize* (get-in config [:schemas schema]) config))
+(defmethod unpack* :enum [_ {:keys [enum-map] :as config}]
+  `(get ~enum-map ~(unpack* :short config)))
 
 
-(defn make-serializer [schema config]
+(defmethod pack* :top-schema [schema config data]
+  (pack* (get-in config [:schemas schema]) config data))
+
+(defmethod unpack* :top-schema [schema config]
+  (unpack* (get-in config [:schemas schema]) config))
+
+
+(defn make-packer [schema config]
   `(fn [~'data ~'buffer ~'bit-position ~'byte-position]
-     ~(serialize* schema config 'data)))
+     ~(pack* schema config 'data)))
 
-(defn make-deserializer [schema config]
+(defn make-unpacker [schema config]
   `(fn [~'buffer ~'bit-position ~'byte-position]
-     ~(deserialize* schema config)))
+     ~(unpack* schema config)))

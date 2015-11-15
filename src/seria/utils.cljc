@@ -14,7 +14,11 @@
 (defn disj-indexed [[composite-type _ arg] data]
   (map (fn [index]
          {:index      index
-          :symbol     (gensym "item_")
+          :symbol     (gensym (str "item_"
+                                   (if (keyword? index)
+                                     (name index)
+                                     index)
+                                   "_"))
           :sub-schema (get arg index)
           :sub-data   `(get ~data ~index)})
        (if (= :tuple composite-type)

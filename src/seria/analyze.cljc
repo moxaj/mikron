@@ -1,5 +1,5 @@
 (ns seria.analyze
-  (:require [seria.utils :refer :all]))
+  (:require [seria.utils :refer [find-by]]))
 
 (defn find-multi-cases [schemas]
   (->> schemas

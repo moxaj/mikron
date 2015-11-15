@@ -1,6 +1,6 @@
 (ns seria.delta
-  (:require [seria.validate :refer :all]
-            [seria.utils :refer :all]))
+  (:require [seria.validate :refer [primitive? advanced? composite?]]
+            [seria.utils :refer [disj-indexed]]))
 
 (defn diff-dispatch [schema {:keys [schemas]} _ _ _]
   (cond

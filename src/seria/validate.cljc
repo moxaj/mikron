@@ -86,6 +86,7 @@
 
 (defn validate
   ([schemas]
+   (assert (map? schemas) ":schemas arg must be a map.")
    (assert (not-any? built-in? (keys schemas)) "Built-in schemas cannot be used as top-level schemas.")
    (into {} (for [[top-schema schema] schemas]
               [top-schema (validate schemas schema)])))
@@ -95,6 +96,5 @@
          (advanced? schema)
          (contains? schemas schema)) schema
      (composite? schema) (validate-composite schemas (with-options schema))
-     :else (throw #?(:clj  (Exception. (str "Unknown schema type: " schema))
-                     :cljs (js/Error. (str "Unknown schema type: " schema)))))))
+     :else (throw (new #?(:clj Exception :cljs js/Error) (str "Unknown schema type: " schema))))))
 
