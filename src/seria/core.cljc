@@ -57,8 +57,7 @@
                    :wbuffers   (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
                    :schema-map (bimap (keys schemas))
                    :enum-map   (bimap (find-enum-values schemas))
-                   :multi-map  (bimap (find-multi-cases schemas))
-                   :groups     (atom {:sent {} :received {}})}]
+                   :multi-map  (bimap (find-multi-cases schemas))}]
     (swap! non-embeddables assoc config-id (bimap (find-non-embeddables schemas)))
     (assoc config :processors (make-processors schemas config))))
 
