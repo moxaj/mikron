@@ -1,13 +1,10 @@
 (ns seria.serialization
-  #?(:clj
-     (:import [java.util Date]))
   (:require [seria.buffers :refer [read-byte! read-short! read-int!
                                    read-float! read-double!
                                    read-char! read-boolean!
                                    write-byte! write-short! write-int!
                                    write-float! write-double!
-                                   write-char! write-boolean!
-                                   HybridBuffer]]
+                                   write-char! write-boolean!]]
             [seria.utils :refer [disj-indexed]]
             [seria.validate :refer [primitive? advanced? composite?]]
             [seria.delta :refer [dnil? dnil]]))

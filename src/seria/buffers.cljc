@@ -1,6 +1,7 @@
 (ns seria.buffers
   #?(:clj
-     (:import [java.nio ByteBuffer])))
+     (:import [java.nio ByteBuffer]
+              [java.lang Math])))
 
 (defprotocol HybridBuffer
   (read-byte! [this position])
@@ -84,7 +85,8 @@
   (vreset! byte-position (+ 4 max-bits)))
 
 (defn unwrap-wbuffer [{:keys [bit-position byte-position max-bits buffer]}]
-  (let [length-1     (int (Math/ceil (/ @bit-position 8)))
+  (let [length-1     (int (#?(:clj  #(Math/ceil %)
+                              :cljs js/Math.ceil) (/ @bit-position 8)))
         length-2     (- @byte-position max-bits 4)
         total-length (+ length-1 length-2)]
     (write-short! buffer 2 (- length-1 4))

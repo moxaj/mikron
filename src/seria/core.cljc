@@ -1,34 +1,27 @@
 (ns seria.core
-  #?@(:clj  [
-             (:import [java.nio ByteBuffer]
-                      [java.util Base64 Base64$Encoder])
-             (:require [seria.buffers :refer [make-wbuffer reset-wbuffer! unwrap-wbuffer
-                                              wrap-bytes write-short!]]
-                       [seria.serialization :refer [make-packer make-unpacker non-embeddables]]
-                       [seria.utils :refer [unique-int bimap]]
-                       [seria.validate :refer [validate]]
-                       [seria.analyze :refer [find-enum-values find-multi-cases find-non-embeddables]]
-                       [seria.delta :refer [make-differ make-undiffer]])]
-      :cljs [(:require
-               [seria.buffers :refer [make-wbuffer reset-wbuffer! unwrap-wbuffer
-                                      wrap-bytes write-short!]]
-               [seria.serialization :refer [make-packer make-unpacker non-embeddables]]
-               [seria.utils :refer [unique-int bimap]]
-               [seria.validate :refer [validate]]
-               [seria.analyze :refer [find-enum-values find-multi-cases find-non-embeddables]]
-               [seria.delta :refer [make-differ make-undiffer]]
-               [cljs.reader :refer [read-string]]
-               [cljs.js :refer [eval js-eval empty-state]])]))
+  #?(:clj
+     (:import [java.nio ByteBuffer]
+              [java.util Base64 Base64$Encoder]))
+  (:require [seria.buffers :refer [make-wbuffer reset-wbuffer! unwrap-wbuffer
+                                   wrap-bytes write-short!]]
+            [seria.serialization :refer [make-packer make-unpacker non-embeddables]]
+            [seria.utils :refer [unique-int bimap]]
+            [seria.validate :refer [validate]]
+            [seria.analyze :refer [find-enum-values find-multi-cases find-non-embeddables]]
+            [seria.delta :refer [make-differ make-undiffer]]
+    #?@(:cljs [[cljs.reader :refer [read-string]]
+               [cljs.js :refer [eval js-eval empty-state]]])))
 
 (defn eval-cljc [form]
   #?(:clj  (eval form)
-     :cljs (binding [*print-err-fn* (constantly nil)]
-             (eval (empty-state)
-                   (read-string (pr-str form))
-                   {:eval       js-eval
-                    :source-map true
-                    :context    :expr}
-                   identity))))
+     :cljs (eval (empty-state)
+                 (read-string (pr-str form))
+                 {:eval       js-eval
+                  :source-map true
+                  :context    :expr}
+                 identity)))
+
+;(binding [*print-err-fn* (constantly nil)])
 
 (defn make-processors [schemas config]
   (->> (keys schemas)
@@ -61,8 +54,8 @@
     (swap! non-embeddables assoc config-id (bimap (find-non-embeddables schemas)))
     (assoc config :processors (make-processors schemas config))))
 
-#_(defmacro defconfig [name & args]
-    `(def ~name (make-config ~@args)))
+; (defmacro defconfig [name & args]
+;   `(def ~name (make-config ~@args)))
 
 (defn diff [data-1 data-2 schema {:keys [processors]}]
   (when-let [diff! (get-in processors [schema :differ])]
