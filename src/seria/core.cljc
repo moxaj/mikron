@@ -61,8 +61,8 @@
     (swap! non-embeddables assoc config-id (bimap (find-non-embeddables schemas)))
     (assoc config :processors (make-processors schemas config))))
 
-(defmacro defconfig [name & args]
-  `(def ~name (make-config ~@args)))
+#_(defmacro defconfig [name & args]
+    `(def ~name (make-config ~@args)))
 
 (defn diff [data-1 data-2 schema {:keys [processors]}]
   (when-let [diff! (get-in processors [schema :differ])]

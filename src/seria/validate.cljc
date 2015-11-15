@@ -97,4 +97,3 @@
          (contains? schemas schema)) schema
      (composite? schema) (validate-composite schemas (with-options schema))
      :else (throw (new #?(:clj Exception :cljs js/Error) (str "Unknown schema type: " schema))))))
-
