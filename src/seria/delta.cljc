@@ -1,6 +1,6 @@
 (ns seria.delta
   (:require [seria.validate :refer [primitive? advanced? composite?]]
-            [seria.utils :refer [disj-indexed]]))
+            [seria.util :refer [disj-indexed]]))
 
 (defn diff-dispatch [schema {:keys [schemas]} _ _ _]
   (cond
@@ -28,19 +28,23 @@
 
 
 (defmethod diff* :map [[_ _ _ value-schema] config data-1 data-2 _]
-  (let [key   (gensym "key_")
-        value (gensym "value_")]
-    `(into {} (for [[~key ~value] ~data-2]
-                [~key ~(diff* value-schema config `(get ~data-1 ~key) value false)]))))
+  (let [key     (gensym "key_")
+        value-1 (gensym "value-1_")
+        value-2 (gensym "value-2_")]
+    `(into {} (for [[~key ~value-2] ~data-2]
+                (let [~value-1 (get ~data-1 ~key)]
+                  [~key ~(diff* value-schema config value-1 value-2 false)])))))
 
 (defmethod undiff* :map [[map-type _ _ value-schema] config data-1 data-2 _]
   (let [key     (gensym "key_")
-        value-2 (gensym "value_")]
+        value-1 (gensym "value-1_")
+        value-2 (gensym "value-2_")]
     `(into ~(case map-type
               :map `{}
               :sorted-map `(sorted-map))
            (for [[~key ~value-2] ~data-2]
-             [~key ~(undiff* value-schema config `(get ~data-1 ~key) value-2 false)]))))
+             (let [~value-1 (get ~data-1 ~key)]
+               [~key ~(undiff* value-schema config value-1 value-2 false)])))))
 
 
 (defmethod diff* :tuple [[_ {:keys [delta]} :as schema] config data-1 data-2 at-top]
@@ -51,11 +55,15 @@
                      [diffed (mapv (fn [{:keys [symbol index sub-schema]}]
                                      (if (some #{index} ignored)
                                        symbol
-                                       (diff* sub-schema config `(get ~data-1 ~index) symbol false)))
+                                       (let [tuple-1-item (gensym "tuple-1-item_")]
+                                         `(let [~tuple-1-item (get ~data-1 ~index)]
+                                            ~(diff* sub-schema config tuple-1-item symbol false)))))
                                    disjoined-2)])]
        ~(if at-top
           diffed
-          `(if (every? dnil? ~diffed)                       ;todo
+          `(if (and ~@(map (fn [{:keys [index]}]
+                             `(dnil? (get ~diffed ~index)))
+                           disjoined-2))
              ~dnil
              ~diffed)))))
 
@@ -68,7 +76,9 @@
          (vector ~@(map (fn [{:keys [symbol index sub-schema]}]
                           (if (some #{index} ignored)
                             symbol
-                            (undiff* sub-schema config `(get ~data-1 ~index) symbol false)))
+                            (let [tuple-1-item (gensym "tuple-1-item_")]
+                              `(let [~tuple-1-item (get ~data-1 ~index)]
+                                 ~(undiff* sub-schema config tuple-1-item symbol false)))))
                         disjoined-2))))))
 
 
@@ -79,13 +89,17 @@
     `(let [~@(concat (mapcat (juxt :symbol :sub-data) disjoined-2)
                      [diffed (->> disjoined-2
                                   (map (fn [{:keys [symbol index sub-schema]}]
-                                         (if (some #{index} ignored)
-                                           [index symbol]
-                                           [index (diff* sub-schema config `(get ~data-1 ~index) symbol false)])))
+                                         [index (if (some #{index} ignored)
+                                                  symbol
+                                                  (let [record-1-item (gensym "record-1-item_")]
+                                                    `(let [~record-1-item (get ~data-1 ~index)]
+                                                       ~(diff* sub-schema config record-1-item symbol false))))]))
                                   (into {}))])]
        ~(if at-top
           diffed
-          `(if (every? dnil? (vals ~diffed))                ;todo
+          `(if (and ~@(map (fn [{:keys [index]}]
+                             `(dnil? (get ~diffed ~index)))
+                           disjoined-2))
              ~dnil
              ~diffed)))))
 
@@ -96,9 +110,11 @@
        ~data-1
        (let [~@(mapcat (juxt :symbol :sub-data) disjoined-2)]
          (hash-map ~@(mapcat (fn [{:keys [symbol index sub-schema]}]
-                               (if (some #{index} ignored)
-                                 [index symbol]
-                                 [index (undiff* sub-schema config `(get ~data-1 ~index) symbol false)]))
+                               [index (if (some #{index} ignored)
+                                        symbol
+                                        (let [record-1-item (gensym "record-1-item_")]
+                                          `(let [~record-1-item (get ~data-1 ~index)]
+                                             ~(undiff* sub-schema config record-1-item symbol false))))])
                              disjoined-2))))))
 
 

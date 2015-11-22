@@ -1,5 +1,6 @@
 (ns seria.validate
-  (:require [clojure.set :refer [union]]))
+  (:require [clojure.set :refer [union]]
+            [seria.util :refer [cljc-throw]]))
 
 (def primitives #{:byte :short :int :float :double :char :boolean})
 
@@ -35,65 +36,74 @@
 
 (declare validate)
 
-(defmulti validate-composite (fn [_ [composite-type]]
+(defmulti validate-composite (fn [[composite-type] _]
                                (condp contains? composite-type
                                  #{:list :vector :set :sorted-set} :coll
                                  #{:map :sorted-map} :map
                                  composite-type)))
 
-(defmethod validate-composite :coll [schemas [composite-type options schema]]
-  (when-let [size-option (:size options)]
-    (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
-  [composite-type options (validate schemas schema)])
+(defmethod validate-composite :coll [[composite-type {:keys [size] :or {size :byte}} sub-schema :as schema]
+                                     schemas]
+  (assert (= 3 (count schema)))
+  (assert (size-type? size))
+  [composite-type {:size size} (validate sub-schema schemas)])
 
-(defmethod validate-composite :map [schemas [composite-type options key-schema value-schema]]
-  (when-let [size-option (:size options)]
-    (assert (size-type? size-option) (str composite-type " | Invalid size option: " size-option)))
-  [composite-type options (validate schemas key-schema) (validate schemas value-schema)])
+(defmethod validate-composite :map [[composite-type {:keys [size] :or {size :byte}} key-schema value-schema :as schema]
+                                    schemas]
+  (assert (= 4 (count schema)))
+  (assert (size-type? size))
+  [composite-type {:size size} (validate key-schema schemas) (validate value-schema schemas)])
 
-(defmethod validate-composite :optional [schemas [_ options schema]]
-  [:optional options (validate schemas schema)])
+(defmethod validate-composite :optional [[_ _ sub-schema :as schema] schemas]
+  (assert (= 3 (count schema)))
+  [:optional {} (validate sub-schema schemas)])
 
-(defmethod validate-composite :enum [_ [_ options values]]
-  (assert (sequential? values) (str ":enum | Invalid values (must be sequential): " values))
-  (assert (seq values) (str ":enum | Invalid values (must be non-empty): " values))
-  (assert (every? keyword? values) (str ":enum | Invalid values (must contain keywords only): " values))
-  [:enum options values])
+(defmethod validate-composite :enum [[_ _ values :as schema] _]
+  (assert (= 3 (count schema)))
+  (assert (sequential? values))
+  (assert (seq values))
+  (assert (every? keyword? values))
+  [:enum {} values])
 
-(defmethod validate-composite :tuple [schemas [_ options sub-schemas]]
-  (assert (sequential? sub-schemas) (str ":tuple | Invalid schemas (must be sequential): " sub-schemas))
-  (assert (seq sub-schemas) (str ":tuple | Invalid schemas (must be non-empty): " sub-schemas))
-  [:tuple options (mapv (partial validate schemas) sub-schemas)])
+(defmethod validate-composite :tuple [[_ {:keys [delta]} sub-schemas :as schema] schemas]
+  (assert (= 3 (count schema)))
+  (assert (sequential? sub-schemas))
+  (assert (seq sub-schemas))
+  [:tuple {:delta delta} (mapv #(validate % schemas) sub-schemas)])
 
-(defmethod validate-composite :record [schemas [_ options arg-map]]
-  (assert (map? arg-map) (str ":record | Invalid record map (must be a map): " arg-map))
-  (when-let [extends-option (:extends options)]
-    (assert (sequential? extends-option)
-            (str ":record | Invalid record schemas (extends option must be sequential): " extends-option))
-    (assert (every? (partial contains? schemas) extends-option)
-            (str ":record | Invalid record schemas in extends option: " extends-option)))
+(defmethod validate-composite :record [[_ {:keys [extends constructor delta] :or {extends []}} arg-map :as schema] schemas]
+  (assert (= 3 (count schema)))
+  (assert (map? arg-map))
+  (assert (sequential? extends))
+  (assert (every? (partial contains? schemas) extends))
+  (when constructor
+    (assert (fn? constructor)))
   (let [fields      (keys arg-map)
         sub-schemas (vals arg-map)]
-    (assert (every? keyword? fields) (str ":record | Invalid record fields (must be keywords): " fields))
-    [:record options (zipmap fields (mapv (partial validate schemas) sub-schemas))]))
+    (assert (every? keyword? fields))
+    [:record {:extends extends
+              :constructor constructor
+              :delta delta}
+     (zipmap fields (map #(validate % schemas) sub-schemas))]))
 
-(defmethod validate-composite :multi [schemas [_ options selector arg-map]]
-  (assert (ifn? selector) (str ":multi | Invalid selector (must implement IFn): " selector))
-  (assert (map? arg-map) (str ":multi | Invalid multi map (must be a map): " arg-map))
+(defmethod validate-composite :multi [[_ _ selector arg-map :as schema] schemas]
+  (assert (= 4 (count schema)))
+  (assert (ifn? selector))
+  (assert (map? arg-map))
   (let [multi-cases (keys arg-map)
         sub-schemas (vals arg-map)]
-    [:multi options selector (zipmap multi-cases (mapv (partial validate schemas) sub-schemas))]))
+    [:multi {} selector (zipmap multi-cases (map #(validate % schemas) sub-schemas))]))
 
 (defn validate
   ([schemas]
-   (assert (map? schemas) ":schemas arg must be a map.")
-   (assert (not-any? built-in? (keys schemas)) "Built-in schemas cannot be used as top-level schemas.")
+   (assert (map? schemas))
+   (assert (not-any? built-in? (keys schemas)))
    (into {} (for [[top-schema schema] schemas]
-              [top-schema (validate schemas schema)])))
-  ([schemas schema]
+              [top-schema (validate schema schemas)])))
+  ([schema schemas]
    (cond
      (or (primitive? schema)
          (advanced? schema)
          (contains? schemas schema)) schema
-     (composite? schema) (validate-composite schemas (with-options schema))
-     :else (throw (new #?(:clj Exception :cljs js/Error) (str "Unknown schema type: " schema))))))
+     (composite? schema) (validate-composite (with-options schema) schemas)
+     :else (cljc-throw ""))))

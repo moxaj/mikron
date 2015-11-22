@@ -1,5 +1,7 @@
 (ns seria.analyze
-  (:require [seria.utils :refer [find-by]]))
+  (:require [seria.util :refer [find-by]]
+    #?(:clj
+            [clojure.walk :refer [postwalk]])))
 
 (defn find-multi-cases [schemas]
   (->> schemas
@@ -18,3 +20,13 @@
 
 (defn find-non-embeddables [schemas]
   (find-by fn? schemas))
+
+(do #?(:clj (defn omit-core-ns [form]
+              (postwalk (fn [x]
+                          (if-not (symbol? x)
+                            x
+                            (-> (str x)
+                                (clojure.string/replace #"clojure\.core/" "")
+                                (symbol))))
+                        form))))
+

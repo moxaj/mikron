@@ -1,4 +1,4 @@
-(ns seria.buffers
+(ns seria.buffer
   #?(:clj
      (:import [java.nio ByteBuffer]
               [java.lang Math])))

@@ -1,61 +1,6 @@
 (ns seria.core
-  #?(:clj
-     (:import [java.nio ByteBuffer]
-              [java.util Base64 Base64$Encoder]))
-  (:require [seria.buffers :refer [make-wbuffer reset-wbuffer! unwrap-wbuffer
-                                   wrap-bytes write-short!]]
-            [seria.serialization :refer [make-packer make-unpacker non-embeddables]]
-            [seria.utils :refer [unique-int bimap]]
-            [seria.validate :refer [validate]]
-            [seria.analyze :refer [find-enum-values find-multi-cases find-non-embeddables]]
-            [seria.delta :refer [make-differ make-undiffer]]
-    #?@(:cljs [[cljs.reader :refer [read-string]]
-               [cljs.js :refer [eval js-eval empty-state]]])))
-
-(defn eval-cljc [form]
-  #?(:clj  (eval form)
-     :cljs (eval (empty-state)
-                 (read-string (pr-str form))
-                 {:eval       js-eval
-                  :source-map true
-                  :context    :expr}
-                 identity)))
-
-;(binding [*print-err-fn* (constantly nil)])
-
-(defn make-processors [schemas config]
-  (->> (keys schemas)
-       (map (fn [schema]
-              (let [packer   (make-packer schema config)
-                    unpacker (make-unpacker schema config)
-                    differ   (make-differ schema config)
-                    undiffer (make-undiffer schema config)]
-                [schema {:packer          (eval-cljc packer)
-                         :unpacker        (eval-cljc unpacker)
-                         :differ          (eval-cljc differ)
-                         :undiffer        (eval-cljc undiffer)
-                         :packer-source   packer
-                         :unpacker-source unpacker
-                         :differ-source   differ
-                         :undiffer-source undiffer}])))
-       (into {})))
-
-(defn make-config [& args]
-  (let [{:keys [buffer-count max-bits max-bytes schemas]
-         :or   {buffer-count 4 max-bits 10000 max-bytes 10000}} (apply hash-map args)
-        config-id (unique-int)
-        schemas   (validate schemas)
-        config    {:config-id  config-id
-                   :schemas    schemas
-                   :wbuffers   (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
-                   :schema-map (bimap (keys schemas))
-                   :enum-map   (bimap (find-enum-values schemas))
-                   :multi-map  (bimap (find-multi-cases schemas))}]
-    (swap! non-embeddables assoc config-id (bimap (find-non-embeddables schemas)))
-    (assoc config :processors (make-processors schemas config))))
-
-; (defmacro defconfig [name & args]
-;   `(def ~name (make-config ~@args)))
+  (:require [seria.buffer :refer [reset-wbuffer! unwrap-wbuffer
+                                  wrap-bytes write-short!]]))
 
 (defn diff [data-1 data-2 schema {:keys [processors]}]
   (when-let [diff! (get-in processors [schema :differ])]

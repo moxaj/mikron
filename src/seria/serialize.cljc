@@ -1,16 +1,16 @@
-(ns seria.serialization
-  (:require [seria.buffers :refer [read-byte! read-short! read-int!
-                                   read-float! read-double!
-                                   read-char! read-boolean!
-                                   write-byte! write-short! write-int!
-                                   write-float! write-double!
-                                   write-char! write-boolean!]]
-            [seria.utils :refer [disj-indexed]]
+(ns seria.serialize
+  (:require [seria.buffer :refer [read-byte! read-short! read-int!
+                                  read-float! read-double!
+                                  read-char! read-boolean!
+                                  write-byte! write-short! write-int!
+                                  write-float! write-double!
+                                  write-char! write-boolean!]]
+            [seria.util :refer [disj-indexed cljc-read-string]]
             [seria.validate :refer [primitive? advanced? composite?]]
             [seria.delta :refer [dnil? dnil]]))
 
 ; ugly hack crying out for help
-(def non-embeddables (atom {}))
+(def global-embed-map (atom {}))
 
 (defn primitive-size [schema]
   (case schema
@@ -23,7 +23,7 @@
     :boolean 1))
 
 (defn unroll-record [schemas [_ {:keys [extends] :as options} record-map :as record]]
-  (if-not extends
+  (if-not (seq extends)
     record
     [:record options (merge (->> extends
                                  (map #(nth (->> (get schemas %)
@@ -105,25 +105,30 @@
 
 
 (defmethod pack* :keyword [_ config data]
-  (pack* :string config `(name ~data)))
+  (let [data-as-str (gensym "keyword-as-str_")]
+    `(let [~data-as-str (subs (str ~data) 1)]
+       ~(pack* :string config data-as-str))))
 
 (defmethod unpack* :keyword [_ config]
   `(keyword ~(unpack* :string config)))
 
 
 (defmethod pack* :symbol [_ config data]
-  (pack* :string config `(name ~data)))
+  (let [data-as-str (gensym "symbol-as-str_")]
+    `(let [~data-as-str (str ~data)]
+       ~(pack* :string config data-as-str))))
 
 (defmethod unpack* :symbol [_ config]
   `(symbol ~(unpack* :string config)))
 
 
 (defmethod pack* :any [_ config data]
-  (pack* :string config `(pr-str ~data)))
+  (let [data-as-str (gensym "data-as-str_")]
+    `(let [~data-as-str (pr-str ~data)]
+       ~(pack* :long-string config data-as-str))))
 
 (defmethod unpack* :any [_ config]
-  `(#?(:clj  read-string
-       :cljs cljs.reader/read-string) ~(unpack* :string config)))
+  `((cljc-read-string) ~(unpack* :long-string config)))
 
 
 (defmethod pack* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]
@@ -216,18 +221,18 @@
 
 
 (defmethod unpack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas config-id] :as config}]
-  (let [[_ {:keys [constructor]} arg-map] (unroll-record schemas schema)
-        constructor-key (get-in @non-embeddables [config-id constructor])]
-    `(~(if constructor
-         `(comp (get-in @non-embeddables [~config-id ~constructor-key]) (partial into {}))
-         `(partial into {}))
-       ~(mapv (fn [[key value-schema]]
-                (if-not (:enabled delta)
-                  [key (unpack* value-schema config)]
-                  `(if ~(unpack* :boolean config)
-                     [~key ~dnil]
-                     [~key ~(unpack* value-schema config)])))
-              arg-map))))
+  (let [[_ {:keys [constructor]} record-map] (unroll-record schemas schema)
+        constructor-key (get-in @global-embed-map [config-id constructor])
+        unpack-body     `(hash-map ~@(mapcat (fn [[key value-schema]]
+                                               [key (if-not (:enabled delta)
+                                                      (unpack* value-schema config)
+                                                      `(if ~(unpack* :boolean config)
+                                                         ~dnil
+                                                         ~(unpack* value-schema config)))])
+                                             record-map))]
+    (if constructor
+      `((get-in @global-embed-map [~config-id ~constructor-key]) ~unpack-body)
+      unpack-body)))
 
 
 (defmethod pack* :optional [[_ _ sub-schema] config data]
@@ -242,29 +247,29 @@
 
 
 (defmethod pack* :multi
-  [[_ _ selector arg-map] {:keys [multi-map config-id] :as config} data]
-  (let [selector-key (get-in @non-embeddables [config-id selector])
+  [[_ _ selector arg-map] {:keys [multi-map multi-size config-id] :as config} data]
+  (let [selector-key (get-in @global-embed-map [config-id selector])
         case-body    (mapcat (fn [[multi-case sub-schema]]
-                               [multi-case `(do ~(pack* :short config (get multi-map multi-case))
+                               [multi-case `(do ~(pack* multi-size config (get multi-map multi-case))
                                                 ~(pack* sub-schema config data))])
                              arg-map)]
-    `(case ((get-in @non-embeddables [~config-id ~selector-key]) ~data)
+    `(case ((get-in @global-embed-map [~config-id ~selector-key]) ~data)
        ~@case-body)))
 
 (defmethod unpack* :multi
-  [[_ _ _ arg-map] {:keys [multi-map] :as config}]
+  [[_ _ _ arg-map] {:keys [multi-map multi-size] :as config}]
   (let [case-body (mapcat (fn [[condition sub-schema]]
                             [condition (unpack* sub-schema config)])
                           arg-map)]
-    `(case (get ~multi-map ~(unpack* :short config))
+    `(case (get ~multi-map ~(unpack* multi-size config))
        ~@case-body)))
 
 
-(defmethod pack* :enum [_ {:keys [enum-map] :as config} data]
-  (pack* :short config `(get ~enum-map ~data)))
+(defmethod pack* :enum [_ {:keys [enum-map enum-size] :as config} data]
+  (pack* enum-size config `(get ~enum-map ~data)))
 
-(defmethod unpack* :enum [_ {:keys [enum-map] :as config}]
-  `(get ~enum-map ~(unpack* :short config)))
+(defmethod unpack* :enum [_ {:keys [enum-map enum-size] :as config}]
+  `(get ~enum-map ~(unpack* enum-size config)))
 
 
 (defmethod pack* :top-schema [schema config data]
