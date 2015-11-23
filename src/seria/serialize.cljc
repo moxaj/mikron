@@ -50,34 +50,32 @@
 
 
 (defmethod pack* :primitive [schema _ data]
-  (let [position (if (= :boolean schema) 'bit-position 'byte-position)
-        p        (gensym "pos_")]
-    `(let [~p (deref ~position)]
-       (vswap! ~position unchecked-add ~(primitive-size schema))
-       ~(case schema
-          :byte `(write-byte! ~'buffer ~p ~data)
-          :short `(write-short! ~'buffer ~p ~data)
-          :int `(write-int! ~'buffer ~p ~data)
-          :float `(write-float! ~'buffer ~p ~data)
-          :double `(write-double! ~'buffer ~p ~data)
-          :char `(write-char! ~'buffer ~p ~data)
-          :boolean `(write-boolean! ~'buffer ~p ~data)
-          nil))))
+  (let [position (if (= :boolean schema) 'bit-position 'byte-position)]
+    `(do ~(case schema
+            :byte `(write-byte! ~'buffer @~position ~data)
+            :short `(write-short! ~'buffer @~position ~data)
+            :int `(write-int! ~'buffer @~position ~data)
+            :float `(write-float! ~'buffer @~position ~data)
+            :double `(write-double! ~'buffer @~position ~data)
+            :char `(write-char! ~'buffer @~position ~data)
+            :boolean `(write-boolean! ~'buffer @~position ~data)
+            nil)
+         (vswap! ~position unchecked-add ~(primitive-size schema)))))
 
 (defmethod unpack* :primitive [schema _]
   (let [position (if (= :boolean schema) 'bit-position 'byte-position)
-        p        (gensym "pos_")]
-    `(let [~p (deref ~position)]
+        value    (gensym "value_")]
+    `(let [~value ~(case schema
+                     :byte `(read-byte! ~'buffer @~position)
+                     :short `(read-short! ~'buffer @~position)
+                     :int `(read-int! ~'buffer @~position)
+                     :float `(read-float! ~'buffer @~position)
+                     :double `(read-double! ~'buffer @~position)
+                     :char `(read-char! ~'buffer @~position)
+                     :boolean `(read-boolean! ~'buffer @~position)
+                     nil)]
        (vswap! ~position unchecked-add ~(primitive-size schema))
-       ~(case schema
-          :byte `(read-byte! ~'buffer ~p)
-          :short `(read-short! ~'buffer ~p)
-          :int `(read-int! ~'buffer ~p)
-          :float `(read-float! ~'buffer ~p)
-          :double `(read-double! ~'buffer ~p)
-          :char `(read-char! ~'buffer ~p)
-          :boolean `(read-boolean! ~'buffer ~p)
-          nil))))
+       ~value)))
 
 
 (defmethod pack* :string [_ config data]

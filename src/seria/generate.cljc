@@ -2,6 +2,9 @@
   (:require [seria.validate :refer [primitive? advanced? composite?]]
             [clojure.walk :refer [postwalk]]))
 
+(def ^:dynamic *small-sizes* (range 1 5))
+(def ^:dynamic *big-sizes* (range 128 150))
+
 (def symbol-chars
   (map char (concat [\_ \- \? \\]
                     (range 97 123)
@@ -10,11 +13,16 @@
 (defn gen-symbol-char []
   (rand-nth symbol-chars))
 
-(defn gen-signed-byte []
-  (rand-int 128))
+(defn gen-small-size []
+  (rand-nth *small-sizes*))
 
-(defn gen-signed-short []
-  (rand-int 32768))
+(defn gen-big-size []
+  (rand-nth *big-sizes*))
+
+(defn gen-size [size-type]
+  (case size-type
+    :byte (gen-small-size)
+    :short (gen-big-size)))
 
 (defmulti gen (fn [schema schemas]
                 (cond
@@ -47,23 +55,23 @@
 
 (defmethod gen :string [_ schemas]
   (->> #(gen :char schemas)
-       (repeatedly (rand-int 5))
+       (repeatedly (gen-small-size))
        (apply str)))
 
 (defmethod gen :long-string [_ schemas]
   (->> #(gen :char schemas)
-       (repeatedly (rand-int 500))
+       (repeatedly (gen-big-size))
        (apply str)))
 
 (defmethod gen :keyword [_ _]
   (->> #(gen-symbol-char)
-       (repeatedly (rand-int 128))
+       (repeatedly (gen-small-size))
        (apply str)
        (keyword)))
 
 (defmethod gen :symbol [_ _]
   (->> #(gen-symbol-char)
-       (repeatedly (rand-int 128))
+       (repeatedly (gen-small-size))
        (apply str)
        (symbol)))
 
@@ -74,35 +82,26 @@
   (gen (get schemas schema) schemas))
 
 (defmethod gen :list [[_ {:keys [size]} sub-schema] schemas]
-  (repeatedly (case size :byte (gen-signed-byte)
-                         :short (gen-signed-short))
-              #(gen sub-schema schemas)))
+  (repeatedly (gen-size size) #(gen sub-schema schemas)))
 
 (defmethod gen :vector [[_ {:keys [size]} sub-schema] schemas]
-  (vec (repeatedly (case size :byte (gen-signed-byte)
-                              :short (gen-signed-short))
-                   #(gen sub-schema schemas))))
+  (vec (repeatedly (gen-size size) #(gen sub-schema schemas))))
 
 (defmethod gen :set [[_ {:keys [size]} sub-schema] schemas]
-  (set (repeatedly (case size :byte (gen-signed-byte)
-                              :short (gen-signed-short))
-                   #(gen sub-schema schemas))))
+  (set (repeatedly (gen-size size) #(gen sub-schema schemas))))
 
 (defmethod gen :sorted-set [[_ {:keys [size]} sub-schema] schemas]
   (into (sorted-set)
-        (repeatedly (case size :byte (gen-signed-byte)
-                               :short (gen-signed-short))
+        (repeatedly (gen-size size)
                     #(gen sub-schema schemas))))
 
 (defmethod gen :map [[_ {:keys [size]} key-schema value-schema] schemas]
-  (let [size-value (case size :byte (gen-signed-byte)
-                              :short (gen-signed-short))]
+  (let [size-value (gen-size size)]
     (zipmap (repeatedly size-value #(gen key-schema schemas))
             (repeatedly size-value #(gen value-schema schemas)))))
 
 (defmethod gen :sorted-map [[_ {:keys [size]} key-schema value-schema] schemas]
-  (let [size-value (case size :byte (gen-signed-byte)
-                              :short (gen-signed-short))]
+  (let [size-value (gen-size size)]
     (into (sorted-map)
           (zipmap (repeatedly size-value #(gen key-schema schemas))
                   (repeatedly size-value #(gen value-schema schemas))))))

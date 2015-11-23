@@ -14,8 +14,7 @@
   ([schemas config]
    (make-processors schemas config false))
   ([schemas config evaled?]
-   (let [post-fn #?(:clj (if evaled? eval identity)
-                    :cljs identity)]
+   (let [post-fn (if evaled? eval identity)]
      (->> (keys schemas)
           (map (fn [schema]
                  [schema {:packer   (post-fn (make-packer schema config))
@@ -52,10 +51,9 @@
          (assoc ~config :wbuffers (repeatedly ~buffer-count #(make-wbuffer ~max-bits ~max-bytes))
                         :processors ~(make-processors schemas config)))))
 
-(do #?(:clj
-       (defn make-test-config [& args]
-         (let [{:keys [config buffer-count max-bits max-bytes embed-map]} (make-initial-config args)
-               {:keys [config-id schemas]} config]
-           (do (swap! global-embed-map assoc config-id embed-map)
-               (assoc config :wbuffers (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
-                             :processors (make-processors schemas config true)))))))
+(defn make-test-config [& args]
+  (let [{:keys [config buffer-count max-bits max-bytes embed-map]} (make-initial-config args)
+        {:keys [config-id schemas]} config]
+    (do (swap! global-embed-map assoc config-id embed-map)
+        (assoc config :wbuffers (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
+                      :processors (make-processors schemas config true)))))

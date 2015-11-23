@@ -81,9 +81,9 @@
   (let [fields      (keys arg-map)
         sub-schemas (vals arg-map)]
     (assert (every? keyword? fields))
-    [:record {:extends extends
+    [:record {:extends     extends
               :constructor constructor
-              :delta delta}
+              :delta       delta}
      (zipmap fields (map #(validate % schemas) sub-schemas))]))
 
 (defmethod validate-composite :multi [[_ _ selector arg-map :as schema] schemas]
@@ -92,7 +92,8 @@
   (assert (map? arg-map))
   (let [multi-cases (keys arg-map)
         sub-schemas (vals arg-map)]
-    [:multi {} selector (zipmap multi-cases (map #(validate % schemas) sub-schemas))]))
+    [:multi {} selector (zipmap multi-cases (map #(validate % schemas)
+                                                 sub-schemas))]))
 
 (defn validate
   ([schemas]
