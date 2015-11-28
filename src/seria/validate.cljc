@@ -2,7 +2,7 @@
   (:require [clojure.set :refer [union]]
             [seria.util :refer [cljc-throw]]))
 
-(def primitives #{:byte :ubyte :short :ushort :int :uint :float :double :char :boolean})
+(def primitives #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
 
 (def advanceds #{:string :long-string :keyword :symbol :any})
 

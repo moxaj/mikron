@@ -1,11 +1,11 @@
 (ns seria.serialize
   (:require [seria.buffer :refer [read-byte! read-short! read-int!
                                   read-ubyte! read-ushort! read-uint!
-                                  read-float! read-double!
+                                  read-long! read-float! read-double!
                                   read-char! read-boolean!
                                   write-byte! write-short! write-int!
                                   write-ubyte! write-ushort! write-uint!
-                                  write-float! write-double!
+                                  write-long! write-float! write-double!
                                   write-char! write-boolean!]]
             [seria.util :refer [disj-indexed cljc-read-string]]
             [seria.validate :refer [primitive? advanced? composite?]]
@@ -22,6 +22,7 @@
     :ushort 2
     :int 4
     :uint 4
+    :long 8
     :float 4
     :double 8
     :char 2
@@ -63,6 +64,7 @@
             :ushort `(write-ushort! ~'buffer @~position ~data)
             :int `(write-int! ~'buffer @~position ~data)
             :uint `(write-uint! ~'buffer @~position ~data)
+            :long `(write-long! ~'buffer @~position ~data)
             :float `(write-float! ~'buffer @~position ~data)
             :double `(write-double! ~'buffer @~position ~data)
             :char `(write-char! ~'buffer @~position ~data)
@@ -80,6 +82,7 @@
                      :ushort `(read-ushort! ~'buffer @~position)
                      :int `(read-int! ~'buffer @~position)
                      :uint `(read-uint! ~'buffer @~position)
+                     :long `(read-long! ~'buffer @~position)
                      :float `(read-float! ~'buffer @~position)
                      :double `(read-double! ~'buffer @~position)
                      :char `(read-char! ~'buffer @~position)

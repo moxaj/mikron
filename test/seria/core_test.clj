@@ -25,6 +25,7 @@
    {:x :ushort}
    {:x :int}
    {:x :uint}
+   {:x :long}
    {:x :float}
    {:x :double}
    {:x :char}

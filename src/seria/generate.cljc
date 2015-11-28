@@ -50,6 +50,9 @@
 (defmethod gen :uint [_ _]
   (long (* 4294967296 (rand))))
 
+(defmethod gen :long [_ _]
+  (long (* Long/MAX_VALUE (rand))))
+
 (defmethod gen :float [_ _]
   (float (rand)))
 

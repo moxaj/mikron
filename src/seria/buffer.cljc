@@ -10,6 +10,7 @@
   (read-ushort! [this position])
   (read-int! [this position])
   (read-uint! [this position])
+  (read-long! [this position])
   (read-float! [this position])
   (read-double! [this position])
   (read-char! [this position])
@@ -21,10 +22,19 @@
   (write-ushort! [this position data])
   (write-int! [this position data])
   (write-uint! [this position data])
+  (write-long! [this position data])
   (write-float! [this position data])
   (write-double! [this position data])
   (write-char! [this position data])
   (write-boolean! [this position data]))
+
+(defn long->ints [^long value]
+  [(unchecked-int (bit-shift-right value 32))
+   (unchecked-int value)])
+
+(defn ints->long [int-1 int-2]
+  (bit-or (unchecked-long (bit-shift-left int-1 32))
+          (bit-and int-2 0xFFFFFFFF)))
 
 (do #?(:clj  (extend-type ByteBuffer
                HybridBuffer
@@ -34,6 +44,8 @@
                (read-ushort! [this position] (int (bit-and (.getShort this position) 0xFFFF)))
                (read-int! [this position] (.getInt this position))
                (read-uint! [this position] (long (bit-and (.getInt this position) 0xFFFFFFFF)))
+               (read-long! [this position] (ints->long (.getInt this position)
+                                                       (.getInt this (+ position 4))))
                (read-float! [this position] (.getFloat this position))
                (read-double! [this position] (.getDouble this position))
                (read-char! [this position] (.getChar this position))
@@ -47,6 +59,9 @@
                (write-ushort! [this position data] (.putShort this position (unchecked-short (bit-and data 0xFFFF))))
                (write-int! [this position data] (.putInt this position (int data)))
                (write-uint! [this position data] (.putInt this position (unchecked-int (bit-and data 0xFFFFFFFF))))
+               (write-long! [this position data] (let [[int-1 int-2] (long->ints data)]
+                                                   (.putInt this position int-1)
+                                                   (.putInt this (+ 4 position) int-2)))
                (write-float! [this position data] (.putFloat this position (float data)))
                (write-double! [this position data] (.putDouble this position (double data)))
                (write-char! [this position data] (.putChar this position (char data)))
@@ -66,6 +81,8 @@
                (read-ushort! [this position] (getUint16 this position))
                (read-int! [this position] (.getInt32 this position))
                (read-uint! [this position] (.getUint32 this position))
+               (read-long! [this position] (ints->long (.getInt32 this position)
+                                                       (.getInt32 this (+ position 4))))
                (read-float! [this position] (.getFloat32 this position))
                (read-double! [this position] (.getFloat64 this position))
                (read-char! [this position] (.getUint16 this position))
@@ -79,6 +96,9 @@
                (write-ushort! [this position data] (.setUint16 this position (unchecked-short data)))
                (write-int! [this position data] (.setInt32 this position (int data)))
                (write-uint! [this position data] (.setUint32 this position (unchecked-int data)))
+               (write-long! [this position data] (let [[int-1 int-2] (long->ints data)]
+                                                   (.setInt32 this position int-1)
+                                                   (.setInt32 this (+ 4 position) int-2)))
                (write-float! [this position data] (.setFloat32 this position (float data)))
                (write-double! [this position data] (.setFloat64 this position (double data)))
                (write-char! [this position data] (.setUint16 this position (char data)))
