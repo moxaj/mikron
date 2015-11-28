@@ -1,5 +1,5 @@
 (ns seria.analyze
-  (:require [clojure.walk :refer [postwalk prewalk walk]]
+  (:require [clojure.walk :refer [postwalk postwalk-replace]]
             [clojure.string :as str]))
 
 (defn find-by* [f form]
@@ -13,13 +13,6 @@
   (->> (find-by* f form)
        (flatten)
        (map :found)))
-
-(defn replace-with [from to form]
-  (postwalk (fn [sub-form]
-              (if (= from sub-form)
-                to
-                sub-form))
-            form))
 
 (defn find-multi-cases [schemas]
   (->> schemas
@@ -59,7 +52,8 @@
               (if-not (and (safe-expr? (binding-map binding-symbol))
                            (= (count (find-by #{binding-symbol} new-form)) 2))
                 new-form
-                (let [new-body-exprs (replace-with binding-symbol (binding-map binding-symbol) body-exprs)]
+                (let [new-body-exprs (postwalk-replace {binding-symbol (binding-map binding-symbol)}
+                                                       body-exprs)]
                   (if (= 1 (count binding-symbols))
                     (if (= 1 (count new-body-exprs))
                       (first new-body-exprs)
@@ -81,12 +75,12 @@
 (defn unwrap-do [super-form]
   (let [[op binding-form & body-exprs] super-form]
     `(~op ~binding-form
-       ~@(doall (mapcat (fn [body-expr]
-                          (if-not (and (sequential? body-expr)
-                                       (= "do" (name (first body-expr))))
-                            [body-expr]
-                            (rest body-expr)))
-                        body-exprs)))))
+       ~@(mapcat (fn [body-expr]
+                   (if-not (and (sequential? body-expr)
+                                (= "do" (name (first body-expr))))
+                     (list body-expr)
+                     (rest body-expr)))
+                 body-exprs))))
 
 (defn unwrap-dos [form]
   (postwalk (fn [sub-form]

@@ -2,14 +2,14 @@
   (:require [clojure.set :refer [union]]
             [seria.util :refer [cljc-throw]]))
 
-(def primitives #{:byte :short :int :float :double :char :boolean})
+(def primitives #{:byte :ubyte :short :ushort :int :uint :float :double :char :boolean})
 
 (def advanceds #{:string :long-string :keyword :symbol :any})
 
 (def composites #{:list :vector :set :sorted-set :map :sorted-map
                   :tuple :record :optional :multi :enum})
 
-(def size-types #{:byte :short})
+(def size-types #{:ubyte :ushort})
 
 (def built-ins (union primitives advanceds composites))
 
@@ -42,13 +42,13 @@
                                  #{:map :sorted-map} :map
                                  composite-type)))
 
-(defmethod validate-composite :coll [[composite-type {:keys [size] :or {size :byte}} sub-schema :as schema]
+(defmethod validate-composite :coll [[composite-type {:keys [size] :or {size :ubyte}} sub-schema :as schema]
                                      schemas]
   (assert (= 3 (count schema)))
   (assert (size-type? size))
   [composite-type {:size size} (validate sub-schema schemas)])
 
-(defmethod validate-composite :map [[composite-type {:keys [size] :or {size :byte}} key-schema value-schema :as schema]
+(defmethod validate-composite :map [[composite-type {:keys [size] :or {size :ubyte}} key-schema value-schema :as schema]
                                     schemas]
   (assert (= 4 (count schema)))
   (assert (size-type? size))
@@ -82,8 +82,8 @@
         sub-schemas (vals arg-map)]
     (assert (every? keyword? fields))
     [:record {:extends     extends
-              :constructor constructor
-              :delta       delta}
+              :constructor (boolean constructor)
+              :delta       (boolean delta)}
      (zipmap fields (map #(validate % schemas) sub-schemas))]))
 
 (defmethod validate-composite :multi [[_ _ selector arg-map :as schema] schemas]
@@ -107,4 +107,4 @@
          (advanced? schema)
          (contains? schemas schema)) schema
      (composite? schema) (validate-composite (with-options schema) schemas)
-     :else (cljc-throw ""))))
+     :else (cljc-throw "TODO"))))

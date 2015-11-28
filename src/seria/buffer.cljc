@@ -5,16 +5,22 @@
 
 (defprotocol HybridBuffer
   (read-byte! [this position])
+  (read-ubyte! [this position])
   (read-short! [this position])
+  (read-ushort! [this position])
   (read-int! [this position])
+  (read-uint! [this position])
   (read-float! [this position])
   (read-double! [this position])
   (read-char! [this position])
   (read-boolean! [this position])
 
   (write-byte! [this position data])
+  (write-ubyte! [this position data])
   (write-short! [this position data])
+  (write-ushort! [this position data])
   (write-int! [this position data])
+  (write-uint! [this position data])
   (write-float! [this position data])
   (write-double! [this position data])
   (write-char! [this position data])
@@ -23,8 +29,11 @@
 (do #?(:clj  (extend-type ByteBuffer
                HybridBuffer
                (read-byte! [this position] (.get this ^int position))
+               (read-ubyte! [this position] (short (bit-and (.get this ^int position) 0xFF)))
                (read-short! [this position] (.getShort this position))
+               (read-ushort! [this position] (int (bit-and (.getShort this position) 0xFFFF)))
                (read-int! [this position] (.getInt this position))
+               (read-uint! [this position] (long (bit-and (.getInt this position) 0xFFFFFFFF)))
                (read-float! [this position] (.getFloat this position))
                (read-double! [this position] (.getDouble this position))
                (read-char! [this position] (.getChar this position))
@@ -33,8 +42,11 @@
                                                   (bit-test (rem position 8))))
 
                (write-byte! [this position data] (.put this position (byte data)))
+               (write-ubyte! [this position data] (.put this position (unchecked-byte (bit-and data 0xFF))))
                (write-short! [this position data] (.putShort this position (short data)))
+               (write-ushort! [this position data] (.putShort this position (unchecked-short (bit-and data 0xFFFF))))
                (write-int! [this position data] (.putInt this position (int data)))
+               (write-uint! [this position data] (.putInt this position (unchecked-int (bit-and data 0xFFFFFFFF))))
                (write-float! [this position data] (.putFloat this position (float data)))
                (write-double! [this position data] (.putDouble this position (double data)))
                (write-char! [this position data] (.putChar this position (char data)))
@@ -49,8 +61,11 @@
        :cljs (extend-type js/DataView
                HybridBuffer
                (read-byte! [this position] (.getInt8 this position))
+               (read-ubyte! [this position] (.getUint8 this position))
                (read-short! [this position] (.getInt16 this position))
+               (read-ushort! [this position] (getUint16 this position))
                (read-int! [this position] (.getInt32 this position))
+               (read-uint! [this position] (.getUint32 this position))
                (read-float! [this position] (.getFloat32 this position))
                (read-double! [this position] (.getFloat64 this position))
                (read-char! [this position] (.getUint16 this position))
@@ -59,8 +74,11 @@
                                                   (bit-test (rem position 8))))
 
                (write-byte! [this position data] (.setInt8 this position (byte data)))
+               (write-ubyte! [this position data] (.setUint8 this position (unchecked-byte data)))
                (write-short! [this position data] (.setInt16 this position (short data)))
+               (write-ushort! [this position data] (.setUint16 this position (unchecked-short data)))
                (write-int! [this position data] (.setInt32 this position (int data)))
+               (write-uint! [this position data] (.setUint32 this position (unchecked-int data)))
                (write-float! [this position data] (.setFloat32 this position (float data)))
                (write-double! [this position data] (.setFloat64 this position (double data)))
                (write-char! [this position data] (.setUint16 this position (char data)))
@@ -89,7 +107,7 @@
                               :cljs js/Math.ceil) (/ @bit-position 8)))
         length-2     (- @byte-position max-bits 4)
         total-length (+ length-1 length-2)]
-    (write-short! buffer 2 (- length-1 4))
+    (write-ushort! buffer 2 (- length-1 4))
     #?(:clj  (let [buffer-bytes (.array ^ByteBuffer buffer)
                    bytes        (byte-array total-length)]
                (System/arraycopy buffer-bytes 0 bytes 0 length-1)
@@ -104,8 +122,8 @@
 (defn wrap-bytes [bytes]
   (let [buffer #?(:clj (ByteBuffer/wrap ^bytes bytes)
                   :cljs (js/DataView. bytes))
-        schema-id      (read-short! buffer 0)
-        bit-length     (read-short! buffer 2)]
+        schema-id      (read-ushort! buffer 0)
+        bit-length     (read-ushort! buffer 2)]
     [schema-id
      {:buffer        buffer
       :bit-position  (volatile! 32)

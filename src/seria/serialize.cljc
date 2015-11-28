@@ -1,8 +1,10 @@
 (ns seria.serialize
   (:require [seria.buffer :refer [read-byte! read-short! read-int!
+                                  read-ubyte! read-ushort! read-uint!
                                   read-float! read-double!
                                   read-char! read-boolean!
                                   write-byte! write-short! write-int!
+                                  write-ubyte! write-ushort! write-uint!
                                   write-float! write-double!
                                   write-char! write-boolean!]]
             [seria.util :refer [disj-indexed cljc-read-string]]
@@ -15,8 +17,11 @@
 (defn primitive-size [schema]
   (case schema
     :byte 1
+    :ubyte 1
     :short 2
+    :ushort 2
     :int 4
+    :uint 4
     :float 4
     :double 8
     :char 2
@@ -53,8 +58,11 @@
   (let [position (if (= :boolean schema) 'bit-position 'byte-position)]
     `(do ~(case schema
             :byte `(write-byte! ~'buffer @~position ~data)
+            :ubyte `(write-ubyte! ~'buffer @~position ~data)
             :short `(write-short! ~'buffer @~position ~data)
+            :ushort `(write-ushort! ~'buffer @~position ~data)
             :int `(write-int! ~'buffer @~position ~data)
+            :uint `(write-uint! ~'buffer @~position ~data)
             :float `(write-float! ~'buffer @~position ~data)
             :double `(write-double! ~'buffer @~position ~data)
             :char `(write-char! ~'buffer @~position ~data)
@@ -67,8 +75,11 @@
         value    (gensym "value_")]
     `(let [~value ~(case schema
                      :byte `(read-byte! ~'buffer @~position)
+                     :ubyte `(read-ubyte! ~'buffer @~position)
                      :short `(read-short! ~'buffer @~position)
+                     :ushort `(read-ushort! ~'buffer @~position)
                      :int `(read-int! ~'buffer @~position)
+                     :uint `(read-uint! ~'buffer @~position)
                      :float `(read-float! ~'buffer @~position)
                      :double `(read-double! ~'buffer @~position)
                      :char `(read-char! ~'buffer @~position)
@@ -80,24 +91,24 @@
 
 (defmethod pack* :string [_ config data]
   (let [char (gensym "char_")]
-    `(do ~(pack* :byte config `(count ~data))
+    `(do ~(pack* :ubyte config `(count ~data))
          (run! (fn [~char] ~(pack* :char config char))
                ~data))))
 
 (defmethod unpack* :string [_ config]
-  `(->> (repeatedly ~(unpack* :byte config)
+  `(->> (repeatedly ~(unpack* :ubyte config)
                     (fn [] ~(unpack* :char config)))
         (apply str)))
 
 
 (defmethod pack* :long-string [_ config data]
   (let [char (gensym "char_")]
-    `(do ~(pack* :short config `(count ~data))
+    `(do ~(pack* :ushort config `(count ~data))
          (run! (fn [~char] ~(pack* :char config char))
                ~data))))
 
 (defmethod unpack* :long-string [_ config]
-  `(->> (repeatedly ~(unpack* :short config)
+  `(->> (repeatedly ~(unpack* :ushort config)
                     (fn [] ~(unpack* :char config)))
         (apply str)))
 
@@ -129,14 +140,14 @@
   `((cljc-read-string) ~(unpack* :long-string config)))
 
 
-(defmethod pack* :coll [[_ {:keys [size] :or {size :byte}} sub-schema] config data]
+(defmethod pack* :coll [[_ {:keys [size]} sub-schema] config data]
   (let [coll-item (gensym "coll-item__")]
     `(do ~(pack* size config `(count ~data))
          (run! (fn [~coll-item]
                  ~(pack* sub-schema config coll-item))
                ~data))))
 
-(defmethod unpack* :coll [[coll-type {:keys [size] :or {size :byte}} sub-schema] config]
+(defmethod unpack* :coll [[coll-type {:keys [size]} sub-schema] config]
   `(->> (repeatedly ~(unpack* size config)
                     (fn [] ~(unpack* sub-schema config)))
         ~(case coll-type
@@ -147,7 +158,7 @@
         (doall)))
 
 
-(defmethod pack* :map [[_ {:keys [size delta] :or {size :byte}} key-schema value-schema] config data]
+(defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config data]
   (let [key      (gensym "key_")
         value    (gensym "value_")
         is-dnil? (gensym "is-dnil?_")]
@@ -163,7 +174,7 @@
                            ~(pack* value-schema config value)))]))
                ~data))))
 
-(defmethod unpack* :map [[map-type {:keys [size delta] :or {size :byte}} key-schema value-schema] config]
+(defmethod unpack* :map [[map-type {:keys [size delta]} key-schema value-schema] config]
   (let [is-dnil? (gensym "is-dnil?_")
         key      (gensym "key_")]
     `(->> (repeatedly ~(unpack* size config)

@@ -1,6 +1,6 @@
 (ns seria.core
   (:require [seria.buffer :refer [reset-wbuffer! unwrap-wbuffer
-                                  wrap-bytes write-short!]]))
+                                  wrap-bytes write-short! write-ushort!]]))
 
 (defn diff [data-1 data-2 schema {:keys [processors]}]
   (when-let [diff! (get-in processors [schema :differ])]
@@ -14,7 +14,7 @@
   (when-let [pack! (get-in processors [schema :packer])]
     (let [{:keys [buffer bit-position byte-position]} wbuffer]
       (reset-wbuffer! wbuffer)
-      (write-short! buffer 0 (schema-map schema))
+      (write-ushort! buffer 0 (schema-map schema))
       (pack! data buffer bit-position byte-position)
       (unwrap-wbuffer wbuffer))))
 

@@ -3,7 +3,7 @@
             [clojure.walk :refer [postwalk]]))
 
 (def ^:dynamic *small-sizes* (range 1 5))
-(def ^:dynamic *big-sizes* (range 128 150))
+(def ^:dynamic *big-sizes* (range 256 280))
 
 (def symbol-chars
   (map char (concat [\_ \- \? \\]
@@ -21,8 +21,8 @@
 
 (defn gen-size [size-type]
   (case size-type
-    :byte (gen-small-size)
-    :short (gen-big-size)))
+    :ubyte (gen-small-size)
+    :ushort (gen-big-size)))
 
 (defmulti gen (fn [schema schemas]
                 (cond
@@ -35,11 +35,20 @@
 (defmethod gen :byte [_ _]
   (- (rand-int 256) 128))
 
+(defmethod gen :ubyte [_ _]
+  (rand-int 256))
+
 (defmethod gen :short [_ _]
   (- (rand-int 65536) 32768))
 
+(defmethod gen :ushort [_ _]
+  (rand-int 65536))
+
 (defmethod gen :int [_ _]
   (rand-int 2147483648))
+
+(defmethod gen :uint [_ _]
+  (long (* 4294967296 (rand))))
 
 (defmethod gen :float [_ _]
   (float (rand)))

@@ -1,8 +1,8 @@
 (ns seria.util
   #?(:cljs (:require [cljs.reader])))
 
-(def ^:const max-byte 128)
-(def ^:const max-short 32768)
+(def ^:const max-ubyte 255)
+(def ^:const max-ushort 65535)
 
 (defn cljc-read-string []
   #?(:clj  read-string
@@ -17,13 +17,13 @@
 
 (defn bimap [coll]
   (let [coll-length (count coll)
-        [max-value size-type] (condp > coll-length
-                                max-byte [max-byte :byte]
-                                max-short [max-short :short]
-                                (cljc-throw (format "Collection length exceeds short range: %s" coll-length)))]
+        size-type   (condp > coll-length
+                      max-ubyte :ubyte
+                      max-ushort :ushort
+                      (cljc-throw (format "Collection length exceeds ushort range: %s" coll-length)))]
     {:size size-type
      :map  (->> (set coll)
-                (map-indexed #(vector (- %1 max-value) %2))
+                (map-indexed vector)
                 (mapcat (fn [[a b]] [[a b] [b a]]))
                 (into {}))}))
 
