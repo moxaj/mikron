@@ -6,7 +6,6 @@
             [seria.delta :refer [make-differ make-undiffer]]
             [seria.serialize :refer [make-packer make-unpacker global-embed-map]]))
 
-(def ^:const default-buffer-count 4)
 (def ^:const default-max-bits 10000)
 (def ^:const default-max-bytes 10000)
 
@@ -23,37 +22,35 @@
                           :undiffer (post-fn (make-undiffer schema config))}]))
           (into {})))))
 
-(defn make-initial-config [{:keys [buffer-count max-bits max-bytes schemas]
-                            :or   {buffer-count default-buffer-count
-                                   max-bits     default-max-bits
-                                   max-bytes    default-max-bytes}}]
+(defn make-initial-config [{:keys [max-bits max-bytes schemas]
+                            :or   {max-bits  default-max-bits
+                                   max-bytes default-max-bytes}}]
   (let [config-id (unique-int)
         schemas   (validate schemas)
         {schema-map :map} (bimap (keys schemas))
         {enum-map :map enum-size :size} (bimap (find-enum-values schemas))
         {multi-map :map multi-size :size} (bimap (find-multi-cases schemas))]
-    {:config       {:config-id  config-id
-                    :schemas    schemas
-                    :schema-map schema-map
-                    :enum-map   enum-map
-                    :enum-size  enum-size
-                    :multi-map  multi-map
-                    :multi-size multi-size}
-     :buffer-count buffer-count
-     :max-bits     max-bits
-     :max-bytes    max-bytes
-     :embed-map    (:map (bimap (find-non-embeddables schemas)))}))
+    {:config    {:config-id  config-id
+                 :schemas    schemas
+                 :schema-map schema-map
+                 :enum-map   enum-map
+                 :enum-size  enum-size
+                 :multi-map  multi-map
+                 :multi-size multi-size}
+     :max-bits  max-bits
+     :max-bytes max-bytes
+     :embed-map (:map (bimap (find-non-embeddables schemas)))}))
 
 (defn make-config [& args]
-  (let [{:keys [config buffer-count max-bits max-bytes embed-map]} (make-initial-config args)
+  (let [{:keys [config max-bits max-bytes embed-map]} (make-initial-config args)
         {:keys [config-id schemas]} config]
     `(do (swap! global-embed-map assoc ~config-id ~embed-map)
-         (assoc ~config :wbuffers (repeatedly ~buffer-count #(make-wbuffer ~max-bits ~max-bytes))
+         (assoc ~config :wbuffer (make-wbuffer ~max-bits ~max-bytes)
                         :processors ~(make-processors schemas config)))))
 
 (defn make-test-config [& args]
-  (let [{:keys [config buffer-count max-bits max-bytes embed-map]} (make-initial-config args)
+  (let [{:keys [config max-bits max-bytes embed-map]} (make-initial-config args)
         {:keys [config-id schemas]} config]
     (do (swap! global-embed-map assoc config-id embed-map)
-        (assoc config :wbuffers (repeatedly buffer-count #(make-wbuffer max-bits max-bytes))
+        (assoc config :wbuffer (make-wbuffer max-bits max-bytes)
                       :processors (make-processors schemas config true)))))

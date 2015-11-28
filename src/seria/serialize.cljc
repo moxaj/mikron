@@ -55,20 +55,20 @@
 (defmulti unpack* pack-dispatch)
 
 
-(defmethod pack* :primitive [schema _ data]
+(defmethod pack* :primitive [schema _ value]
   (let [position (if (= :boolean schema) 'bit-position 'byte-position)]
     `(do ~(case schema
-            :byte `(write-byte! ~'buffer @~position ~data)
-            :ubyte `(write-ubyte! ~'buffer @~position ~data)
-            :short `(write-short! ~'buffer @~position ~data)
-            :ushort `(write-ushort! ~'buffer @~position ~data)
-            :int `(write-int! ~'buffer @~position ~data)
-            :uint `(write-uint! ~'buffer @~position ~data)
-            :long `(write-long! ~'buffer @~position ~data)
-            :float `(write-float! ~'buffer @~position ~data)
-            :double `(write-double! ~'buffer @~position ~data)
-            :char `(write-char! ~'buffer @~position ~data)
-            :boolean `(write-boolean! ~'buffer @~position ~data)
+            :byte `(write-byte! ~'buffer @~position ~value)
+            :ubyte `(write-ubyte! ~'buffer @~position ~value)
+            :short `(write-short! ~'buffer @~position ~value)
+            :ushort `(write-ushort! ~'buffer @~position ~value)
+            :int `(write-int! ~'buffer @~position ~value)
+            :uint `(write-uint! ~'buffer @~position ~value)
+            :long `(write-long! ~'buffer @~position ~value)
+            :float `(write-float! ~'buffer @~position ~value)
+            :double `(write-double! ~'buffer @~position ~value)
+            :char `(write-char! ~'buffer @~position ~value)
+            :boolean `(write-boolean! ~'buffer @~position ~value)
             nil)
          (vswap! ~position unchecked-add ~(primitive-size schema)))))
 
@@ -92,11 +92,11 @@
        ~value)))
 
 
-(defmethod pack* :string [_ config data]
+(defmethod pack* :string [_ config value]
   (let [char (gensym "char_")]
-    `(do ~(pack* :ubyte config `(count ~data))
+    `(do ~(pack* :ubyte config `(count ~value))
          (run! (fn [~char] ~(pack* :char config char))
-               ~data))))
+               ~value))))
 
 (defmethod unpack* :string [_ config]
   `(->> (repeatedly ~(unpack* :ubyte config)
@@ -104,11 +104,11 @@
         (apply str)))
 
 
-(defmethod pack* :long-string [_ config data]
+(defmethod pack* :long-string [_ config value]
   (let [char (gensym "char_")]
-    `(do ~(pack* :ushort config `(count ~data))
+    `(do ~(pack* :ushort config `(count ~value))
          (run! (fn [~char] ~(pack* :char config char))
-               ~data))))
+               ~value))))
 
 (defmethod unpack* :long-string [_ config]
   `(->> (repeatedly ~(unpack* :ushort config)
@@ -116,39 +116,39 @@
         (apply str)))
 
 
-(defmethod pack* :keyword [_ config data]
-  (let [data-as-str (gensym "keyword-as-str_")]
-    `(let [~data-as-str (subs (str ~data) 1)]
-       ~(pack* :string config data-as-str))))
+(defmethod pack* :keyword [_ config value]
+  (let [value-as-str (gensym "keyword-as-str_")]
+    `(let [~value-as-str (subs (str ~value) 1)]
+       ~(pack* :string config value-as-str))))
 
 (defmethod unpack* :keyword [_ config]
   `(keyword ~(unpack* :string config)))
 
 
-(defmethod pack* :symbol [_ config data]
-  (let [data-as-str (gensym "symbol-as-str_")]
-    `(let [~data-as-str (str ~data)]
-       ~(pack* :string config data-as-str))))
+(defmethod pack* :symbol [_ config value]
+  (let [value-as-str (gensym "symbol-as-str_")]
+    `(let [~value-as-str (str ~value)]
+       ~(pack* :string config value-as-str))))
 
 (defmethod unpack* :symbol [_ config]
   `(symbol ~(unpack* :string config)))
 
 
-(defmethod pack* :any [_ config data]
-  (let [data-as-str (gensym "data-as-str_")]
-    `(let [~data-as-str (pr-str ~data)]
-       ~(pack* :long-string config data-as-str))))
+(defmethod pack* :any [_ config value]
+  (let [value-as-str (gensym "value-as-str_")]
+    `(let [~value-as-str (pr-str ~value)]
+       ~(pack* :long-string config value-as-str))))
 
 (defmethod unpack* :any [_ config]
   `((cljc-read-string) ~(unpack* :long-string config)))
 
 
-(defmethod pack* :coll [[_ {:keys [size]} sub-schema] config data]
+(defmethod pack* :coll [[_ {:keys [size]} sub-schema] config value]
   (let [coll-item (gensym "coll-item__")]
-    `(do ~(pack* size config `(count ~data))
+    `(do ~(pack* size config `(count ~value))
          (run! (fn [~coll-item]
                  ~(pack* sub-schema config coll-item))
-               ~data))))
+               ~value))))
 
 (defmethod unpack* :coll [[coll-type {:keys [size]} sub-schema] config]
   `(->> (repeatedly ~(unpack* size config)
@@ -161,21 +161,21 @@
         (doall)))
 
 
-(defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config data]
+(defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config value]
   (let [key      (gensym "key_")
-        value    (gensym "value_")
+        val      (gensym "val_")
         is-dnil? (gensym "is-dnil?_")]
-    `(do ~(pack* size config `(count ~data))
-         (run! (fn [[~key ~value]]
+    `(do ~(pack* size config `(count ~value))
+         (run! (fn [[~key ~val]]
                  ~@(if-not (:enabled delta)
                      [(pack* key-schema config key)
-                      (pack* value-schema config value)]
-                     [`(let [~is-dnil? (dnil? ~value)]
+                      (pack* value-schema config val)]
+                     [`(let [~is-dnil? (dnil? ~val)]
                          ~(pack* :boolean config ~is-dnil?)
                          ~(pack* key-schema config key)
                          (when-not ~is-dnil?
-                           ~(pack* value-schema config value)))]))
-               ~data))))
+                           ~(pack* value-schema config val)))]))
+               ~value))))
 
 (defmethod unpack* :map [[map-type {:keys [size delta]} key-schema value-schema] config]
   (let [is-dnil? (gensym "is-dnil?_")
@@ -195,10 +195,10 @@
           (doall))))
 
 
-(defmethod pack* :tuple [[_ {:keys [delta]} :as schema] config data]
-  (let [disjoined (disj-indexed schema data)
+(defmethod pack* :tuple [[_ {:keys [delta]} :as schema] config value]
+  (let [disjoined (disj-indexed schema value)
         is-dnil?  (gensym "is-dnil?_")]
-    `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
+    `(let [~@(mapcat (juxt :symbol :sub-value) disjoined)]
        ~@(map (fn [{:keys [symbol sub-schema]}]
                 (if-not (:enabled delta)
                   (pack* sub-schema config symbol)
@@ -218,10 +218,10 @@
                   sub-schemas)))
 
 
-(defmethod pack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas] :as config} data]
-  (let [disjoined (disj-indexed (unroll-record schemas schema) data)
+(defmethod pack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas] :as config} value]
+  (let [disjoined (disj-indexed (unroll-record schemas schema) value)
         is-dnil?  (gensym "is-dnil?_")]
-    `(let [~@(mapcat (juxt :symbol :sub-data) disjoined)]
+    `(let [~@(mapcat (juxt :symbol :sub-value) disjoined)]
        ~@(map (fn [{:keys [symbol sub-schema]}]
                 (if-not (:enabled delta)
                   (pack* sub-schema config symbol)
@@ -247,10 +247,10 @@
       unpack-body)))
 
 
-(defmethod pack* :optional [[_ _ sub-schema] config data]
-  `(if ~data
+(defmethod pack* :optional [[_ _ sub-schema] config value]
+  `(if ~value
      (do ~(pack* :boolean config true)
-         ~(pack* sub-schema config data))
+         ~(pack* sub-schema config value))
      ~(pack* :boolean config false)))
 
 (defmethod unpack* :optional [[_ _ sub-schema] config]
@@ -259,13 +259,13 @@
 
 
 (defmethod pack* :multi
-  [[_ _ selector arg-map] {:keys [multi-map multi-size config-id] :as config} data]
+  [[_ _ selector arg-map] {:keys [multi-map multi-size config-id] :as config} value]
   (let [selector-key (get-in @global-embed-map [config-id selector])
         case-body    (mapcat (fn [[multi-case sub-schema]]
                                [multi-case `(do ~(pack* multi-size config (get multi-map multi-case))
-                                                ~(pack* sub-schema config data))])
+                                                ~(pack* sub-schema config value))])
                              arg-map)]
-    `(case ((get-in @global-embed-map [~config-id ~selector-key]) ~data)
+    `(case ((get-in @global-embed-map [~config-id ~selector-key]) ~value)
        ~@case-body)))
 
 (defmethod unpack* :multi
@@ -277,23 +277,23 @@
        ~@case-body)))
 
 
-(defmethod pack* :enum [_ {:keys [enum-map enum-size] :as config} data]
-  (pack* enum-size config `(get ~enum-map ~data)))
+(defmethod pack* :enum [_ {:keys [enum-map enum-size] :as config} value]
+  (pack* enum-size config `(get ~enum-map ~value)))
 
 (defmethod unpack* :enum [_ {:keys [enum-map enum-size] :as config}]
   `(get ~enum-map ~(unpack* enum-size config)))
 
 
-(defmethod pack* :top-schema [schema config data]
-  (pack* (get-in config [:schemas schema]) config data))
+(defmethod pack* :top-schema [schema config value]
+  (pack* (get-in config [:schemas schema]) config value))
 
 (defmethod unpack* :top-schema [schema config]
   (unpack* (get-in config [:schemas schema]) config))
 
 
 (defn make-packer [schema config]
-  `(fn [~'data ~'buffer ~'bit-position ~'byte-position]
-     ~(pack* schema config 'data)))
+  `(fn [~'value ~'buffer ~'bit-position ~'byte-position]
+     ~(pack* schema config 'value)))
 
 (defn make-unpacker [schema config]
   `(fn [~'buffer ~'bit-position ~'byte-position]

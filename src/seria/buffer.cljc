@@ -16,17 +16,17 @@
   (read-char! [this position])
   (read-boolean! [this position])
 
-  (write-byte! [this position data])
-  (write-ubyte! [this position data])
-  (write-short! [this position data])
-  (write-ushort! [this position data])
-  (write-int! [this position data])
-  (write-uint! [this position data])
-  (write-long! [this position data])
-  (write-float! [this position data])
-  (write-double! [this position data])
-  (write-char! [this position data])
-  (write-boolean! [this position data]))
+  (write-byte! [this position value])
+  (write-ubyte! [this position value])
+  (write-short! [this position value])
+  (write-ushort! [this position value])
+  (write-int! [this position value])
+  (write-uint! [this position value])
+  (write-long! [this position value])
+  (write-float! [this position value])
+  (write-double! [this position value])
+  (write-char! [this position value])
+  (write-boolean! [this position value]))
 
 (defn long->ints [^long value]
   [(unchecked-int (bit-shift-right value 32))
@@ -53,25 +53,25 @@
                                                   (.get ^int (quot position 8))
                                                   (bit-test (rem position 8))))
 
-               (write-byte! [this position data] (.put this position (byte data)))
-               (write-ubyte! [this position data] (.put this position (unchecked-byte (bit-and data 0xFF))))
-               (write-short! [this position data] (.putShort this position (short data)))
-               (write-ushort! [this position data] (.putShort this position (unchecked-short (bit-and data 0xFFFF))))
-               (write-int! [this position data] (.putInt this position (int data)))
-               (write-uint! [this position data] (.putInt this position (unchecked-int (bit-and data 0xFFFFFFFF))))
-               (write-long! [this position data] (let [[int-1 int-2] (long->ints data)]
-                                                   (.putInt this position int-1)
-                                                   (.putInt this (+ 4 position) int-2)))
-               (write-float! [this position data] (.putFloat this position (float data)))
-               (write-double! [this position data] (.putDouble this position (double data)))
-               (write-char! [this position data] (.putChar this position (char data)))
-               (write-boolean! [this position data] (.put this
-                                                          (quot position 8)
-                                                          (-> this
-                                                              (.get ^int (quot position 8))
-                                                              ((if data bit-set bit-clear)
-                                                                (rem position 8))
-                                                              (unchecked-byte)))))
+               (write-byte! [this position value] (.put this position (byte value)))
+               (write-ubyte! [this position value] (.put this position (unchecked-byte (bit-and value 0xFF))))
+               (write-short! [this position value] (.putShort this position (short value)))
+               (write-ushort! [this position value] (.putShort this position (unchecked-short (bit-and value 0xFFFF))))
+               (write-int! [this position value] (.putInt this position (int value)))
+               (write-uint! [this position value] (.putInt this position (unchecked-int (bit-and value 0xFFFFFFFF))))
+               (write-long! [this position value] (let [[int-1 int-2] (long->ints value)]
+                                                    (.putInt this position int-1)
+                                                    (.putInt this (+ 4 position) int-2)))
+               (write-float! [this position value] (.putFloat this position (float value)))
+               (write-double! [this position value] (.putDouble this position (double value)))
+               (write-char! [this position value] (.putChar this position (char value)))
+               (write-boolean! [this position value] (.put this
+                                                           (quot position 8)
+                                                           (-> this
+                                                               (.get ^int (quot position 8))
+                                                               ((if value bit-set bit-clear)
+                                                                 (rem position 8))
+                                                               (unchecked-byte)))))
 
        :cljs (extend-type js/DataView
                HybridBuffer
@@ -90,30 +90,33 @@
                                                   (.getInt8 (quot position 8))
                                                   (bit-test (rem position 8))))
 
-               (write-byte! [this position data] (.setInt8 this position (byte data)))
-               (write-ubyte! [this position data] (.setUint8 this position (unchecked-byte data)))
-               (write-short! [this position data] (.setInt16 this position (short data)))
-               (write-ushort! [this position data] (.setUint16 this position (unchecked-short data)))
-               (write-int! [this position data] (.setInt32 this position (int data)))
-               (write-uint! [this position data] (.setUint32 this position (unchecked-int data)))
-               (write-long! [this position data] (let [[int-1 int-2] (long->ints data)]
-                                                   (.setInt32 this position int-1)
-                                                   (.setInt32 this (+ 4 position) int-2)))
-               (write-float! [this position data] (.setFloat32 this position (float data)))
-               (write-double! [this position data] (.setFloat64 this position (double data)))
-               (write-char! [this position data] (.setUint16 this position (char data)))
-               (write-boolean! [this position data] (.setInt8 this
-                                                              (quot position 8)
-                                                              (-> this
-                                                                  (.getInt8 (quot position 8))
-                                                                  ((if data bit-set bit-clear)
-                                                                    (rem position 8))
-                                                                  (unchecked-byte)))))))
+               (write-byte! [this position value] (.setInt8 this position (byte value)))
+               (write-ubyte! [this position value] (.setUint8 this position (unchecked-byte value)))
+               (write-short! [this position value] (.setInt16 this position (short value)))
+               (write-ushort! [this position value] (.setUint16 this position (unchecked-short value)))
+               (write-int! [this position value] (.setInt32 this position (int value)))
+               (write-uint! [this position value] (.setUint32 this position (unchecked-int value)))
+               (write-long! [this position value] (let [[int-1 int-2] (long->ints value)]
+                                                    (.setInt32 this position int-1)
+                                                    (.setInt32 this (+ 4 position) int-2)))
+               (write-float! [this position value] (.setFloat32 this position (float value)))
+               (write-double! [this position value] (.setFloat64 this position (double value)))
+               (write-char! [this position value] (.setUint16 this position (char value)))
+               (write-boolean! [this position value] (.setInt8 this
+                                                               (quot position 8)
+                                                               (-> this
+                                                                   (.getInt8 (quot position 8))
+                                                                   ((if value bit-set bit-clear)
+                                                                     (rem position 8))
+                                                                   (unchecked-byte)))))))
+
+(defn allocate-buffer [size]
+  #?(:clj  (ByteBuffer/allocate size)
+     :cljs (js/DataView. (js/ArrayBuffer. size))))
 
 (defn make-wbuffer [max-bits max-bytes]
   (let [size (+ 4 max-bits max-bytes)]
-    {:buffer        #?(:clj  (ByteBuffer/allocate size)
-                       :cljs (js/DataView. (js/ArrayBuffer. size)))
+    {:buffer        (allocate-buffer size)
      :bit-position  (volatile! 0)
      :byte-position (volatile! 0)
      :max-bits      max-bits}))

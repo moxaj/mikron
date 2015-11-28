@@ -65,26 +65,34 @@
   (assert (every? keyword? values))
   [:enum {} values])
 
-(defmethod validate-composite :tuple [[_ {:keys [delta]} sub-schemas :as schema] schemas]
-  (assert (= 3 (count schema)))
-  (assert (sequential? sub-schemas))
-  (assert (seq sub-schemas))
-  [:tuple {:delta delta} (mapv #(validate % schemas) sub-schemas)])
+(defmethod validate-composite :tuple [[_ {:keys [delta] :or {delta {}}} sub-schemas :as schema] schemas]
+  (let [{:keys [enabled ignored] :or {ignored []}} delta]
+    (assert (= 3 (count schema)))
+    (assert (sequential? sub-schemas))
+    (assert (seq sub-schemas))
+    (assert (map? delta))
+    (assert (sequential? ignored))
+    [:tuple {:delta {:enabled (boolean enabled)
+                     :ignored ignored}}
+     (mapv #(validate % schemas) sub-schemas)]))
 
 (defmethod validate-composite :record [[_ {:keys [extends constructor delta] :or {extends []}} arg-map :as schema] schemas]
-  (assert (= 3 (count schema)))
-  (assert (map? arg-map))
-  (assert (sequential? extends))
-  (assert (every? (partial contains? schemas) extends))
-  (when constructor
-    (assert (fn? constructor)))
-  (let [fields      (keys arg-map)
-        sub-schemas (vals arg-map)]
-    (assert (every? keyword? fields))
-    [:record {:extends     extends
-              :constructor (boolean constructor)
-              :delta       (boolean delta)}
-     (zipmap fields (map #(validate % schemas) sub-schemas))]))
+  (let [{:keys [enabled ignored] :or {ignored []}} delta]
+    (assert (= 3 (count schema)))
+    (assert (map? arg-map))
+    (assert (sequential? extends))
+    (assert (every? (partial contains? schemas) extends))
+    (assert (sequential? ignored))
+    (when constructor
+      (assert (fn? constructor)))
+    (let [fields      (keys arg-map)
+          sub-schemas (vals arg-map)]
+      (assert (every? keyword? fields))
+      [:record {:extends     extends
+                :constructor constructor
+                :delta       {:enabled (boolean enabled)
+                              :ignored ignored}}
+       (zipmap fields (map #(validate % schemas) sub-schemas))])))
 
 (defmethod validate-composite :multi [[_ _ selector arg-map :as schema] schemas]
   (assert (= 4 (count schema)))

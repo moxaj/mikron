@@ -1,24 +1,25 @@
 (ns seria.core-test
   (:require [seria.config :refer [make-test-config]]
-            [seria.core :refer [pack unpack diff undiff]]
+            [seria.core :refer [pack unpack diff undiff with-config]]
             [seria.generate :refer [sample]]
             [midje.sweet :refer [facts]]))
 
-(defn roundtrip [data schema config]
-  (unpack (pack data schema config) config))
+(defn roundtrip [value schema]
+  (unpack (pack value schema)))
 
 (defn schema-test [config-args]
   (facts
     (let [config (make-test-config :schemas config-args)]
-      (doseq [data (sample 15 :x (:schemas config))]
-        (roundtrip data :x config) => [:x data]))))
+      (with-config config
+        (doseq [value (sample 100 :x (:schemas config))]
+          (roundtrip value :x) => [:x value])))))
 
 (defn schema-tests [arg]
   (every? true? (map schema-test arg)))
 
 (def test-cases
   [
-   ; Primitives
+   ; Primitive
    {:x :byte}
    {:x :ubyte}
    {:x :short}
@@ -31,14 +32,14 @@
    {:x :char}
    {:x :boolean}
 
-   ; Advanceds
+   ; Advanced
    {:x :string}
    {:x :long-string}
    {:x :keyword}
    {:x :symbol}
    {:x :any}
 
-   ; Composites
+   ; Composite
    {:x [:list :byte]}
    {:x [:vector :int]}
    {:x [:set :short]}

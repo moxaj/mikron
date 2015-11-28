@@ -20,14 +20,15 @@
         size-type   (condp > coll-length
                       max-ubyte :ubyte
                       max-ushort :ushort
-                      (cljc-throw (format "Collection length exceeds ushort range: %s" coll-length)))]
+                      (cljc-throw (format "Collection length exceeds ushort range: %s"
+                                          coll-length)))]
     {:size size-type
      :map  (->> (set coll)
                 (map-indexed vector)
                 (mapcat (fn [[a b]] [[a b] [b a]]))
                 (into {}))}))
 
-(defn disj-indexed [[composite-type _ arg] data]
+(defn disj-indexed [[composite-type _ arg] value]
   (map (fn [index]
          {:index      index
           :symbol     (gensym (format "item_%s_"
@@ -35,7 +36,7 @@
                                         (name index)
                                         index)))
           :sub-schema (get arg index)
-          :sub-data   `(get ~data ~index)})
+          :sub-value  `(get ~value ~index)})
        (case composite-type
          :tuple (range (count arg))
          :record (keys arg)
