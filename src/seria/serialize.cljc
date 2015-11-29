@@ -38,16 +38,11 @@
                                  (apply merge))
                             record-map)]))
 
-
 (defn pack-dispatch [schema {:keys [schema-map]} & _]
   (cond
     (primitive? schema) :primitive
     (advanced? schema) schema
-    (composite? schema) (let [composite-type (first schema)]
-                          (condp contains? composite-type
-                            #{:list :vector :set :sorted-set} :coll
-                            #{:map :sorted-map} :map
-                            composite-type))
+    (composite? schema) (first schema)
     (contains? schema-map schema) :top-schema))
 
 (defmulti pack* pack-dispatch)
@@ -94,23 +89,11 @@
 
 (defmethod pack* :string [_ config value]
   (let [char (gensym "char_")]
-    `(do ~(pack* :ubyte config `(count ~value))
-         (run! (fn [~char] ~(pack* :char config char))
-               ~value))))
-
-(defmethod unpack* :string [_ config]
-  `(->> (repeatedly ~(unpack* :ubyte config)
-                    (fn [] ~(unpack* :char config)))
-        (apply str)))
-
-
-(defmethod pack* :long-string [_ config value]
-  (let [char (gensym "char_")]
     `(do ~(pack* :ushort config `(count ~value))
          (run! (fn [~char] ~(pack* :char config char))
                ~value))))
 
-(defmethod unpack* :long-string [_ config]
+(defmethod unpack* :string [_ config]
   `(->> (repeatedly ~(unpack* :ushort config)
                     (fn [] ~(unpack* :char config)))
         (apply str)))
@@ -137,28 +120,65 @@
 (defmethod pack* :any [_ config value]
   (let [value-as-str (gensym "value-as-str_")]
     `(let [~value-as-str (pr-str ~value)]
-       ~(pack* :long-string config value-as-str))))
+       ~(pack* :string config value-as-str))))
 
 (defmethod unpack* :any [_ config]
-  `((cljc-read-string) ~(unpack* :long-string config)))
+  `((cljc-read-string) ~(unpack* :string config)))
 
 
-(defmethod pack* :coll [[_ {:keys [size]} sub-schema] config value]
-  (let [coll-item (gensym "coll-item__")]
+(defmethod pack* :list [[_ {:keys [size]} sub-schema] config value]
+  (let [list-item (gensym "list-item_")]
     `(do ~(pack* size config `(count ~value))
-         (run! (fn [~coll-item]
-                 ~(pack* sub-schema config coll-item))
+         (run! (fn [~list-item]
+                 ~(pack* sub-schema config list-item))
                ~value))))
 
-(defmethod unpack* :coll [[coll-type {:keys [size]} sub-schema] config]
+(defmethod unpack* :list [[_ {:keys [size]} sub-schema] config]
   `(->> (repeatedly ~(unpack* size config)
                     (fn [] ~(unpack* sub-schema config)))
-        ~(case coll-type
-           :list `identity
-           :vector `vec
-           :set `set
-           :sorted-set '(into (sorted-set)))
         (doall)))
+
+
+(defmethod pack* :vector [[_ {:keys [size delta]} sub-schema] config value]
+  (let [vector-item (gensym "vector-item_")
+        is-dnil?    (gensym "is-dnil?_")]
+    `(do ~(pack* size config `(count ~value))
+         (run! (fn [~vector-item]
+                 ~(if-not (:enabled delta)
+                    (pack* sub-schema config vector-item)
+                    `(let [~is-dnil? (dnil? ~vector-item)]
+                       ~(pack* :boolean config ~is-dnil?)
+                       (when-not ~is-dnil?
+                         ~(pack* sub-schema config vector-item)))))
+               ~value))))
+
+(defmethod unpack* :vector [[_ {:keys [size delta]} sub-schema] config]
+  `(->> (repeatedly ~(unpack* size config)
+                    (fn [] ~(if-not (:enabled delta)
+                              (unpack* sub-schema config)
+                              `(if ~(unpack* :boolean config)
+                                 ~dnil
+                                 ~(unpack* sub-schema config)))))
+        (vec)
+        (doall)))
+
+
+(defmethod pack* :set [[_ {:keys [size]} sub-schema] config value]
+  (let [set-item (gensym "set-item_")]
+    `(do ~(pack* size config `(count ~value))
+         (run! (fn [~set-item]
+                 ~(pack* sub-schema config set-item))
+               ~value))))
+
+(defmethod unpack* :set [[_ {:keys [size sorted-by]} sub-schema] {:keys [config-id] :as config}]
+  (let [sorted-by-key (get-in @global-embed-map [config-id sorted-by])]
+    `(->> (repeatedly ~(unpack* size config)
+                      (fn [] ~(unpack* sub-schema config)))
+          (into ~(case sorted-by
+                   :none `#{}
+                   :default `(sorted-set)
+                   `(sorted-set-by (get-in @global-embed-map [~config-id ~sorted-by-key]))))
+          (doall))))
 
 
 (defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config value]
@@ -167,31 +187,28 @@
         is-dnil? (gensym "is-dnil?_")]
     `(do ~(pack* size config `(count ~value))
          (run! (fn [[~key ~val]]
-                 ~@(if-not (:enabled delta)
-                     [(pack* key-schema config key)
-                      (pack* value-schema config val)]
-                     [`(let [~is-dnil? (dnil? ~val)]
-                         ~(pack* :boolean config ~is-dnil?)
-                         ~(pack* key-schema config key)
-                         (when-not ~is-dnil?
-                           ~(pack* value-schema config val)))]))
+                 ~(pack* key-schema config key)
+                 ~(if-not (:enabled delta)
+                    (pack* value-schema config val)
+                    `(let [~is-dnil? (dnil? ~val)]
+                       ~(pack* :boolean config ~is-dnil?)
+                       (when-not ~is-dnil?
+                         ~(pack* value-schema config val)))))
                ~value))))
 
-(defmethod unpack* :map [[map-type {:keys [size delta]} key-schema value-schema] config]
-  (let [is-dnil? (gensym "is-dnil?_")
-        key      (gensym "key_")]
+(defmethod unpack* :map [[_ {:keys [size delta sorted-by]} key-schema value-schema] {:keys [config-id] :as config}]
+  (let [sorted-by-key (get-in @global-embed-map [config-id sorted-by])]
     `(->> (repeatedly ~(unpack* size config)
-                      (fn [] ~(if-not (:enabled delta)
-                                [(unpack* key-schema config)
-                                 (unpack* value-schema config)]
-                                `(let [~is-dnil? ~(unpack* :boolean config)
-                                       ~key ~(unpack* key-schema config)]
-                                   (if-not ~is-dnil?
-                                     [~key ~(unpack* value-schema config)]
-                                     [~key ~dnil])))))
-          (into ~(if (= map-type :sorted-map)
-                   `(sorted-map)
-                   `{}))
+                      (fn [] (vector ~(unpack* key-schema config)
+                                     ~(if-not (:enabled delta)
+                                        (unpack* value-schema config)
+                                        `(if ~(unpack* :boolean config)
+                                           ~dnil
+                                           ~(unpack* value-schema config))))))
+          (into ~(case sorted-by
+                   :none `{}
+                   :default `(sorted-map)
+                   `(sorted-map-by (get-in @global-embed-map [~config-id ~sorted-by-key]))))
           (doall))))
 
 
@@ -248,10 +265,11 @@
 
 
 (defmethod pack* :optional [[_ _ sub-schema] config value]
-  `(if ~value
-     (do ~(pack* :boolean config true)
-         ~(pack* sub-schema config value))
-     ~(pack* :boolean config false)))
+  (let [value-present? (gensym "value-present?_")]
+    `(let [~value-present? (boolean ~value)]
+       ~(pack* :boolean config value-present?)
+       (when ~value-present?
+         ~(pack* sub-schema config value)))))
 
 (defmethod unpack* :optional [[_ _ sub-schema] config]
   `(when ~(unpack* :boolean config)

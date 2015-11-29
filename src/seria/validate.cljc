@@ -4,10 +4,9 @@
 
 (def primitives #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
 
-(def advanceds #{:string :long-string :keyword :symbol :any})
+(def advanceds #{:string :keyword :symbol :any})
 
-(def composites #{:list :vector :set :sorted-set :map :sorted-map
-                  :tuple :record :optional :multi :enum})
+(def composites #{:list :vector :set :map :tuple :record :optional :multi :enum})
 
 (def size-types #{:ubyte :ushort})
 
@@ -36,23 +35,56 @@
 
 (declare validate)
 
-(defmulti validate-composite (fn [[composite-type] _]
-                               (condp contains? composite-type
-                                 #{:list :vector :set :sorted-set} :coll
-                                 #{:map :sorted-map} :map
-                                 composite-type)))
+(defn validate-sortable [[composite-type {:keys [sorted-by] :or {sorted-by :none} :as options} & args]]
+  (assert (ifn? sorted-by))
+  (vec (concat [composite-type (assoc options :sorted-by sorted-by)]
+               args)))
 
-(defmethod validate-composite :coll [[composite-type {:keys [size] :or {size :ubyte}} sub-schema :as schema]
-                                     schemas]
-  (assert (= 3 (count schema)))
-  (assert (size-type? size))
-  [composite-type {:size size} (validate sub-schema schemas)])
+(defn validate-diffable [[composite-type {:keys [delta] :or {delta {}} :as options} & args]]
+  (let [{:keys [enabled ignored] :or {ignored []}} delta]
+    (assert (sequential? ignored))
+    (vec (concat [composite-type (assoc options :delta {:enabled (boolean enabled)
+                                                        :ignored ignored})]
+                 args))))
 
-(defmethod validate-composite :map [[composite-type {:keys [size] :or {size :ubyte}} key-schema value-schema :as schema]
-                                    schemas]
-  (assert (= 4 (count schema)))
+(defn validate-scalable [[composite-type {:keys [size] :or {size :ubyte} :as options} & args]]
   (assert (size-type? size))
-  [composite-type {:size size} (validate key-schema schemas) (validate value-schema schemas)])
+  (vec (concat [composite-type (assoc options :size size)]
+               args)))
+
+(defmulti validate-composite (fn [[composite-type] _] composite-type))
+
+(defmethod validate-composite :list [schema schemas]
+  (let [[composite-type options sub-schema :as schema] (-> schema
+                                                           validate-scalable)]
+    (assert (= 3 (count schema)))
+    [composite-type (select-keys options [:size])
+     (validate sub-schema schemas)]))
+
+(defmethod validate-composite :vector [schema schemas]
+  (let [[composite-type options sub-schema :as schema] (-> schema
+                                                           validate-scalable
+                                                           validate-diffable)]
+    (assert (= 3 (count schema)))
+    [composite-type (select-keys options [:size :delta])
+     (validate sub-schema schemas)]))
+
+(defmethod validate-composite :set [schema schemas]
+  (let [[composite-type options sub-schema :as schema] (-> schema
+                                                           validate-scalable
+                                                           validate-sortable)]
+    (assert (= 3 (count schema)))
+    [composite-type (select-keys options [:size :sorted-by])
+     (validate sub-schema schemas)]))
+
+(defmethod validate-composite :map [schema schemas]
+  (let [[composite-type options key-schema value-schema :as schema] (-> schema
+                                                                        validate-scalable
+                                                                        validate-diffable
+                                                                        validate-sortable)]
+    (assert (= 4 (count schema)))
+    [composite-type (select-keys options [:size :delta :sorted-by])
+     (validate key-schema schemas) (validate value-schema schemas)]))
 
 (defmethod validate-composite :optional [[_ _ sub-schema :as schema] schemas]
   (assert (= 3 (count schema)))
@@ -61,37 +93,32 @@
 (defmethod validate-composite :enum [[_ _ values :as schema] _]
   (assert (= 3 (count schema)))
   (assert (sequential? values))
-  (assert (seq values))
-  (assert (every? keyword? values))
+  (assert (not (empty? values)))
   [:enum {} values])
 
-(defmethod validate-composite :tuple [[_ {:keys [delta] :or {delta {}}} sub-schemas :as schema] schemas]
-  (let [{:keys [enabled ignored] :or {ignored []}} delta]
+(defmethod validate-composite :tuple [schema schemas]
+  (let [[_ options sub-schemas :as schema] (-> schema
+                                               validate-diffable)]
     (assert (= 3 (count schema)))
     (assert (sequential? sub-schemas))
-    (assert (seq sub-schemas))
-    (assert (map? delta))
-    (assert (sequential? ignored))
-    [:tuple {:delta {:enabled (boolean enabled)
-                     :ignored ignored}}
-     (mapv #(validate % schemas) sub-schemas)]))
+    (assert (not (empty? sub-schemas)))
+    [:tuple (select-keys options [:delta])
+     (doall (mapv #(validate % schemas) sub-schemas))]))
 
-(defmethod validate-composite :record [[_ {:keys [extends constructor delta] :or {extends []}} arg-map :as schema] schemas]
-  (let [{:keys [enabled ignored] :or {ignored []}} delta]
+(defmethod validate-composite :record [schema schemas]
+  (let [[_ {:keys [extends constructor] :or {extends []} :as options} arg-map :as schema]
+        (-> schema
+            validate-diffable)]
     (assert (= 3 (count schema)))
     (assert (map? arg-map))
-    (assert (sequential? extends))
     (assert (every? (partial contains? schemas) extends))
-    (assert (sequential? ignored))
     (when constructor
       (assert (fn? constructor)))
     (let [fields      (keys arg-map)
           sub-schemas (vals arg-map)]
       (assert (every? keyword? fields))
-      [:record {:extends     extends
-                :constructor constructor
-                :delta       {:enabled (boolean enabled)
-                              :ignored ignored}}
+      [:record (assoc (select-keys options [:delta]) :extends extends
+                                                     :constructor constructor)
        (zipmap fields (map #(validate % schemas) sub-schemas))])))
 
 (defmethod validate-composite :multi [[_ _ selector arg-map :as schema] schemas]

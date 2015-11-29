@@ -70,11 +70,6 @@
        (repeatedly (gen-small-size))
        (apply str)))
 
-(defmethod gen :long-string [_ schemas]
-  (->> #(gen :char schemas)
-       (repeatedly (gen-big-size))
-       (apply str)))
-
 (defmethod gen :keyword [_ _]
   (->> #(gen-symbol-char)
        (repeatedly (gen-small-size))
@@ -99,24 +94,21 @@
 (defmethod gen :vector [[_ {:keys [size]} sub-schema] schemas]
   (vec (repeatedly (gen-size size) #(gen sub-schema schemas))))
 
-(defmethod gen :set [[_ {:keys [size]} sub-schema] schemas]
-  (set (repeatedly (gen-size size) #(gen sub-schema schemas))))
+(defmethod gen :set [[_ {:keys [size sorted-by]} sub-schema] schemas]
+  (into (case sorted-by
+          :none #{}
+          :default (sorted-set)
+          (sorted-set-by sorted-by))
+        (repeatedly (gen-size size) #(gen sub-schema schemas))))
 
-(defmethod gen :sorted-set [[_ {:keys [size]} sub-schema] schemas]
-  (into (sorted-set)
-        (repeatedly (gen-size size)
-                    #(gen sub-schema schemas))))
-
-(defmethod gen :map [[_ {:keys [size]} key-schema value-schema] schemas]
+(defmethod gen :map [[_ {:keys [size sorted-by]} key-schema val-schema] schemas]
   (let [size-value (gen-size size)]
-    (zipmap (repeatedly size-value #(gen key-schema schemas))
-            (repeatedly size-value #(gen value-schema schemas)))))
-
-(defmethod gen :sorted-map [[_ {:keys [size]} key-schema value-schema] schemas]
-  (let [size-value (gen-size size)]
-    (into (sorted-map)
+    (into (case sorted-by
+            :none {}
+            :default (sorted-map)
+            (sorted-map-by sorted-by))
           (zipmap (repeatedly size-value #(gen key-schema schemas))
-                  (repeatedly size-value #(gen value-schema schemas))))))
+                  (repeatedly size-value #(gen val-schema schemas))))))
 
 (defmethod gen :tuple [[_ _ sub-schemas] schemas]
   (vec (map #(gen % schemas) sub-schemas)))
@@ -129,8 +121,8 @@
   (rand-nth values))
 
 (defmethod gen :record [[_ _ record-map] schemas]
-  (into {} (for [[key value-schema] record-map]
-             [key (gen value-schema schemas)])))
+  (into {} (for [[key val-schema] record-map]
+             [key (gen val-schema schemas)])))
 
 (defmethod gen :multi [[_ _ _ multi-map] schemas]
   (gen (rand-nth (vals multi-map)) schemas))

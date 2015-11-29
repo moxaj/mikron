@@ -34,7 +34,6 @@
 
    ; Advanced
    {:x :string}
-   {:x :long-string}
    {:x :keyword}
    {:x :symbol}
    {:x :any}
@@ -42,10 +41,14 @@
    ; Composite
    {:x [:list :byte]}
    {:x [:vector :int]}
+
    {:x [:set :short]}
-   {:x [:sorted-set :boolean]}
+   {:x [:set {:sorted-by :default} :short]}
+   {:x [:set {:sorted-by >} :short]}
+
    {:x [:map :byte :string]}
-   {:x [:sorted-map :short :float]}
+   {:x [:map {:sorted-by :default} :byte :string]}
+   {:x [:map {:sorted-by >} :byte :string]}
 
    ; Complex
    {:x [:list :y] :y [:tuple [:int :int]]}

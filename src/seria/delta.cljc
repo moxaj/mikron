@@ -8,14 +8,10 @@
         (advanced? schema)) :non-diffable
     (contains? schemas schema) :top-schema
     (composite? schema) (let [[composite-type {:keys [delta]}] schema]
-                          (if-not (:enabled delta)
-                            :non-diffable
-                            (case composite-type
-                              :tuple :tuple
-                              :record :record
-                              :map :map
-                              :sorted-map :map
-                              :non-diffable)))))
+                          (if (and (contains? #{:vector :map :tuple :record} composite-type)
+                                   (:enabled delta))
+                            composite-type
+                            :non-diffable))))
 
 (def dnil ::dnil)
 
@@ -27,24 +23,64 @@
 (defmulti undiff* diff-dispatch)
 
 
-(defmethod diff* :map [[_ _ _ value-schema] config value-1 value-2 _]
-  (let [key     (gensym "key_")
-        value-1 (gensym "value-1_")
-        value-2 (gensym "value-2_")]
-    `(into {} (for [[~key ~value-2] ~value-2]
-                (let [~value-1 (get ~value-1 ~key)]
-                  [~key ~(diff* value-schema config value-1 value-2 false)])))))
+(defmethod diff* :vector [[_ _ sub-schema] config value-1 value-2 at-top]
+  (let [index  (gensym "index_")
+        item-1 (gensym "item-1_")
+        item-2 (gensym "item-2_")
+        diffed (gensym "diffed_")]
+    `(let [~diffed (vec (map-indexed (fn [[~index ~item-2]]
+                                       (let [~item-1 (get ~value-1 ~index)]
+                                         ~(diff* sub-schema config item-1 item-2 false)))
+                                     ~value-2))]
+       ~(if at-top
+          diffed
+          `(if (every? dnil? ~diffed)
+             ~dnil
+             ~diffed)))))
 
-(defmethod undiff* :map [[map-type _ _ value-schema] config value-1 value-2 _]
-  (let [key     (gensym "key_")
-        value-1 (gensym "value-1_")
-        value-2 (gensym "value-2_")]
-    `(into ~(case map-type
-              :map `{}
-              :sorted-map `(sorted-map))
-           (for [[~key ~value-2] ~value-2]
-             (let [~value-1 (get ~value-1 ~key)]
-               [~key ~(undiff* value-schema config value-1 value-2 false)])))))
+(defmethod undiff* :vector [[_ _ sub-schema] config value-1 value-2 at-top]
+  (let [index    (gensym "index_")
+        item-1   (gensym "item-1_")
+        item-2   (gensym "item-2_")
+        undiffed `(vec (map-indexed (fn [[~index ~item-2]]
+                                      (let [~item-1 (get ~value-1 ~index)]
+                                        ~(undiff* sub-schema config item-1 item-2 false)))
+                                    ~value-2))]
+    (if at-top
+      undiffed
+      `(if (dnil? ~value-2)
+         ~value-1
+         ~undiffed))))
+
+
+(defmethod diff* :map [[_ _ _ value-schema] config value-1 value-2 at-top]
+  (let [key    (gensym "key_")
+        val-1  (gensym "val-1_")
+        val-2  (gensym "val-2_")
+        diffed (gensym "diffed_")]
+    `(let [~diffed (into {} (map (fn [[~key ~val-2]]
+                                   (let [~val-1 (get ~value-1 ~key)]
+                                     [~key ~(diff* value-schema config val-1 val-2 false)]))
+                                 ~value-2))]
+       ~(if at-top
+          diffed
+          `(if (every? dnil? (vals ~diffed))
+             ~dnil
+             ~diffed)))))
+
+(defmethod undiff* :map [[_ _ _ value-schema] config value-1 value-2 at-top]
+  (let [key      (gensym "key_")
+        val-1    (gensym "val-1_")
+        val-2    (gensym "val-2_")
+        undiffed `(into {} (map (fn [[~key ~val-2]]
+                                  (let [~val-1 (get ~value-1 ~key)]
+                                    [~key ~(undiff* value-schema config val-1 val-2 false)]))
+                                ~value-2))]
+    (if at-top
+      undiffed
+      `(if (dnil? ~value-2)
+         ~value-1
+         ~undiffed))))
 
 
 (defmethod diff* :tuple [[_ {:keys [delta]} :as schema] config value-1 value-2 at-top]
@@ -67,19 +103,22 @@
              ~dnil
              ~diffed)))))
 
-(defmethod undiff* :tuple [[_ {:keys [delta]} :as schema] config value-1 value-2 _]
+(defmethod undiff* :tuple [[_ {:keys [delta]} :as schema] config value-1 value-2 at-top]
   (let [disjoined-2 (disj-indexed schema value-2)
-        ignored     (set (:ignored delta))]
-    `(if (dnil? ~value-2)
-       ~value-1
-       (let [~@(mapcat (juxt :symbol :sub-value) disjoined-2)]
-         (vector ~@(map (fn [{:keys [symbol index sub-schema]}]
-                          (if (ignored index)
-                            symbol
-                            (let [tuple-1-item (gensym "tuple-1-item_")]
-                              `(let [~tuple-1-item (get ~value-1 ~index)]
-                                 ~(undiff* sub-schema config tuple-1-item symbol false)))))
-                        disjoined-2))))))
+        ignored     (set (:ignored delta))
+        undiffed    `(let [~@(mapcat (juxt :symbol :sub-value) disjoined-2)]
+                       (vector ~@(map (fn [{:keys [symbol index sub-schema]}]
+                                        (if (ignored index)
+                                          symbol
+                                          (let [tuple-1-item (gensym "tuple-1-item_")]
+                                            `(let [~tuple-1-item (get ~value-1 ~index)]
+                                               ~(undiff* sub-schema config tuple-1-item symbol false)))))
+                                      disjoined-2)))]
+    (if at-top
+      undiffed
+      `(if (dnil? ~value-2)
+         ~value-1
+         ~undiffed))))
 
 
 (defmethod diff* :record [[_ {:keys [delta]} :as schema] config value-1 value-2 at-top]
@@ -103,19 +142,22 @@
              ~dnil
              ~diffed)))))
 
-(defmethod undiff* :record [[_ {:keys [delta]} :as schema] config value-1 value-2 _]
+(defmethod undiff* :record [[_ {:keys [delta]} :as schema] config value-1 value-2 at-top]
   (let [disjoined-2 (disj-indexed schema value-2)
-        ignored     (set (:ignored delta))]
-    `(if (dnil? ~value-2)
-       ~value-1
-       (let [~@(mapcat (juxt :symbol :sub-value) disjoined-2)]
-         (hash-map ~@(mapcat (fn [{:keys [symbol index sub-schema]}]
-                               [index (if (ignored index)
-                                        symbol
-                                        (let [record-1-item (gensym "record-1-item_")]
-                                          `(let [~record-1-item (get ~value-1 ~index)]
-                                             ~(undiff* sub-schema config record-1-item symbol false))))])
-                             disjoined-2))))))
+        ignored     (set (:ignored delta))
+        undiffed    `(let [~@(mapcat (juxt :symbol :sub-value) disjoined-2)]
+                       (hash-map ~@(mapcat (fn [{:keys [symbol index sub-schema]}]
+                                             [index (if (ignored index)
+                                                      symbol
+                                                      (let [record-1-item (gensym "record-1-item_")]
+                                                        `(let [~record-1-item (get ~value-1 ~index)]
+                                                           ~(undiff* sub-schema config record-1-item symbol false))))])
+                                           disjoined-2)))]
+    (if at-top
+      undiffed
+      `(if (dnil? ~value-2)
+         ~value-1
+         ~undiffed))))
 
 
 (defmethod diff* :top-schema [schema {:keys [schemas] :as config} value-1 value-2 at-top]
