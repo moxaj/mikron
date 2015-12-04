@@ -1,44 +1,48 @@
 (ns seria.core
-  (:require [seria.buffer :refer [reset-wbuffer! unwrap-wbuffer
-                                  wrap-bytes write-ushort!]]
-            [clojure.walk :refer [postwalk]]))
+  (:require [seria.buffer :refer [prepare-wbuffer! unwrap-wbuffer
+                                  wrap-bytes write-ushort! write-ushort!]]))
 
 (def ^:dynamic *config*)
 
-(defn diff
-  ([value-1 value-2 schema]
-   (diff value-1 value-2 schema *config*))
-  ([value-1 value-2 schema {:keys [processors]}]
-   (when-let [diff* (get-in processors [schema :differ])]
-     (diff* value-1 value-2))))
+(defn diff [value-1 value-2 & {:keys [config schema] :or {config *config*}}]
+  (assert config)
+  (let [{:keys [schema-selector processors]} config
+        schema (or schema (do (assert schema-selector)
+                              (schema-selector value-2)))
+        diff*  (get-in processors [schema :differ])]
+    (assert diff*)
+    (diff* value-1 value-2)))
 
-(defn undiff
-  ([value-1 value-2 schema]
-   (undiff value-1 value-2 schema *config*))
-  ([value-1 value-2 schema {:keys [processors]}]
-   (when-let [undiff* (get-in processors [schema :undiffer])]
-     (undiff* value-1 value-2))))
+(defn undiff [value-1 value-2 & {:keys [config schema] :or {config *config*}}]
+  (assert config)
+  (let [{:keys [schema-selector processors]} config
+        schema  (or schema (do (assert schema-selector)
+                               (schema-selector value-2)))
+        undiff* (get-in processors [schema :undiffer])]
+    (assert undiff*)
+    (undiff* value-1 value-2)))
 
-(defn pack
-  ([value schema]
-   (pack value schema *config*))
-  ([value schema {:keys [processors schema-map wbuffer]}]
-   (when-let [pack* (get-in processors [schema :packer])]
-     (let [{:keys [buffer bit-position byte-position]} wbuffer]
-       (reset-wbuffer! wbuffer)
-       (write-ushort! buffer 0 (schema-map schema))
-       (pack* value buffer bit-position byte-position)
-       (unwrap-wbuffer wbuffer)))))
+(defn pack [value & {:keys [schema config delta-id] :or {config *config* delta-id 0}}]
+  (assert config)
+  (let [{:keys [schema-selector processors schema-map wbuffer]} config
+        schema (or schema (do (assert schema-selector)
+                              (schema-selector value)))
+        pack*  (get-in processors [schema :packer])]
+    (assert pack*)
+    (let [{:keys [buffer bit-position byte-position]} wbuffer]
+      (prepare-wbuffer! (schema-map schema) delta-id wbuffer)
+      (pack* value buffer bit-position byte-position)
+      (unwrap-wbuffer wbuffer))))
 
-(defn unpack
-  ([bytes]
-   (unpack bytes *config*))
-  ([bytes {:keys [processors schema-map]}]
-   (let [[schema-id {:keys [buffer bit-position byte-position]}] (wrap-bytes bytes)
-         schema  (get schema-map schema-id)
-         unpack* (get-in processors [schema :unpacker])]
-     (when (and schema unpack*)
-       [schema (unpack* buffer bit-position byte-position)]))))
+(defn unpack [bytes & {:keys [config] :or {config *config*}}]
+  (assert config)
+  (let [{:keys [processors schema-map]} config
+        {:keys [schema-id _delta-id wbuffer]} (wrap-bytes bytes)
+        {:keys [buffer bit-position byte-position]} wbuffer
+        schema  (get schema-map schema-id)
+        unpack* (get-in processors [schema :unpacker])]
+    (assert unpack*)
+    [schema (unpack* buffer bit-position byte-position)]))
 
 (defmacro with-config [config & body-exprs]
   `(binding [*config* ~config]

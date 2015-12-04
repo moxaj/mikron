@@ -14,6 +14,10 @@
 ; ugly hack crying out for help
 (def global-embed-map (atom {}))
 
+(defn retrieve-embedded [config-id embedded-fn]
+  (let [key (get-in @global-embed-map [config-id embedded-fn])]
+    `(get-in @global-embed-map [~config-id ~key])))
+
 (defn primitive-size [schema]
   (case schema
     :byte 1
@@ -94,33 +98,32 @@
                ~value))))
 
 (defmethod unpack* :string [_ config]
-  `(->> (repeatedly ~(unpack* :ushort config)
-                    (fn [] ~(unpack* :char config)))
-        (apply str)))
+  `(apply str (repeatedly ~(unpack* :ushort config)
+                          (fn [] ~(unpack* :char config)))))
 
 
 (defmethod pack* :keyword [_ config value]
-  (let [value-as-str (gensym "keyword-as-str_")]
-    `(let [~value-as-str (subs (str ~value) 1)]
-       ~(pack* :string config value-as-str))))
+  (let [keyword-as-str (gensym "keyword-as-str_")]
+    `(let [~keyword-as-str (subs (str ~value) 1)]
+       ~(pack* :string config keyword-as-str))))
 
 (defmethod unpack* :keyword [_ config]
   `(keyword ~(unpack* :string config)))
 
 
 (defmethod pack* :symbol [_ config value]
-  (let [value-as-str (gensym "symbol-as-str_")]
-    `(let [~value-as-str (str ~value)]
-       ~(pack* :string config value-as-str))))
+  (let [symbol-as-str (gensym "symbol-as-str_")]
+    `(let [~symbol-as-str (str ~value)]
+       ~(pack* :string config symbol-as-str))))
 
 (defmethod unpack* :symbol [_ config]
   `(symbol ~(unpack* :string config)))
 
 
 (defmethod pack* :any [_ config value]
-  (let [value-as-str (gensym "value-as-str_")]
-    `(let [~value-as-str (pr-str ~value)]
-       ~(pack* :string config value-as-str))))
+  (let [any-as-str (gensym "value-as-str_")]
+    `(let [~any-as-str (pr-str ~value)]
+       ~(pack* :string config any-as-str))))
 
 (defmethod unpack* :any [_ config]
   `((cljc-read-string) ~(unpack* :string config)))
@@ -134,9 +137,8 @@
                ~value))))
 
 (defmethod unpack* :list [[_ {:keys [size]} sub-schema] config]
-  `(->> (repeatedly ~(unpack* size config)
-                    (fn [] ~(unpack* sub-schema config)))
-        (doall)))
+  `(doall (repeatedly ~(unpack* size config)
+                      (fn [] ~(unpack* sub-schema config)))))
 
 
 (defmethod pack* :vector [[_ {:keys [size delta]} sub-schema] config value]
@@ -147,20 +149,18 @@
                  ~(if-not (:enabled delta)
                     (pack* sub-schema config vector-item)
                     `(let [~is-dnil? (dnil? ~vector-item)]
-                       ~(pack* :boolean config ~is-dnil?)
+                       ~(pack* :boolean config is-dnil?)
                        (when-not ~is-dnil?
                          ~(pack* sub-schema config vector-item)))))
                ~value))))
 
 (defmethod unpack* :vector [[_ {:keys [size delta]} sub-schema] config]
-  `(->> (repeatedly ~(unpack* size config)
+  `(vec (repeatedly ~(unpack* size config)
                     (fn [] ~(if-not (:enabled delta)
                               (unpack* sub-schema config)
                               `(if ~(unpack* :boolean config)
                                  ~dnil
-                                 ~(unpack* sub-schema config)))))
-        (vec)
-        (doall)))
+                                 ~(unpack* sub-schema config)))))))
 
 
 (defmethod pack* :set [[_ {:keys [size]} sub-schema] config value]
@@ -171,14 +171,12 @@
                ~value))))
 
 (defmethod unpack* :set [[_ {:keys [size sorted-by]} sub-schema] {:keys [config-id] :as config}]
-  (let [sorted-by-key (get-in @global-embed-map [config-id sorted-by])]
-    `(->> (repeatedly ~(unpack* size config)
-                      (fn [] ~(unpack* sub-schema config)))
-          (into ~(case sorted-by
-                   :none `#{}
-                   :default `(sorted-set)
-                   `(sorted-set-by (get-in @global-embed-map [~config-id ~sorted-by-key]))))
-          (doall))))
+  `(->> (repeatedly ~(unpack* size config)
+                    (fn [] ~(unpack* sub-schema config)))
+        (into ~(case sorted-by
+                 :none `(hash-set)
+                 :default `(sorted-set)
+                 `(sorted-set-by ~(retrieve-embedded config-id sorted-by))))))
 
 
 (defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config value]
@@ -197,19 +195,17 @@
                ~value))))
 
 (defmethod unpack* :map [[_ {:keys [size delta sorted-by]} key-schema value-schema] {:keys [config-id] :as config}]
-  (let [sorted-by-key (get-in @global-embed-map [config-id sorted-by])]
-    `(->> (repeatedly ~(unpack* size config)
-                      (fn [] (vector ~(unpack* key-schema config)
-                                     ~(if-not (:enabled delta)
-                                        (unpack* value-schema config)
-                                        `(if ~(unpack* :boolean config)
-                                           ~dnil
-                                           ~(unpack* value-schema config))))))
-          (into ~(case sorted-by
-                   :none `{}
-                   :default `(sorted-map)
-                   `(sorted-map-by (get-in @global-embed-map [~config-id ~sorted-by-key]))))
-          (doall))))
+  `(into ~(case sorted-by
+            :none `(hash-map)
+            :default `(sorted-map)
+            `(sorted-map-by ~(retrieve-embedded config-id sorted-by)))
+         (repeatedly ~(unpack* size config)
+                     (fn [] [~(unpack* key-schema config)
+                             ~(if-not (:enabled delta)
+                                (unpack* value-schema config)
+                                `(if ~(unpack* :boolean config)
+                                   ~dnil
+                                   ~(unpack* value-schema config)))]))))
 
 
 (defmethod pack* :tuple [[_ {:keys [delta]} :as schema] config value]
@@ -226,13 +222,13 @@
               disjoined))))
 
 (defmethod unpack* :tuple [[_ {:keys [delta]} sub-schemas] config]
-  `(vector ~@(map (fn [sub-schema]
-                    (if-not (:enabled delta)
-                      (unpack* sub-schema config)
-                      `(if ~(unpack* :boolean config)
-                         ~dnil
-                         ~(unpack* sub-schema config))))
-                  sub-schemas)))
+  `[~@(map (fn [sub-schema]
+             (if-not (:enabled delta)
+               (unpack* sub-schema config)
+               `(if ~(unpack* :boolean config)
+                  ~dnil
+                  ~(unpack* sub-schema config))))
+           sub-schemas)])
 
 
 (defmethod pack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas] :as config} value]
@@ -251,16 +247,15 @@
 
 (defmethod unpack* :record [[_ {:keys [delta]} :as schema] {:keys [schemas config-id] :as config}]
   (let [[_ {:keys [constructor]} record-map] (unroll-record schemas schema)
-        constructor-key (get-in @global-embed-map [config-id constructor])
-        unpack-body     `(hash-map ~@(mapcat (fn [[key value-schema]]
-                                               [key (if-not (:enabled delta)
-                                                      (unpack* value-schema config)
-                                                      `(if ~(unpack* :boolean config)
-                                                         ~dnil
-                                                         ~(unpack* value-schema config)))])
-                                             record-map))]
+        unpack-body `(hash-map ~@(mapcat (fn [[key value-schema]]
+                                           [key (if-not (:enabled delta)
+                                                  (unpack* value-schema config)
+                                                  `(if ~(unpack* :boolean config)
+                                                     ~dnil
+                                                     ~(unpack* value-schema config)))])
+                                         record-map))]
     (if constructor
-      `((get-in @global-embed-map [~config-id ~constructor-key]) ~unpack-body)
+      `(~(retrieve-embedded config-id constructor) ~unpack-body)
       unpack-body)))
 
 
@@ -278,12 +273,12 @@
 
 (defmethod pack* :multi
   [[_ _ selector arg-map] {:keys [multi-map multi-size config-id] :as config} value]
-  (let [selector-key (get-in @global-embed-map [config-id selector])
-        case-body    (mapcat (fn [[multi-case sub-schema]]
-                               [multi-case `(do ~(pack* multi-size config (get multi-map multi-case))
-                                                ~(pack* sub-schema config value))])
-                             arg-map)]
-    `(case ((get-in @global-embed-map [~config-id ~selector-key]) ~value)
+  (let [case-body (mapcat (fn [[multi-case sub-schema]]
+                            [multi-case `(do ~(pack* multi-size config (get multi-map multi-case))
+                                             ~(pack* sub-schema config value))])
+                          arg-map)]
+    `(case (~(retrieve-embedded config-id selector)
+             ~value)
        ~@case-body)))
 
 (defmethod unpack* :multi

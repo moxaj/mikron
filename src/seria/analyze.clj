@@ -42,26 +42,28 @@
             form))
 
 (defn safe-expr? [form]
-  (empty? (find-by #{'deref} form)))
+  (empty? (find-by (fn [x]
+                     (and (symbol? x)
+                          (= "deref" (name x))))
+                   form)))
 
 (defn inline-let [let-form]
-  (let [[_ binding-form & body-exprs] let-form
-        {:as binding-map} (seq binding-form)
-        binding-symbols (keys binding-map)]
-    (reduce (fn [new-form binding-symbol]
+  (let [binding-map (apply hash-map (second let-form))]
+    (reduce (fn [[_ binding-form & body-exprs :as new-form] binding-symbol]
               (if-not (and (safe-expr? (binding-map binding-symbol))
                            (= (count (find-by #{binding-symbol} new-form)) 2))
                 new-form
-                (let [new-body-exprs (postwalk-replace {binding-symbol (binding-map binding-symbol)}
-                                                       body-exprs)]
-                  (if (= 1 (count binding-symbols))
+                (let [new-binding-map (apply hash-map binding-form)
+                      new-body-exprs  (postwalk-replace {binding-symbol (binding-map binding-symbol)}
+                                                        body-exprs)]
+                  (if (= 2 (count binding-form))
                     (if (= 1 (count new-body-exprs))
                       (first new-body-exprs)
                       `(do ~@new-body-exprs))
-                    `(let [~@(mapcat identity (dissoc binding-map binding-symbol))]
+                    `(let [~@(mapcat identity (dissoc new-binding-map binding-symbol))]
                        ~@new-body-exprs)))))
             let-form
-            binding-symbols)))
+            (keys binding-map))))
 
 (defn inline-lets [form]
   (postwalk (fn [sub-form]
@@ -77,6 +79,7 @@
     `(~op ~binding-form
        ~@(mapcat (fn [body-expr]
                    (if-not (and (sequential? body-expr)
+                                (symbol? (first body-expr))
                                 (= "do" (name (first body-expr))))
                      (list body-expr)
                      (rest body-expr)))
@@ -91,11 +94,11 @@
                 (unwrap-do sub-form)))
             form))
 
-(defn unwrap-single-dos [form]
+(defn unwrap-single-arg-forms [form]
   (postwalk (fn [sub-form]
               (if-not (and (sequential? sub-form)
                            (symbol? (first sub-form))
-                           (= "do" (name (first sub-form)))
+                           (#{"do" "and" "or"} (name (first sub-form)))
                            (= 1 (count (rest sub-form))))
                 sub-form
                 (second sub-form)))
@@ -103,7 +106,7 @@
 
 (defn prettify-form [form]
   (->> form
-       unwrap-single-dos
-       inline-lets
-       unwrap-dos
-       omit-core-ns))
+       (unwrap-single-arg-forms)
+       (inline-lets)
+       (unwrap-dos)
+       (omit-core-ns)))

@@ -28,13 +28,14 @@
         item-1 (gensym "item-1_")
         item-2 (gensym "item-2_")
         diffed (gensym "diffed_")]
-    `(let [~diffed (vec (map-indexed (fn [[~index ~item-2]]
+    `(let [~diffed (vec (map-indexed (fn [~index ~item-2]
                                        (let [~item-1 (get ~value-1 ~index)]
                                          ~(diff* sub-schema config item-1 item-2 false)))
                                      ~value-2))]
        ~(if at-top
           diffed
-          `(if (every? dnil? ~diffed)
+          `(if (and (every? dnil? ~diffed)
+                    (= (count ~value-1) (count ~value-2)))
              ~dnil
              ~diffed)))))
 
@@ -42,7 +43,7 @@
   (let [index    (gensym "index_")
         item-1   (gensym "item-1_")
         item-2   (gensym "item-2_")
-        undiffed `(vec (map-indexed (fn [[~index ~item-2]]
+        undiffed `(vec (map-indexed (fn [~index ~item-2]
                                       (let [~item-1 (get ~value-1 ~index)]
                                         ~(undiff* sub-schema config item-1 item-2 false)))
                                     ~value-2))]
@@ -64,7 +65,8 @@
                                  ~value-2))]
        ~(if at-top
           diffed
-          `(if (every? dnil? (vals ~diffed))
+          `(if (and (every? dnil? (vals ~diffed))
+                    (= (keys ~value-1) (keys ~value-2)))
              ~dnil
              ~diffed)))))
 

@@ -22,7 +22,7 @@
                           :undiffer (post-fn (make-undiffer schema config))}]))
           (into {})))))
 
-(defn make-initial-config [{:keys [max-bits max-bytes schemas]
+(defn make-initial-config [{:keys [max-bits max-bytes schemas schema-selector]
                             :or   {max-bits  default-max-bits
                                    max-bytes default-max-bytes}}]
   (let [config-id (unique-int)
@@ -30,13 +30,14 @@
         {schema-map :map} (bimap (keys schemas))
         {enum-map :map enum-size :size} (bimap (find-enum-values schemas))
         {multi-map :map multi-size :size} (bimap (find-multi-cases schemas))]
-    {:config    {:config-id  config-id
-                 :schemas    schemas
-                 :schema-map schema-map
-                 :enum-map   enum-map
-                 :enum-size  enum-size
-                 :multi-map  multi-map
-                 :multi-size multi-size}
+    {:config    {:config-id       config-id
+                 :schemas         schemas
+                 :schema-map      schema-map
+                 :enum-map        enum-map
+                 :enum-size       enum-size
+                 :multi-map       multi-map
+                 :multi-size      multi-size
+                 :schema-selector schema-selector}
      :max-bits  max-bits
      :max-bytes max-bytes
      :embed-map (:map (bimap (find-non-embeddables schemas)))}))
@@ -53,4 +54,5 @@
         {:keys [config-id schemas]} config]
     (do (swap! global-embed-map assoc config-id embed-map)
         (assoc config :wbuffer (make-wbuffer max-bits max-bytes)
-                      :processors (make-processors schemas config true)))))
+                      :processors (make-processors schemas config true)
+                      :sources (make-processors schemas config false)))))

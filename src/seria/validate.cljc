@@ -55,33 +55,33 @@
 (defmulti validate-composite (fn [[composite-type] _] composite-type))
 
 (defmethod validate-composite :list [schema schemas]
-  (let [[composite-type options sub-schema :as schema] (-> schema
-                                                           validate-scalable)]
+  (let [[composite-type options sub-schema :as schema] (->> schema
+                                                            (validate-scalable))]
     (assert (= 3 (count schema)))
     [composite-type (select-keys options [:size])
      (validate sub-schema schemas)]))
 
 (defmethod validate-composite :vector [schema schemas]
-  (let [[composite-type options sub-schema :as schema] (-> schema
-                                                           validate-scalable
-                                                           validate-diffable)]
+  (let [[composite-type options sub-schema :as schema] (->> schema
+                                                            (validate-scalable)
+                                                            (validate-diffable))]
     (assert (= 3 (count schema)))
     [composite-type (select-keys options [:size :delta])
      (validate sub-schema schemas)]))
 
 (defmethod validate-composite :set [schema schemas]
-  (let [[composite-type options sub-schema :as schema] (-> schema
-                                                           validate-scalable
-                                                           validate-sortable)]
+  (let [[composite-type options sub-schema :as schema] (->> schema
+                                                            (validate-scalable)
+                                                            (validate-sortable))]
     (assert (= 3 (count schema)))
     [composite-type (select-keys options [:size :sorted-by])
      (validate sub-schema schemas)]))
 
 (defmethod validate-composite :map [schema schemas]
-  (let [[composite-type options key-schema value-schema :as schema] (-> schema
-                                                                        validate-scalable
-                                                                        validate-diffable
-                                                                        validate-sortable)]
+  (let [[composite-type options key-schema value-schema :as schema] (->> schema
+                                                                         (validate-scalable)
+                                                                         (validate-diffable)
+                                                                         (validate-sortable))]
     (assert (= 4 (count schema)))
     [composite-type (select-keys options [:size :delta :sorted-by])
      (validate key-schema schemas) (validate value-schema schemas)]))
@@ -107,8 +107,8 @@
 
 (defmethod validate-composite :record [schema schemas]
   (let [[_ {:keys [extends constructor] :or {extends []} :as options} arg-map :as schema]
-        (-> schema
-            validate-diffable)]
+        (->> schema
+             (validate-diffable))]
     (assert (= 3 (count schema)))
     (assert (map? arg-map))
     (assert (every? (partial contains? schemas) extends))

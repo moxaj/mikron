@@ -4,20 +4,21 @@
             [seria.generate :refer [sample]]
             [midje.sweet :refer [facts]]))
 
-(defn roundtrip [value schema]
-  (unpack (pack value schema)))
+(defn pack-roundtrip [value config]
+  (with-config config
+    (unpack (pack value))))
 
-(defn schema-test [config-args]
+(defn test-pack [schemas]
   (facts
-    (let [config (make-test-config :schemas config-args)]
-      (with-config config
-        (doseq [value (sample 100 :x (:schemas config))]
-          (roundtrip value :x) => [:x value])))))
+    (let [config (make-test-config :schemas schemas
+                                   :schema-selector (constantly :x))]
+      (doseq [value (sample 100 :x (:schemas config))]
+        (pack-roundtrip value config) => [:x value]))))
 
-(defn schema-tests [arg]
-  (every? true? (map schema-test arg)))
+(defn test-packs [arg]
+  (every? true? (map test-pack arg)))
 
-(def test-cases
+(def pack-test-cases
   [
    ; Primitive
    {:x :byte}
@@ -80,4 +81,36 @@
                 :bodies [:list :body]}]
     :x        :snapshot}])
 
-(schema-tests test-cases)
+
+(defn diff-roundtrip [value-1 value-2 config]
+  (with-config config
+    (undiff value-1 (diff value-1 value-2))))
+
+(defn test-diff [schemas]
+  (facts
+    (let [config (make-test-config :schemas schemas
+                                   :schema-selector (constantly :x))]
+      (doseq [[value-1 value-2] (partition 2 (sample 100 :x (:schemas config)))]
+        (diff-roundtrip value-1 value-2 config) => value-2))))
+
+(defn test-diffs [arg]
+  (every? true? (map test-diff arg)))
+
+(def diff-test-cases
+  [{:x [:record {:delta {:enabled true}}
+        {:a :int
+         :b [:tuple {:delta {:enabled true}}
+             [:y :y :y :y]]}]
+    :y [:enum [1 2 3 4]]}
+
+   {:x [:record {:delta {:enabled true
+                         :ignored [:a]}}
+        {:a :byte
+         :b [:tuple [:byte :byte]]
+         :c [:vector {:delta {:enabled true}}
+             [:enum [:cat :dog]]]}]}])
+
+;;;; Run tests
+
+(test-packs pack-test-cases)
+(test-diffs diff-test-cases)
