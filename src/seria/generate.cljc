@@ -29,7 +29,7 @@
                   (primitive? schema) schema
                   (advanced? schema) schema
                   (composite? schema) (first schema)
-                  (contains? schemas schema) :top-schema
+                  (contains? schemas schema) :custom
                   :else schema)))
 
 (defmethod gen :byte [_ _]
@@ -85,7 +85,7 @@
 (defmethod gen :any [_ _]
   "Not yet implemented")
 
-(defmethod gen :top-schema [schema schemas]
+(defmethod gen :custom [schema schemas]
   (gen (get schemas schema) schemas))
 
 (defmethod gen :list [[_ {:keys [size]} sub-schema] schemas]
@@ -116,6 +116,9 @@
 (defmethod gen :optional [[_ _ sub-schema] schemas]
   (when (gen :boolean schemas)
     (gen sub-schema schemas)))
+
+(defmethod gen :wrapped [_ _]
+  "Not yet implemented")
 
 (defmethod gen :enum [[_ _ values] _]
   (rand-nth values))

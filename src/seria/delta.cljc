@@ -6,9 +6,9 @@
   (cond
     (or (primitive? schema)
         (advanced? schema)) :non-diffable
-    (contains? schemas schema) :top-schema
+    (contains? schemas schema) :custom
     (composite? schema) (let [[composite-type {:keys [delta]}] schema]
-                          (if (and (contains? #{:vector :map :tuple :record} composite-type)
+                          (if (and (#{:vector :map :tuple :record} composite-type)
                                    (:enabled delta))
                             composite-type
                             :non-diffable))))
@@ -162,10 +162,10 @@
          ~undiffed))))
 
 
-(defmethod diff* :top-schema [schema {:keys [schemas] :as config} value-1 value-2 at-top]
+(defmethod diff* :custom [schema {:keys [schemas] :as config} value-1 value-2 at-top]
   (diff* (get schemas schema) config value-1 value-2 at-top))
 
-(defmethod undiff* :top-schema [schema {:keys [schemas] :as config} value-1 value-2 at-top]
+(defmethod undiff* :custom [schema {:keys [schemas] :as config} value-1 value-2 at-top]
   (undiff* (get schemas schema) config value-1 value-2 at-top))
 
 

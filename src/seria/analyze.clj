@@ -29,7 +29,7 @@
                        (= :enum (first form)))))
        (mapcat (fn [[_ _ values]] values))))
 
-(defn find-non-embeddables [schemas]
+(defn find-embedded-fns [schemas]
   (find-by fn? schemas))
 
 (defn omit-core-ns [form]

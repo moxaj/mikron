@@ -11,9 +11,13 @@
 (defn cljc-throw [message]
   (throw (new #?(:clj Exception :cljs js/Error) message)))
 
-(def unique-int
-  (let [counter (atom 0)]
+(def unique-long
+  (let [counter (atom (long 0))]
     (fn [] (swap! counter inc))))
+
+(def unique-delta-id
+  (let [counter (atom (long 0))]
+    (fn [] (swap! counter + 2))))
 
 (defn bimap [coll]
   (let [coll-length (count coll)

@@ -1,32 +1,22 @@
 (ns seria.validate
-  (:require [clojure.set :refer [union]]
-            [seria.util :refer [cljc-throw]]))
+  (:require [seria.util :refer [cljc-throw]]))
 
-(def primitives #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
+(def primitive? #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
 
-(def advanceds #{:string :keyword :symbol :any})
-
-(def composites #{:list :vector :set :map :tuple :record :optional :multi :enum})
-
-(def size-types #{:ubyte :ushort})
-
-(def built-ins (union primitives advanceds composites))
-
-(defn primitive? [schema]
-  (contains? primitives schema))
-
-(defn advanced? [schema]
-  (contains? advanceds schema))
+(def advanced? #{:string :keyword :symbol :any})
 
 (defn composite? [schema]
   (and (vector? schema)
-       (contains? composites (first schema))))
+       (#{:list :vector :set :map :tuple :record :optional :multi :enum :wrapped}
+         (first schema))))
 
 (defn built-in? [kw]
-  (contains? built-ins kw))
+  (or (primitive? kw)
+      (advanced? kw)
+      (composite? kw)))
 
 (defn size-type? [schema]
-  (contains? size-types schema))
+  (#{:ubyte :ushort} schema))
 
 (defn with-options [[a b & rest :as composite]]
   (if (and (map? b) (seq rest))
@@ -89,6 +79,12 @@
 (defmethod validate-composite :optional [[_ _ sub-schema :as schema] schemas]
   (assert (= 3 (count schema)))
   [:optional {} (validate sub-schema schemas)])
+
+(defmethod validate-composite :wrapped [[_ {:keys [pre post]} sub-schema :as schema] schemas]
+  (assert (= 3 (count schema)))
+  (assert (or (nil? pre) (ifn? pre)))
+  (assert (or (nil? post) (ifn? post)))
+  [:wrapped {:pre pre :post post} (validate sub-schema schemas)])
 
 (defmethod validate-composite :enum [[_ _ values :as schema] _]
   (assert (= 3 (count schema)))

@@ -2,7 +2,9 @@
   (:require [seria.config :refer [make-test-config]]
             [seria.core :refer [pack unpack diff undiff with-config]]
             [seria.generate :refer [sample]]
-            [midje.sweet :refer [facts]]))
+            [midje.sweet :refer [facts]]
+            [criterium.core :refer [with-progress-reporting quick-bench]]
+            [taoensso.nippy :refer [freeze]]))
 
 (defn pack-roundtrip [value config]
   (with-config config
@@ -111,6 +113,52 @@
              [:enum [:cat :dog]]]}]}])
 
 ;;;; Run tests
+
+(let [config (make-test-config :schemas {:x [:tuple {:delta {:enabled true}}
+                                             (vec (repeat 100 :y))]
+                                         :y [:enum [:cat :dog]]}
+                               :schema-selector (constantly :x)
+                               :delta-strategy (constantly [:incremental 4]))]
+  (with-config config
+    (dotimes [_ 100]
+      (let [value        (first (sample 1 :x (:schemas config)))
+            packed-value (pack value :delta-group :main)]
+        (if-not (= value (second (unpack packed-value)))
+          (println "ERROR"))))))
+
+#_(let [config (make-test-config :schemas {:body     [:record {:delta {:enabled true}}
+                                                      {:user-data [:record {:id :int}]
+                                                       :position  :coord
+                                                       :angle     :float
+                                                       :body-type [:enum [:dynamic :static :kinetic]]
+                                                       :fixtures  [:list :fixture]}]
+                                           :fixture  [:record {:delta {:enabled true}}
+                                                      {:user-data [:record {:color :int}]
+                                                       :coords    [:list :coord]}]
+                                           :coord    [:tuple [:float :float]]
+                                           :snapshot [:record {:delta {:enabled true}}
+                                                      {:time   :int
+                                                       :bodies [:list :body]}]
+                                           :x        :snapshot}
+                                 :schema-selector (constantly :x))
+        value  (first (sample 1 :x (:schemas config)))]
+    #_(with-config config
+        (with-progress-reporting
+          (quick-bench
+            (pack value))))
+    (with-config config
+      (println (format "%d %d"
+                       (count (pack value))
+                       (count (freeze value))))))
+
+#_(let [config (make-test-config :schemas {:x [:wrapped {:pre  (fn [values]
+                                                                 (mapv #(Integer/parseInt %) values))
+                                                         :post (fn [values]
+                                                                 (mapv str values))}
+                                               [:tuple [:int :int :int]]]}
+                                 :schema-selector (constantly :x))]
+    (with-config config
+      (println (unpack (pack ["1" "2" "3"])))))
 
 (test-packs pack-test-cases)
 (test-diffs diff-test-cases)

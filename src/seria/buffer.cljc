@@ -110,56 +110,58 @@
                                                                      (rem position 8))
                                                                    (unchecked-byte)))))))
 
-(def ^:const header-size 6)
+(def ^:const header-length 6)
 (def ^:const schema-id-pos 0)
-(def ^:const delta-id-pos 2)
+(def ^:const delta-pos 2)
 (def ^:const bit-length-pos 4)
 
-(defn make-wbuffer [max-bits max-bytes]
-  (let [size (+ header-size max-bits max-bytes)]
-    {:buffer        #?(:clj  (ByteBuffer/allocate size)
-                       :cljs (js/DataView. (js/ArrayBuffer. size)))
-     :bit-position  (volatile! 0)
-     :byte-position (volatile! 0)
-     :max-bits      max-bits}))
+(defn make-wbuffer [max-bit-length max-byte-length]
+  (let [length (+ header-length max-bit-length max-byte-length)]
+    {:buffer         #?(:clj  (ByteBuffer/allocate length)
+                        :cljs (js/DataView. (js/ArrayBuffer. length)))
+     :bit-position   (volatile! 0)
+     :byte-position  (volatile! 0)
+     :max-bit-length max-bit-length}))
 
-(defn prepare-wbuffer! [schema-id delta-id {:keys [buffer bit-position byte-position max-bits]}]
+(defn prepare-wbuffer! [schema-id delta-id diffed?
+                        {:keys [buffer bit-position byte-position max-bit-length]}]
   (write-ushort! buffer schema-id-pos schema-id)
-  (write-ushort! buffer delta-id-pos delta-id)
-  (vreset! bit-position (* header-size 8))
-  (vreset! byte-position (+ header-size max-bits)))
+  (write-ushort! buffer delta-pos (if diffed? (inc delta-id) delta-id))
+  (vreset! bit-position (* header-length 8))
+  (vreset! byte-position (+ header-length max-bit-length)))
 
-(defn unwrap-wbuffer [{:keys [bit-position byte-position max-bits buffer]}]
+(defn wbuffer->bytes [{:keys [bit-position byte-position max-bit-length buffer]}]
   (let [length-1     (int (#?(:clj  #(Math/ceil %)
                               :cljs js/Math.ceil) (/ @bit-position 8)))
-        length-2     (- @byte-position max-bits header-size)
+        length-2     (- @byte-position max-bit-length header-length)
         total-length (+ length-1 length-2)]
-    (write-ushort! buffer bit-length-pos (- length-1 header-size))
+    (write-ushort! buffer bit-length-pos (- length-1 header-length))
     #?(:clj  (let [buffer-bytes (.array ^ByteBuffer buffer)
                    bytes        (byte-array total-length)]
                (System/arraycopy buffer-bytes 0 bytes 0 length-1)
-               (System/arraycopy buffer-bytes (+ header-size max-bits) bytes length-1 length-2)
+               (System/arraycopy buffer-bytes (+ header-length max-bit-length) bytes length-1 length-2)
                bytes)
        :cljs (let [array-buffer (.-buffer buffer)
                    byte-view    (js/Int8Array. total-length)]
+               (.set byte-view (js/Int8Array. (.slice array-buffer 0 length-1)) 0)
                (.set byte-view (js/Int8Array. (.slice array-buffer
-                                                      0
-                                                      length-1))
-                     0)
-               (.set byte-view (js/Int8Array. (.slice array-buffer
-                                                      (+ header-size max-bits)
-                                                      (+ header-size max-bits length-2)))
+                                                      (+ header-length max-bit-length)
+                                                      (+ header-length max-bit-length length-2)))
                      length-1)
                (.-buffer byte-view)))))
 
-(defn wrap-bytes [bytes]
+(defn bytes->wbuffer [bytes]
   (let [buffer #?(:clj (ByteBuffer/wrap ^bytes bytes)
                   :cljs (js/DataView. bytes))
         schema-id      (read-ushort! buffer schema-id-pos)
-        delta-id       (read-ushort! buffer delta-id-pos)
-        bit-length     (read-ushort! buffer bit-length-pos)]
+        bit-length     (read-ushort! buffer bit-length-pos)
+        [delta-id diffed?] (let [k (read-ushort! buffer delta-pos)]
+                             (if (even? k)
+                               [k false]
+                               [(dec k) true]))]
     {:schema-id schema-id
      :delta-id  delta-id
+     :diffed?   diffed?
      :wbuffer   {:buffer        buffer
-                 :bit-position  (volatile! (* header-size 8))
-                 :byte-position (volatile! (+ header-size bit-length))}}))
+                 :bit-position  (volatile! (* header-length 8))
+                 :byte-position (volatile! (+ header-length bit-length))}}))

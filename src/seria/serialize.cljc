@@ -15,8 +15,10 @@
 (def global-embed-map (atom {}))
 
 (defn retrieve-embedded [config-id embedded-fn]
-  (let [key (get-in @global-embed-map [config-id embedded-fn])]
-    `(get-in @global-embed-map [~config-id ~key])))
+  (if-not (fn? embedded-fn)
+    embedded-fn
+    (let [key (get-in @global-embed-map [config-id embedded-fn])]
+      `(get-in @global-embed-map [~config-id ~key]))))
 
 (defn primitive-size [schema]
   (case schema
@@ -47,7 +49,7 @@
     (primitive? schema) :primitive
     (advanced? schema) schema
     (composite? schema) (first schema)
-    (contains? schema-map schema) :top-schema))
+    (schema-map schema) :custom))
 
 (defmulti pack* pack-dispatch)
 
@@ -171,12 +173,12 @@
                ~value))))
 
 (defmethod unpack* :set [[_ {:keys [size sorted-by]} sub-schema] {:keys [config-id] :as config}]
-  `(->> (repeatedly ~(unpack* size config)
-                    (fn [] ~(unpack* sub-schema config)))
-        (into ~(case sorted-by
-                 :none `(hash-set)
-                 :default `(sorted-set)
-                 `(sorted-set-by ~(retrieve-embedded config-id sorted-by))))))
+  `(into ~(case sorted-by
+            :none `(hash-set)
+            :default `(sorted-set)
+            `(sorted-set-by ~(retrieve-embedded config-id sorted-by)))
+         (repeatedly ~(unpack* size config)
+                     (fn [] ~(unpack* sub-schema config)))))
 
 
 (defmethod pack* :map [[_ {:keys [size delta]} key-schema value-schema] config value]
@@ -271,6 +273,19 @@
      ~(unpack* sub-schema config)))
 
 
+(defmethod pack* :wrapped [[_ {:keys [pre]} sub-schema] {:keys [config-id] :as config} value]
+  (let [wrapped-value (gensym "wrapped-value_")]
+    (if-not pre
+      (pack* sub-schema config value)
+      `(let [~wrapped-value (~(retrieve-embedded config-id pre) ~value)]
+         ~(pack* sub-schema config wrapped-value)))))
+
+(defmethod unpack* :wrapped [[_ {:keys [post]} sub-schema] {:keys [config-id] :as config}]
+  (if-not post
+    (unpack* sub-schema config)
+    `(~(retrieve-embedded config-id post) ~(unpack* sub-schema config))))
+
+
 (defmethod pack* :multi
   [[_ _ selector arg-map] {:keys [multi-map multi-size config-id] :as config} value]
   (let [case-body (mapcat (fn [[multi-case sub-schema]]
@@ -297,10 +312,10 @@
   `(get ~enum-map ~(unpack* enum-size config)))
 
 
-(defmethod pack* :top-schema [schema config value]
+(defmethod pack* :custom [schema config value]
   (pack* (get-in config [:schemas schema]) config value))
 
-(defmethod unpack* :top-schema [schema config]
+(defmethod unpack* :custom [schema config]
   (unpack* (get-in config [:schemas schema]) config))
 
 
