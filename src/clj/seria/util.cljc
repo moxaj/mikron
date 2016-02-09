@@ -81,7 +81,7 @@
                           :record `(get ~value ~index))})
        (case composite-type
          :tuple  (range (count arg))
-         :record (keys arg))))
+         :record (sort (keys arg)))))
 
 (defn runtime-fn [fn-key]
   `(get-in @(:state ~'config) [:fn-map ~fn-key]))

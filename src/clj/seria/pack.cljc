@@ -190,9 +190,9 @@
 
 (defmethod unpack :record [schema]
   (let [[_ {:keys [diff constructor]} record-map] (expand-record schema (:schemas *config*))]
-    (->> (map (fn [[key value-schema]]
-                [key (unpack-with-diff diff key (unpack value-schema))])
-              record-map)
+    (->> (sort (keys record-map))
+         (map (fn [key]
+                [key (unpack-with-diff diff key (unpack (record-map key)))]))
          (into {})
          (decorate-constructor constructor))))
 

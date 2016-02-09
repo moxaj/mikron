@@ -1,16 +1,6 @@
 (ns seria.spec
   (:require [clojure.set :refer [union]]))
 
-(def ^:const byte-id   0)
-(def ^:const ubyte-id  1)
-(def ^:const short-id  2)
-(def ^:const ushort-id 3)
-(def ^:const int-id    4)
-(def ^:const uint-id   5)
-(def ^:const long-id   6)
-(def ^:const float-id  7)
-
-
 (def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
 (def primitive? primitive-types)
 
