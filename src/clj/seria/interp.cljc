@@ -5,8 +5,8 @@
 
 (def ^:dynamic *config*)
 
-(defn interp-values [v1 v2 t1 t2 t round?]
-  (let [value (+ v1 (* (- v2 v1) (/ (- t t1) (- t2 t1))))]
+(defn interp-values [v1 v2 time-factor round?]
+  (let [value (+ v1 (* time-factor (- v2 v1)))]
     (if round?
       (cljc-round value)
       value)))
@@ -21,15 +21,12 @@
 (defmulti interp interp-dispatch)
 
 (defmethod interp :interpable [schema value-1 value-2]
-  `(interp-values ~value-1 ~value-2 ~'time-1 ~'time-2 ~'time ~(int? schema)))
+  `(interp-values ~value-1 ~value-2 ~'time-factor ~(int? schema)))
 
 (defmethod interp :non-interpable [schema value-1 value-2]
-  `(if (= ~value-1 ~value-2)
-     ~value-2
-     (if (< (cljc-abs (- ~'time ~'time-1))
-            (cljc-abs (- ~'time ~'time-2)))
-       ~value-1
-       ~value-2)))
+  `(if ~'prefer-first?
+    ~value-1
+    ~value-2))
 
 (defmethod interp :vector [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
@@ -82,9 +79,9 @@
 (defmethod interp :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
      ~(interp inner-schema value-1 value-2)
-     (or ~value-1 ~value-2)))
+     ~value-2))
 
-(defmethod interp :multi [[_ {:keys [interp]} selector multi-cases] value-1 value-2]
+(defmethod interp :multi [[_ _ selector multi-cases] value-1 value-2]
   (let [selector-fn (gensym "selector-fn_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
@@ -95,12 +92,13 @@
          ~value-2
          (condp = ~case-1
            ~@(mapcat (fn [[multi-case schema]]
-                       [multi-case (if (traceable-index? multi-case interp)
-                                     (interp schema value-1 value-2)
-                                     value-2)])
+                       [multi-case (interp schema value-1 value-2)])
                      multi-cases))))))
 
 (defn make-interper [schema config]
   (binding [*config* config]
     `(fn [~'value-1 ~'value-2 ~'time-1 ~'time-2 ~'time ~'config]
-       ~(interp schema 'value-1 'value-2))))
+       (let [~'prefer-first? (< (cljc-abs (- ~'time ~'time-1))
+                                (cljc-abs (- ~'time ~'time-2)))
+             ~'time-factor   (/ (- ~'time ~'time-1) (- ~'time-2 ~'time-1))]
+         ~(interp schema 'value-1 'value-2)))))

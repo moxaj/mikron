@@ -1,0 +1,3250 @@
+;; This Clojure REPL is divided into two areas, top and bottom, delimited by a line of dashes. The top area shows code that's been executed in the REPL, standard out from running code, and the results of executed expressions. The bottom area allows Clojure code to be entered. The code can be executed by pressing shift+enter.
+
+;; Try it now by typing (+ 1 1) in the bottom section and pressing shift+enter.
+
+;; Working in another Clojure file and sending forms to the REPL is the most efficient way to work. Use the following key bindings to send code to the REPL. See the settings for more keybindings.
+
+;; ctrl-, then b - execute block. Finds the block of Clojure code your cursor is in and executes that.
+
+;; Try it now. Put your cursor inside this block and press ctrl and comma together,
+;; release, then press b.
+(+ 2 3)
+
+;; ctrl-, s - Executes the selection. Sends the selected text to the REPL.
+
+;; Try it now. Select these three lines and press ctrl and comma together,
+;; release, then press s.
+(println "hello 1")
+(println "hello 2")
+(println "hello 3")
+
+;; You can disable this help text in the settings.
+Starting REPL in D:\Programming\Clojure\seria
+nREPL server started on port 56338 on host 127.0.0.1 - nrepl://127.0.0.1:56338
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+REPL already running
+:error-while-loading seria.core
+java.lang.RuntimeException: Unable to resolve symbol: defb in this context, compiling:(seria/core.cljc:23:1)
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+:error-while-loading seria.core
+java.lang.RuntimeException: Unable to resolve symbol: buffer in this context, compiling:(seria/core.cljc:38:11)
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+:reloading ()
+Refresh complete
+Refreshing code...
+:reloading ()
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing
+ clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing seria.util
+
+Testing criterium.well
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+ERROR in (primitive-test) (Numbers.java:1013)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.NullPointerException: null
+ at clojure.lang.Numbers.ops (Numbers.java:1013)
+    clojure.lang.Numbers.add (Numbers.java:128)
+    seria.buffer$make_buffer.invokeStatic (buffer.cljc:163)
+    seria.buffer$make_buffer.invoke (buffer.cljc:162)
+    seria.core$make_buffer.invokeStatic (core.cljc:24)
+    seria.core$make_buffer.doInvoke (core.cljc:23)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:18)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6247.invokeStatic (core_test.clj:27)
+    seria.core_test/fn (core_test.clj:24)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic
+ (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (advanced-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6256.invokeStatic (core_test.clj:31)
+    seria.core_test/fn (core_test.clj:29)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke
+ (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (composite-test) (Numbers.java:1013)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.NullPointerException: null
+ at clojure.lang.Numbers.ops (Numbers.java:1013)
+    clojure.lang.Numbers.add (Numbers.java:128)
+    seria.buffer$make_buffer.invokeStatic (buffer.cljc:163)
+    seria.buffer$make_buffer.invoke (buffer.cljc:162)
+    seria.core$make_buffer.invokeStatic (core.cljc:24)
+    seria.core$make_buffer.doInvoke (core.cljc:23)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:18)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6265.invokeStatic (core_test.clj:44)
+    seria.core_test/fn (core_test.clj:33)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic
+ (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (function-test) (Numbers.java:1013)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.NullPointerException: null
+ at clojure.lang.Numbers.ops (Numbers.java:1013)
+    clojure.lang.Numbers.add (Numbers.java:128)
+    seria.buffer$make_buffer.invokeStatic (buffer.cljc:163)
+    seria.buffer$make_buffer.invoke (buffer.cljc:162)
+    seria.core$make_buffer.invokeStatic (core.cljc:24)
+    seria.core$make_buffer.doInvoke (core.cljc:23)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:18)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6274.invokeStatic (core_test.clj:50)
+    seria.core_test/fn (core_test.clj:46)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke
+ (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (diff-test) (Keyword.java:97)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all
+ at clojure.lang.Keyword.throwArity (Keyword.java:97)
+    clojure.lang.Keyword.invoke (Keyword.java:150)
+    seria.diff$eval4789$fn__4790$fn__4794.invoke (diff.cljc:82)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.diff$eval4789$fn__4790.invoke (diff.cljc:83)
+    clojure.lang.MultiFn.invoke (MultiFn.java:238)
+
+    seria.diff$make_common.invokeStatic (diff.cljc:118)
+    seria.diff$make_common.invoke (diff.cljc:114)
+    seria.diff$make_differ.invokeStatic (diff.cljc:121)
+    seria.diff$make_differ.invoke (diff.cljc:120)
+    seria.config$make_processors$fn__5286.invoke (config.clj:15)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke
+ (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:457)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:95)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:93)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$fn__6339.invokeStatic (core_test.clj:112)
+    seria.core_test/fn (core_test.clj:101)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (constructor-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval4978$fn__4979$fn__4982.invoke (pack.cljc:195)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.pack$eval4978$fn__4979.invoke (pack.cljc:196)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke
+ (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$fn__6305.invokeStatic (core_test.clj:54)
+    seria.core_test/fn (core_test.clj:53)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (custom-test) (Numbers.java:1013)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.NullPointerException: null
+ at clojure.lang.Numbers.ops (Numbers.java:1013)
+    clojure.lang.Numbers.add (Numbers.java:128)
+    seria.buffer$make_buffer.invokeStatic (buffer.cljc:163)
+    seria.buffer$make_buffer.invoke (buffer.cljc:162)
+    seria.core$make_buffer.invokeStatic (core.cljc:24)
+    seria.core$make_buffer.doInvoke (core.cljc:23)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:18)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6312.invokeStatic (core_test.clj:84)
+    seria.core_test/fn (core_test.clj:62)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic
+ (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6369.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 7 assertions.
+0 failures, 7 errors.
+"Elapsed time: 363.347292 msecs"
+Refreshing code...
+:reloading (seria.core playground seria.core-test)
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing seria.util
+
+Testing criterium.well
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+ERROR in (advanced-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6644.invokeStatic (core_test.clj:31)
+    seria.core_test/fn (core_test.clj:29)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke
+ (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (composite-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval4941$fn__4943.invoke (pack.cljc:166)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6653.invokeStatic (core_test.clj:44)
+    seria.core_test/fn (core_test.clj:33)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic
+ (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic
+ (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (function-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval4941$fn__4943.invoke (pack.cljc:166)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6662.invokeStatic (core_test.clj:50)
+    seria.core_test/fn (core_test.clj:46)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+
+clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (diff-test) (Keyword.java:97)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all
+ at clojure.lang.Keyword.throwArity (Keyword.java:97)
+    clojure.lang.Keyword.invoke (Keyword.java:150)
+    seria.diff$eval4789$fn__4790$fn__4794.invoke (diff.cljc:82)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.diff$eval4789$fn__4790.invoke (diff.cljc:83)
+    clojure.lang.MultiFn.invoke (MultiFn.java:238)
+
+    seria.diff$make_common.invokeStatic (diff.cljc:118)
+    seria.diff$make_common.invoke (diff.cljc:114)
+    seria.diff$make_differ.invokeStatic (diff.cljc:121)
+    seria.diff$make_differ.invoke (diff.cljc:120)
+    seria.config$make_processors$fn__5286.invoke (config.clj:15)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke
+ (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:457)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:95)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:93)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$fn__6727.invokeStatic (core_test.clj:112)
+    seria.core_test/fn (core_test.clj:101)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (constructor-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval4978$fn__4979$fn__4982.invoke (pack.cljc:195)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.pack$eval4978$fn__4979.invoke (pack.cljc:196)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke
+ (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$fn__6693.invokeStatic (core_test.clj:54)
+    seria.core_test/fn (core_test.clj:53)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (custom-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval4853/fn--4854
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval4862$fn__4863.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval4978$fn__4979$fn__4982.invoke (pack.cljc:195)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.pack$eval4978$fn__4979.invoke (pack.cljc:196)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__5286.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke
+ (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__6700.invokeStatic
+ (core_test.clj:84)
+    seria.core_test/fn (core_test.clj:62)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength
+ (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__6738.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 176 assertions.
+0 failures, 6 errors.
+"Elapsed time: 603.94495 msecs"
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+Refreshing code...
+Refresh complete
+:reloading ()
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+ERROR in (advanced-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval7956/fn--7957
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval7965$fn__7966.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__8389.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__8751.invokeStatic (core_test.clj:31)
+    seria.core_test/fn (core_test.clj:29)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke
+ (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (composite-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval7956/fn--7957
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval7965$fn__7966.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval8044$fn__8046.invoke (pack.cljc:166)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__8389.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__8760.invokeStatic (core_test.clj:44)
+    seria.core_test/fn (core_test.clj:33)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic
+ (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic
+ (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (function-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval7956/fn--7957
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval7965$fn__7966.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval8044$fn__8046.invoke (pack.cljc:166)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__8389.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__8769.invokeStatic (core_test.clj:50)
+    seria.core_test/fn (core_test.clj:46)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+
+clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (diff-test) (Keyword.java:97)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all
+ at clojure.lang.Keyword.throwArity (Keyword.java:97)
+    clojure.lang.Keyword.invoke (Keyword.java:150)
+    seria.diff$eval7892$fn__7893$fn__7897.invoke (diff.cljc:82)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.diff$eval7892$fn__7893.invoke (diff.cljc:83)
+    clojure.lang.MultiFn.invoke (MultiFn.java:238)
+
+    seria.diff$make_common.invokeStatic (diff.cljc:118)
+    seria.diff$make_common.invoke (diff.cljc:114)
+    seria.diff$make_differ.invokeStatic (diff.cljc:121)
+    seria.diff$make_differ.invoke (diff.cljc:120)
+    seria.config$make_processors$fn__8389.invoke (config.clj:15)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke
+ (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:457)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:95)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:93)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$fn__8834.invokeStatic (core_test.clj:112)
+    seria.core_test/fn (core_test.clj:101)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (constructor-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval7956/fn--7957
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval7965$fn__7966.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval8081$fn__8082$fn__8085.invoke (pack.cljc:195)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.pack$eval8081$fn__8082.invoke (pack.cljc:196)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__8389.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke
+ (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$fn__8800.invokeStatic (core_test.clj:54)
+    seria.core_test/fn (core_test.clj:53)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (custom-test) (AFn.java:429)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: clojure.lang.ArityException: Wrong number of args (2) passed to: pack/eval7956/fn--7957
+ at clojure.lang.AFn.throwArity (AFn.java:429)
+    clojure.lang.AFn.invoke (AFn.java:36)
+    clojure.lang.MultiFn.invoke (MultiFn.java:233)
+    seria.pack$eval7965$fn__7966.invoke (pack.cljc:93)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$eval8081$fn__8082$fn__8085.invoke (pack.cljc:195)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.pack$eval8081$fn__8082.invoke (pack.cljc:196)
+    clojure.lang.MultiFn.invoke (MultiFn.java:229)
+    seria.pack$make_unpacker.invokeStatic (pack.cljc:247)
+    seria.pack$make_unpacker.invoke (pack.cljc:244)
+    seria.config$make_processors$fn__8389.invoke (config.clj:14)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.next (RT.java:688)
+    clojure.core$next__4341.invokeStatic (core.clj:64)
+    clojure.core.protocols$fn__6755.invokeStatic (protocols.clj:168)
+    clojure.core.protocols/fn (protocols.clj:124)
+    clojure.core.protocols$fn__6710$G__6705__6719.invoke
+ (protocols.clj:19)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:31)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__8807.invokeStatic
+ (core_test.clj:84)
+    seria.core_test/fn (core_test.clj:62)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength
+ (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__8864.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 176 assertions.
+0 failures, 6 errors.
+"Elapsed time: 783.869317 msecs"
+Refreshing code...
+:reloading (seria.pack seria.config playground seria.core-test)
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+ERROR in (diff-test) (Keyword.java:97)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all
+ at clojure.lang.Keyword.throwArity (Keyword.java:97)
+    clojure.lang.Keyword.invoke (Keyword.java:150)
+    seria.diff$eval7892$fn__7893$fn__7897.invoke (diff.cljc:82)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.diff$eval7892$fn__7893.invoke (diff.cljc:83)
+    clojure.lang.MultiFn.invoke (MultiFn.java:238)
+
+    seria.diff$make_common.invokeStatic (diff.cljc:118)
+    seria.diff$make_common.invoke (diff.cljc:114)
+    seria.diff$make_differ.invokeStatic (diff.cljc:121)
+    seria.diff$make_differ.invoke (diff.cljc:120)
+    seria.config$make_processors$fn__9569.invoke (config.clj:15)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke
+ (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:457)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:95)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$test_diff_case.invokeStatic (core_test.clj:93)
+    seria.core_test$test_diff_case.invoke (core_test.clj:91)
+    seria.core_test$fn__9715.invokeStatic (core_test.clj:112)
+    seria.core_test/fn (core_test.clj:101)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__9726.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+ERROR in (custom-test) (Keyword.java:97)
+Uncaught exception, not in assertion.
+expected: nil
+  actual: java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all
+ at clojure.lang.Keyword.throwArity (Keyword.java:97)
+    clojure.lang.Keyword.invoke (Keyword.java:150)
+    seria.diff$eval7892$fn__7893$fn__7897.invoke (diff.cljc:82)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.diff$eval7892$fn__7893.invoke (diff.cljc:83)
+    clojure.lang.MultiFn.invoke (MultiFn.java:238)
+
+    seria.diff$make_common.invokeStatic (diff.cljc:118)
+    seria.diff$make_common.invoke (diff.cljc:114)
+    seria.diff$make_differ.invokeStatic (diff.cljc:121)
+    seria.diff$make_differ.invoke (diff.cljc:120)
+    seria.config$make_processors$fn__9569.invoke (config.clj:15)
+    clojure.core$map$fn__4785.invoke (core.clj:2646)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.RT.seq (RT.java:521)
+    clojure.core$seq__4357.invokeStatic (core.clj:137)
+    clojure.core.protocols$seq_reduce.invokeStatic (protocols.clj:24)
+    clojure.core.protocols$fn__6738.invokeStatic (protocols.clj:75)
+    clojure.core.protocols/fn (protocols.clj:75)
+    clojure.core.protocols$fn__6684$G__6679__6697.invoke (protocols.clj:13)
+    clojure.core$reduce.invokeStatic (core.clj:6545)
+    clojure.core$into.invokeStatic (core.clj:6610)
+    clojure.core$into.invoke (core.clj:6604)
+    seria.config$make_processors.invokeStatic (config.clj:18)
+    seria.config$make_processors.invoke
+ (config.clj:9)
+    seria.config$make_test_config.invokeStatic (config.clj:50)
+    seria.config$make_test_config.doInvoke (config.clj:48)
+    clojure.lang.RestFn.invoke (RestFn.java:421)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:17)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$test_pack_case.invokeStatic (core_test.clj:15)
+    seria.core_test$test_pack_case.invoke (core_test.clj:13)
+    seria.core_test$fn__9688.invokeStatic (core_test.clj:84)
+    seria.core_test/fn (core_test.clj:62)
+    clojure.test$test_var$fn__7983.invoke (test.clj:716)
+    clojure.test$test_var.invokeStatic (test.clj:716)
+    clojure.test$test_var.invoke (test.clj:707)
+    clojure.test$test_vars$fn__8005$fn__8010.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars$fn__8005.invoke (test.clj:734)
+    clojure.test$default_fixture.invokeStatic (test.clj:686)
+    clojure.test$default_fixture.invoke (test.clj:682)
+    clojure.test$test_vars.invokeStatic (test.clj:730)
+    clojure.test$test_all_vars.invokeStatic (test.clj:736)
+    clojure.test$test_ns.invokeStatic (test.clj:757)
+    clojure.test$test_ns.invoke (test.clj:742)
+    clojure.core$map$fn__4785.invoke (core.clj:2644)
+    clojure.lang.LazySeq.sval (LazySeq.java:40)
+    clojure.lang.LazySeq.seq (LazySeq.java:49)
+    clojure.lang.Cons.next (Cons.java:39)
+    clojure.lang.RT.boundedLength (RT.java:1749)
+    clojure.lang.RestFn.applyTo (RestFn.java:130)
+    clojure.core$apply.invokeStatic (core.clj:648)
+    clojure.test$run_tests.invokeStatic (test.clj:767)
+    clojure.test$run_tests.doInvoke (test.clj:767)
+    clojure.lang.RestFn.applyTo (RestFn.java:137)
+    clojure.core$apply.invokeStatic (core.clj:646)
+    clojure.test$run_all_tests.invokeStatic (test.clj:779)
+    clojure.test$run_all_tests.invoke (test.clj:779)
+    user$fn__9726.invokeStatic (form-init558237452804454460.clj:1)
+    user/fn
+ (form-init558237452804454460.clj:1)
+    clojure.core$binding_conveyor_fn$fn__4676.invoke (core.clj:1938)
+    clojure.lang.AFn.call (AFn.java:18)
+    java.util.concurrent.FutureTask.run (FutureTask.java:266)
+    java.util.concurrent.ThreadPoolExecutor.runWorker (ThreadPoolExecutor.java:1142)
+    java.util.concurrent.ThreadPoolExecutor$Worker.run (ThreadPoolExecutor.java:617)
+    java.lang.Thread.run (Thread.java:745)
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 303 assertions.
+0 failures, 2 errors.
+"Elapsed time: 814.288974 msecs"
+(let [config (make-test-config :schemas {:x [:record {:diff :all}
+                                             {:a :int
+                                              :b [:tuple {:diff :all}
+                                                  [:y :y :y :y]]}]
+                                         :y [:enum [1 2 3 4]]})])
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(let [config (make-test-config :schemas {:x [:record {:diff :all}
+                                             {:a :int
+                                              :b [:tuple {:diff :all}
+                                                  [:int]]}]})])
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(let [config (make-test-config :schemas {:x [:record {:diff :all}
+                                             {:a :int}]})])
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(identity *e)
+=>
+{:cause "Wrong number of args passed to keyword: :all",
+ :via [{:type java.lang.IllegalArgumentException,
+        :at [clojure.lang.Keyword throwArity "Keyword.java" 97],
+        :message "Wrong number of args passed to keyword: :all"}],
+ :trace [[clojure.lang.Keyword throwArity "Keyword.java" 97]
+         [clojure.lang.Keyword invoke "Keyword.java" 150]
+         [seria.diff$eval7892$fn__7893$fn__7897 invoke "diff.cljc" 82]
+         [clojure.core$map$fn__4785 invoke "core.clj" 2646]
+         [clojure.lang.LazySeq sval "LazySeq.java" 40]
+         [clojure.lang.LazySeq seq "LazySeq.java" 49]
+         [clojure.lang.RT seq "RT.java" 521]
+         [clojure.core$seq__4357 invokeStatic "core.clj" 137]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          24]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$into invokeStatic "core.clj" 6610]
+         [clojure.core$into invoke "core.clj" 6604]
+         [seria.diff$eval7892$fn__7893 invoke "diff.cljc" 83]
+         [clojure.lang.MultiFn invoke "MultiFn.java" 238]
+         [seria.diff$make_common invokeStatic "diff.cljc" 118]
+         [seria.diff$make_common invoke "diff.cljc" 114]
+         [seria.diff$make_differ invokeStatic "diff.cljc" 121]
+         [seria.diff$make_differ invoke "diff.cljc" 120]
+         [seria.config$make_processors$fn__9569
+          invoke
+          "config.clj"
+          15]
+         [clojure.core$map$fn__4785 invoke "core.clj" 2646]
+         [clojure.lang.LazySeq sval "LazySeq.java" 40]
+         [clojure.lang.LazySeq seq "LazySeq.java" 49]
+         [clojure.lang.RT seq "RT.java" 521]
+         [clojure.core$seq__4357 invokeStatic "core.clj" 137]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          24]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$into invokeStatic "core.clj" 6610]
+         [clojure.core$into invoke "core.clj" 6604]
+         [seria.config$make_processors invokeStatic "config.clj" 18]
+         [seria.config$make_processors invoke "config.clj" 9]
+         [seria.config$make_test_config invokeStatic "config.clj" 50]
+         [seria.config$make_test_config doInvoke "config.clj" 48]
+         [clojure.lang.RestFn invoke "RestFn.java" 421]
+         [playground$eval10707
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [playground$eval10707
+          invoke
+          "form-init558237452804454460.clj"
+          1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10704
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10704 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10702
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10702 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [clojure.main$repl$read_eval_print__7408$fn__7411
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$read_eval_print__7408
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$fn__7417 invoke "main.clj" 258]
+         [clojure.main$repl invokeStatic "main.clj" 258]
+         [clojure.main$repl doInvoke "main.clj" 174]
+         [clojure.lang.RestFn invoke "RestFn.java" 1523]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1151
+          invoke
+          "interruptible_eval.clj"
+          87]
+         [clojure.lang.AFn applyToHelper "AFn.java" 152]
+         [clojure.lang.AFn applyTo "AFn.java" 144]
+         [clojure.core$apply invokeStatic "core.clj" 646]
+         [clojure.core$with_bindings_STAR_
+          invokeStatic
+          "core.clj"
+          1881]
+         [clojure.core$with_bindings_STAR_ doInvoke "core.clj" 1881]
+         [clojure.lang.RestFn invoke "RestFn.java" 425]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invokeStatic
+          "interruptible_eval.clj"
+          85]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invoke
+          "interruptible_eval.clj"
+          55]
+         [clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1196$fn__1199
+          invoke
+          "interruptible_eval.clj"
+          222]
+         [clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1191
+          invoke
+          "interruptible_eval.clj"
+          190]
+         [clojure.lang.AFn run "AFn.java" 22]
+         [java.util.concurrent.ThreadPoolExecutor
+          runWorker
+          "ThreadPoolExecutor.java"
+          1142]
+         [java.util.concurrent.ThreadPoolExecutor$Worker
+          run
+          "ThreadPoolExecutor.java"
+          617]
+         [java.lang.Thread run "Thread.java" 745]]}
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(identity *e)
+=>
+{:cause "Wrong number of args passed to keyword: :all",
+ :via [{:type java.lang.IllegalArgumentException,
+        :at [clojure.lang.Keyword throwArity "Keyword.java" 97],
+        :message "Wrong number of args passed to keyword: :all"}],
+ :trace [[clojure.lang.Keyword throwArity "Keyword.java" 97]
+         [clojure.lang.Keyword invoke "Keyword.java" 150]
+         [seria.diff$eval7881$fn__7883$fn__7887 invoke "diff.cljc" 68]
+         [clojure.core$mapv$fn__6953 invoke "core.clj" 6627]
+         [clojure.lang.ArrayChunk reduce "ArrayChunk.java" 58]
+         [clojure.core.protocols$fn__6750
+          invokeStatic
+          "protocols.clj"
+          136]
+         [clojure.core.protocols$fn__6750 invoke "protocols.clj" 124]
+         [clojure.core.protocols$fn__6710$G__6705__6719
+          invoke
+          "protocols.clj"
+          19]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          31]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$mapv invokeStatic "core.clj" 6618]
+         [clojure.core$mapv invoke "core.clj" 6618]
+         [seria.diff$eval7881$fn__7883 invoke "diff.cljc" 63]
+         [clojure.lang.MultiFn invoke "MultiFn.java" 238]
+         [seria.diff$make_common invokeStatic "diff.cljc" 118]
+         [seria.diff$make_common invoke "diff.cljc" 114]
+         [seria.diff$make_differ invokeStatic "diff.cljc" 121]
+         [seria.diff$make_differ invoke "diff.cljc" 120]
+         [seria.config$make_processors$fn__9569
+          invoke
+          "config.clj"
+          15]
+         [clojure.core$map$fn__4785 invoke "core.clj" 2646]
+         [clojure.lang.LazySeq sval "LazySeq.java" 40]
+         [clojure.lang.LazySeq seq "LazySeq.java" 49]
+         [clojure.lang.RT seq "RT.java" 521]
+         [clojure.core$seq__4357 invokeStatic "core.clj" 137]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          24]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$into invokeStatic "core.clj" 6610]
+         [clojure.core$into invoke "core.clj" 6604]
+         [seria.config$make_processors invokeStatic "config.clj" 18]
+         [seria.config$make_processors invoke "config.clj" 9]
+         [seria.config$make_test_config invokeStatic "config.clj" 50]
+         [seria.config$make_test_config doInvoke "config.clj" 48]
+         [clojure.lang.RestFn invoke "RestFn.java" 421]
+         [playground$eval10747
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [playground$eval10747
+          invoke
+          "form-init558237452804454460.clj"
+          1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10744
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10744 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10742
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10742 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [clojure.main$repl$read_eval_print__7408$fn__7411
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$read_eval_print__7408
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$fn__7417 invoke "main.clj" 258]
+         [clojure.main$repl invokeStatic "main.clj" 258]
+         [clojure.main$repl doInvoke "main.clj" 174]
+         [clojure.lang.RestFn invoke "RestFn.java" 1523]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1151
+          invoke
+          "interruptible_eval.clj"
+          87]
+         [clojure.lang.AFn applyToHelper "AFn.java" 152]
+         [clojure.lang.AFn applyTo "AFn.java" 144]
+         [clojure.core$apply invokeStatic "core.clj" 646]
+         [clojure.core$with_bindings_STAR_
+          invokeStatic
+          "core.clj"
+          1881]
+         [clojure.core$with_bindings_STAR_ doInvoke "core.clj" 1881]
+         [clojure.lang.RestFn invoke "RestFn.java" 425]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invokeStatic
+          "interruptible_eval.clj"
+          85]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invoke
+          "interruptible_eval.clj"
+          55]
+         [clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1196$fn__1199
+          invoke
+          "interruptible_eval.clj"
+          222]
+         [clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1191
+          invoke
+          "interruptible_eval.clj"
+          190]
+         [clojure.lang.AFn run "AFn.java" 22]
+         [java.util.concurrent.ThreadPoolExecutor
+          runWorker
+          "ThreadPoolExecutor.java"
+          1142]
+         [java.util.concurrent.ThreadPoolExecutor$Worker
+          run
+          "ThreadPoolExecutor.java"
+          617]
+         [java.lang.Thread run "Thread.java" 745]]}
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+:error-while-loading seria.diff
+clojure.lang.ArityException: Wrong number of args (4) passed to: core/if-not, compiling:(seria/diff.cljc:64:22)
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+hey 0 :all
+:error-while-loading playground
+java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all, compiling:(playground.clj:8:1)
+(identity *e)
+=>
+{:cause "Wrong number of args passed to keyword: :all",
+ :via [{:type java.lang.IllegalArgumentException,
+        :at [clojure.lang.Keyword throwArity "Keyword.java" 97],
+        :message "Wrong number of args passed to keyword: :all"}],
+ :trace [[clojure.lang.Keyword throwArity "Keyword.java" 97]
+         [clojure.lang.Keyword invoke "Keyword.java" 150]
+         [seria.diff$eval7881$fn__7883$fn__7887 invoke "diff.cljc" 68]
+         [clojure.core$mapv$fn__6953 invoke "core.clj" 6627]
+         [clojure.lang.ArrayChunk reduce "ArrayChunk.java" 58]
+         [clojure.core.protocols$fn__6750
+          invokeStatic
+          "protocols.clj"
+          136]
+         [clojure.core.protocols$fn__6750 invoke "protocols.clj" 124]
+         [clojure.core.protocols$fn__6710$G__6705__6719
+          invoke
+          "protocols.clj"
+          19]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          31]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$mapv invokeStatic "core.clj" 6618]
+         [clojure.core$mapv invoke "core.clj" 6618]
+         [seria.diff$eval7881$fn__7883 invoke "diff.cljc" 63]
+         [clojure.lang.MultiFn invoke "MultiFn.java" 238]
+         [seria.diff$make_common invokeStatic "diff.cljc" 118]
+         [seria.diff$make_common invoke "diff.cljc" 114]
+         [seria.diff$make_differ invokeStatic "diff.cljc" 121]
+         [seria.diff$make_differ invoke "diff.cljc" 120]
+         [seria.config$make_processors$fn__9569
+          invoke
+          "config.clj"
+          15]
+         [clojure.core$map$fn__4785 invoke "core.clj" 2646]
+         [clojure.lang.LazySeq sval "LazySeq.java" 40]
+         [clojure.lang.LazySeq seq "LazySeq.java" 49]
+         [clojure.lang.RT seq "RT.java" 521]
+         [clojure.core$seq__4357 invokeStatic "core.clj" 137]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          24]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$into invokeStatic "core.clj" 6610]
+         [clojure.core$into invoke "core.clj" 6604]
+         [seria.config$make_processors invokeStatic "config.clj" 18]
+         [seria.config$make_processors invoke "config.clj" 9]
+         [seria.config$make_test_config invokeStatic "config.clj" 50]
+         [seria.config$make_test_config doInvoke "config.clj" 48]
+         [clojure.lang.RestFn invoke "RestFn.java" 421]
+         [playground$eval10747
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [playground$eval10747
+          invoke
+          "form-init558237452804454460.clj"
+          1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10744
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10744 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval10742
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval10742 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [clojure.main$repl$read_eval_print__7408$fn__7411
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$read_eval_print__7408
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$fn__7417 invoke "main.clj" 258]
+         [clojure.main$repl invokeStatic "main.clj" 258]
+         [clojure.main$repl doInvoke "main.clj" 174]
+         [clojure.lang.RestFn invoke "RestFn.java" 1523]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1151
+          invoke
+          "interruptible_eval.clj"
+          87]
+         [clojure.lang.AFn applyToHelper "AFn.java" 152]
+         [clojure.lang.AFn applyTo "AFn.java" 144]
+         [clojure.core$apply invokeStatic "core.clj" 646]
+         [clojure.core$with_bindings_STAR_
+          invokeStatic
+          "core.clj"
+          1881]
+         [clojure.core$with_bindings_STAR_ doInvoke "core.clj" 1881]
+         [clojure.lang.RestFn invoke "RestFn.java" 425]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invokeStatic
+          "interruptible_eval.clj"
+          85]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invoke
+          "interruptible_eval.clj"
+          55]
+         [clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1196$fn__1199
+          invoke
+          "interruptible_eval.clj"
+          222]
+         [clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1191
+          invoke
+          "interruptible_eval.clj"
+          190]
+         [clojure.lang.AFn run "AFn.java" 22]
+         [java.util.concurrent.ThreadPoolExecutor
+          runWorker
+          "ThreadPoolExecutor.java"
+          1142]
+         [java.util.concurrent.ThreadPoolExecutor$Worker
+          run
+          "ThreadPoolExecutor.java"
+          617]
+         [java.lang.Thread run "Thread.java" 745]]}
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+=> CompilerException java.lang.RuntimeException: Unable to resolve symbol: make-test-config in this context, compiling:(C:\Users\Viktor\AppData\Local\Temp\form-init558237452804454460.clj:1:1)
+Loading File D:\Programming\Clojure\seria\dev\playground.clj
+hey 0 :all
+=> CompilerException java.lang.IllegalArgumentException: Wrong number of args passed to keyword: :all, compiling:(D:\Programming\Clojure\seria\dev\playground.clj:8:1)
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+hey 0 :all
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+hey 0 :all
+=> IllegalArgumentException Wrong number of args passed to keyword: :all  clojure.lang.Keyword.throwArity (Keyword.java:97)
+(identity *e)
+=>
+{:cause "Wrong number of args passed to keyword: :all",
+ :via [{:type java.lang.IllegalArgumentException,
+        :at [clojure.lang.Keyword throwArity "Keyword.java" 97],
+        :message "Wrong number of args passed to keyword: :all"}],
+ :trace [[clojure.lang.Keyword throwArity "Keyword.java" 97]
+         [clojure.lang.Keyword invoke "Keyword.java" 150]
+         [seria.diff$eval12110$fn__12112$fn__12116
+          invoke
+          "diff.cljc"
+          69]
+         [clojure.core$mapv$fn__6953 invoke "core.clj" 6627]
+         [clojure.lang.ArrayChunk reduce "ArrayChunk.java" 58]
+         [clojure.core.protocols$fn__6750
+          invokeStatic
+          "protocols.clj"
+          136]
+         [clojure.core.protocols$fn__6750 invoke "protocols.clj" 124]
+         [clojure.core.protocols$fn__6710$G__6705__6719
+          invoke
+          "protocols.clj"
+          19]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          31]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$mapv invokeStatic "core.clj" 6618]
+         [clojure.core$mapv invoke "core.clj" 6618]
+         [seria.diff$eval12110$fn__12112 invoke "diff.cljc" 63]
+         [clojure.lang.MultiFn invoke "MultiFn.java" 238]
+         [seria.diff$make_common invokeStatic "diff.cljc" 119]
+         [seria.diff$make_common invoke "diff.cljc" 115]
+         [seria.diff$make_differ invokeStatic "diff.cljc" 122]
+         [seria.diff$make_differ invoke "diff.cljc" 121]
+         [seria.config$make_processors$fn__12616
+          invoke
+          "config.clj"
+          15]
+         [clojure.core$map$fn__4785 invoke "core.clj" 2646]
+         [clojure.lang.LazySeq sval "LazySeq.java" 40]
+         [clojure.lang.LazySeq seq "LazySeq.java" 49]
+         [clojure.lang.RT seq "RT.java" 521]
+         [clojure.core$seq__4357 invokeStatic "core.clj" 137]
+         [clojure.core.protocols$seq_reduce
+          invokeStatic
+          "protocols.clj"
+          24]
+         [clojure.core.protocols$fn__6738
+          invokeStatic
+          "protocols.clj"
+          75]
+         [clojure.core.protocols$fn__6738 invoke "protocols.clj" 75]
+         [clojure.core.protocols$fn__6684$G__6679__6697
+          invoke
+          "protocols.clj"
+          13]
+         [clojure.core$reduce invokeStatic "core.clj" 6545]
+         [clojure.core$into invokeStatic "core.clj" 6610]
+         [clojure.core$into invoke "core.clj" 6604]
+         [seria.config$make_processors invokeStatic "config.clj" 18]
+         [seria.config$make_processors invoke "config.clj" 9]
+         [seria.config$make_test_config invokeStatic "config.clj" 50]
+         [seria.config$make_test_config doInvoke "config.clj" 48]
+         [clojure.lang.RestFn invoke "RestFn.java" 421]
+         [playground$eval12961
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [playground$eval12961
+          invoke
+          "form-init558237452804454460.clj"
+          1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval12958
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval12958 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [user$eval12956
+          invokeStatic
+          "form-init558237452804454460.clj"
+          1]
+         [user$eval12956 invoke "form-init558237452804454460.clj" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 6927]
+         [clojure.lang.Compiler eval "Compiler.java" 6890]
+         [clojure.core$eval invokeStatic "core.clj" 3105]
+         [clojure.core$eval invoke "core.clj" 3101]
+         [clojure.main$repl$read_eval_print__7408$fn__7411
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$read_eval_print__7408
+          invoke
+          "main.clj"
+          240]
+         [clojure.main$repl$fn__7417 invoke "main.clj" 258]
+         [clojure.main$repl invokeStatic "main.clj" 258]
+         [clojure.main$repl doInvoke "main.clj" 174]
+         [clojure.lang.RestFn invoke "RestFn.java" 1523]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1151
+          invoke
+          "interruptible_eval.clj"
+          87]
+         [clojure.lang.AFn applyToHelper "AFn.java" 152]
+         [clojure.lang.AFn applyTo "AFn.java" 144]
+         [clojure.core$apply invokeStatic "core.clj" 646]
+         [clojure.core$with_bindings_STAR_
+          invokeStatic
+          "core.clj"
+          1881]
+         [clojure.core$with_bindings_STAR_ doInvoke "core.clj" 1881]
+         [clojure.lang.RestFn invoke "RestFn.java" 425]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invokeStatic
+          "interruptible_eval.clj"
+          85]
+         [clojure.tools.nrepl.middleware.interruptible_eval$evaluate
+          invoke
+          "interruptible_eval.clj"
+          55]
+         [clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1196$fn__1199
+          invoke
+          "interruptible_eval.clj"
+          222]
+         [clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1191
+          invoke
+          "interruptible_eval.clj"
+          190]
+         [clojure.lang.AFn run "AFn.java" 22]
+         [java.util.concurrent.ThreadPoolExecutor
+          runWorker
+          "ThreadPoolExecutor.java"
+          1142]
+         [java.util.concurrent.ThreadPoolExecutor$Worker
+          run
+          "ThreadPoolExecutor.java"
+          617]
+         [java.lang.Thread run "Thread.java" 745]]}
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+:reloading ()
+Refresh complete
+(let [config (make-test-config :schemas {:x [:tuple {:diff :all}
+                                             [:int]]})])
+=>
+nil
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+Refresh complete
+Clearing all and then refreshing code...
+:reloading (seria.spec seria.util seria.buffer seria.diff seria.pack seria.interp seria.analyze seria.validate seria.config seria.core seria.gen playground seria.prettify seria.core-test user)
+Refresh complete
+Refreshing code...
+:reloading (seria.diff seria.pack seria.config playground seria.core-test)
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 331 assertions.
+0 failures, 0 errors.
+"Elapsed time: 1031.923526 msecs"
+Refreshing code...
+:reloading (seria.diff seria.pack seria.config playground seria.core-test)
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 331 assertions.
+0 failures, 0 errors.
+"Elapsed time: 750.650811 msecs"
+(defn x [] x)
+=>
+#'user/x
+(x)
+=>
+[user$x 377227641 "user$x@167c0979"]
+((((((x))))))
+=>
+[user$x 377227641 "user$x@167c0979"]
+(iterate x)
+=> ArityException Wrong number of args (1) passed to: core/iterate  clojure.lang.AFn.throwArity (AFn.java:429)
+Refreshing code...
+:reloading (seria.core playground seria.core-test)
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 331 assertions.
+0 failures, 0 errors.
+"Elapsed time: 626.552467 msecs"
+Refreshing code...
+:reloading ()
+Refresh complete
+=>
+#'user/all-tests-future
+
+Testing clojure.tools.nrepl.ack
+
+Testing clojure.stacktrace
+
+Testing seria.pack
+
+Testing clojure.tools.namespace.track
+
+Testing clojure.uuid
+
+Testing complete.core
+
+Testing clojure.main
+
+Testing clojure.tools.nrepl.middleware.session
+
+Testing criterium.well
+
+Testing seria.util
+
+Testing clojure.test
+
+Testing user
+
+Testing clojure.tools.nrepl.server
+
+Testing seria.core
+
+Testing clojure.tools.namespace.parse
+
+Testing clojure.edn
+
+Testing clojure.core.server
+
+Testing clojure.java.io
+
+Testing seria.validate
+
+Testing criterium.stats
+
+Testing clojure.core.protocols
+
+Testing criterium.core
+
+Testing clojure.tools.nrepl.transport
+
+Testing seria.core-test
+
+Testing clojure.tools.namespace.reload
+
+Testing clojure.tools.nrepl.middleware.interruptible-eval
+
+Testing clojure.pprint
+
+Testing seria.gen
+
+Testing seria.diff
+
+Testing seria.buffer
+
+Testing seria.interp
+
+Testing clojure.tools.nrepl.middleware.pr-values
+
+Testing clojure.instant
+
+Testing clojure.set
+
+Testing seria.prettify
+
+Testing clojure.tools.namespace.dir
+
+Testing clojure.string
+
+Testing seria.config
+
+Testing clojure.tools.nrepl.middleware.load-file
+
+Testing clojure.tools.namespace.file
+
+Testing clojure.tools.nrepl
+
+Testing clojure.tools.nrepl.bencode
+
+Testing clojure.tools.namespace.dependency
+
+Testing seria.analyze
+
+Testing playground
+
+Testing clojure.tools.nrepl.middleware
+
+Testing clojure.template
+
+Testing clojure.tools.namespace.repl
+
+Testing seria.spec
+
+Testing clojure.tools.nrepl.misc
+
+Testing clojure.core
+
+Testing clojure.walk
+
+Ran 7 tests containing 331 assertions.
+0 failures, 0 errors.
+"Elapsed time: 816.501006 msecs"
+--------------------

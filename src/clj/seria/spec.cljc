@@ -48,5 +48,5 @@
                   (not (empty? interp)))))))
 
 (defn traceable-index? [index indices]
-  (or (= indices :all)
+  (or (= :all indices)
       ((set indices) index)))

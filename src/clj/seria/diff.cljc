@@ -57,11 +57,11 @@
          (decorate-map sorted-by)
          (decorate-common schema value-1 value-2))))
 
-(defmethod diff :tuple [[_ {:keys [diff]} :as schema] value-1 value-2]
+(defmethod diff :tuple [[_ {to-diff :diff} :as schema] value-1 value-2]
   (let [disjoined-2 (disj-indexed schema value-2)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) disjoined-2)]
             ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
-                     (if-not (traceable-index? index diff)
+                     (if-not (traceable-index? index to-diff)
                        inner-value-2
                        (let [inner-value-1 (gensym "inner-value-1_")]
                          `(let [~inner-value-1 (get ~value-1 ~index)]
@@ -70,12 +70,12 @@
          (decorate-common schema value-1 value-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [[_ {:keys [constructor diff]} :as schema] (expand-record schema (:schemas *config*))
+  (let [[_ {constructor :constructor to-diff :diff} :as schema] (expand-record schema (:schemas *config*))
         disjoined-2 (disj-indexed schema value-2)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) disjoined-2)]
             ~(->> disjoined-2
                   (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
-                         [index (if-not (traceable-index? index diff)
+                         [index (if-not (traceable-index? index to-diff)
                                   inner-value-2
                                   (let [inner-value-1 (gensym "inner-value-1_")]
                                     `(let [~inner-value-1 (get ~value-1 ~index)]
@@ -89,7 +89,7 @@
      ~(diff inner-schema value-1 value-2)
      ~value-2))
 
-(defmethod diff :multi [[_ {:keys [diff]} selector multi-cases] value-1 value-2]
+(defmethod diff :multi [[_ _ selector multi-cases] value-1 value-2]
   (let [selector-fn (gensym "selector-fn_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
@@ -100,9 +100,7 @@
          ~value-2
          (condp = ~case-1
            ~@(mapcat (fn [[multi-case schema]]
-                       [multi-case (if-not (traceable-index? multi-case diff)
-                                     value-2
-                                     (diff schema value-1 value-2))])
+                       [multi-case (diff schema value-1 value-2)])
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]

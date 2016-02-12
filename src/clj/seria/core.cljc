@@ -4,32 +4,30 @@
 
 (def ^:dynamic *config*)
 (def ^:dynamic *schema*)
+(def ^:dynamic *buffer*)
 
-(defmacro with-config [config & exprs]
-  `(binding [*config* ~config]
-     ~@exprs))
-
-(defmacro with-schema [schema & exprs]
-  `(binding [*schema* ~schema]
-     ~@exprs))
-
-(defmacro with-params [{:keys [schema config]} & exprs]
+(defmacro with-params [{:keys [schema config buffer]} & exprs]
   `(binding [~@(concat (if schema [`*schema* schema] [])
-                       (if config [`*config* config] []))]
+                       (if config [`*config* config] [])
+                       (if buffer [`*buffer* buffer] []))]
      ~@exprs))
+
+(defn make-buffer [bits bytes]
+  (seria.buffer/make-buffer bits bytes))
 
 (defn prepare-config! [{:keys [state]} & {:keys [functions equality-ops]}]
   (swap! state #(-> %
                     (update :fn-map merge functions)
                     (update :eq-ops merge equality-ops))))
 
-(defn pack [value & {:keys [schema config diffed?] :or {config  *config*
-                                                        schema  *schema*
-                                                        diffed? false}}]
-  (let [{:keys [processors schema-map buffer]} config
+(defn pack [value & {:keys [schema config diffed? buffer] :or {config  *config*
+                                                               schema  *schema*
+                                                               buffer  *buffer*
+                                                               diffed? false}}]
+  (let [{:keys [processors schema-map]} config
         schema-id (schema-map schema)
         pack!     (get-in processors [schema :packer])]
-    (when (and pack! schema-id)
+    (when (and pack! schema-id buffer)
       (prepare-buffer! buffer)
       (pack! value buffer config diffed?)
       (buffer->raw buffer schema-id diffed?))))

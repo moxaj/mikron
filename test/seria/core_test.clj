@@ -1,24 +1,25 @@
 (ns seria.core-test
   (:require [seria.config :refer [make-test-config]]
-            [seria.core :refer [pack unpack diff undiff interp prepare-config! with-params]]
+            [seria.core :refer [pack unpack diff undiff interp prepare-config! with-params make-buffer]]
             [seria.gen :refer [sample]]
             [clojure.test :refer [deftest is]]
             [seria.prettify :refer [prettify-form]]))
 
 ;; Pack
-(defn pack-roundtrip [value config]
-  (with-params {:schema :x :config config}
+(defn pack-roundtrip [value config buffer]
+  (with-params {:schema :x :config config :buffer buffer}
     (unpack (pack value))))
 
 (defn test-pack-case
   ([schemas]
    (test-pack-case schemas nil))
   ([schemas functions]
-   (let [config (make-test-config :schemas schemas)]
+   (let [config (make-test-config :schemas schemas)
+         buffer (make-buffer 10000 10000)]
      (when functions
        (prepare-config! config :functions functions))
      (doseq [value (sample 10 :x config)]
-       (is (= [:x value] (pack-roundtrip value config)))))))
+       (is (= [:x value] (pack-roundtrip value config buffer)))))))
 
 (deftest primitive-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
@@ -52,9 +53,10 @@
 (deftest constructor-test
   (let [config (make-test-config :schemas {:x [:record {:constructor :c}
                                                {:a :int :b :string}]})
-        value (map->TestRecord {:a 1 :b "hi there"})]
+        value  (map->TestRecord {:a 1 :b "hi there"})
+        buffer (make-buffer 10000 10000)]
     (prepare-config! config :functions {:c map->TestRecord})
-    (is (= [:x value] (with-params {:config config :schema :x}
+    (is (= [:x value] (with-params {:config config :schema :x :buffer buffer}
                         (unpack (pack value)))))))
 
 (deftest custom-test

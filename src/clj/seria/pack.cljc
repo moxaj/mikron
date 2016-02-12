@@ -196,30 +196,29 @@
          (into {})
          (decorate-constructor constructor))))
 
-(defmethod pack :optional [[_ {:keys [diff]} inner-schema] value]
-  (pack-with-diff value diff `(do ~(pack :boolean value)
-                                  (when ~value
-                                    ~(pack inner-schema value)))))
+(defmethod pack :optional [[_ _ inner-schema] value]
+  (pack-with-diff value :all `(do ~(pack :boolean value)
+                                (when ~value
+                                  ~(pack inner-schema value)))))
 
-(defmethod unpack :optional [[_ {:keys [diff]} inner-schema]]
-  (unpack-with-diff diff `(when ~(unpack :boolean)
+(defmethod unpack :optional [[_ _ inner-schema]]
+  (unpack-with-diff :all `(when ~(unpack :boolean)
                             ~(unpack inner-schema))))
 
-(defmethod pack :multi [[_ {:keys [diff]} selector arg-map] value]
+(defmethod pack :multi [[_ _ selector arg-map] value]
   (let [{:keys [multi-map multi-size]} *config*]
     `(case (~(runtime-fn selector) ~value)
        ~@(mapcat (fn [[multi-case inner-schema]]
                    [multi-case
                     `(do ~(pack multi-size (get multi-map multi-case))
-                         ~(pack-with-diff value diff multi-case (pack inner-schema value)))])
+                         ~(pack-with-diff value :all (pack inner-schema value)))])
                  arg-map))))
 
-(defmethod unpack :multi [[_ {:keys [diff]} _ arg-map]]
+(defmethod unpack :multi [[_ _ _ arg-map]]
   (let [{:keys [multi-map multi-size]} *config*]
     `(case (get ~multi-map ~(unpack multi-size))
        ~@(mapcat (fn [[multi-case inner-schema]]
-                   [multi-case
-                    (unpack-with-diff diff multi-case (unpack inner-schema))])
+                   [multi-case (unpack-with-diff :all (unpack inner-schema))])
                  arg-map))))
 
 (defmethod pack :enum [_ value]
