@@ -197,13 +197,13 @@
          (decorate-constructor constructor))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
-  (pack-with-diff value :all `(do ~(pack :boolean value)
-                                (when ~value
-                                  ~(pack inner-schema value)))))
+  `(do ~(pack :boolean value)
+     (when ~value
+       ~(pack-with-diff value :all (pack inner-schema value)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
-  (unpack-with-diff :all `(when ~(unpack :boolean)
-                            ~(unpack inner-schema))))
+  `(when ~(unpack :boolean)
+     ~(unpack-with-diff :all (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
   (let [{:keys [multi-map multi-size]} *config*]

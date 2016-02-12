@@ -10,7 +10,7 @@
 (defn dnil? [x]
   (= dnil x))
 
-(defn decorate-common [schema value-1 value-2 body]
+(defn decorate-common [schema value-1 value-2 expr]
   (let [eq-op (if-not (or (primitive? schema)
                           (advanced? schema)
                           (custom? schema))
@@ -21,10 +21,10 @@
     (case *direction*
       :differ   `(if (~eq-op ~value-1 ~value-2)
                    ~dnil
-                   ~body)
+                   ~expr)
       :undiffer `(if (dnil? ~value-2)
                    ~value-1
-                   ~body))))
+                   ~expr))))
 
 (defn diff-dispatch [schema _ _]
   (cond

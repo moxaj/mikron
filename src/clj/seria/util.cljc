@@ -89,21 +89,21 @@
 (defn runtime-processor [schema type]
   `(get-in ~'config [:processors ~schema ~type]))
 
-(defn decorate-set [sorted-by body]
+(defn decorate-set [sorted-by expr]
   `(into ~(case sorted-by
             :none    `#{}
             :default `(sorted-set)
             `(sorted-set-by ~(runtime-fn sorted-by)))
-         ~body))
+         ~expr))
 
-(defn decorate-map [sorted-by body]
+(defn decorate-map [sorted-by expr]
   `(into ~(case sorted-by
             :none    `{}
             :default `(sorted-map)
             `(sorted-map-by ~(runtime-fn sorted-by)))
-         ~body))
+         ~expr))
 
-(defn decorate-constructor [constructor body]
+(defn decorate-constructor [constructor expr]
   (if constructor
-    `(~(runtime-fn constructor) ~body)
-    body))
+    `(~(runtime-fn constructor) ~expr)
+    expr))

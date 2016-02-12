@@ -2,7 +2,7 @@
   (:require [seria.util :refer [cljc-ceil]])
   #?(:clj (:import [seria SeriaByteBuffer])))
 
-(defprotocol CljcByteBuffer
+(defprotocol HybridBuffer
   (read-byte! [this])
   (read-ubyte! [this])
   (read-short! [this])
@@ -49,7 +49,7 @@
           (bit-and int-2 0xFFFFFFFF)))
 
 (do #?(:clj  (extend-type SeriaByteBuffer
-               CljcByteBuffer
+               HybridBuffer
                (read-byte!    [this] (.getByte this))
                (read-ubyte!   [this] (short (bit-and (.getByte this) 0xFF)))
                (read-short!   [this] (.getShort this))
@@ -94,7 +94,7 @@
 
 
        :cljs (extend-type js/DataView
-               CljcByteBuffer
+               HybridBuffer
                (read-byte!    [this] (.getInt8 this (get-byte-position! this this 1)))
                (read-ubyte!   [this] (.getUint8 this (get-byte-position! this 1)))
                (read-short!   [this] (.getInt16 this (get-byte-position! this 2)))
