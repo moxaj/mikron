@@ -88,15 +88,11 @@
     [:map (select-keys options [:size :diff :sorted-by :interp])
      (validate-schema key-schema) (validate-schema val-schema)]))
 
-(defmethod validate-composite :optional [schema]
-  (let [[_ options inner-schema :as schema] (->> schema
-                                                 (validate-diffable)
-                                                 (validate-interpable))]
-    (assert (= 3 (count schema))
-            (format "Invalid schema: %s. :optional-s must have 1 or 2 arguments."
-                    schema))
-    [:optional (select-keys options [:diff :interp])
-     (validate-schema inner-schema)]))
+(defmethod validate-composite :optional [[_ options inner-schema :as schema]]
+  (assert (= 3 (count schema))
+          (format "Invalid schema: %s. :optional-s must have 1 or 2 arguments."
+                  schema))
+  [:optional {} (validate-schema inner-schema)])
 
 (defmethod validate-composite :enum [[_ _ values :as schema]]
   (assert (= 3 (count schema))
@@ -147,23 +143,19 @@
                                                             :constructor constructor)
        (zipmap fields (map validate-schema inner-schemas))])))
 
-(defmethod validate-composite :multi [schema]
-  (let [[_ options selector arg-map :as schema] (->> schema
-                                                     (validate-diffable)
-                                                     (validate-interpable))]
-    (assert (= 4 (count schema))
-            (format "Invalid schema: %s. :multi-s must have 2 or 3 arguments."
-                    schema))
-    (assert (keyword? selector)
-            (format "Invalid schema: %s. The :selector parameter of a :multi must be a keyword."
-                    schema))
-    (assert (map? arg-map)
-            (format "Invalid schema: %s. The last parameter of a :multi must be a map."
-                    schema))
-    (let [multi-cases   (keys arg-map)
-          inner-schemas (vals arg-map)]
-      [:multi (select-keys options [:diff :interp]) selector
-       (zipmap multi-cases (map validate-schema inner-schemas))])))
+(defmethod validate-composite :multi [[_ _ selector arg-map :as schema]]
+  (assert (= 4 (count schema))
+          (format "Invalid schema: %s. :multi-s must have 2 or 3 arguments."
+                  schema))
+  (assert (keyword? selector)
+          (format "Invalid schema: %s. The :selector parameter of a :multi must be a keyword."
+                  schema))
+  (assert (map? arg-map)
+          (format "Invalid schema: %s. The last parameter of a :multi must be a map."
+                  schema))
+  (let [multi-cases   (keys arg-map)
+        inner-schemas (vals arg-map)]
+    [:multi {} selector (zipmap multi-cases (map validate-schema inner-schemas))]))
 
 (defn validate-schema [schema]
   (cond
@@ -176,7 +168,7 @@
     (validate-composite (with-options schema))
 
     :else
-    (cljc-throw (format "Invalid schema: %s." schema))))
+    (cljc-throw (format "Invalid schema: %s. No such schema name." schema))))
 
 (defn validate-schemas [schemas]
   (assert (map? schemas)
