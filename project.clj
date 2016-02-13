@@ -12,8 +12,10 @@
   :target-path "target/%s"
   :source-paths ["src/clj"]
   :java-source-paths ["src/java"]
-  ; :plugins [[lein-seria "0.1.0-SNAPSHOT"]]
-  ; :seria {:builds {:main {:source "src"}}}
+  :plugins [[lein-seria "0.1.0-SNAPSHOT"]]
+  :seria {"cat" {:source "seria/config1.clj"
+                 :namespace "seria.configzz"
+                 :dest "seria/config1_compiled.clj"}}
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/java.classpath "0.2.3"]]}})

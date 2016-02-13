@@ -17,7 +17,7 @@
                          :interper (make-interper schema-def config)}])))
        (into {})))
 
-(defn make-config [& {:keys [schemas eq-ops]}]
+(defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
   (let [schemas     (validate-schemas schemas)
         {schema-map :map}                  (bimap (keys schemas))
         {enum-map   :map enum-size  :size} (bimap (find-enum-values schemas))

@@ -172,7 +172,7 @@
 
 (defn validate-schemas [schemas]
   (assert (map? schemas)
-          (format ":schemas parameter must be a map."
+          (format ":schemas parameter must be a map: %s."
                   schemas))
   (assert (not-any? built-in? (keys schemas))
           (format "You cannot redefine built-in schemas."

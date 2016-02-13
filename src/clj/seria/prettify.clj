@@ -2,41 +2,20 @@
   (:require [seria.analyze :refer [find-by]]
             [clojure.walk :refer [postwalk postwalk-replace]]
             [clojure.string :as str]
-            [clojure.set :refer [union]]))
+            [clojure.set :refer [union]]
+            [clojure.pprint :refer [pprint]]))
 
 (defn namespaced-symbol? [form]
   (and (symbol? form)
        (some #{\/} (str form))))
 
-(defn form-requires [form]
-  (cond
-    (namespaced-symbol? form)
-    (let [[namespace function] (map symbol (str/split (str form) #"/"))]
-      {namespace #{function}})
+(defn split-symbol [s]
+  (map symbol (str/split (str s) #"/" 2)))
 
-    (or (map? form)
-        (sequential? form))
-    (apply merge-with union (map form-requires form))
-
-    :else
-    {}))
-
-(defn ns-requires [ns-name forms]
-  (let [requires (dissoc (->> forms
-                           (map form-requires)
-                           (apply merge-with union))
-                         'clojure.core)]
-    `(~'ns ~ns-name
-       (:require ~@(map (fn [[required-ns-name functions]]
-                          [required-ns-name :refer (vec functions)])
-                        requires)))))
-
-(defn omit-core-ns [form]
+(defn simplify-symbols [form]
   (postwalk (fn [x]
-              (if (symbol? x)
-                (-> (str x)
-                    (str/replace #"clojure\.core/" "")
-                    (symbol))
+              (if (namespaced-symbol? x)
+                (second (split-symbol x))
                 x))
             form))
 
@@ -102,9 +81,32 @@
                 sub-form))
             form))
 
-(defn prettify-form [form]
+(defn prettify [form]
   (->> form
        (unwrap-single-arg-forms)
        (inline-lets)
        (unwrap-dos)
-       (omit-core-ns)))
+       (simplify-symbols)))
+
+(defn requires [form]
+  (cond
+    (namespaced-symbol? form)
+    (let [[namespace function] (split-symbol form)]
+      {namespace #{function}})
+
+    (or (map? form)
+        (sequential? form))
+    (apply merge-with union (map requires form))
+
+    :else
+    {}))
+
+(defn ns-str [ns-name config-name form]
+  (let [ns-decl `(~'ns ~ns-name
+                   (:require ~@(map (fn [[required-ns-name functions]]
+                                      [required-ns-name :refer (vec functions)])
+                                    (dissoc (requires form) 'clojure.core))))]
+    (with-out-str
+      (pprint ns-decl)
+      (newline)
+      (pprint `(~'def ~config-name ~(prettify form))))))

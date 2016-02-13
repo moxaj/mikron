@@ -2,8 +2,7 @@
   (:require [seria.config :refer [make-test-config]]
             [seria.core :refer [pack unpack diff undiff interp prepare-config! with-params make-buffer]]
             [seria.gen :refer [sample]]
-            [clojure.test :refer [deftest is]]
-            [seria.prettify :refer [prettify-form]]))
+            [clojure.test :refer [deftest is]]))
 
 ;; Pack
 (defn pack-roundtrip [value config buffer]
