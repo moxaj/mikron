@@ -15,10 +15,8 @@
 (defn make-buffer [bits bytes]
   (seria.buffer/make-buffer bits bytes))
 
-(defn prepare-config! [{:keys [state]} & {:keys [functions equality-ops]}]
-  (swap! state #(-> %
-                    (update :fn-map merge functions)
-                    (update :eq-ops merge equality-ops))))
+(defn prepare-config! [{:keys [state]} & {:keys [functions]}]
+  (swap! state update :fn-map merge functions))
 
 (defn pack [value & {:keys [schema config diffed? buffer] :or {config  *config*
                                                                schema  *schema*
@@ -40,22 +38,15 @@
     (when (and unpack! schema)
       [schema (unpack! buffer config diffed?)])))
 
-(defn diff [value-1 value-2 & {:keys [config schema] :or {config *config*
-                                                          schema *schema*}}]
+(defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
   (when-let [diff! (get-in config [:processors schema :differ])]
     (diff! value-1 value-2 config)))
 
-(defn undiff [value-1 value-2 & {:keys [config schema] :or {config *config*
-                                                            schema *schema*}}]
+(defn undiff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
   (when-let [undiff! (get-in config [:processors schema :undiffer])]
     (undiff! value-1 value-2 config)))
 
-(defn interp [value-1 value-2 time & {:keys [schema config] :or {config *config*
-                                                                 schema *schema*}}]
-  (let [interp!   (get-in config [:processors schema :interper])
-        time-path (get-in config [:interp-opts schema :time-path])
-        time-1    (get-in value-1 time-path)
-        time-2    (get-in value-2 time-path)]
-    (when interp!
-      (assoc-in (interp! value-1 value-2 time-1 time-2 time config)
-                time-path time))))
+(defn interp [value-1 value-2 time-1 time-2 time
+              & {:keys [schema config] :or {config *config* schema *schema*}}]
+  (when-let [interp! (get-in config [:processors schema :interper])]
+    (interp! value-1 value-2 time-1 time-2 time config)))

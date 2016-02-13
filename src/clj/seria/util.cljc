@@ -1,5 +1,5 @@
 (ns seria.util
-  (:require [seria.spec :refer [primitive? advanced? composite? custom?]]
+  (:require [seria.spec :refer [custom?]]
             [clojure.set :refer [union]]
    #?(:cljs [cljs.reader])))
 
@@ -11,29 +11,21 @@
 (defn cljc-throw [message]
   (throw (new #?(:clj Exception :cljs js/Error) message)))
 
-(def cljc-read-string
-  #?(:clj  #(read-string %)
-     :cljs #(cljs.reader/read-string %)))
+(defn cljc-read-string [s]
+  #?(:clj  (read-string s)
+     :cljs (cljs.reader/read-string s)))
 
-(def cljc-abs
-  #?(:clj  #(Math/abs %)
-     :cljs #(js/Math.abs %)))
+(defn cljc-abs [n]
+  #?(:clj  (Math/abs n)
+     :cljs (js/Math.abs n)))
 
-(def cljc-round
-  #?(:clj  #(Math/round %)
-     :cljs #(js/Math.round %)))
+(defn cljc-round [n]
+  #?(:clj  (Math/round n)
+     :cljs (js/Math.round n)))
 
-(def cljc-ceil
-  #?(:clj  #(Math/ceil %)
-     :cljs #(js/Math.ceil %)))
-
-(def unique-long
-  (let [counter (atom (long 0))]
-    (fn [] (swap! counter inc))))
-
-(def unique-delta-id
-  (let [counter (atom (long 0))]
-    (fn [] (swap! counter + 2))))
+(defn cljc-ceil [n]
+  #?(:clj  (Math/ceil n)
+     :cljs (js/Math.ceil n)))
 
 (defn bimap [coll]
   (let [coll-length (count coll)

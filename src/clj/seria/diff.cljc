@@ -15,7 +15,7 @@
                           (advanced? schema)
                           (custom? schema))
                 `=
-                (if-let [fn-key (get-in *config* [:diff-opts :eq-ops schema])]
+                (if-let [fn-key (get-in *config* [:eq-ops schema])]
                   (runtime-fn fn-key)
                   `=))]
     (case *direction*

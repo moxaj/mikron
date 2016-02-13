@@ -22,14 +22,14 @@
     {}))
 
 (defn ns-requires [ns-name forms]
-  (let [requires (->> forms
-                      (map form-requires)
-                      (apply merge-with union))
-        requires (dissoc requires 'clojure.core)]
+  (let [requires (dissoc (->> forms
+                           (map form-requires)
+                           (apply merge-with union))
+                         'clojure.core)]
     `(~'ns ~ns-name
        (:require ~@(map (fn [[required-ns-name functions]]
                           [required-ns-name :refer (vec functions)])
-                        requires)))))   
+                        requires)))))
 
 (defn omit-core-ns [form]
   (postwalk (fn [x]

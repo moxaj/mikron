@@ -181,11 +181,3 @@
     (->> (for [[schema-name schema] schemas]
            [schema-name (validate-schema schema)])
          (into {}))))
-
-(defn validate-diff-opts [diff-opts]
-  (assert (map? diff-opts))
-  diff-opts)
-
-(defn validate-interp-opts [interp-opts]
-  (assert (map? interp-opts))
-  interp-opts)

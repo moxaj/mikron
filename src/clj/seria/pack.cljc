@@ -7,7 +7,8 @@
                                   write-ubyte! write-ushort! write-uint!
                                   write-long! write-float! write-double!
                                   write-char! write-boolean!]]
-            [seria.util :refer [disj-indexed cljc-read-string cljc-ceil runtime-fn runtime-processor
+            [seria.util :refer [disj-indexed cljc-read-string cljc-ceil
+                                runtime-fn runtime-processor
                                 decorate-set decorate-map decorate-constructor expand-record]]
             [seria.spec :refer [primitive? advanced? composite? traceable-index? custom?]]
             [seria.diff :refer [dnil? dnil]]))
