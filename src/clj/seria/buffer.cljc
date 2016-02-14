@@ -133,9 +133,9 @@
                (get-byte-position   [this] (.-bytePosition this))
                (get-max-byte-length [this] (.-maxByteLength this))
 
-               (set-bit-position!    [this value] (set! (.-bitPosition this) value))
-               (set-byte-position!   [this value] (set! (.-bytePosition this) value))
-               (set-max-byte-length! [this value] (set! (.-maxByteLength this) value))
+               (set-bit-position!    [this value] (do (set! (.-bitPosition this) value) this))
+               (set-byte-position!   [this value] (do (set! (.-bytePosition this) value) this))
+               (set-max-byte-length! [this value] (do (set! (.-maxByteLength this) value) this))
 
                (get-bit-position!  [this amount] (let [position (.-bitPosition this)]
                                                    (set! (.-bitPosition this) (+ position amount))
