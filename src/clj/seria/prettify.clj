@@ -101,12 +101,13 @@
     :else
     {}))
 
-(defn ns-str [ns-name config-name form]
+(defn ns-str [ns-name config-name form pretty-print?]
   (let [ns-decl `(~'ns ~ns-name
                    (:require ~@(map (fn [[required-ns-name functions]]
                                       [required-ns-name :refer (vec functions)])
-                                    (dissoc (requires form) 'clojure.core))))]
+                                    (dissoc (requires form) 'clojure.core))))
+        write   (if pretty-print? pprint println)]
     (with-out-str
-      (pprint ns-decl)
+      (write ns-decl)
       (newline)
-      (pprint `(~'def ~config-name ~(prettify form))))))
+      (write `(~'def ~config-name ~(prettify form))))))
