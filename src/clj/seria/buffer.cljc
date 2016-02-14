@@ -141,6 +141,7 @@
                                                             ((if value bit-set bit-clear) (rem bit-position 8))
                                                             (unchecked-byte)))))
 
+               (get-bit-position    [this] (.-bitPosition this))
                (get-byte-position   [this] (.-bytePosition this))
                (get-max-byte-length [this] (.-maxByteLength this))
 
@@ -186,8 +187,10 @@
       (set-bit-position! (+ header-bit-length (* 8 (get-max-byte-length buffer))))))
 
 (defn raw->buffer [raw]
-  (let [buffer #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
-                  :cljs (js/DataView. raw))
+  (let [buffer (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
+                      :cljs (js/DataView. raw)
+                            (set-byte-position! 0)
+                            (set-bit-position! 0)))
         schema-id       (read-ushort! buffer)
         byte-length     (read-ushort! buffer)
         diffed?         (-> buffer
