@@ -10,7 +10,7 @@
                  [midje "1.8.2"]
                  [com.taoensso/nippy "2.10.0"]]
   :target-path "target/%s"
-  :source-paths ["src/clj"]
+  :source-paths ["src/cljc"]
   :java-source-paths ["src/java"]
 
   ;:plugins [[lein-seria "0.1.0-SNAPSHOT"]]

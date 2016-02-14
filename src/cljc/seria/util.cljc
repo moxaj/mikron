@@ -64,14 +64,16 @@
                    (merge record-map-1 record-map-2)]))
               (conj super-records record)))))
 
-(defn disj-indexed [[composite-type _ arg] value]
+(defn disj-indexed [[composite-type {:keys [constructor]} arg] value]
   (map (fn [index]
          {:index        index
           :symbol       (gensym "inner-value_")
           :inner-schema (arg index)
           :inner-value  (case composite-type
                           :tuple  `(~value ~index)
-                          :record `(get ~value ~index))})
+                          :record (if constructor
+                                    `(get ~value ~index)
+                                    `(~value ~index)))})
        (case composite-type
          :tuple  (range (count arg))
          :record (sort (keys arg)))))
