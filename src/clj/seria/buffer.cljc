@@ -95,7 +95,7 @@
 
        :cljs (extend-type js/DataView
                HybridBuffer
-               (read-byte!    [this] (.getInt8 this (get-byte-position! this this 1)))
+               (read-byte!    [this] (.getInt8 this (get-byte-position! this 1)))
                (read-ubyte!   [this] (.getUint8 this (get-byte-position! this 1)))
                (read-short!   [this] (.getInt16 this (get-byte-position! this 2)))
                (read-ushort!  [this] (.getUint16 this (get-byte-position! this 2)))
@@ -106,9 +106,10 @@
                (read-float!   [this] (.getFloat32 this (get-byte-position! this 4)))
                (read-double!  [this] (.getFloat64 this (get-byte-position! this 8)))
                (read-char!    [this] (.getUint16 this (get-byte-position! this 2)))
-               (read-boolean! [this] (-> this
-                                         (.getInt8 (quot (get-bit-position! this 1) 8))
-                                         (bit-test (rem 8))))
+               (read-boolean! [this] (let [bit-position (get-bit-position! this 1)]
+                                       (-> this
+                                           (.getInt8 (quot bit-position 8))
+                                           (bit-test (rem bit-position 8)))))
 
                (write-byte!    [this value] (.setInt8 this (get-byte-position! this 1) (byte value)))
                (write-ubyte!   [this value] (.setUint8 this (get-byte-position! this 1) (unchecked-byte value)))
@@ -144,17 +145,18 @@
                                                    (set! (.-bytePosition this) (+ position amount))
                                                    position))
 
-               (to-raw [this] (let [total-bit-length  (int (- (cljc-ceil (/ (get-bit-position this) 8))
-                                                              (get-max-byte-length this)))
-                                    total-byte-length (get-byte-position this)
-                                    array-buffer      (.-buffer this)]
-                                (-> (js/Int8Array (+ total-bit-length total-byte-length))
-                                    (.set (js/Int8Array. (.slice array-buffer 0 total-byte-length))
-                                          0)
-                                    (.set (js/Int8Array. (.slice array-buffer max-byte-length
-                                                                 (+ max-byte-length total-bit-length)))
-                                          total-byte-length)
-                                    (.-buffer)))))))
+               (to-raw! [this] (let [max-byte-length   (get-max-byte-length this)
+                                     total-bit-length  (int (- (cljc-ceil (/ (get-bit-position this) 8))
+                                                               max-byte-length))
+                                     total-byte-length (get-byte-position this)
+                                     array-buffer      (.-buffer this)]
+                                 (-> (js/Int8Array (+ total-bit-length total-byte-length))
+                                     (.set (js/Int8Array. (.slice array-buffer 0 total-byte-length))
+                                           0)
+                                     (.set (js/Int8Array. (.slice array-buffer max-byte-length
+                                                                  (+ max-byte-length total-bit-length)))
+                                           total-byte-length)
+                                     (.-buffer)))))))
 
 (def ^:const header-byte-length 4)
 (def ^:const header-bit-length 1)

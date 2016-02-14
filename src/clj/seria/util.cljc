@@ -32,8 +32,9 @@
         size-type   (condp > coll-length
                       max-ubyte  :ubyte
                       max-ushort :ushort
-                      (cljc-throw (format "Collection length exceeds ushort range: %s."
-                                          coll-length)))]
+                      (cljc-throw (str "Collection length exceeds ushort range: %s"
+                                       coll-length
+                                       ".")))]
     {:size size-type
      :map  (->> (into (sorted-set) coll)
                 (map-indexed vector)
