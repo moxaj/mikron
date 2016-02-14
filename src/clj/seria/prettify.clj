@@ -92,7 +92,7 @@
   (cond
     (namespaced-symbol? form)
     (let [[namespace function] (split-symbol form)]
-      {namespace #{function}})
+      (sorted-map namespace (sorted-set function)))
 
     (or (map? form)
         (sequential? form))
