@@ -44,8 +44,8 @@
                      :multi-map   multi-map
                      :multi-size  multi-size
                      :eq-ops      eq-ops}]
-    `(assoc ~config :processors ~(make-processors schemas config)
-                    :state      (atom {}))))
+    (assoc config :processors (make-processors schemas config)
+                   :state     `(atom {}))))
 
 (defn make-test-config [& args]
   (eval (apply make-config args)))
