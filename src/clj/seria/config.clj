@@ -1,10 +1,25 @@
 (ns seria.config
-  (:require [seria.util :refer [bimap]]
+  (:require [seria.util :refer [bimap find-by]]
             [seria.validate :refer [validate-schemas]]
-            [seria.analyze :refer [find-enum-values find-multi-cases]]
             [seria.diff :refer [make-differ make-undiffer]]
             [seria.pack :refer [make-packer make-unpacker]]
             [seria.interp :refer [make-interper]]))
+
+(defn multi-cases [schemas]
+  (->> schemas
+       (find-by (fn [form]
+                  (and (sequential? form)
+                       (= :multi (first form)))))
+       (mapcat (fn [[_ _ _ multi-map]]
+                 (keys multi-map)))))
+
+(defn enum-values [schemas]
+  (->> schemas
+       (find-by (fn [form]
+                  (and (sequential? form)
+                       (= :enum (first form)))))
+       (mapcat (fn [[_ _ values]]
+                 values))))
 
 (defn make-processors [schemas config]
   (->> (keys schemas)
@@ -20,8 +35,8 @@
 (defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
   (let [schemas     (validate-schemas schemas)
         {schema-map :map}                  (bimap (keys schemas))
-        {enum-map   :map enum-size  :size} (bimap (find-enum-values schemas))
-        {multi-map  :map multi-size :size} (bimap (find-multi-cases schemas))
+        {enum-map   :map enum-size  :size} (bimap (enum-values schemas))
+        {multi-map  :map multi-size :size} (bimap (multi-cases schemas))
         config      {:schemas     schemas
                      :schema-map  schema-map
                      :enum-map    enum-map

@@ -1,16 +1,16 @@
 (ns seria.core
-  (:require [seria.buffer :refer [prepare-buffer! buffer->raw raw->buffer]]))
-
+  (:require [seria.buffer :refer [prepare-buffer! buffer->raw raw->buffer]])
+  #?(:cljs (:require-macros seria.core)))
 
 (def ^:dynamic *config*)
 (def ^:dynamic *schema*)
 (def ^:dynamic *buffer*)
 
-(defmacro with-params [{:keys [schema config buffer]} & exprs]
-  `(binding [~@(concat (if schema [`*schema* schema] [])
-                       (if config [`*config* config] [])
-                       (if buffer [`*buffer* buffer] []))]
-     ~@exprs))
+#?(:clj (defmacro with-params [{:keys [schema config buffer]} & exprs]
+          `(binding [~@(concat (if schema [`*schema* schema] [])
+                               (if config [`*config* config] [])
+                               (if buffer [`*buffer* buffer] []))]
+             ~@exprs)))
 
 (defn make-buffer [bits bytes]
   (seria.buffer/make-buffer bits bytes))

@@ -51,12 +51,11 @@
     {}))
 
 (defn ns-str [ns-name config-name form pretty-print?]
-  (let [ns-decl `(~'ns ~ns-name
-                   (:require ~@(map (fn [[required-ns-name functions]]
-                                      [required-ns-name :refer (vec functions)])
-                                    (dissoc (requires form) 'clojure.core))))
-        write   (if pretty-print? pprint println)]
+  (let [write (if pretty-print? pprint println)]
     (with-out-str
-      (write ns-decl)
+      (write `(~'ns ~ns-name
+                (:require ~@(map (fn [[required-ns-name functions]]
+                                   [required-ns-name :refer (vec functions)])
+                                 (dissoc (requires form) 'clojure.core)))))
       (newline)
       (write `(~'def ~config-name ~(prettify form))))))
