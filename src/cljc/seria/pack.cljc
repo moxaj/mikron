@@ -207,7 +207,7 @@
      ~(unpack-with-diff :all (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
-  (let [{:keys [multi-map multi-size]} *config*]
+  (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
     `(case (~(runtime-fn selector) ~value)
        ~@(mapcat (fn [[multi-case inner-schema]]
                    [multi-case
@@ -216,18 +216,18 @@
                  arg-map))))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
-  (let [{:keys [multi-map multi-size]} *config*]
+  (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
     `(case (get ~multi-map ~(unpack multi-size))
        ~@(mapcat (fn [[multi-case inner-schema]]
                    [multi-case (unpack-with-diff :all (unpack inner-schema))])
                  arg-map))))
 
 (defmethod pack :enum [_ value]
-  (let [{:keys [enum-map enum-size]} *config*]
+  (let [{{enum-map :map enum-size :size} :enum-bimap} *config*]
     (pack enum-size `(get ~enum-map ~value))))
 
 (defmethod unpack :enum [_]
-  (let [{:keys [enum-map enum-size]} *config*]
+  (let [{{enum-map :map enum-size :size} :enum-bimap} *config*]
     `(get ~enum-map ~(unpack enum-size))))
 
 (defmethod pack :custom [schema value]

@@ -33,19 +33,17 @@
        (into {})))
 
 (defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
-  (let [schemas     (validate-schemas schemas)
-        {schema-map :map}                  (bimap (keys schemas))
-        {enum-map   :map enum-size  :size} (bimap (enum-values schemas))
-        {multi-map  :map multi-size :size} (bimap (multi-cases schemas))
-        config      {:schemas     schemas
-                     :schema-map  schema-map
-                     :enum-map    enum-map
-                     :enum-size   enum-size
-                     :multi-map   multi-map
-                     :multi-size  multi-size
-                     :eq-ops      eq-ops}]
+  (let [schemas      (validate-schemas schemas)
+        schema-bimap (bimap (keys schemas))
+        enum-bimap   (bimap (enum-values schemas))
+        multi-bimap  (bimap (multi-cases schemas))
+        config      {:schemas      schemas
+                     :schema-bimap schema-bimap
+                     :enum-bimap   enum-bimap
+                     :multi-bimap  multi-bimap
+                     :eq-ops       eq-ops}]
     (assoc config :processors (make-processors schemas config)
-                   :state     `(atom {}))))
+                  :state     `(atom {}))))
 
 (defn make-test-config [& args]
   (eval (apply make-config args)))

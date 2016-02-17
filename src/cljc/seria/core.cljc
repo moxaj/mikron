@@ -22,19 +22,17 @@
                                                                schema  *schema*
                                                                buffer  *buffer*
                                                                diffed? false}}]
-  (let [{:keys [processors schema-map]} config
-        schema-id (schema-map schema)
-        pack!     (get-in processors [schema :packer])]
+  (let [schema-id (get-in config [:schema-bimap :map schema])
+        pack!     (get-in config [:processors schema :packer])]
     (when (and pack! schema-id buffer)
       (prepare-buffer! buffer)
       (pack! value buffer config diffed?)
       (buffer->raw buffer schema-id diffed?))))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]
-  (let [{:keys [processors schema-map state]} config
-        {:keys [schema-id buffer diffed?]}    (raw->buffer raw)
-        schema  (schema-map schema-id)
-        unpack! (get-in processors [schema :unpacker])]
+  (let [{:keys [schema-id buffer diffed?]} (raw->buffer raw)
+        schema  (get-in config [:schema-bimap :map schema-id])
+        unpack! (get-in config [:processors schema :unpacker])]
     (when (and unpack! schema)
       [schema (unpack! buffer config diffed?)])))
 
