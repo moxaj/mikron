@@ -41,12 +41,15 @@
                 (mapcat (fn [[a b]] [[a b] [b a]]))
                 (into {}))}))
 
-(defn find-by [f form]
+(defn find-by* [f form]
   (concat (if (f form) [form] [])
           (if (or (sequential? form)
                   (map? form))
-            (mapcat (partial find-by f) form)
+            (mapcat (partial find-by* f) form)
             [])))
+
+(defn find-by [f form]
+  (set (find-by* f form)))
 
 ;; Code generation
 
