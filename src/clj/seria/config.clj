@@ -8,7 +8,7 @@
 (defn multi-cases [schemas]
   (->> schemas
        (find-by (fn [form]
-                  (and (sequential? form)
+                  (and (vector? form)
                        (= :multi (first form)))))
        (mapcat (fn [[_ _ _ multi-map]]
                  (keys multi-map)))))
@@ -16,7 +16,7 @@
 (defn enum-values [schemas]
   (->> schemas
        (find-by (fn [form]
-                  (and (sequential? form)
+                  (and (vector? form)
                        (= :enum (first form)))))
        (mapcat (fn [[_ _ values]]
                  values))))
@@ -37,13 +37,13 @@
         schema-bimap (bimap (keys schemas))
         enum-bimap   (bimap (enum-values schemas))
         multi-bimap  (bimap (multi-cases schemas))
-        config      {:schemas      schemas
-                     :schema-bimap schema-bimap
-                     :enum-bimap   enum-bimap
-                     :multi-bimap  multi-bimap
-                     :eq-ops       eq-ops}]
+        config       {:schemas      schemas
+                      :schema-bimap schema-bimap
+                      :enum-bimap   enum-bimap
+                      :multi-bimap  multi-bimap
+                      :eq-ops       eq-ops}]
     (assoc config :processors (make-processors schemas config)
-                  :state     `(atom {}))))
+                  :state      `(atom {}))))
 
 (defn make-test-config [& args]
   (eval (apply make-config args)))
