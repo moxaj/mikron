@@ -170,7 +170,7 @@
                                            total-byte-length)
                                      (.-buffer)))))))
 
-(def ^:const header-byte-length 4)
+(def ^:const header-byte-length 6)
 (def ^:const header-bit-length 1)
 
 (defn make-buffer [max-bit-length max-byte-length]
@@ -185,18 +185,21 @@
       (set-bit-position! (+ header-bit-length (* 8 (get-max-byte-length buffer))))))
 
 (defn raw->buffer [raw]
-  (let [buffer (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
-                      :cljs (js/DataView. raw))
-                   (set-byte-position! 0)
-                   (set-bit-position! 0))
-        schema-id       (read-ushort! buffer)
-        byte-length     (read-ushort! buffer)
-        diffed?         (-> buffer
-                            (set-bit-position! (* 8 (+ header-byte-length byte-length)))
-                            (read-boolean!))]
+  (let [buffer      (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
+                           :cljs (js/DataView. raw))
+                        (set-byte-position! 0)
+                        (set-bit-position! 0))
+        schema-id   (read-ushort! buffer)
+        byte-length (read-ushort! buffer)
+        diffed?     (-> buffer
+                        (set-bit-position! (* 8 (+ header-byte-length byte-length)))
+                        (read-boolean!))]
     {:schema-id schema-id
      :diffed?   diffed?
-     :buffer    buffer}))
+     :buffer    (-> buffer
+                    (set-byte-position! header-byte-length)
+                    (set-bit-position! (+ header-bit-length
+                                          (* 8 (+ header-byte-length byte-length)))))}))
 
 (defn buffer->raw [buffer schema-id diffed?]
   (let [byte-position (get-byte-position buffer)

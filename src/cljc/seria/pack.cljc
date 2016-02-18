@@ -27,12 +27,14 @@
 (defmulti unpack pack-dispatch)
 
 (defn pack-with-diff
-  ([value to-diff pack-value]
-   (pack-with-diff value to-diff nil pack-value))
-  ([value to-diff index pack-value]
+  ([value pack-value]
+   (pack-with-diff value :all nil pack-value))
+  ([value indices pack-value]
+   (pack-with-diff value indices nil pack-value))
+  ([value indices index pack-value]
    (let [pack-value-fn (gensym "pack-value-fn_")
          value-dnil?   (gensym "value-dnil?_")]
-     (if-not (traceable-index? index to-diff)
+     (if-not (traceable-index? index indices)
         pack-value
        `(let [~pack-value-fn (fn [] ~pack-value)]
           (if-not ~'diffed?
@@ -43,11 +45,13 @@
                 (~pack-value-fn)))))))))
 
 (defn unpack-with-diff
-  ([to-diff unpack-value]
-   (unpack-with-diff to-diff nil unpack-value))
-  ([to-diff index unpack-value]
+  ([unpack-value]
+   (unpack-with-diff :all nil unpack-value))
+  ([indices unpack-value]
+   (unpack-with-diff indices nil unpack-value))
+  ([indices index unpack-value]
    (let [unpack-value-fn (gensym "unpack-value-fn_")]
-     (if-not (traceable-index? index to-diff)
+     (if-not (traceable-index? index indices)
        unpack-value
        `(let [~unpack-value-fn (fn [] ~unpack-value)]
           (if-not ~'diffed?
@@ -200,11 +204,11 @@
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
      (when ~value
-       ~(pack-with-diff value :all (pack inner-schema value)))))
+       ~(pack-with-diff value (pack inner-schema value)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
-     ~(unpack-with-diff :all (unpack inner-schema))))
+     ~(unpack-with-diff (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
   (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
@@ -212,14 +216,14 @@
        ~@(mapcat (fn [[multi-case inner-schema]]
                    [multi-case
                     `(do ~(pack multi-size (get multi-map multi-case))
-                         ~(pack-with-diff value :all (pack inner-schema value)))])
+                         ~(pack-with-diff value (pack inner-schema value)))])
                  arg-map))))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
   (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
     `(case (get ~multi-map ~(unpack multi-size))
        ~@(mapcat (fn [[multi-case inner-schema]]
-                   [multi-case (unpack-with-diff :all (unpack inner-schema))])
+                   [multi-case (unpack-with-diff (unpack inner-schema))])
                  arg-map))))
 
 (defmethod pack :enum [_ value]
@@ -239,9 +243,9 @@
 (defn make-packer [schema config]
   (binding [*config* config]
     `(fn [~'value ~'buffer ~'config ~'diffed?]
-       ~(pack-with-diff 'value :all (pack schema 'value)))))
+       ~(pack-with-diff 'value (pack schema 'value)))))
 
 (defn make-unpacker [schema config]
   (binding [*config* config]
     `(fn [~'buffer ~'config ~'diffed?]
-       ~(unpack-with-diff :all (unpack schema)))))
+       ~(unpack-with-diff (unpack schema)))))
