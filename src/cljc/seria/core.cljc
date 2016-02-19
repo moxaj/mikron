@@ -7,9 +7,9 @@
 (def ^:dynamic *buffer*)
 
 #?(:clj (defmacro with-params [{:keys [schema config buffer]} & exprs]
-          `(binding [~@(concat (if schema [`*schema* schema] [])
-                               (if config [`*config* config] [])
-                               (if buffer [`*buffer* buffer] []))]
+          `(binding [~@(mapcat (fn [[default arg]]
+                                 (if arg [default arg] []))
+                               {`*schema* schema `*config* config `*buffer* buffer})]
              ~@exprs)))
 
 (defn make-buffer [bits bytes]
@@ -18,23 +18,21 @@
 (defn prepare-config! [{:keys [state]} & {:keys [functions]}]
   (swap! state update :fn-map merge functions))
 
-(defn pack [value & {:keys [schema config diffed? buffer] :or {config  *config*
-                                                               schema  *schema*
-                                                               buffer  *buffer*
-                                                               diffed? false}}]
+(defn pack [value & {:keys [schema config diff-id diffed? buffer]
+                     :or   {config *config* schema *schema* buffer *buffer* diff-id 0 diffed? false}}]
   (let [schema-id (get-in config [:schema-bimap :map schema])
         pack!     (get-in config [:processors schema :packer])]
     (when (and pack! schema-id buffer)
       (prepare-buffer! buffer)
       (pack! value buffer config diffed?)
-      (buffer->raw buffer schema-id diffed?))))
+      (buffer->raw buffer schema-id diff-id diffed?))))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]
-  (let [{:keys [schema-id buffer diffed?]} (raw->buffer raw)
+  (let [{:keys [schema-id buffer diff-id diffed?]} (raw->buffer raw)
         schema  (get-in config [:schema-bimap :map schema-id])
         unpack! (get-in config [:processors schema :unpacker])]
     (when (and unpack! schema)
-      [schema (unpack! buffer config diffed?)])))
+      [schema diff-id (unpack! buffer config diffed?)])))
 
 (defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
   (when-let [diff! (get-in config [:processors schema :differ])]

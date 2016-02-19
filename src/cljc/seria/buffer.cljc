@@ -190,24 +190,27 @@
                         (set-byte-position! 0)
                         (set-bit-position! 0))
         schema-id   (read-ushort! buffer)
+        diff-id     (read-ushort! buffer)
         byte-length (read-ushort! buffer)
         diffed?     (-> buffer
                         (set-bit-position! (* 8 (+ header-byte-length byte-length)))
                         (read-boolean!))]
     {:schema-id schema-id
+     :diff-id   diff-id
      :diffed?   diffed?
      :buffer    (-> buffer
                     (set-byte-position! header-byte-length)
                     (set-bit-position! (+ header-bit-length
                                           (* 8 (+ header-byte-length byte-length)))))}))
 
-(defn buffer->raw [buffer schema-id diffed?]
+(defn buffer->raw [buffer schema-id diff-id diffed?]
   (let [byte-position (get-byte-position buffer)
         byte-length   (- byte-position header-byte-length)
         bit-position  (get-bit-position buffer)]
     (-> buffer
         (set-byte-position! 0)
         (write-ushort! schema-id)
+        (write-ushort! diff-id)
         (write-ushort! byte-length)
         (set-byte-position! byte-position)
 
