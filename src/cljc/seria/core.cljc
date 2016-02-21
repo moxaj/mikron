@@ -22,27 +22,32 @@
                      :or   {config *config* schema *schema* buffer *buffer* diff-id 0 diffed? false}}]
   (let [schema-id (get-in config [:schema-bimap :map schema])
         pack!     (get-in config [:processors schema :packer])]
-    (when (and pack! schema-id buffer)
-      (prepare-buffer! buffer)
-      (pack! value buffer config diffed?)
-      (buffer->raw buffer schema-id diff-id diffed?))))
+    (if (and pack! schema-id buffer)
+      (do (prepare-buffer! buffer)
+          (pack! value buffer config diffed?)
+          (buffer->raw buffer schema-id diff-id diffed?))
+      ::invalid)))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]
   (let [{:keys [schema-id buffer diff-id diffed?]} (raw->buffer raw)
         schema  (get-in config [:schema-bimap :map schema-id])
         unpack! (get-in config [:processors schema :unpacker])]
-    (when (and unpack! schema)
-      [schema diff-id (unpack! buffer config diffed?)])))
+    (if (and unpack! schema)
+      {:schema schema :diff-id diff-id :value (unpack! buffer config diffed?)}
+      ::invalid)))
 
 (defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
-  (when-let [diff! (get-in config [:processors schema :differ])]
-    (diff! value-1 value-2 config)))
+  (if-let [diff! (get-in config [:processors schema :differ])]
+    (diff! value-1 value-2 config)
+    ::invalid))
 
 (defn undiff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
-  (when-let [undiff! (get-in config [:processors schema :undiffer])]
-    (undiff! value-1 value-2 config)))
+  (if-let [undiff! (get-in config [:processors schema :undiffer])]
+    (undiff! value-1 value-2 config)
+    ::invalid))
 
 (defn interp [value-1 value-2 time-1 time-2 time
               & {:keys [schema config] :or {config *config* schema *schema*}}]
-  (when-let [interp! (get-in config [:processors schema :interper])]
-    (interp! value-1 value-2 time-1 time-2 time config)))
+  (if-let [interp! (get-in config [:processors schema :interper])]
+    (interp! value-1 value-2 time-1 time-2 time config)
+    ::invalid))

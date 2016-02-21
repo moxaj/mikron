@@ -51,6 +51,10 @@
 (defn find-by [f form]
   (set (find-by* f form)))
 
+(def unique-long
+  (let [counter (atom 0)]
+    #(swap! counter inc)))
+
 ;; Code generation
 
 (defn resolve-schema [schema schemas]
@@ -81,9 +85,7 @@
           :inner-schema (arg index)
           :inner-value  (case composite-type
                           :tuple  `(~value ~index)
-                          :record (if constructor
-                                    `(get ~value ~index)
-                                    `(~value ~index)))})
+                          :record `(get ~value ~index))})
        (case composite-type
          :tuple  (range (count arg))
          :record (sort (keys arg)))))

@@ -18,7 +18,8 @@
      (when functions
        (prepare-config! config :functions functions))
      (doseq [value (sample 10 :x config)]
-       (is (= [:x 0 value] (pack-roundtrip value config buffer)))))))
+       (is (= {:schema :x :diff-id 0 :value value}
+              (pack-roundtrip value config buffer)))))))
 
 (deftest primitive-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
@@ -55,8 +56,9 @@
         value  (map->TestRecord {:a 1 :b "hi there"})
         buffer (make-buffer 10000 10000)]
     (prepare-config! config :functions {:c map->TestRecord})
-    (is (= [:x 0 value] (with-params {:config config :schema :x :buffer buffer}
-                          (unpack (pack value)))))))
+    (is (= {:schema :x :diff-id 0 :value value}
+           (with-params {:config config :schema :x :buffer buffer}
+             (unpack (pack value)))))))
 
 (deftest custom-test
   (doseq [schemas [{:x [:list :y]
