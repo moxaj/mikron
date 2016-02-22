@@ -1,14 +1,10 @@
 (ns seria.diff
   (:require [seria.spec :refer [primitive? advanced? diffable? custom? traceable-index?]]
-            [seria.util :refer [disj-indexed decorate-map decorate-constructor runtime-fn runtime-processor
-                                expand-record]]))
+            [seria.util :refer [disj-indexed decorate-map decorate-constructor runtime-fn
+                                runtime-processor expand-record]]))
 
 (def ^:dynamic *config*)
 (def ^:dynamic *direction*)
-(def ^:const dnil ::dnil)
-
-(defn dnil? [x]
-  (= dnil x))
 
 (defn decorate-common [schema value-1 value-2 expr]
   (let [eq-op (if-not (or (primitive? schema)
@@ -20,9 +16,9 @@
                   `=))]
     (case *direction*
       :differ   `(if (~eq-op ~value-1 ~value-2)
-                   ~dnil
+                   ::dnil
                    ~expr)
-      :undiffer `(if (dnil? ~value-2)
+      :undiffer `(if (= ::dnil ~value-2)
                    ~value-1
                    ~expr))))
 

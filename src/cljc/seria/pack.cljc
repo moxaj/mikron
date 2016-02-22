@@ -7,30 +7,28 @@
                                   write-ubyte! write-ushort! write-uint!
                                   write-long! write-float! write-double!
                                   write-char! write-boolean!]]
-            [seria.util :refer [disj-indexed cljc-read-string cljc-ceil
-                                runtime-fn runtime-processor
+            [seria.util :refer [disj-indexed cljc-read-string runtime-fn runtime-processor
                                 decorate-set decorate-map decorate-constructor expand-record]]
-            [seria.spec :refer [primitive? advanced? composite? traceable-index? custom?]]
-            [seria.diff :refer [dnil? dnil]]))
+            [seria.spec :refer [primitive? advanced? composite? traceable-index? custom?]]))
 
 (def ^:dynamic *config*)
 
 (defn pack-dispatch [schema & _]
   (cond
-    (primitive? schema) :primitive
-    (advanced? schema)  schema
-    (composite? schema) (first schema)
-    (custom? schema)    :custom))
+    (or (primitive? schema)
+        (advanced? schema)) schema
+    (composite? schema)     (first schema)
+    (custom? schema)        :custom))
 
 (defmulti pack pack-dispatch)
 
 (defmulti unpack pack-dispatch)
 
-(defn pack-with-diff
+(defn decorate-diff
   ([value pack-value]
-   (pack-with-diff value :all nil pack-value))
+   (decorate-diff value :all nil pack-value))
   ([value indices pack-value]
-   (pack-with-diff value indices nil pack-value))
+   (decorate-diff value indices nil pack-value))
   ([value indices index pack-value]
    (let [pack-value-fn (gensym "pack-value-fn_")
          value-dnil?   (gensym "value-dnil?_")]
@@ -39,54 +37,92 @@
        `(let [~pack-value-fn (fn [] ~pack-value)]
           (if-not ~'diffed?
             (~pack-value-fn)
-            (let [~value-dnil? (dnil? ~value)]
+            (let [~value-dnil? (= :seria.diff/dnil ~value)]
               ~(pack :boolean value-dnil?)
               (when-not ~value-dnil?
                 (~pack-value-fn)))))))))
 
-(defn unpack-with-diff
+(defn decorate-undiff
   ([unpack-value]
-   (unpack-with-diff :all nil unpack-value))
+   (decorate-undiff :all nil unpack-value))
   ([indices unpack-value]
-   (unpack-with-diff indices nil unpack-value))
+   (decorate-undiff indices nil unpack-value))
   ([indices index unpack-value]
-   (let [unpack-value-fn (gensym "unpack-value-fn_")]
-     (if-not (traceable-index? index indices)
-       unpack-value
+   (if-not (traceable-index? index indices)
+     unpack-value
+     (let [unpack-value-fn (gensym "unpack-value-fn_")]
        `(let [~unpack-value-fn (fn [] ~unpack-value)]
           (if-not ~'diffed?
             (~unpack-value-fn)
             (if ~(unpack :boolean)
-              ~dnil
+              :seria.diff/dnil
               (~unpack-value-fn))))))))
 
-(defmethod pack :primitive [schema value]
-  (case schema
-    :byte    `(write-byte!    ~'buffer ~value)
-    :ubyte   `(write-ubyte!   ~'buffer ~value)
-    :short   `(write-short!   ~'buffer ~value)
-    :ushort  `(write-ushort!  ~'buffer ~value)
-    :int     `(write-int!     ~'buffer ~value)
-    :uint    `(write-uint!    ~'buffer ~value)
-    :long    `(write-long!    ~'buffer ~value)
-    :float   `(write-float!   ~'buffer ~value)
-    :double  `(write-double!  ~'buffer ~value)
-    :char    `(write-char!    ~'buffer ~value)
-    :boolean `(write-boolean! ~'buffer ~value)))
+(defmethod pack :byte [_ value]
+  `(write-byte! ~'buffer ~value))
 
-(defmethod unpack :primitive [schema]
-  (case schema
-    :byte    `(read-byte!    ~'buffer)
-    :ubyte   `(read-ubyte!   ~'buffer)
-    :short   `(read-short!   ~'buffer)
-    :ushort  `(read-ushort!  ~'buffer)
-    :int     `(read-int!     ~'buffer)
-    :uint    `(read-uint!    ~'buffer)
-    :long    `(read-long!    ~'buffer)
-    :float   `(read-float!   ~'buffer)
-    :double  `(read-double!  ~'buffer)
-    :char    `(read-char!    ~'buffer)
-    :boolean `(read-boolean! ~'buffer)))
+(defmethod unpack :byte [_]
+  `(read-byte! ~'buffer))
+
+(defmethod pack :ubyte [_ value]
+  `(write-ubyte! ~'buffer ~value))
+
+(defmethod unpack :ubyte [_]
+  `(read-ubyte! ~'buffer))
+
+(defmethod pack :short [_ value]
+  `(write-short! ~'buffer ~value))
+
+(defmethod unpack :short [_]
+  `(read-short! ~'buffer))
+
+(defmethod pack :ushort [_ value]
+  `(write-ushort! ~'buffer ~value))
+
+(defmethod unpack :ushort [_]
+  `(read-ushort! ~'buffer))
+
+(defmethod pack :int [_ value]
+  `(write-int! ~'buffer ~value))
+
+(defmethod unpack :int [_]
+  `(read-int! ~'buffer))
+
+(defmethod pack :uint [_ value]
+  `(write-uint! ~'buffer ~value))
+
+(defmethod unpack :uint [_]
+  `(read-uint! ~'buffer))
+
+(defmethod pack :long [_ value]
+  `(write-long! ~'buffer ~value))
+
+(defmethod unpack :long [_]
+  `(read-long! ~'buffer))
+
+(defmethod pack :float [_ value]
+  `(write-float! ~'buffer ~value))
+
+(defmethod unpack :float [_]
+  `(read-float! ~'buffer))
+
+(defmethod pack :double [_ value]
+  `(write-double! ~'buffer ~value))
+
+(defmethod unpack :double [_]
+  `(read-double! ~'buffer))
+
+(defmethod pack :char [_ value]
+  `(write-char! ~'buffer ~value))
+
+(defmethod unpack :char [_]
+  `(read-char! ~'buffer))
+
+(defmethod pack :boolean [_ value]
+  `(write-boolean! ~'buffer ~value))
+
+(defmethod unpack :boolean [_]
+  `(read-boolean! ~'buffer))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -137,12 +173,12 @@
   (let [inner-value (gensym "inner-value_")]
     `(do ~(pack size `(count ~value))
          (run! (fn [~inner-value]
-                 ~(pack-with-diff inner-value diff (pack inner-schema inner-value)))
+                 ~(decorate-diff inner-value diff (pack inner-schema inner-value)))
                ~value))))
 
 (defmethod unpack :vector [[_ {:keys [size diff]} inner-schema]]
   `(vec (repeatedly ~(unpack size)
-                    (fn [] ~(unpack-with-diff diff (unpack inner-schema))))))
+                    (fn [] ~(decorate-undiff diff (unpack inner-schema))))))
 
 (defmethod pack :set [[_ {:keys [size]} inner-schema] value]
   (let [inner-value (gensym "inner-value_")]
@@ -162,13 +198,13 @@
     `(do ~(pack size `(count ~value))
          (run! (fn [[~key ~val]]
                  ~(pack key-schema key)
-                 ~(pack-with-diff val diff (pack val-schema val)))
+                 ~(decorate-diff val diff (pack val-schema val)))
                ~value))))
 
 (defmethod unpack :map [[_ {:keys [size diff sorted-by]} key-schema val-schema]]
   (->> `(->> (repeatedly ~(unpack size)
                          (fn [] [~(unpack key-schema)
-                                 ~(unpack-with-diff diff (unpack val-schema))]))
+                                 ~(decorate-undiff diff (unpack val-schema))]))
              (into {}))
        (decorate-map sorted-by)))
 
@@ -176,13 +212,13 @@
   (let [disjoined (disj-indexed schema value)]
     `(let [~@(mapcat (juxt :symbol :inner-value) disjoined)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
-                       (pack-with-diff inner-value diff index (pack inner-schema inner-value)))
+                       (decorate-diff inner-value diff index (pack inner-schema inner-value)))
                      disjoined)))))
 
 (defmethod unpack :tuple [[_ {:keys [diff]} inner-schemas]]
   (let [unpack-inner-fn (gensym "unpack-inner-fn_")]
     (vec (map-indexed (fn [index inner-schema]
-                        (unpack-with-diff diff index (unpack inner-schema)))
+                        (decorate-undiff diff index (unpack inner-schema)))
                       inner-schemas))))
 
 (defmethod pack :record [schema value]
@@ -190,25 +226,25 @@
         disjoined (disj-indexed schema value)]
     `(let [~@(mapcat (juxt :symbol :inner-value) disjoined)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
-                       (pack-with-diff inner-value diff index (pack inner-schema inner-value)))
+                       (decorate-diff inner-value diff index (pack inner-schema inner-value)))
                      disjoined)))))
 
 (defmethod unpack :record [schema]
   (let [[_ {:keys [diff constructor]} record-map] (expand-record schema (:schemas *config*))]
     (->> (sort (keys record-map))
          (map (fn [key]
-                [key (unpack-with-diff diff key (unpack (record-map key)))]))
+                [key (decorate-undiff diff key (unpack (record-map key)))]))
          (into {})
          (decorate-constructor constructor))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
      (when ~value
-       ~(pack-with-diff value (pack inner-schema value)))))
+       ~(decorate-diff value (pack inner-schema value)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
-     ~(unpack-with-diff (unpack inner-schema))))
+     ~(decorate-undiff (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
   (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
@@ -216,14 +252,14 @@
        ~@(mapcat (fn [[multi-case inner-schema]]
                    [multi-case
                     `(do ~(pack multi-size (get multi-map multi-case))
-                         ~(pack-with-diff value (pack inner-schema value)))])
+                         ~(decorate-diff value (pack inner-schema value)))])
                  arg-map))))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
   (let [{{multi-map :map multi-size :size} :multi-bimap} *config*]
     `(case (get ~multi-map ~(unpack multi-size))
        ~@(mapcat (fn [[multi-case inner-schema]]
-                   [multi-case (unpack-with-diff (unpack inner-schema))])
+                   [multi-case (decorate-undiff (unpack inner-schema))])
                  arg-map))))
 
 (defmethod pack :enum [_ value]
@@ -243,9 +279,9 @@
 (defn make-packer [schema config]
   (binding [*config* config]
     `(fn [~'value ~'buffer ~'config ~'diffed?]
-       ~(pack-with-diff 'value (pack schema 'value)))))
+       ~(decorate-diff 'value (pack schema 'value)))))
 
 (defn make-unpacker [schema config]
   (binding [*config* config]
     `(fn [~'buffer ~'config ~'diffed?]
-       ~(unpack-with-diff (unpack schema)))))
+       ~(decorate-undiff (unpack schema)))))

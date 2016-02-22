@@ -1,6 +1,6 @@
 (ns seria.interp
   (:require [seria.spec :refer [interpable? directly-interpable? int? custom? traceable-index?]]
-            [seria.util :refer [cljc-throw cljc-abs cljc-round decorate-map decorate-constructor
+            [seria.util :refer [cljc-abs cljc-round decorate-map decorate-constructor
                                 runtime-processor runtime-fn disj-indexed]]))
 
 (def ^:dynamic *config*)
@@ -23,7 +23,7 @@
 (defmethod interp :interpable [schema value-1 value-2]
   `(interp-values ~value-1 ~value-2 ~'time-factor ~(int? schema)))
 
-(defmethod interp :non-interpable [schema value-1 value-2]
+(defmethod interp :non-interpable [_ value-1 value-2]
   `(if ~'prefer-first?
     ~value-1
     ~value-2))

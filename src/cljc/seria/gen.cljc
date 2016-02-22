@@ -25,26 +25,45 @@
 
 (defn gen-dispatch [schema]
   (cond
-    (primitive? schema) :primitive
-    (advanced? schema)  schema
-    (composite? schema) (first schema)
-    (custom? schema)    :custom))
+    (or (primitive? schema)
+        (advanced? schema)) schema
+    (composite? schema)     (first schema)
+    (custom? schema)        :custom))
 
 (defmulti gen gen-dispatch)
 
-(defmethod gen :primitive [schema]
-  (case schema
-    :byte    (- (rand-int 256) 128)
-    :ubyte   (rand-int 256)
-    :short   (- (rand-int 65536) 32768)
-    :ushort  (rand-int 65536)
-    :int     (rand-int 2147483648)
-    :uint    (long (* 4294967296 (rand)))
-    :long    (long (* Long/MAX_VALUE (rand)))
-    :float   (float (rand))
-    :double  (double (rand))
-    :char    (char (rand-int 65536))
-    :boolean (zero? (rand-int 2))))
+(defmethod gen :byte [_]
+  (- (rand-int 256) 128))
+
+(defmethod gen :ubyte [_]
+  (rand-int 256))
+
+(defmethod gen :short [_]
+  (- (rand-int 65536) 32768))
+
+(defmethod gen :ushort [_]
+  (rand-int 65536))
+
+(defmethod gen :int [_]
+  (rand-int 2147483648))
+
+(defmethod gen :uint [_]
+  (long (* 4294967296 (rand))))
+
+(defmethod gen :long [_]
+  (long (* Long/MAX_VALUE (rand))))
+
+(defmethod gen :float [_]
+  (float (rand)))
+
+(defmethod gen :double [_]
+  (double (rand)))
+
+(defmethod gen :char [_]
+  (char (rand-int 65536)))
+
+(defmethod gen :boolean [_]
+  (zero? (rand-int 2)))
 
 (defmethod gen :string [_]
   (->> #(gen :char)

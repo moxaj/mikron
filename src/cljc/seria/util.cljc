@@ -6,35 +6,27 @@
 (def ^:const max-ubyte 255)
 (def ^:const max-ushort 65535)
 
-;; General purpose
-
-(defn cljc-throw [message]
-  (throw (new #?(:clj Exception :cljs js/Error) message)))
-
 (defn cljc-read-string [s]
   #?(:clj  (read-string s)
      :cljs (cljs.reader/read-string s)))
 
 (defn cljc-abs [n]
   #?(:clj  (Math/abs n)
-     :cljs (js/Math.abs n)))
+     :cljs (.abs js/Math n)))
 
 (defn cljc-round [n]
   #?(:clj  (Math/round n)
-     :cljs (js/Math.round n)))
+     :cljs (.round js/Math n)))
 
 (defn cljc-ceil [n]
   #?(:clj  (Math/ceil n)
-     :cljs (js/Math.ceil n)))
+     :cljs (.ceil js/Math n)))
 
 (defn bimap [coll]
   (let [coll-length (count coll)
         size-type   (condp > coll-length
                       max-ubyte  :ubyte
-                      max-ushort :ushort
-                      (cljc-throw (str "Collection length exceeds ushort range: %s"
-                                       coll-length
-                                       ".")))]
+                      max-ushort :ushort)]
     {:size size-type
      :map  (->> (into (sorted-set) coll)
                 (map-indexed vector)
@@ -54,8 +46,6 @@
 (def unique-long
   (let [counter (atom 0)]
     #(swap! counter inc)))
-
-;; Code generation
 
 (defn resolve-schema [schema schemas]
   (if (custom? schema)
@@ -90,8 +80,8 @@
          :tuple  (range (count arg))
          :record (sort (keys arg)))))
 
-(defn runtime-fn [fn-key]
-  `(get-in @(:state ~'config) [:fn-map ~fn-key]))
+(defn runtime-fn [key]
+  `(get-in @(:state ~'config) [:fn-map ~key]))
 
 (defn runtime-processor [schema type]
   `(get-in ~'config [:processors ~schema ~type]))

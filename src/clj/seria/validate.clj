@@ -1,6 +1,5 @@
 (ns seria.validate
-  (:require [seria.util :refer [cljc-throw]]
-            [seria.spec :refer [primitive? composite? advanced? size? built-in?]]))
+  (:require [seria.spec :refer [primitive? composite? advanced? size? built-in?]]))
 
 (defn with-options [[a b & rest :as composite]]
   (if (and (map? b) (seq rest))
@@ -168,7 +167,7 @@
     (validate-composite (with-options schema))
 
     :else
-    (cljc-throw (format "Invalid schema: %s. No such schema name." schema))))
+    (throw (Exception. (format "Invalid schema: %s. No such schema name." schema)))))
 
 (defn validate-schemas [schemas]
   (assert (map? schemas)
