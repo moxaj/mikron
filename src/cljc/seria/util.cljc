@@ -3,9 +3,6 @@
             [clojure.set :refer [union]]
    #?(:cljs [cljs.reader])))
 
-(def ^:const max-ubyte 255)
-(def ^:const max-ushort 65535)
-
 (defn cljc-read-string [s]
   #?(:clj  (read-string s)
      :cljs (cljs.reader/read-string s)))
@@ -25,8 +22,9 @@
 (defn bimap [coll]
   (let [coll-length (count coll)
         size-type   (condp > coll-length
-                      max-ubyte  :ubyte
-                      max-ushort :ushort)]
+                      255   :ubyte
+                      65535 :ushort
+                      :uint)]
     {:size size-type
      :map  (->> (into (sorted-set) coll)
                 (map-indexed vector)

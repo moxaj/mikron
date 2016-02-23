@@ -19,7 +19,7 @@
   (and (keyword? schema)
        (not (built-in? schema))))
 
-(def size-types #{:ubyte :ushort})
+(def size-types #{:ubyte :ushort :uint})
 (def size? size-types)
 
 (def directly-interpable-types #{:byte :ubyte :short :ushort :int :uint :long :float :double})
