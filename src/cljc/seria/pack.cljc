@@ -8,21 +8,14 @@
                                   write-long! write-float! write-double!
                                   write-char! write-boolean!]]
             [seria.util :refer [disj-indexed cljc-read-string runtime-fn runtime-processor
-                                decorate-set decorate-map decorate-constructor expand-record]]
+                                decorate-set decorate-map decorate-constructor expand-record
+                                schema-dispatch]]
             [seria.spec :refer [primitive? advanced? composite? traceable-index? custom?]]))
 
 (def ^:dynamic *config*)
 
-(defn pack-dispatch [schema & _]
-  (cond
-    (or (primitive? schema)
-        (advanced? schema)) schema
-    (composite? schema)     (first schema)
-    (custom? schema)        :custom))
-
-(defmulti pack pack-dispatch)
-
-(defmulti unpack pack-dispatch)
+(defmulti pack schema-dispatch)
+(defmulti unpack schema-dispatch)
 
 (defn decorate-diff
   ([value pack-value]

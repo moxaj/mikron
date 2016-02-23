@@ -1,5 +1,5 @@
 (ns seria.util
-  (:require [seria.spec :refer [custom?]]
+  (:require [seria.spec :refer [primitive? advanced? composite? custom?]]
             [clojure.set :refer [union]]
    #?(:cljs [cljs.reader])))
 
@@ -44,6 +44,13 @@
 (def unique-long
   (let [counter (atom 0)]
     #(swap! counter inc)))
+
+(defn schema-dispatch [schema & _]
+  (cond
+    (or (primitive? schema)
+        (advanced? schema)) schema
+    (composite? schema)     (first schema)
+    (custom? schema)        :custom))
 
 (defn resolve-schema [schema schemas]
   (if (custom? schema)

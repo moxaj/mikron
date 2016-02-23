@@ -1,6 +1,6 @@
 (ns seria.gen
   (:require [seria.spec :refer [primitive? advanced? composite? custom?]]
-            [seria.util :refer [resolve-schema]]))
+            [seria.util :refer [resolve-schema schema-dispatch]]))
 
 (def ^:dynamic *config*)
 
@@ -20,17 +20,11 @@
 
 (defn gen-size [size-type]
   (case size-type
-    :ubyte (gen-small-size)
-    :ushort (gen-big-size)))
+    :ubyte  (gen-small-size)
+    :ushort (gen-big-size)
+    :uint   (gen-big-size)))
 
-(defn gen-dispatch [schema]
-  (cond
-    (or (primitive? schema)
-        (advanced? schema)) schema
-    (composite? schema)     (first schema)
-    (custom? schema)        :custom))
-
-(defmulti gen gen-dispatch)
+(defmulti gen schema-dispatch)
 
 (defmethod gen :byte [_]
   (- (rand-int 256) 128))
