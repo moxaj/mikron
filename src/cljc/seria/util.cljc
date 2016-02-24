@@ -41,10 +41,6 @@
 (defn find-by [f form]
   (set (find-by* f form)))
 
-(def unique-long
-  (let [counter (atom 0)]
-    #(swap! counter inc)))
-
 (defn schema-dispatch [schema & _]
   (cond
     (or (primitive? schema)
