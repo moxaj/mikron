@@ -19,17 +19,22 @@
   #?(:clj  (Math/ceil n)
      :cljs (.ceil js/Math n)))
 
+(defn select-size [coll]
+  (condp > (count coll)
+         255   :ubyte
+         65535 :ushort
+         :uint))
+
+(defn indexed-map [coll]
+  (->> coll
+       (into (sorted-set))
+       (map-indexed vector)
+       (mapcat (fn [[a b]] [[a b] [b a]]))
+       (into {})))
+
 (defn bimap [coll]
-  (let [coll-length (count coll)
-        size-type   (condp > coll-length
-                      255   :ubyte
-                      65535 :ushort
-                      :uint)]
-    {:size size-type
-     :map  (->> (into (sorted-set) coll)
-                (map-indexed vector)
-                (mapcat (fn [[a b]] [[a b] [b a]]))
-                (into {}))}))
+  {:size (select-size coll)
+   :map  (indexed-map coll)})
 
 (defn find-by* [f form]
   (concat (if (f form) [form] [])
@@ -49,9 +54,10 @@
     (custom? schema)        :custom))
 
 (defn resolve-schema [schema schemas]
-  (if (custom? schema)
-    (resolve-schema (schemas schema) schemas)
-    schema))
+  (->> schema
+       (iterate schemas)
+       (drop-while custom?)
+       (first)))
 
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
   (if (empty? extends)

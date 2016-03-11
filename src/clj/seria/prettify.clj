@@ -18,7 +18,7 @@
         inlineable-symbols (->> (keys binding-map)
                                 (map (fn [sym]
                                        [sym (count (find-by* #{sym} exprs))]))
-                                (filter (fn [[sym sym-count]]
+                                (filter (fn [[_ sym-count]]
                                           (< sym-count 2)))
                                 (map first))
         new-binding-form   (->> (apply dissoc binding-map inlineable-symbols)
