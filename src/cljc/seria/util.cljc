@@ -3,6 +3,10 @@
             [clojure.set :refer [union]]
    #?(:cljs [cljs.reader])))
 
+(defn cljc-exception [s]
+  #?(:clj  (Exception. s)
+     :cljs (js/Error. s)))
+
 (defn cljc-read-string [s]
   #?(:clj  (read-string s)
      :cljs (cljs.reader/read-string s)))
@@ -18,6 +22,11 @@
 (defn cljc-ceil [n]
   #?(:clj  (Math/ceil n)
      :cljs (.ceil js/Math n)))
+
+(def zigzag-ints
+  ((fn gen ([] (gen 0 false))
+           ([n pos?] (lazy-seq (cons n (gen (if pos? (- n) (inc (- n)))
+                                            (not pos?))))))))
 
 (defn select-size [coll]
   (condp > (count coll)

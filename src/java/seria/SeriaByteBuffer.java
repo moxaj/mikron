@@ -5,18 +5,18 @@ import java.nio.ByteBuffer;
 public class SeriaByteBuffer {
   private ByteBuffer buffer;
   private int bitPosition;
-  private int maxByteLength;
+  private int bitOffset;
 
   private SeriaByteBuffer(int capacity) {
     buffer = ByteBuffer.allocate(capacity);
     bitPosition = 0;
-    maxByteLength = 0;
+    bitOffset = 0;
   }
 
   private SeriaByteBuffer(byte[] bytes) {
     buffer = ByteBuffer.wrap(bytes);
     bitPosition = 0;
-    maxByteLength = 0;
+    bitOffset = 0;
   }
 
   public static SeriaByteBuffer allocate(int capacity) {
@@ -27,14 +27,14 @@ public class SeriaByteBuffer {
     return new SeriaByteBuffer(bytes);
   }
 
-  public byte[] toRaw() {
-    int totalBitLength = (int) Math.ceil(bitPosition / 8.0f) - maxByteLength;
+  public byte[] collapse() {
+    int totalBitLength = (int) Math.ceil(bitPosition / 8.0f) - bitOffset;
     int totalByteLength = buffer.position();
     byte[] raw = new byte[totalBitLength + totalByteLength];
 
     byte[] backingArray = buffer.array();
     System.arraycopy(backingArray, 0, raw, 0, totalByteLength);
-    System.arraycopy(backingArray, maxByteLength, raw, totalByteLength, totalBitLength);
+    System.arraycopy(backingArray, bitOffset, raw, totalByteLength, totalBitLength);
 
     return raw;
   }
@@ -46,11 +46,11 @@ public class SeriaByteBuffer {
   ////////////////////////////////////////////////////////////
 
   public int getBitPosition() {
-    return bitPosition;
+    return bitPosition - bitOffset * 8;
   }
 
   public SeriaByteBuffer setBitPosition(int bitPosition) {
-    this.bitPosition = bitPosition;
+    this.bitPosition = bitOffset * 8 + bitPosition;
     return this;
   }
 
@@ -63,12 +63,12 @@ public class SeriaByteBuffer {
     return this;
   }
 
-  public int getMaxByteLength() {
-    return maxByteLength;
+  public int getBitOffset() {
+    return bitOffset;
   }
 
-  public SeriaByteBuffer setMaxByteLength(int maxByteLength) {
-    this.maxByteLength = maxByteLength;
+  public SeriaByteBuffer setBitOffset(int bitOffset) {
+   this.bitOffset = bitOffset;
     return this;
   }
 
@@ -82,14 +82,6 @@ public class SeriaByteBuffer {
     boolean value = (buffer.get(bitPosition / 8) & (1 << bitPosition % 8)) != 0;
     bitPosition++;
     return value;
-  }
-
-  public SeriaByteBuffer putBoolean(boolean value) {
-    int position = bitPosition / 8;
-    byte b = buffer.get(position);
-    buffer.put(position, (byte) (value ? (b | (1 << bitPosition % 8)) : (b & ~(1 << bitPosition % 8))));
-    bitPosition++;
-    return this;
   }
 
   public byte getByte() {
@@ -118,6 +110,14 @@ public class SeriaByteBuffer {
 
   public short getShort() {
     return buffer.getShort();
+  }
+
+  public SeriaByteBuffer putBoolean(boolean value) {
+    int position = bitPosition / 8;
+    byte b = buffer.get(position);
+    buffer.put(position, (byte) (value ? (b | (1 << bitPosition % 8)) : (b & ~(1 << bitPosition % 8))));
+    bitPosition++;
+    return this;
   }
 
   public SeriaByteBuffer putByte(byte value) {

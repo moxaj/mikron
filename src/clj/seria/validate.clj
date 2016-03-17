@@ -106,7 +106,7 @@
     (assert (vector? values)
             (format "Invalid schema: %s. Possible :enum values must be listed in a vector."
                     schema))
-    (assert (every? vector? values)
+    (assert (every? keyword? values)
             (format "Invalid schema: %s. Possible :enum values must be keywords."
                     schema))
     [:enum (select-keys options [:diff]) values]))

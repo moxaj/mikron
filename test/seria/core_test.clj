@@ -1,6 +1,6 @@
 (ns seria.core-test
   (:require [seria.config :refer [make-test-config]]
-            [seria.core :refer [pack unpack diff undiff interp prepare-config! with-params make-buffer]]
+            [seria.core :refer [pack unpack diff undiff interp prepare-config! with-params allocate-buffer]]
             [seria.gen :refer [sample]]
             [clojure.test :refer [deftest is]]))
 
@@ -14,7 +14,7 @@
    (test-pack-case schemas nil))
   ([schemas functions]
    (let [config (make-test-config :schemas schemas)
-         buffer (make-buffer 10000 10000)]
+         buffer (allocate-buffer 10000 10000)]
      (when functions
        (prepare-config! config :functions functions))
      (doseq [value (sample 10 :x config)]
@@ -54,7 +54,7 @@
   (let [config (make-test-config :schemas {:x [:record {:constructor :c}
                                                {:a :int :b :string}]})
         value  (map->TestRecord {:a 1 :b "hi there"})
-        buffer (make-buffer 10000 10000)]
+        buffer (allocate-buffer 10000 10000)]
     (prepare-config! config :functions {:c map->TestRecord})
     (is (= {:schema :x :diff-id 0 :value value}
            (with-params {:config config :schema :x :buffer buffer}
@@ -104,7 +104,7 @@
                         {:a :int
                          :b [:tuple {:diff :all}
                              [:y :y :y :y]]}]
-                    :y [:enum [1 2 3 4]]}
+                    :y [:enum [:a :b :c :d]]}
                    {:x [:record {:diff [:a :b]}
                         {:a :byte
                          :b [:tuple [:byte :byte]]

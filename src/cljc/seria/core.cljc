@@ -1,5 +1,5 @@
 (ns seria.core
-  (:require [seria.buffer :refer [prepare-buffer! buffer->raw raw->buffer]])
+  (:require [seria.buffer :as buffer])
   #?(:cljs (:require-macros seria.core)))
 
 (def ^:dynamic *config*)
@@ -12,8 +12,8 @@
                                {`*schema* schema `*config* config `*buffer* buffer})]
              ~@exprs)))
 
-(defn make-buffer [bits bytes]
-  (seria.buffer/make-buffer bits bytes))
+(defn allocate-buffer [bits bytes]
+  (buffer/allocate bits bytes))
 
 (defn prepare-config! [{:keys [state]} & {:keys [functions]}]
   (swap! state update :fn-map merge functions))
@@ -23,17 +23,22 @@
   (let [schema-id (get-in config [:schema-bimap :map schema])
         pack!     (get-in config [:processors schema :packer])]
     (if (and pack! schema-id buffer)
-      (do (prepare-buffer! buffer)
+      (do (buffer/prepare buffer)
           (pack! value buffer config diffed?)
-          (buffer->raw buffer schema-id diff-id diffed?))
+          (buffer/set-headers buffer schema-id diff-id diffed?)
+          (buffer/collapse buffer))
       ::invalid)))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]
-  (let [{:keys [schema-id buffer diff-id diffed?]} (raw->buffer raw)
+  (let [buffer (buffer/wrap raw)
+        {:keys [schema-id diff-id diffed?]} (buffer/get-headers buffer)
         schema  (get-in config [:schema-bimap :map schema-id])
         unpack! (get-in config [:processors schema :unpacker])]
     (if (and unpack! schema)
-      {:schema schema :diff-id diff-id :value (unpack! buffer config diffed?)}
+      (do (buffer/prepare buffer)
+          {:schema  schema
+           :diff-id diff-id
+           :value   (unpack! buffer config diffed?)})
       ::invalid)))
 
 (defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
