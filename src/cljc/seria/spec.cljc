@@ -1,7 +1,7 @@
 (ns seria.spec
   (:require [clojure.set :refer [union]]))
 
-(def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean})
+(def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :char :boolean :varint})
 (def primitive? primitive-types)
 
 (def advanced-types #{:string :keyword :symbol :any})
@@ -22,10 +22,10 @@
 (def size-types #{:ubyte :ushort :uint})
 (def size? size-types)
 
-(def directly-interpable-types #{:byte :ubyte :short :ushort :int :uint :long :float :double})
+(def directly-interpable-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
 (def directly-interpable? directly-interpable-types)
 
-(def int-types #{:byte :ubyte :short :ushort :int :uint :long})
+(def int-types #{:byte :ubyte :short :ushort :int :uint :long :varint})
 (def int? int-types)
 
 (def traceable-types #{:vector :map :tuple :record :optional :multi})

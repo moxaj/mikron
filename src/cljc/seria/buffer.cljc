@@ -1,46 +1,49 @@
 (ns seria.buffer
-  (:require [seria.util :refer [cljc-ceil]])
+  (:require [seria.util :as util])
   #?(:clj (:import [seria SeriaByteBuffer])))
 
-(defprotocol HybridBuffer
-  (read-byte! [this])
-  (read-ubyte! [this])
-  (read-short! [this])
-  (read-ushort! [this])
-  (read-int! [this])
-  (read-uint! [this])
-  (read-long! [this])
-  (read-float! [this])
-  (read-double! [this])
-  (read-char! [this])
+(def ^:const header-byte-length 6)
+(def ^:const header-bit-length 1)
+
+(defprotocol IBuffer
+  (read-byte!    [this])
+  (read-ubyte!   [this])
+  (read-short!   [this])
+  (read-ushort!  [this])
+  (read-int!     [this])
+  (read-uint!    [this])
+  (read-long!    [this])
+  (read-float!   [this])
+  (read-double!  [this])
+  (read-char!    [this])
   (read-boolean! [this])
 
-  (write-byte! [this value])
-  (write-ubyte! [this value])
-  (write-short! [this value])
-  (write-ushort! [this value])
-  (write-int! [this value])
-  (write-uint! [this value])
-  (write-long! [this value])
-  (write-float! [this value])
-  (write-double! [this value])
-  (write-char! [this value])
+  (write-byte!    [this value])
+  (write-ubyte!   [this value])
+  (write-short!   [this value])
+  (write-ushort!  [this value])
+  (write-int!     [this value])
+  (write-uint!    [this value])
+  (write-long!    [this value])
+  (write-float!   [this value])
+  (write-double!  [this value])
+  (write-char!    [this value])
   (write-boolean! [this value])
 
-  (get-bit-position [this])
+  (get-bit-position  [this])
   (get-bit-position! [this amount])
   (set-bit-position! [this position])
 
-  (get-byte-position [this])
+  (get-byte-position  [this])
   (get-byte-position! [this amount])
   (set-byte-position! [this position])
 
-  (get-max-byte-length [this])
-  (set-max-byte-length! [this value])
+  (get-bit-offset  [this])
+  (set-bit-offset! [this value])
 
-  (to-raw! [this]))
+  (compress [this]))
 
-(defn long->ints [^long value]
+(defn long->ints [value]
   [(unchecked-int (bit-shift-right value 32))
    (unchecked-int value)])
 
@@ -49,7 +52,7 @@
           (bit-and int-2 0xFFFFFFFF)))
 
 (do #?(:clj  (extend-type SeriaByteBuffer
-               HybridBuffer
+               IBuffer
                (read-byte!    [this] (.getByte this))
                (read-ubyte!   [this] (short (bit-and (.getByte this) 0xFF)))
                (read-short!   [this] (.getShort this))
@@ -76,11 +79,11 @@
 
                (get-bit-position     [this] (.getBitPosition this))
                (get-byte-position    [this] (.getBytePosition this))
-               (get-max-byte-length  [this] (.getMaxByteLength this))
+               (get-bit-offset       [this] (.getBitOffset this))
 
                (set-bit-position!    [this value] (.setBitPosition this value))
                (set-byte-position!   [this value] (.setBytePosition this value))
-               (set-max-byte-length! [this value] (.setMaxByteLength this value))
+               (set-bit-offset!      [this value] (.setBitOffset this value))
 
                (get-bit-position!    [this amount] (let [position (.getBitPosition this)]
                                                      (.setBitPosition this (+ position amount))
@@ -88,11 +91,11 @@
                (get-byte-position!   [this amount] (let [position (.getBytePosition this)]
                                                      (.setBytePosition this (+ position amount))
                                                      position))
-               (to-raw! [this] (.toRaw this)))
+               (compress [this] (.compress this)))
 
 
        :cljs (extend-type js/DataView
-               HybridBuffer
+               IBuffer
                (read-byte!    [this] (.getInt8 this (get-byte-position! this 1)))
                (read-ubyte!   [this] (.getUint8 this (get-byte-position! this 1)))
                (read-short!   [this] (.getInt16 this (get-byte-position! this 2)))
@@ -141,13 +144,13 @@
 
                (get-bit-position    [this] (.-bitPosition this))
                (get-byte-position   [this] (.-bytePosition this))
-               (get-max-byte-length [this] (.-maxByteLength this))
+               (get-bit-offset      [this] (.-maxByteLength this))
 
                (set-bit-position!    [this value] (do (set! (.-bitPosition this) value)
                                                       this))
                (set-byte-position!   [this value] (do (set! (.-bytePosition this) value)
                                                       this))
-               (set-max-byte-length! [this value] (do (set! (.-maxByteLength this) value)
+               (set-bit-offset!      [this value] (do (set! (.-maxByteLength this) value)
                                                       this))
 
                (get-bit-position!  [this amount] (let [position (.-bitPosition this)]
@@ -157,65 +160,92 @@
                                                    (set! (.-bytePosition this) (+ position amount))
                                                    position))
 
-               (to-raw! [this] (let [max-byte-length   (get-max-byte-length this)
-                                     total-bit-length  (int (- (cljc-ceil (/ (get-bit-position this) 8))
-                                                               max-byte-length))
-                                     total-byte-length (get-byte-position this)
-                                     array-buffer      (.-buffer this)]
-                                 (-> (js/Int8Array (+ total-bit-length total-byte-length))
-                                     (.set (js/Int8Array. (.slice array-buffer 0 total-byte-length))
-                                           0)
-                                     (.set (js/Int8Array. (.slice array-buffer max-byte-length
-                                                                  (+ max-byte-length total-bit-length)))
-                                           total-byte-length)
-                                     (.-buffer)))))))
+               (compress [this] (let [bit-offset        (get-bit-offset this)
+                                      total-bit-length  (int (- (util/cljc-ceil (/ (get-bit-position this) 8))
+                                                                bit-offset))
+                                      total-byte-length (get-byte-position this)
+                                      array-buffer      (.-buffer this)]
+                                  (-> (js/Int8Array (+ total-bit-length total-byte-length))
+                                      (.set (js/Int8Array (.slice array-buffer 0 total-byte-length))
+                                            0)
+                                      (.set (js/Int8Array (.slice array-buffer bit-offset
+                                                                  (+ bit-offset total-bit-length)))
+                                            total-byte-length)
+                                      (.-buffer)))))))
 
-(def ^:const header-byte-length 6)
-(def ^:const header-bit-length 1)
+(defn encode-negative [n]
+  (- (inc n)))
 
-(defn make-buffer [max-bit-length max-byte-length]
-  (let [length          (+ max-bit-length max-byte-length)
-        buffer #?(:clj  (SeriaByteBuffer/allocate length)
-                  :cljs (js/DataView. (js/ArrayBuffer. length)))]
-    (set-max-byte-length! buffer max-byte-length)))
+(defn decode-negative [n]
+  (dec (- n)))
 
-(defn prepare-buffer! [buffer]
+(defn write-varint! [buffer n]
+  (let [n-neg? (neg? n)
+        n      (if-not n-neg? n (encode-negative n))]
+    (write-boolean! buffer n-neg?)
+    (loop [n n]
+      (if (zero? (bit-and n -128))
+        (write-byte! buffer (unchecked-byte n))
+        (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int n) 127)
+                                                        128)))
+            (recur (unsigned-bit-shift-right n 7)))))))
+
+(defn read-varint! [buffer]
+  (loop [result 0
+         shift  0]
+    (if-not (< shift 64)
+      (throw (util/cljc-exception "Malformed varint!"))
+      (let [b      (read-byte! buffer)
+            result (bit-or result (bit-shift-left (bit-and b 127)
+                                                  shift))]
+         (if (zero? (bit-and b 128))
+           (if-not (read-boolean! buffer)
+             result
+             (decode-negative result))
+           (recur result (+ shift 7)))))))
+
+(defn wrap [raw]
+  (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
+         :cljs (js/DataView. raw))
+      (set-byte-position! 0)
+      (set-bit-offset! 0)
+      (set-bit-position! 0)))
+
+(defn allocate [max-bit-length max-byte-length]
+  (let [max-length (+ max-bit-length max-byte-length)]
+    (-> #?(:clj  (SeriaByteBuffer/allocate max-length)
+           :cljs (js/DataView. (js/ArrayBuffer. max-length)))
+        (set-byte-position! 0)
+        (set-bit-offset! max-byte-length)
+        (set-bit-position! 0))))
+
+(defn prepare [buffer]
   (-> buffer
       (set-byte-position! header-byte-length)
-      (set-bit-position! (+ header-bit-length (* 8 (get-max-byte-length buffer))))))
+      (set-bit-position! header-bit-length)))
 
-(defn raw->buffer [raw]
-  (let [buffer      (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
-                           :cljs (js/DataView. raw))
-                        (set-byte-position! 0)
-                        (set-bit-position! 0))
-        schema-id   (read-ushort! buffer)
-        diff-id     (read-ushort! buffer)
-        byte-length (read-ushort! buffer)
-        diffed?     (-> buffer
-                        (set-bit-position! (* 8 (+ header-byte-length byte-length)))
-                        (read-boolean!))]
-    {:schema-id schema-id
-     :diff-id   diff-id
-     :diffed?   diffed?
-     :buffer    (-> buffer
-                    (set-byte-position! header-byte-length)
-                    (set-bit-position! (+ header-bit-length
-                                          (* 8 (+ header-byte-length byte-length)))))}))
-
-(defn buffer->raw [buffer schema-id diff-id diffed?]
+(defn set-headers [buffer schema-id diff-id diffed?]
   (let [byte-position (get-byte-position buffer)
-        byte-length   (- byte-position header-byte-length)
         bit-position  (get-bit-position buffer)]
     (-> buffer
         (set-byte-position! 0)
         (write-ushort! schema-id)
         (write-ushort! diff-id)
-        (write-ushort! byte-length)
+        (write-ushort! byte-position)
         (set-byte-position! byte-position)
 
-        (set-bit-position! (* 8 (+ header-byte-length (get-max-byte-length buffer))))
+        (set-bit-position! 0)
         (write-boolean! diffed?)
-        (set-bit-position! bit-position)
+        (set-bit-position! bit-position))))
 
-        (to-raw!))))
+(defn get-headers [buffer]
+  (let [schema-id   (read-ushort! buffer)
+        diff-id     (read-ushort! buffer)
+        byte-length (read-ushort! buffer)
+        diffed?     (-> buffer
+                        (set-bit-offset! byte-length)
+                        (set-bit-position! 0)
+                        (read-boolean!))]
+    {:schema-id schema-id
+     :diff-id   diff-id
+     :diffed?   diffed?}))

@@ -6,7 +6,8 @@
                                   write-byte! write-short! write-int!
                                   write-ubyte! write-ushort! write-uint!
                                   write-long! write-float! write-double!
-                                  write-char! write-boolean!]]
+                                  write-char! write-boolean!
+                                  write-varint! read-varint!]]
             [seria.util :refer [disj-indexed cljc-read-string runtime-fn runtime-processor
                                 decorate-set decorate-map decorate-constructor expand-record
                                 schema-dispatch]]
@@ -116,6 +117,12 @@
 
 (defmethod unpack :boolean [_]
   `(read-boolean! ~'buffer))
+
+(defmethod pack :varint [_ value]
+  `(write-varint! ~'buffer ~value))
+
+(defmethod unpack :varint [_]
+  `(read-varint! ~'buffer))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -232,8 +239,8 @@
 
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
-     (when ~value
-       ~(decorate-diff value (pack inner-schema value)))))
+       (when ~value
+         ~(decorate-diff value (pack inner-schema value)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)

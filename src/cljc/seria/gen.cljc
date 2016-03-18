@@ -59,6 +59,9 @@
 (defmethod gen :boolean [_]
   (zero? (rand-int 2)))
 
+(defmethod gen :varint [_]
+  (gen :long))
+
 (defmethod gen :string [_]
   (->> #(gen :char)
        (repeatedly (gen-small-size))
