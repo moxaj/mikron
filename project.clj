@@ -11,8 +11,9 @@
                    :dependencies [[org.clojure/tools.namespace "0.2.11"]
                                   [org.clojure/java.classpath "0.2.3"]
                                   [criterium "0.4.3"]
-                                  [com.taoensso/nippy "2.10.0"]]
-                   :plugins [[lein-seria "0.1.0-SNAPSHOT"]]
+                                  [com.taoensso/nippy "2.10.0"]
+                                  [proto-repl-charts "0.2.0"]]
+                   :plugins [[moxaj/lein-seria "0.1.2"]]
                    :seria {"cat" {:source        "src/seria-config/config1.cljc"
                                   :target        "src/seria-config/config1-compiled.cljc"
                                   :namespace     "config1-compiled"
