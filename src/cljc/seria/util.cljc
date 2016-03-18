@@ -25,16 +25,16 @@
          65535 :ushort
          :uint))
 
-(defn indexed-map [coll]
+(defn bimap [coll]
   (->> coll
        (into (sorted-set))
        (map-indexed vector)
        (mapcat (fn [[a b]] [[a b] [b a]]))
        (into {})))
 
-(defn bimap [coll]
+(defn bimap-with-size [coll]
   {:size (select-size coll)
-   :map  (indexed-map coll)})
+   :map  (bimap coll)})
 
 (defn find-by* [f form]
   (concat (if (f form) [form] [])

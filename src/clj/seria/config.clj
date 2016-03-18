@@ -1,5 +1,5 @@
 (ns seria.config
-  (:require [seria.util :refer [bimap find-by]]
+  (:require [seria.util :refer [bimap-with-size find-by]]
             [seria.validate :refer [validate-schemas]]
             [seria.diff :refer [make-differ make-undiffer]]
             [seria.pack :refer [make-packer make-unpacker]]
@@ -34,16 +34,16 @@
 
 (defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
   (let [schemas      (validate-schemas schemas)
-        schema-bimap (bimap (keys schemas))
-        enum-bimap   (bimap (enum-values schemas))
-        multi-bimap  (bimap (multi-cases schemas))
+        schema-bimap (bimap-with-size (keys schemas))
+        enum-bimap   (bimap-with-size (enum-values schemas))
+        multi-bimap  (bimap-with-size (multi-cases schemas))
         config       {:schemas      schemas
                       :schema-bimap schema-bimap
                       :enum-bimap   enum-bimap
                       :multi-bimap  multi-bimap
-                      :eq-ops       eq-ops}]
-    (assoc config :processors (make-processors schemas config)
-                  :state      `(atom {}))))
+                      :eq-ops       eq-ops
+                      :state        `(atom {})}]
+    (assoc config :processors (make-processors schemas config))))
 
 (defn make-test-config [& args]
   (eval (apply make-config args)))
