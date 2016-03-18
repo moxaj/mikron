@@ -6,11 +6,11 @@
 (def ^:dynamic *schema*)
 (def ^:dynamic *buffer*)
 
-#?(:clj (defmacro with-params [{:keys [schema config buffer]} & exprs]
+#?(:clj (defmacro with-params [{:keys [schema config buffer]} & body]
           `(binding [~@(mapcat (fn [[default arg]]
                                  (if arg [default arg] []))
                                {`*schema* schema `*config* config `*buffer* buffer})]
-             ~@exprs)))
+             ~@body)))
 
 (defn allocate-buffer [bits bytes]
   (buffer/allocate bits bytes))
@@ -26,7 +26,7 @@
       (do (buffer/prepare buffer)
           (pack! value buffer config diffed?)
           (buffer/set-headers buffer schema-id diff-id diffed?)
-          (buffer/collapse buffer))
+          (buffer/compress buffer))
       ::invalid)))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]

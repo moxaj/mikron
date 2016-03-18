@@ -27,7 +27,7 @@ public class SeriaByteBuffer {
     return new SeriaByteBuffer(bytes);
   }
 
-  public byte[] collapse() {
+  public byte[] compress() {
     int totalBitLength = (int) Math.ceil(bitPosition / 8.0f) - bitOffset;
     int totalByteLength = buffer.position();
     byte[] raw = new byte[totalBitLength + totalByteLength];

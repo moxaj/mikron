@@ -35,9 +35,10 @@
 
 (def seria-config (make-test-config :schemas box2d-schemas))
 
-#_(let [data (sample 1000 :snapshot seria-config)]
-    (with-params {:config seria-config
-                  :schema :snapshot
-                  :buffer (allocate-buffer 100000 100000)}
-      (with-progress-reporting
-        (quick-bench (run! pack data)))))
+(let [config (make-test-config :schemas {:snapshot [:list :int]})
+      data   (repeat 1000 42)]
+  (with-params {:config config
+                :schema :snapshot
+                :buffer (allocate-buffer 100000 100000)}
+    (with-progress-reporting
+      (quick-bench (freeze data)))))

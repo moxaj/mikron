@@ -41,7 +41,7 @@
   (get-bit-offset  [this])
   (set-bit-offset! [this value])
 
-  (collapse [this]))
+  (compress [this]))
 
 (defn long->ints [value]
   [(unchecked-int (bit-shift-right value 32))
@@ -91,7 +91,7 @@
                (get-byte-position!   [this amount] (let [position (.getBytePosition this)]
                                                      (.setBytePosition this (+ position amount))
                                                      position))
-               (collapse [this] (.collapse this)))
+               (compress [this] (.compress this)))
 
 
        :cljs (extend-type js/DataView
@@ -160,24 +160,28 @@
                                                    (set! (.-bytePosition this) (+ position amount))
                                                    position))
 
-               (collapse [this] (let [bit-offset   (get-bit-offset this)
+               (compress [this] (let [bit-offset        (get-bit-offset this)
                                       total-bit-length  (int (- (util/cljc-ceil (/ (get-bit-position this) 8))
                                                                 bit-offset))
                                       total-byte-length (get-byte-position this)
                                       array-buffer      (.-buffer this)]
-                                  (-> (js/byteArray (+ total-bit-length total-byte-length))
-                                      (.set (js/byteArray. (.slice array-buffer 0 total-byte-length))
+                                  (-> (js/Int8Array (+ total-bit-length total-byte-length))
+                                      (.set (js/Int8Array (.slice array-buffer 0 total-byte-length))
                                             0)
-                                      (.set (js/byteArray. (.slice array-buffer bit-offset
-                                                                   (+ bit-offset total-bit-length)))
+                                      (.set (js/Int8Array (.slice array-buffer bit-offset
+                                                                  (+ bit-offset total-bit-length)))
                                             total-byte-length)
                                       (.-buffer)))))))
 
+(defn encode-negative [n]
+  (- (inc n)))
+
+(defn decode-negative [n]
+  (dec (- n)))
+
 (defn write-varint! [buffer n]
   (let [n-neg? (neg? n)
-        n      (long (if-not n-neg?
-                       n
-                       (- (inc n))))]
+        n      (if-not n-neg? n (encode-negative n))]
     (write-boolean! buffer n-neg?)
     (loop [n n]
       (if (zero? (bit-and n -128))
@@ -197,7 +201,7 @@
          (if (zero? (bit-and b 128))
            (if-not (read-boolean! buffer)
              result
-             (dec (- result)))
+             (decode-negative result))
            (recur result (+ shift 7)))))))
 
 (defn wrap [raw]
@@ -238,8 +242,10 @@
   (let [schema-id   (read-ushort! buffer)
         diff-id     (read-ushort! buffer)
         byte-length (read-ushort! buffer)
-        buffer      (-> buffer (set-bit-offset! byte-length) (set-bit-position! 0))
-        diffed?     (read-boolean! buffer)]
+        diffed?     (-> buffer
+                        (set-bit-offset! byte-length)
+                        (set-bit-position! 0)
+                        (read-boolean!))]
     {:schema-id schema-id
      :diff-id   diff-id
      :diffed?   diffed?}))
