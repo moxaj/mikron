@@ -14,7 +14,6 @@
                                   [com.taoensso/nippy "2.10.0"]
                                   [proto-repl-charts "0.2.0"]]
                    :plugins [[moxaj/lein-seria "0.1.2"]]
-                   :plugins [[lein-seria "0.1.2"]]
                    :seria {"cat" {:source        "src/seria-config/config1.cljc"
                                   :target        "src/seria-config/config1-compiled.cljc"
                                   :namespace     "config1-compiled"
