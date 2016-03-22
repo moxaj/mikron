@@ -1,20 +1,29 @@
 (ns playground
-  (:require [criterium.core :refer [with-progress-reporting quick-bench]]
-            [seria.core :refer [pack unpack with-params make-buffer]]
-            [seria.config :refer [make-config make-test-config]]
-            [seria.gen :refer [sample]]
-            [taoensso.nippy :refer [freeze thaw]]
-            [seria.prettify :refer [prettify]]))
+  (:require [seria.buffer :as buffer]
+            [seria.core :as core]
+            [seria.config :as config]
+            [seria.gen :as gen]
+            [criterium.core :as crit]
+            [no.disassemble :as dis]
+            [taoensso.nippy :as nippy])
+  (:import [seria SeriaByteBuffer]))
 
-(let [config (make-test-config :schemas {:x :int})
-      buffer (make-buffer 1000 1000)
-      data 20]
-  (with-params {:config config :schema :x :buffer buffer}
-    (unpack (pack data))))
+(def box2d-schemas
+  {:body     [:record {:user-data [:record {:id :int}]
+                       :position  :coord
+                       :angle     :float
+                       :body-type [:enum [:dynamic :static :kinetic]]
+                       :fixtures  [:list :fixture]}]
+   :fixture  [:record {:user-data [:record {:color :int}]
+                       :coords    [:list :coord]}]
+   :coord    [:tuple [:float :float]]
+   :snapshot [:record {:time   :int
+                       :bodies [:list :body]}]})
 
+(def seria-config (config/make-test-config :schemas box2d-schemas))
 
-(defmacro foo [x]
-  (let [y `'~x]
-    `(identity ~y)))
-
-(macroexpand '(foo z))
+(let [buffer (core/allocate-buffer 10000 10000)
+      data   (first (gen/sample 1 :snapshot seria-config))]
+  (core/with-params {:schema :snapshot :config seria-config :buffer buffer}
+    (dotimes [_ 100]
+      (core/unpack (core/pack data)))))

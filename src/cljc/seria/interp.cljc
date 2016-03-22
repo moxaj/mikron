@@ -1,27 +1,26 @@
 (ns seria.interp
-  (:require [seria.spec :refer [interpable? directly-interpable? int? custom? traceable-index?]]
-            [seria.util :refer [cljc-abs cljc-round decorate-map decorate-constructor
-                                runtime-processor runtime-fn disj-indexed]]))
+  (:require [seria.type :as type]
+            [seria.util :as util]))
 
 (def ^:dynamic *config*)
 
 (defn interp-values [v1 v2 time-factor round?]
   (let [value (+ v1 (* time-factor (- v2 v1)))]
     (if round?
-      (cljc-round value)
+      (util/cljc-round value)
       value)))
 
 (defn interp-dispatch [schema value-1 value-2]
   (cond
-    (directly-interpable? schema) :interpable
-    (interpable? schema)          (first schema)
-    (custom? schema)              :custom
-    :else                         :non-interpable))
+    (type/directly-interpable-type? schema) :interpable
+    (type/interpable-type? schema)          (first schema)
+    (type/custom-type? schema)              :custom
+    :else                                   :non-interpable))
 
 (defmulti interp interp-dispatch)
 
 (defmethod interp :interpable [schema value-1 value-2]
-  `(interp-values ~value-1 ~value-2 ~'time-factor ~(int? schema)))
+  `(interp-values ~value-1 ~value-2 ~'time-factor ~(not (type/floating-type? schema))))
 
 (defmethod interp :non-interpable [_ value-1 value-2]
   `(if ~'prefer-first?
@@ -47,13 +46,13 @@
                          ~(interp value-schema val-1 val-2)
                          ~val-2)])
                ~value-2)
-         (decorate-map sorted-by))))
+         (util/as-map sorted-by))))
 
 (defmethod interp :tuple [[_ {:keys [interp]} :as schema] value-1 value-2]
-  (let [disjoined-2 (disj-indexed schema value-2)]
+  (let [disjoined-2 (util/disj-indexed schema value-2)]
     `(let [~@(mapcat (juxt :symbol :inner-value) disjoined-2)]
        ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
-                (if-not (traceable-index? index interp)
+                (if-not (type/traceable-index? index interp)
                   inner-value-2
                   (let [inner-value-1 (gensym "inner-value-1_")]
                     `(let [~inner-value-1 (get ~value-1 ~index)]
@@ -61,20 +60,21 @@
               disjoined-2))))
 
 (defmethod interp :record [[_ {:keys [interp constructor]} :as schema] value-1 value-2]
-  (let [disjoined-2 (disj-indexed schema value-2)]
+  (let [disjoined-2 (util/disj-indexed schema value-2)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) disjoined-2)]
             ~(->> disjoined-2
                   (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
-                         [index (if-not (traceable-index? index interp)
+                         [index (if-not (type/traceable-index? index interp)
                                   inner-value-2
                                   (let [inner-value-1 (gensym "inner-value-1_")]
                                     `(let [~inner-value-1 (get ~value-1 ~index)]
                                        ~(interp inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (decorate-constructor constructor))))
+         (util/as-record constructor))))
 
 (defmethod interp :custom [schema value-1 value-2]
-  `(~(runtime-processor schema :interper) ~value-1 ~value-2 ~'time-1 ~'time-2 ~'time ~'config))
+  `(~(util/runtime-processor schema :interper)
+    ~value-1 ~value-2 ~'time-1 ~'time-2 ~'time ~'config))
 
 (defmethod interp :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -85,7 +85,7 @@
   (let [selector-fn (gensym "selector-fn_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(runtime-fn selector)
+    `(let [~selector-fn ~(util/runtime-fn selector)
            ~case-1      (~selector-fn ~value-1)
            ~case-2      (~selector-fn ~value-2)]
        (if-not (= ~case-1 ~case-2)
@@ -98,7 +98,7 @@
 (defn make-interper [schema config]
   (binding [*config* config]
     `(fn [~'value-1 ~'value-2 ~'time-1 ~'time-2 ~'time ~'config]
-       (let [~'prefer-first? (< (cljc-abs (- ~'time ~'time-1))
-                                (cljc-abs (- ~'time ~'time-2)))
+       (let [~'prefer-first? (< (util/cljc-abs (- ~'time ~'time-1))
+                                (util/cljc-abs (- ~'time ~'time-2)))
              ~'time-factor   (/ (- ~'time ~'time-1) (- ~'time-2 ~'time-1))]
          ~(interp schema 'value-1 'value-2)))))

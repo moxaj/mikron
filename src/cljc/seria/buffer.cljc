@@ -1,6 +1,8 @@
 (ns seria.buffer
   (:require [seria.util :as util])
-  #?(:clj (:import [seria SeriaByteBuffer])))
+  #?(:clj (:import [seria SeriaByteBuffer]
+                   [java.nio Bits]
+                   [sun.misc Unsafe])))
 
 (def ^:const header-byte-length 6)
 (def ^:const header-bit-length 1)
@@ -173,36 +175,36 @@
                                             total-byte-length)
                                       (.-buffer)))))))
 
-(defn encode-negative [n]
-  (- (inc n)))
+(defn encode-negative [value]
+  (- (inc value)))
 
-(defn decode-negative [n]
-  (dec (- n)))
+(defn decode-negative [value]
+  (dec (- value)))
 
-(defn write-varint! [buffer n]
-  (let [n-neg? (neg? n)
-        n      (if-not n-neg? n (encode-negative n))]
-    (write-boolean! buffer n-neg?)
-    (loop [n n]
-      (if (zero? (bit-and n -128))
-        (write-byte! buffer (unchecked-byte n))
-        (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int n) 127)
+(defn write-varint! [buffer value]
+  (let [neg-value? (neg? value)
+        value      (if-not neg-value? value (encode-negative value))]
+    (write-boolean! buffer neg-value?)
+    (loop [value value]
+      (if (zero? (bit-and value -128))
+        (write-byte! buffer (unchecked-byte value))
+        (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
                                                         128)))
-            (recur (unsigned-bit-shift-right n 7)))))))
+            (recur (unsigned-bit-shift-right value 7)))))))
 
 (defn read-varint! [buffer]
-  (loop [result 0
+  (loop [value  0
          shift  0]
     (if-not (< shift 64)
       (throw (util/cljc-exception "Malformed varint!"))
-      (let [b      (read-byte! buffer)
-            result (bit-or result (bit-shift-left (bit-and b 127)
-                                                  shift))]
+      (let [b     (read-byte! buffer)
+            value (bit-or value (bit-shift-left (bit-and b 127)
+                                                shift))]
          (if (zero? (bit-and b 128))
            (if-not (read-boolean! buffer)
-             result
-             (decode-negative result))
-           (recur result (+ shift 7)))))))
+             value
+             (decode-negative value))
+           (recur value (unchecked-add shift 7)))))))
 
 (defn wrap [raw]
   (-> #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)

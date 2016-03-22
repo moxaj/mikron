@@ -1,21 +1,21 @@
 (ns seria.util
-  (:require [seria.spec :refer [primitive? advanced? composite? custom?]]
-            [clojure.set :refer [union]]
-   #?(:cljs [cljs.reader])))
+  (:require [seria.type :as type]
+            [clojure.set :as set]
+   #?(:cljs [cljs.reader :as reader])))
 
-(defn cljc-exception [s]
+(defn cljc-exception [^String s]
   #?(:clj  (Exception. s)
      :cljs (js/Error. s)))
 
 (defn cljc-read-string [s]
   #?(:clj  (read-string s)
-     :cljs (cljs.reader/read-string s)))
+     :cljs (reader/read-string s)))
 
-(defn cljc-abs [n]
+(defn cljc-abs [^double n]
   #?(:clj  (Math/abs n)
      :cljs (.abs js/Math n)))
 
-(defn cljc-round [n]
+(defn cljc-round [^double n]
   #?(:clj  (Math/round n)
      :cljs (.round js/Math n)))
 
@@ -23,27 +23,12 @@
   #?(:clj  (Math/ceil n)
      :cljs (.ceil js/Math n)))
 
-(def zigzag-ints
-  ((fn gen ([] (gen 0 false))
-           ([n pos?] (lazy-seq (cons n (gen (if pos? (- n) (inc (- n)))
-                                            (not pos?))))))))
-
-(defn select-size [coll]
-  (condp > (count coll)
-         255   :ubyte
-         65535 :ushort
-         :uint))
-
 (defn bimap [coll]
   (->> coll
        (into (sorted-set))
        (map-indexed vector)
        (mapcat (fn [[a b]] [[a b] [b a]]))
        (into {})))
-
-(defn bimap-with-size [coll]
-  {:size (select-size coll)
-   :map  (bimap coll)})
 
 (defn find-by* [f form]
   (concat (if (f form) [form] [])
@@ -57,15 +42,14 @@
 
 (defn schema-dispatch [schema & _]
   (cond
-    (or (primitive? schema)
-        (advanced? schema)) schema
-    (composite? schema)     (first schema)
-    (custom? schema)        :custom))
+    (type/primitive-type? schema) schema
+    (type/composite-type? schema) (first schema)
+    (type/custom-type? schema)    :custom))
 
-(defn resolve-schema [schema schemas]
+(defn resolve-custom-schema [schema schemas]
   (->> schema
        (iterate schemas)
-       (drop-while custom?)
+       (drop-while type/custom-type?)
        (first)))
 
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
@@ -76,47 +60,47 @@
       (reduce (fn [[_ {diff-1 :diff interp-1 :interp} record-map-1]
                    [_ {diff-2 :diff interp-2 :interp constructor :constructor} record-map-2]]
                 (letfn [(expand-option [opt all] (set (if (= :all opt) all opt)))]
-                  [:record {:diff        (union (expand-option diff-1 (keys record-map-1))
-                                                (expand-option diff-2 (keys record-map-2)))
-                            :interp      (union (expand-option interp-1 (keys record-map-1))
-                                                (expand-option interp-2 (keys record-map-2)))
+                  [:record {:diff        (set/union (expand-option diff-1 (keys record-map-1))
+                                                    (expand-option diff-2 (keys record-map-2)))
+                            :interp      (set/union (expand-option interp-1 (keys record-map-1))
+                                                    (expand-option interp-2 (keys record-map-2)))
                             :constructor constructor}
                    (merge record-map-1 record-map-2)]))
               (conj super-records record)))))
 
-(defn disj-indexed [[composite-type {:keys [constructor]} arg] value]
+(defn disj-indexed [[composite-type {:keys [constructor]} inner-schemas] value]
   (map (fn [index]
          {:index        index
           :symbol       (gensym "inner-value_")
-          :inner-schema (arg index)
+          :inner-schema (inner-schemas index)
           :inner-value  (case composite-type
                           :tuple  `(~value ~index)
                           :record `(get ~value ~index))})
        (case composite-type
-         :tuple  (range (count arg))
-         :record (sort (keys arg)))))
+         :tuple  (range (count inner-schemas))
+         :record (sort (keys inner-schemas)))))
 
-(defn runtime-fn [key]
-  `(get-in @(:state ~'config) [:fn-map ~key]))
+(defn runtime-fn [fn-key]
+  `(get-in @(:state ~'config) [:fn-map ~fn-key]))
 
-(defn runtime-processor [schema type]
-  `(get-in ~'config [:processors ~schema ~type]))
+(defn runtime-processor [schema processor-type]
+  `(get-in ~'config [:processors ~schema ~processor-type]))
 
-(defn decorate-set [sorted-by expr]
+(defn as-set [sorted-by body]
   `(into ~(case sorted-by
             :none    `#{}
             :default `(sorted-set)
             `(sorted-set-by ~(runtime-fn sorted-by)))
-         ~expr))
+         ~body))
 
-(defn decorate-map [sorted-by expr]
+(defn as-map [sorted-by body]
   `(into ~(case sorted-by
             :none    `{}
             :default `(sorted-map)
             `(sorted-map-by ~(runtime-fn sorted-by)))
-         ~expr))
+         ~body))
 
-(defn decorate-constructor [constructor expr]
+(defn as-record [constructor body]
   (if constructor
-    `(~(runtime-fn constructor) ~expr)
-    expr))
+    `(~(runtime-fn constructor) ~body)
+    body))

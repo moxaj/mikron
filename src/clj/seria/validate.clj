@@ -1,5 +1,5 @@
 (ns seria.validate
-  (:require [seria.spec :refer [primitive? composite? advanced? size? built-in?]]))
+  (:require [seria.type :as type]))
 
 (defn with-options [[a b & rest :as composite]]
   (if (and (map? b) (seq rest))
@@ -27,13 +27,6 @@
   (vec (concat [composite-type (assoc options :diff diff)]
                args)))
 
-(defn validate-scalable [[composite-type {:keys [size] :or {size :ubyte} :as options} & args :as schema]]
-  (assert (size? size)
-          (format "Invalid schema: %s. :size option must be either :ubyte or :ushort."
-                  schema))
-  (vec (concat [composite-type (assoc options :size size)]
-               args)))
-
 (defn validate-interpable [[composite-type {:keys [interp] :or {interp []} :as options} & args :as schema]]
   (assert (or (= :all interp)
               (vector? interp))
@@ -45,46 +38,40 @@
 
 (defmulti validate-composite first)
 
-(defmethod validate-composite :list [schema]
-  (let [[_ options inner-schema :as schema] (->> schema
-                                                 (validate-scalable))]
-    (assert (= 3 (count schema))
-            (format "Invalid schema: %s. :list-s must have 1 or 2 arguments."
-                    schema))
-    [:list (select-keys options [:size])
-     (validate-schema inner-schema)]))
+(defmethod validate-composite :list [[_ _ inner-schema :as schema]]
+  (assert (= 3 (count schema))
+          (format "Invalid schema: %s. :list-s must have 1 or 2 arguments."
+                  schema))
+  [:list {} (validate-schema inner-schema)])
 
 (defmethod validate-composite :vector [schema]
   (let [[_ options inner-schema :as schema] (->> schema
-                                                 (validate-scalable)
                                                  (validate-diffable)
                                                  (validate-interpable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :vector-s must have 1 or 2 arguments."
                     schema))
-    [:vector (select-keys options [:size :diff :interp])
+    [:vector (select-keys options [:diff :interp])
      (validate-schema inner-schema)]))
 
 (defmethod validate-composite :set [schema]
   (let [[_ options inner-schema :as schema] (->> schema
-                                                 (validate-scalable)
                                                  (validate-sortable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :set-s must have 1 or 2 arguments."
                     schema))
-    [:set (select-keys options [:size :sorted-by])
+    [:set (select-keys options [:sorted-by])
      (validate-schema inner-schema)]))
 
 (defmethod validate-composite :map [schema]
   (let [[_ options key-schema val-schema :as schema] (->> schema
-                                                          (validate-scalable)
                                                           (validate-diffable)
                                                           (validate-sortable)
                                                           (validate-interpable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. :map-s must have 2 or 3 arguments."
                     schema))
-    [:map (select-keys options [:size :diff :sorted-by :interp])
+    [:map (select-keys options [:diff :sorted-by :interp])
      (validate-schema key-schema) (validate-schema val-schema)]))
 
 (defmethod validate-composite :optional [[_ options inner-schema :as schema]]
@@ -172,12 +159,11 @@
 
 (defn validate-schema [schema]
   (cond
-    (or (primitive? schema)
-        (advanced? schema)
+    (or (type/primitive-type? schema)
         (contains? *schemas* schema))
     schema
 
-    (composite? schema)
+    (type/composite-type? schema)
     (validate-composite (with-options schema))
 
     :else
@@ -187,7 +173,7 @@
   (assert (map? schemas)
           (format ":schemas parameter must be a map: %s."
                   schemas))
-  (assert (not-any? built-in? (keys schemas))
+  (assert (not-any? type/built-in-type? (keys schemas))
           (format "You cannot redefine built-in schemas."
                   schemas))
   (binding [*schemas* schemas]

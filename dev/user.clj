@@ -1,12 +1,12 @@
 (ns user
-  (:require [clojure.tools.namespace.repl :refer [refresh]]))
+  (:require [clojure.tools.namespace.repl :as repl]))
 
 (defn init []
   nil)
 
 (defn start []
   nil)
-  
+
 (defn stop []
   nil)
 
@@ -16,4 +16,4 @@
 
 (defn reset []
   (stop)
-  (refresh :after 'user/go))
+  (repl/refresh :after 'user/go))

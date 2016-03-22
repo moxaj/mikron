@@ -1,6 +1,6 @@
 (ns seria.gen
-  (:require [seria.spec :refer [primitive? advanced? composite? custom?]]
-            [seria.util :refer [resolve-schema schema-dispatch]]))
+  (:require [seria.type :as type]
+            [seria.util :as util]))
 
 (def ^:dynamic *config*)
 
@@ -12,40 +12,38 @@
 (defn gen-symbol-char []
   (rand-nth symbol-chars))
 
-(defn gen-small-size []
-  (rand-nth (range 1 5)))
+(defn gen-size []
+  (+ 2 (rand-int 4)))
 
-(defn gen-big-size []
-  (rand-nth (range 256 300)))
+(defn random-integer [bytes signed?]
+  (let [max-value (Math/pow 2 (* bytes 8))
+        r         (Math/floor (* max-value (rand)))]
+    (long (if-not signed?
+            r
+            (- r (/ max-value 2))))))
 
-(defn gen-size [size-type]
-  (case size-type
-    :ubyte  (gen-small-size)
-    :ushort (gen-big-size)
-    :uint   (gen-big-size)))
-
-(defmulti gen schema-dispatch)
+(defmulti gen util/schema-dispatch)
 
 (defmethod gen :byte [_]
-  (- (rand-int 256) 128))
+  (random-integer 1 true))
 
 (defmethod gen :ubyte [_]
-  (rand-int 256))
+  (random-integer 1 false))
 
 (defmethod gen :short [_]
-  (- (rand-int 65536) 32768))
+  (random-integer 2 true))
 
 (defmethod gen :ushort [_]
-  (rand-int 65536))
+  (random-integer 2 false))
 
 (defmethod gen :int [_]
-  (rand-int 2147483648))
+  (random-integer 4 true))
 
 (defmethod gen :uint [_]
-  (long (* 4294967296 (rand))))
+  (random-integer 4 false))
 
 (defmethod gen :long [_]
-  (long (* Long/MAX_VALUE (rand))))
+  (random-integer 8 true))
 
 (defmethod gen :float [_]
   (float (rand)))
@@ -54,7 +52,7 @@
   (double (rand)))
 
 (defmethod gen :char [_]
-  (char (rand-int 65536)))
+  (char (gen :ushort)))
 
 (defmethod gen :boolean [_]
   (zero? (rand-int 2)))
@@ -64,45 +62,45 @@
 
 (defmethod gen :string [_]
   (->> #(gen :char)
-       (repeatedly (gen-small-size))
+       (repeatedly (gen-size))
        (apply str)))
 
 (defmethod gen :keyword [_]
   (->> #(gen-symbol-char)
-       (repeatedly (gen-small-size))
+       (repeatedly (gen-size))
        (apply str)
        (keyword)))
 
 (defmethod gen :symbol [_]
   (->> #(gen-symbol-char)
-       (repeatedly (gen-small-size))
+       (repeatedly (gen-size))
        (apply str)
        (symbol)))
 
 (defmethod gen :any [_]
   "Not yet implemented")
 
-(defmethod gen :list [[_ {:keys [size]} inner-schema]]
-  (doall (repeatedly (gen-size size) #(gen inner-schema))))
+(defmethod gen :list [[_ _ inner-schema]]
+  (doall (repeatedly (gen-size) #(gen inner-schema))))
 
-(defmethod gen :vector [[_ {:keys [size]} inner-schema]]
-  (vec (repeatedly (gen-size size) #(gen inner-schema))))
+(defmethod gen :vector [[_ _ inner-schema]]
+  (vec (repeatedly (gen-size) #(gen inner-schema))))
 
-(defmethod gen :set [[_ {:keys [size sorted-by]} inner-schema]]
+(defmethod gen :set [[_ {:keys [sorted-by]} inner-schema]]
   (into (case sorted-by
-          :none #{}
+          :none    #{}
           :default (sorted-set)
           (sorted-set-by (get-in @(:state *config*) [:fn-map sorted-by])))
-        (repeatedly (gen-size size) #(gen inner-schema))))
+        (repeatedly (gen-size) #(gen inner-schema))))
 
-(defmethod gen :map [[_ {:keys [size sorted-by]} key-schema val-schema]]
-  (let [size-value (gen-size size)]
+(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
+  (let [size (gen-size)]
     (into (case sorted-by
-            :none {}
+            :none    {}
             :default (sorted-map)
             (sorted-map-by (get-in @(:state *config*) [:fn-map sorted-by])))
-          (zipmap (repeatedly size-value #(gen key-schema))
-                  (repeatedly size-value #(gen val-schema))))))
+          (zipmap (repeatedly size #(gen key-schema))
+                  (repeatedly size #(gen val-schema))))))
 
 (defmethod gen :tuple [[_ _ inner-schemas]]
   (mapv gen inner-schemas))
@@ -122,7 +120,7 @@
   (gen (rand-nth (vals multi-map))))
 
 (defmethod gen :custom [schema]
-  (gen (resolve-schema schema (:schemas *config*))))
+  (gen (util/resolve-custom-schema schema (:schemas *config*))))
 
 (defn sample [n schema config]
   (binding [*config* config]

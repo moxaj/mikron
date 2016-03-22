@@ -1,6 +1,7 @@
 package seria;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class SeriaByteBuffer {
   private ByteBuffer buffer;
@@ -8,13 +9,13 @@ public class SeriaByteBuffer {
   private int bitOffset;
 
   private SeriaByteBuffer(int capacity) {
-    buffer = ByteBuffer.allocate(capacity);
+    buffer = ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder());
     bitPosition = 0;
     bitOffset = 0;
   }
 
   private SeriaByteBuffer(byte[] bytes) {
-    buffer = ByteBuffer.wrap(bytes);
+    buffer = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder());
     bitPosition = 0;
     bitOffset = 0;
   }
@@ -32,9 +33,15 @@ public class SeriaByteBuffer {
     int totalByteLength = buffer.position();
     byte[] raw = new byte[totalBitLength + totalByteLength];
 
-    byte[] backingArray = buffer.array();
-    System.arraycopy(backingArray, 0, raw, 0, totalByteLength);
-    System.arraycopy(backingArray, bitOffset, raw, totalByteLength, totalBitLength);
+    buffer.position(0);
+    buffer.get(raw, 0, totalByteLength);
+    buffer.position(bitOffset);
+    buffer.get(raw, totalByteLength, totalBitLength);
+
+    // heap
+    // byte[] backingArray = buffer.array();
+    // System.arraycopy(backingArray, 0, raw, 0, totalByteLength);
+    // System.arraycopy(backingArray, bitOffset, raw, totalByteLength, totalBitLength);
 
     return raw;
   }
