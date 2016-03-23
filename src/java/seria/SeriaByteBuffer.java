@@ -4,20 +4,24 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class SeriaByteBuffer {
-  private ByteBuffer buffer;
+  private ByteBuffer byteBuffer;
+  private byte bitBuffer;
   private int bitPosition;
-  private int bitOffset;
+  private int bitIndex;
+  private boolean littleEndian;
 
   private SeriaByteBuffer(int capacity) {
-    buffer = ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder());
-    bitPosition = 0;
-    bitOffset = 0;
+    ByteOrder order = ByteOrder.nativeOrder();
+    littleEndian = ByteOrder.LITTLE_ENDIAN.equals(order);
+    byteBuffer = ByteBuffer.allocateDirect(capacity).order(order);
+    reset();
   }
 
   private SeriaByteBuffer(byte[] bytes) {
-    buffer = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder());
-    bitPosition = 0;
-    bitOffset = 0;
+    ByteOrder order = ByteOrder.nativeOrder();
+    littleEndian = ByteOrder.LITTLE_ENDIAN.equals(order);
+    byteBuffer = ByteBuffer.wrap(bytes).order(order);
+    reset();
   }
 
   public static SeriaByteBuffer allocate(int capacity) {
@@ -28,137 +32,121 @@ public class SeriaByteBuffer {
     return new SeriaByteBuffer(bytes);
   }
 
-  public byte[] compress() {
-    int totalBitLength = (int) Math.ceil(bitPosition / 8.0f) - bitOffset;
-    int totalByteLength = buffer.position();
-    byte[] raw = new byte[totalBitLength + totalByteLength];
+  public SeriaByteBuffer reset() {
+    bitBuffer = 0;
+    bitPosition = 0;
+    bitIndex = 0;
+    byteBuffer.position(0);
+    return this;
+  }
 
-    buffer.position(0);
-    buffer.get(raw, 0, totalByteLength);
-    buffer.position(bitOffset);
-    buffer.get(raw, totalByteLength, totalBitLength);
+  public byte[] compressed() {
+    if ((bitIndex % 8) != 0) {
+        byteBuffer.put(bitPosition, bitBuffer);
+    }
 
-    // heap
-    // byte[] backingArray = buffer.array();
-    // System.arraycopy(backingArray, 0, raw, 0, totalByteLength);
-    // System.arraycopy(backingArray, bitOffset, raw, totalByteLength, totalBitLength);
-
+    byte[] raw = new byte[byteBuffer.position()];
+    byteBuffer.position(0);
+    byteBuffer.get(raw);
     return raw;
   }
 
-  ////////////////////////////////////////////////////////////
-  //
-  // Positioning
-  //
-  ////////////////////////////////////////////////////////////
-
-  public int getBitPosition() {
-    return bitPosition - bitOffset * 8;
+  public boolean isLittleEndian() {
+    return littleEndian;
   }
 
-  public SeriaByteBuffer setBitPosition(int bitPosition) {
-    this.bitPosition = bitOffset * 8 + bitPosition;
+  public SeriaByteBuffer setLittleEndian(boolean littleEndian) {
+    this.littleEndian = littleEndian;
+    byteBuffer.order(littleEndian ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
     return this;
   }
-
-  public int getBytePosition() {
-    return buffer.position();
-  }
-
-  public SeriaByteBuffer setBytePosition(int bytePosition) {
-    buffer.position(bytePosition);
-    return this;
-  }
-
-  public int getBitOffset() {
-    return bitOffset;
-  }
-
-  public SeriaByteBuffer setBitOffset(int bitOffset) {
-   this.bitOffset = bitOffset;
-    return this;
-  }
-
-  ////////////////////////////////////////////////////////////
-  //
-  // Buffer methods
-  //
-  ////////////////////////////////////////////////////////////
 
   public boolean getBoolean() {
-    boolean value = (buffer.get(bitPosition / 8) & (1 << bitPosition % 8)) != 0;
-    bitPosition++;
-    return value;
+    if (bitIndex % 8 == 0) {
+      bitPosition = byteBuffer.position();
+      bitBuffer = byteBuffer.get();
+      byteBuffer.position(bitPosition + 1);
+    }
+
+    return 0 != (bitBuffer & (1 << bitIndex++));
   }
 
   public byte getByte() {
-    return buffer.get();
+    return byteBuffer.get();
   }
 
   public char getChar() {
-    return buffer.getChar();
+    return byteBuffer.getChar();
   }
 
   public double getDouble() {
-    return buffer.getDouble();
+    return byteBuffer.getDouble();
   }
 
   public float getFloat() {
-    return buffer.getFloat();
+    return byteBuffer.getFloat();
   }
 
   public int getInt() {
-    return buffer.getInt();
+    return byteBuffer.getInt();
   }
 
   public long getLong() {
-    return buffer.getLong();
+    return byteBuffer.getLong();
   }
 
   public short getShort() {
-    return buffer.getShort();
+    return byteBuffer.getShort();
   }
 
   public SeriaByteBuffer putBoolean(boolean value) {
-    int position = bitPosition / 8;
-    byte b = buffer.get(position);
-    buffer.put(position, (byte) (value ? (b | (1 << bitPosition % 8)) : (b & ~(1 << bitPosition % 8))));
-    bitPosition++;
+    if (bitIndex % 8 == 0) {
+      if (bitIndex > 0) {
+        byteBuffer.put(bitPosition, bitBuffer);
+      }
+
+      bitPosition = byteBuffer.position();
+      bitBuffer = 0;
+      byteBuffer.position(bitPosition + 1);
+    }
+
+    bitBuffer = (byte) (value ? bitBuffer |  (1 << bitIndex++)
+                              : bitBuffer & ~(1 << bitIndex++));
     return this;
   }
 
   public SeriaByteBuffer putByte(byte value) {
-    buffer.put(value);
+    byteBuffer.put(value);
     return this;
   }
 
   public SeriaByteBuffer putChar(char value) {
-    buffer.putChar(value);
+    byteBuffer.putChar(value);
     return this;
   }
 
   public SeriaByteBuffer putDouble(double value) {
-    buffer.putDouble(value);
+    byteBuffer.putDouble(value);
     return this;
   }
 
   public SeriaByteBuffer putFloat(float value) {
-    buffer.putFloat(value);
+    byteBuffer.putFloat(value);
     return this;
   }
 
   public SeriaByteBuffer putInt(int value) {
-    buffer.putInt(value);
+    byteBuffer.putInt(value);
     return this;
   }
 
   public SeriaByteBuffer putLong(long value) {
-    buffer.putLong(value);
+    byteBuffer.putLong(value);
     return this;
   }
 
   public SeriaByteBuffer putShort(short value) {
-    buffer.putShort(value);
+    byteBuffer.putShort(value);
     return this;
   }
 }

@@ -1,7 +1,8 @@
 (ns seria.pack
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
-            [seria.type :as type]))
+            [seria.type :as type]
+            [seria.varint :as varint]))
 
 (def ^:dynamic *config*)
 
@@ -109,10 +110,10 @@
   `(buffer/read-boolean! ~'buffer))
 
 (defmethod pack :varint [_ value]
-  `(buffer/write-varint! ~'buffer ~value))
+  `(varint/write-varint! ~'buffer ~value))
 
 (defmethod unpack :varint [_]
-  `(buffer/read-varint! ~'buffer))
+  `(varint/read-varint! ~'buffer))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -255,15 +256,16 @@
   `(get ~(:enum-bimap *config*) ~(unpack :varint)))
 
 (defmethod pack :custom [schema value]
-  `(~(util/runtime-processor schema :packer) ~value ~'buffer ~'config ~'diffed?))
+  `(~(util/runtime-processor schema :packer) ~'buffer ~value ~'config ~'diffed?))
 
 (defmethod unpack :custom [schema]
   `(~(util/runtime-processor schema :unpacker) ~'buffer ~'config ~'diffed?))
 
 (defn make-packer [schema config]
   (binding [*config* config]
-    `(fn [~'value ~'buffer ~'config ~'diffed?]
-       ~(as-diffed 'value (pack schema 'value)))))
+    `(fn [~'buffer ~'value ~'config ~'diffed?]
+       ~(as-diffed 'value (pack schema 'value))
+       ~'buffer)))
 
 (defn make-unpacker [schema config]
   (binding [*config* config]

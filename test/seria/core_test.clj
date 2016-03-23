@@ -13,7 +13,7 @@
    (test-pack-case schemas nil))
   ([schemas functions]
    (let [config (config/make-test-config :schemas schemas)
-         buffer (core/allocate-buffer 10000 10000)]
+         buffer (core/allocate-buffer 10000)]
      (when functions
        (core/prepare-config! config :functions functions))
      (doseq [value (gen/sample 10 :x config)]
@@ -50,7 +50,7 @@
   (let [config (config/make-test-config :schemas {:x [:record {:constructor :c}
                                                       {:a :int :b :string}]})
         value  (map->TestRecord {:a 1 :b "hi there"})
-        buffer (core/allocate-buffer 10000 10000)]
+        buffer (core/allocate-buffer 10000)]
     (core/prepare-config! config :functions {:c map->TestRecord})
     (test/is (= {:schema :x :diff-id 0 :value value}
                 (core/with-params {:config config :schema :x :buffer buffer}

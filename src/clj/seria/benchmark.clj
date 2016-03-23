@@ -5,9 +5,11 @@
             [seria.gen :as gen]
             [taoensso.nippy :as nippy]
             [clj-kryo.core :as kryo]
+            [cheshire.core :as cheshire]
             [prc])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream
-                    ObjectInputStream ObjectOutputStream]))
+                    ObjectInputStream ObjectOutputStream]
+           [seria Seria]))
 
 (defn java-serialize [data]
   (let [baos (ByteArrayOutputStream.)]
@@ -77,7 +79,9 @@
     (measure-methods {:seria [core/pack core/unpack]
                       :java  [java-serialize java-deserialize]
                       :kryo  [kryo-serialize kryo-deserialize]
-                      :nippy [nippy/freeze nippy/thaw]}
+                      :nippy [nippy/freeze nippy/thaw]
+                      :json  [cheshire/generate-string cheshire/parse-string]
+                      :smile [cheshire/generate-smile cheshire/parse-smile]}
                      (gen/sample 1000 schema config)
                      stats)))
 
@@ -93,22 +97,10 @@
                         (map (fn [[method results]]
                                [method ((apply juxt stats) results)]))
                         (into {}))]
-    (prc/bar-chart "Benchmarks" chart-data {:labels stats})))
+    (prc/bar-chart "Benchmarks" chart-data {:labels (map name stats)})))
 
-(run-benchmarks :schema :snapshot
-                :config seria-config
-                :buffer (core/allocate-buffer 10000 10000)
-                :stats  [:size :serialize-speed :roundtrip-speed])
-
-(visualize-results
-  {:roundtrip-speed {:nippy 65.27008350000001,
-                     :java 224.16845533333336,
-                     :seria 23.276148066666664,
-                     :kryo 58.222396083333344},
-   :size {:nippy 949980, :java 8491467, :seria 482897, :kryo 1550336},
-   :serialize-speed {:nippy 43.584548444444444,
-                     :java 103.68616083333333,
-                     :seria 12.850443125000002,
-                     :kryo 38.536655888888895}})
-
-;(visualize-results results)
+#_(visualize-results
+    (run-benchmarks :schema :snapshot
+                    :config seria-config
+                    :buffer (core/allocate-buffer 10000)
+                    :stats  [:size :serialize-speed :roundtrip-speed]))

@@ -12,8 +12,8 @@
                                {`*schema* schema `*config* config `*buffer* buffer})]
              ~@body)))
 
-(defn allocate-buffer [max-bit-length max-byte-length]
-  (buffer/allocate max-bit-length max-byte-length))
+(defn allocate-buffer [size]
+  (buffer/allocate size))
 
 (defn prepare-config! [{:keys [state]} & {:keys [functions]}]
   (swap! state update :fn-map merge functions))
@@ -23,22 +23,21 @@
   (let [schema-id (get-in config [:schema-bimap schema])
         pack!     (get-in config [:processors schema :packer])]
     (if (and pack! schema-id buffer)
-      (do (buffer/prepare buffer)
-          (pack! value buffer config diffed?)
-          (buffer/set-headers buffer schema-id diff-id diffed?)
-          (buffer/compress buffer))
+      (-> buffer
+          (buffer/write-headers! schema-id diff-id diffed?)
+          (pack! value config diffed?)
+          (buffer/compressed))
       :seria/invalid)))
 
 (defn unpack [raw & {:keys [config] :or {config *config*}}]
   (let [buffer (buffer/wrap raw)
-        {:keys [schema-id diff-id diffed?]} (buffer/get-headers buffer)
+        {:keys [schema-id diff-id diffed?]} (buffer/read-headers! buffer)
         schema  (get-in config [:schema-bimap schema-id])
         unpack! (get-in config [:processors schema :unpacker])]
     (if (and unpack! schema)
-      (do (buffer/prepare buffer)
-          {:schema  schema
-           :diff-id diff-id
-           :value   (unpack! buffer config diffed?)})
+      {:schema  schema
+       :diff-id diff-id
+       :value   (unpack! buffer config diffed?)}
       :seria/invalid)))
 
 (defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]

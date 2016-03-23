@@ -1,23 +1,25 @@
+option java_package = "seria";
+
 message Snapshot {
   required fixed64 time = 1;
-  repeated Body bodies = 2;
+  repeated Body body = 2;
 
   message Body {
     required BodyUserData userData = 1;
     required Coord position = 2;
-    required float32 angle = 3;
+    required float angle = 3;
     required BodyType bodyType = 4;
-    repeated Fixture fixtures = 5;          
+    repeated Fixture fixture = 5;
   }
-  
+
   message Fixture {
-    repeated Coord coords = 1;
+    repeated Coord coord = 1;
     required FixtureUserData userData = 2;
   }
- 
+
   message Coord {
-    required float32 x = 1;
-    required float32 y = 2;
+    required float x = 1;
+    required float y = 2;
   }
 
   message BodyUserData {
