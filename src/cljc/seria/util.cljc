@@ -3,24 +3,24 @@
             [clojure.set :as set]
    #?(:cljs [cljs.reader :as reader])))
 
-(defn cljc-exception [^String s]
-  #?(:clj  (Exception. s)
+(defn cljc-exception [s]
+  #?(:clj  (Exception. ^String s)
      :cljs (js/Error. s)))
 
 (defn cljc-read-string [s]
-  #?(:clj  (read-string s)
+  #?(:clj  (read-string ^String s)
      :cljs (reader/read-string s)))
 
-(defn cljc-abs [^double n]
-  #?(:clj  (Math/abs n)
+(defn cljc-abs [n]
+  #?(:clj  (Math/abs ^double n)
      :cljs (.abs js/Math n)))
 
-(defn cljc-round [^double n]
-  #?(:clj  (Math/round n)
+(defn cljc-round [n]
+  #?(:clj  (Math/round ^double n)
      :cljs (.round js/Math n)))
 
 (defn cljc-ceil [n]
-  #?(:clj  (Math/ceil n)
+  #?(:clj  (Math/ceil ^double n)
      :cljs (.ceil js/Math n)))
 
 (defn bimap [coll]

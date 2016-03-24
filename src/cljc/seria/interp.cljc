@@ -12,10 +12,10 @@
 
 (defn interp-dispatch [schema value-1 value-2]
   (cond
-    (type/directly-interpable-type? schema) :interpable
-    (type/interpable-type? schema)          (first schema)
-    (type/custom-type? schema)              :custom
-    :else                                   :non-interpable))
+    (type/number-type? schema)     :interpable
+    (type/interpable-type? schema) (first schema)
+    (type/custom-type? schema)     :custom
+    :else                          :non-interpable))
 
 (defmulti interp interp-dispatch)
 

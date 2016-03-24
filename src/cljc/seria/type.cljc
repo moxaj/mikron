@@ -1,5 +1,4 @@
-(ns seria.type
-  (:require [clojure.set :as set]))
+(ns seria.type)
 
 (def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double
                        :char :boolean :varint
@@ -11,15 +10,15 @@
   (and (vector? schema)
        (composite-types (first schema))))
 
-(def built-in-types (set/union primitive-types composite-types))
+(def built-in-types (set (concat primitive-types composite-types)))
 (def built-in-type? built-in-types)
 
 (defn custom-type? [schema]
   (and (keyword? schema)
        (not (built-in-type? schema))))
 
-(def directly-interpable-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
-(def directly-interpable-type? directly-interpable-types)
+(def number-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
+(def number-type? number-types)
 
 (def floating-types #{:float :double})
 (def floating-type? floating-types)
