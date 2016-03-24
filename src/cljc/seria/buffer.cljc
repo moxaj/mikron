@@ -83,7 +83,7 @@
                                          (.skip this 1))
                                        (aset this "bitIndex" (inc bit-index))
                                        (not (zero? (bit-and (aget this "bitBuffer")
-                                                            (bit-shift-left 1 bit-index)))))])
+                                                            (bit-shift-left 1 (mod bit-index 8))))))])
                (read-ubyte!   [this] (.readUint8 this))
                (read-ushort!  [this] (.readUint16 this))
                (read-uint!    [this] (.readUint32 this))
@@ -107,9 +107,9 @@
                                               (aset this "bitBuffer"
                                                     (if value
                                                       (bit-or (aget this "bitBuffer")
-                                                              (bit-shift-left 1 bit-index))
+                                                              (bit-shift-left 1 (mod bit-index 8)))
                                                       (bit-and (aget this "bitBuffer")
-                                                               (bit-not (bit-shift-left 1 bit-index)))))
+                                                               (bit-not (bit-shift-left 1 (mod bit-index 8))))))
                                               this))
 
                (write-ubyte!   [this value] (.writeUint8 this value))
@@ -122,10 +122,11 @@
                (refresh! [this] (doto this
                                     (aset "offset" 0)
                                     (aset "bitIndex" 0)
-                                    (aset "bitPosition" 0)
+                                    (aset "bitPosition" -1)
                                     (aset "bitBuffer" 0)))
-               (compressed [this] (do (when-not (zero? (aget this "bitIndex"))
-                                        (.writeInt8 this (aget this "bitBuffer") (aget this "bitPosition")))
+               (compressed [this] (do (let [bit-position (aget this "bitPosition")]
+                                        (when (not= bit-position -1)
+                                          (.writeInt8 this (aget this "bitBuffer") bit-position)))
                                       (.toArrayBuffer (.slice this 0 (aget this "offset"))))))))
 
 (defn wrap [raw]

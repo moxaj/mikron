@@ -34,15 +34,15 @@ public class SeriaByteBuffer {
 
   public SeriaByteBuffer reset() {
     bitBuffer = 0;
-    bitPosition = 0;
+    bitPosition = -1;
     bitIndex = 0;
     byteBuffer.position(0);
     return this;
   }
 
   public byte[] compressed() {
-    if ((bitIndex % 8) != 0) {
-        byteBuffer.put(bitPosition, bitBuffer);
+    if (bitPosition != -1) {
+      byteBuffer.put(bitPosition, bitBuffer);
     }
 
     byte[] raw = new byte[byteBuffer.position()];
@@ -68,7 +68,7 @@ public class SeriaByteBuffer {
       byteBuffer.position(bitPosition + 1);
     }
 
-    return 0 != (bitBuffer & (1 << bitIndex++));
+    return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));
   }
 
   public byte getByte() {
@@ -110,8 +110,8 @@ public class SeriaByteBuffer {
       byteBuffer.position(bitPosition + 1);
     }
 
-    bitBuffer = (byte) (value ? bitBuffer |  (1 << bitIndex++)
-                              : bitBuffer & ~(1 << bitIndex++));
+    bitBuffer = (byte) (value ? bitBuffer |  (1 << (bitIndex++ % 8))
+                              : bitBuffer & ~(1 << (bitIndex++ % 8)));
     return this;
   }
 
