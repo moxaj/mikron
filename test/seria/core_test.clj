@@ -13,7 +13,7 @@
    (test-pack-case schemas nil))
   ([schemas functions]
    (let [config (config/make-test-config :schemas schemas)
-         buffer (core/allocate-buffer 10000)]
+         buffer (core/allocate-buffer 100000)]
      (when functions
        (core/prepare-config! config :functions functions))
      (doseq [value (gen/sample 10 :x config)]
@@ -50,7 +50,7 @@
   (let [config (config/make-test-config :schemas {:x [:record {:constructor :c}
                                                       {:a :int :b :string}]})
         value  (map->TestRecord {:a 1 :b "hi there"})
-        buffer (core/allocate-buffer 10000)]
+        buffer (core/allocate-buffer 100000)]
     (core/prepare-config! config :functions {:c map->TestRecord})
     (test/is (= {:schema :x :diff-id 0 :value value}
                 (core/with-params {:config config :schema :x :buffer buffer}
@@ -64,19 +64,16 @@
                                  :b :string
                                  :c [:tuple [:float :float :float]]
                                  :d [:list :int]}]}
-                   {:body     [:record {:diff :all}
-                               {:user-data [:record {:id :int}]
-                                :position  :coord
-                                :angle     :float
-                                :body-type [:enum [:dynamic :static :kinetic]]
-                                :fixtures  [:list :fixture]}]
-                    :fixture  [:record {:diff :all}
-                               {:user-data [:record {:color :int}]
-                                :coords    [:list :coord]}]
+                   {:body     [:record {:user-data [:record {:id :int}]
+                                        :position  :coord
+                                        :angle     :float
+                                        :body-type [:enum [:dynamic :static :kinetic]]
+                                        :fixtures  [:list :fixture]}]
+                    :fixture  [:record {:user-data [:record {:color :int}]
+                                        :coords    [:list :coord]}]
                     :coord    [:tuple [:float :float]]
-                    :snapshot [:record {:diff :all}
-                               {:time   :int
-                                :bodies [:list :body]}]
+                    :snapshot [:record {:time   :long
+                                        :bodies [:list :body]}]
                     :x        :snapshot}]]
     (test-pack-case schemas)))
 
@@ -88,21 +85,17 @@
   ([schemas]
    (test-diff-case schemas nil))
   ([schemas functions]
-   (let [config (config/make-test-config :schemas schemas :top-level [:x])]
+   (let [config (config/make-test-config :schemas schemas)]
      (when functions
        (core/prepare-config! config :functions functions))
      (doseq [[value-1 value-2] (partition 2 (gen/sample 20 :x config))]
        (test/is (= value-2 (diff-roundtrip value-1 value-2 config)))))))
 
 (test/deftest diff-test
-  (doseq [schemas [{:x [:record {:diff :all}
-                        {:a :int
-                         :b [:tuple {:diff :all}
-                             [:y :y :y :y]]}]
+  (doseq [schemas [{:x [:record {:a :int
+                                 :b [:tuple [:y :y :y :y]]}]
                     :y [:enum [:a :b :c :d]]}
-                   {:x [:record {:diff [:a :b]}
-                        {:a :byte
-                         :b [:tuple [:byte :byte]]
-                         :c [:vector {:diff :all}
-                             [:enum [:cat :dog]]]}]}]]
+                   {:x [:record {:a :byte
+                                 :b [:tuple [:byte :byte]]
+                                 :c [:vector [:enum [:cat :dog]]]}]}]]
       (test-diff-case schemas)))

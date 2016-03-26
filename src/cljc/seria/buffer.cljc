@@ -35,7 +35,7 @@
   (little-endian? [this])
   (little-endian! [this little-endian])
 
-  (refresh! [this])
+  (clear! [this])
   (compressed [this]))
 
 (do #?(:clj  (extend-type SeriaByteBuffer
@@ -67,7 +67,7 @@
                (little-endian? [this] (.isLittleEndian this))
                (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
-               (refresh! [this] (.reset this))
+               (clear! [this] (.clear this))
                (compressed [this] (.compressed this)))
        :cljs (extend-type js/ByteBuffer
                Buffer
@@ -121,7 +121,7 @@
                (little-endian? [this] (aget this "littleEndian"))
                (little-endian! [this little-endian] (aset this "littleEndian" value))
 
-               (refresh! [this] (doto this
+               (clear! [this] (doto this
                                     (aset "offset" 0)
                                     (aset "bitIndex" 0)
                                     (aset "bitPosition" -1)
@@ -132,16 +132,16 @@
                                       (.toArrayBuffer (.slice this 0 (aget this "offset"))))))))
 
 (defn wrap [raw]
-  (refresh! #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
-               :cljs (.wrap js/ByteBuffer raw))))
+  (clear! #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
+             :cljs (.wrap js/ByteBuffer raw))))
 
 (defn allocate [size]
-  (refresh! #?(:clj  (SeriaByteBuffer/allocate size)
-               :cljs (.allocate js/ByteBuffer size))))
+  (clear! #?(:clj  (SeriaByteBuffer/allocate size)
+             :cljs (.allocate js/ByteBuffer size))))
 
 (defn write-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer) schema-id diff-id diffed?]
   (-> buffer
-      (refresh!)
+      (clear!)
       (write-byte! (if (little-endian? buffer) magic-number-little magic-number-big))
       (write-ushort! schema-id)
       (write-ushort! (if-not diffed? diff-id (- diff-id)))))

@@ -23,17 +23,10 @@
 (def floating-types #{:float :double})
 (def floating-type? floating-types)
 
-(def traceable-types #{:vector :map :tuple :record :optional :multi})
+(def traceable-types #{:list :vector :map :tuple :record :optional :multi})
 (defn traceable-type? [schema]
   (and (composite-type? schema)
        (traceable-types (first schema))))
-
-(defn diffable-type? [schema]
-  (and (traceable-type? schema)
-       (let [diff (:diff (second schema))]
-         (or (= :all diff)
-             (and (vector? diff)
-                  (not (empty? diff)))))))
 
 (defn interpable-type? [schema]
   (and (traceable-type? schema)

@@ -8,20 +8,17 @@ public class SeriaByteBuffer {
   private byte bitBuffer;
   private int bitPosition;
   private int bitIndex;
-  private boolean littleEndian;
 
   private SeriaByteBuffer(int capacity) {
     ByteOrder order = ByteOrder.nativeOrder();
-    littleEndian = ByteOrder.LITTLE_ENDIAN.equals(order);
     byteBuffer = ByteBuffer.allocateDirect(capacity).order(order);
-    reset();
+    clear();
   }
 
   private SeriaByteBuffer(byte[] bytes) {
     ByteOrder order = ByteOrder.nativeOrder();
-    littleEndian = ByteOrder.LITTLE_ENDIAN.equals(order);
     byteBuffer = ByteBuffer.wrap(bytes).order(order);
-    reset();
+    clear();
   }
 
   public static SeriaByteBuffer allocate(int capacity) {
@@ -32,7 +29,7 @@ public class SeriaByteBuffer {
     return new SeriaByteBuffer(bytes);
   }
 
-  public SeriaByteBuffer reset() {
+  public SeriaByteBuffer clear() {
     bitBuffer = 0;
     bitPosition = -1;
     bitIndex = 0;
@@ -52,11 +49,10 @@ public class SeriaByteBuffer {
   }
 
   public boolean isLittleEndian() {
-    return littleEndian;
+    return ByteOrder.LITTLE_ENDIAN == byteBuffer.order();
   }
 
   public SeriaByteBuffer setLittleEndian(boolean littleEndian) {
-    this.littleEndian = littleEndian;
     byteBuffer.order(littleEndian ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN);
     return this;
   }

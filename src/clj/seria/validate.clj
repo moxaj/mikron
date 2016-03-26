@@ -18,15 +18,6 @@
   (vec (concat [composite-type (assoc options :sorted-by sorted-by)]
                args)))
 
-(defn validate-diffable [[composite-type {:keys [diff] :or {diff []} :as options} & args :as schema]]
-  (assert (or (= :all diff)
-              (vector? diff))
-          (format "Invalid schema: %s. :diff option must be either :all or a vector of indices
-                   (integers for tuples, keywords for records)."
-                  schema))
-  (vec (concat [composite-type (assoc options :diff diff)]
-               args)))
-
 (defn validate-interpable [[composite-type {:keys [interp] :or {interp []} :as options} & args :as schema]]
   (assert (or (= :all interp)
               (vector? interp))
@@ -46,12 +37,11 @@
 
 (defmethod validate-composite :vector [schema]
   (let [[_ options inner-schema :as schema] (->> schema
-                                                 (validate-diffable)
                                                  (validate-interpable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :vector-s must have 1 or 2 arguments."
                     schema))
-    [:vector (select-keys options [:diff :interp])
+    [:vector (select-keys options [:interp])
      (validate-schema inner-schema)]))
 
 (defmethod validate-composite :set [schema]
@@ -65,42 +55,37 @@
 
 (defmethod validate-composite :map [schema]
   (let [[_ options key-schema val-schema :as schema] (->> schema
-                                                          (validate-diffable)
                                                           (validate-sortable)
                                                           (validate-interpable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. :map-s must have 2 or 3 arguments."
                     schema))
-    [:map (select-keys options [:diff :sorted-by :interp])
+    [:map (select-keys options [:sorted-by :interp])
      (validate-schema key-schema) (validate-schema val-schema)]))
 
 (defmethod validate-composite :optional [[_ options inner-schema :as schema]]
   (let [[_ options inner-schema] (->> schema
-                                      (validate-diffable)
                                       (validate-interpable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :optional-s must have 1 or 2 arguments."
                     schema))
-    [:optional (select-keys options [:diff :interp])
+    [:optional (select-keys options [:interp])
      (validate-schema inner-schema)]))
 
-(defmethod validate-composite :enum [schema]
-  (let [[_ options values :as schema] (->> schema
-                                           (validate-diffable))]
-    (assert (= 3 (count schema))
-            (format "Invalid schema: %s. :enum-s must have 1 or 2 arguments."
-                    schema))
-    (assert (vector? values)
-            (format "Invalid schema: %s. Possible :enum values must be listed in a vector."
-                    schema))
-    (assert (every? keyword? values)
-            (format "Invalid schema: %s. Possible :enum values must be keywords."
-                    schema))
-    [:enum (select-keys options [:diff]) values]))
+(defmethod validate-composite :enum [[_ _ values :as schema]]
+  (assert (= 3 (count schema))
+          (format "Invalid schema: %s. :enum-s must have 1 or 2 arguments."
+                  schema))
+  (assert (vector? values)
+          (format "Invalid schema: %s. Possible :enum values must be listed in a vector."
+                  schema))
+  (assert (every? keyword? values)
+          (format "Invalid schema: %s. Possible :enum values must be keywords."
+                  schema))
+  [:enum {} values])
 
 (defmethod validate-composite :tuple [schema]
   (let [[_ options inner-schemas :as schema] (->> schema
-                                                  (validate-diffable)
                                                   (validate-interpable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :tuple-s must have 1 or 2 arguments."
@@ -108,13 +93,12 @@
     (assert (vector? inner-schemas)
             (format "Invalid schema: %s. Inner schemas must be listed in a vector."
                     schema))
-    [:tuple (select-keys options [:diff :interp])
+    [:tuple (select-keys options [:interp])
      (mapv validate-schema inner-schemas)]))
 
 (defmethod validate-composite :record [schema]
   (let [[_ {:keys [extends constructor] :or {extends []} :as options} arg-map :as schema]
         (->> schema
-             (validate-diffable)
              (validate-interpable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. :record-s must have 1 or 2 arguments."
@@ -134,13 +118,12 @@
       (assert (every? keyword? fields)
               (format "Invalid schema: %s. :record fields must be accessible by keywords."
                       schema))
-      [:record (assoc (select-keys options [:diff :interp :constructor])
+      [:record (assoc (select-keys options [:interp :constructor])
                       :extends extends)
        (zipmap fields (map validate-schema inner-schemas))])))
 
 (defmethod validate-composite :multi [[_ _ selector arg-map :as schema]]
   (let [[_ options selector arg-map :as schema] (->> schema
-                                                     (validate-diffable)
                                                      (validate-interpable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. :multi-s must have 2 or 3 arguments."
@@ -153,7 +136,7 @@
                     schema))
     (let [multi-cases   (keys arg-map)
           inner-schemas (vals arg-map)]
-      [:multi (select-keys options [:diff :interp])
+      [:multi (select-keys options [:interp])
        selector
        (zipmap multi-cases (map validate-schema inner-schemas))])))
 

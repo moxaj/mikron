@@ -5,7 +5,8 @@
             [seria.gen :as gen]
             [criterium.core :as crit]
             [taoensso.nippy :as nippy]
-            [cheshire.core :as json])
+            [cheshire.core :as json]
+            [seria.util :as util])
   (:import [seria SeriaByteBuffer
                   Seria Seria$Snapshot
                   Seria$Snapshot$Builder
@@ -129,12 +130,13 @@
           bodies)
     (.setTime snapshot-builder time)
     (.build snapshot-builder)))
+
 (def java-snapshot (clj->java snapshot))
 
 (let [buffer (core/allocate-buffer 10000)
-      config (config/make-test-config :schemas {:x :varint})
-      data   (first (gen/sample 1 :x config))]
-  (core/with-params {:schema :snapshot
-                     :buffer buffer
-                     :config seria-config}
-    (core/unpack (core/pack snapshot))))
+      config (config/make-test-config :schemas {:x :any})
+      data   snapshot]
+  (->> (config/make-test-config :schemas box2d-schemas)
+       :sources
+       :snapshot
+       :packer))

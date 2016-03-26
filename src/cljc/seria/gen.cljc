@@ -5,7 +5,7 @@
 (def ^:dynamic *config*)
 
 (def symbol-chars
-  (map char (concat [\_ \- \? \\]
+  (map char (concat [\_ \- \?]
                     (range 97 123)
                     (range 65 91))))
 
@@ -21,6 +21,19 @@
     (long (if-not signed?
             r
             (- r (/ max-value 2))))))
+
+(defn random-schema
+  ([]
+   (random-schema 3))
+  ([depth]
+   (if (zero? depth)
+     (rand-nth [:long :double :varint :char :boolean :string :keyword :symbol])
+     (let [[schema-1 schema-2] (repeatedly 2 #(random-schema (dec depth)))]
+       (case (rand-int 4)
+         0 [:list {} schema-1]
+         1 [:set {:sorted-by :none} schema-1]
+         2 [:vector {} schema-1]
+         3 [:map {:sorted-by :none} schema-1 schema-2])))))
 
 (defmulti gen util/schema-dispatch)
 
@@ -78,7 +91,7 @@
        (symbol)))
 
 (defmethod gen :any [_]
-  "Not yet implemented")
+  (gen (random-schema)))
 
 (defmethod gen :list [[_ _ inner-schema]]
   (doall (repeatedly (gen-size) #(gen inner-schema))))

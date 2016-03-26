@@ -22,14 +22,15 @@
                  values))))
 
 (defn make-processors [schemas config]
-  (->> (keys schemas)
-       (map (fn [schema]
-              (let [schema-def (schemas schema)]
-                [schema {:packer   (pack/make-packer schema-def config)
-                         :unpacker (pack/make-unpacker schema-def config)
-                         :differ   (diff/make-differ schema-def config)
-                         :undiffer (diff/make-undiffer schema-def config)
-                         :interper (interp/make-interper schema-def config)}])))
+  (->> schemas
+       (map (fn [[schema schema-def]]
+              [schema {:packer          (pack/make-packer schema-def config false)
+                       :diffed-packer   (pack/make-packer schema-def config true)
+                       :unpacker        (pack/make-unpacker schema-def config false)
+                       :diffed-unpacker (pack/make-unpacker schema-def config true)
+                       :differ          (diff/make-differ schema-def config)
+                       :undiffer        (diff/make-undiffer schema-def config)
+                       :interper        (interp/make-interper schema-def config)}]))
        (into {})))
 
 (defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
@@ -46,4 +47,5 @@
     (assoc config :processors (make-processors schemas config))))
 
 (defn make-test-config [& args]
-  (eval (apply make-config args)))
+  (let [raw-config (apply make-config args)]
+    (assoc (eval raw-config) :sources (:processors raw-config))))

@@ -21,11 +21,11 @@
 (defn pack [value & {:keys [schema config diff-id diffed? buffer]
                      :or   {config *config* schema *schema* buffer *buffer* diff-id 0 diffed? false}}]
   (let [schema-id (get-in config [:schema-bimap schema])
-        pack!     (get-in config [:processors schema :packer])]
+        pack!     (get-in config [:processors schema (if diffed? :diffed-packer :packer)])]
     (if (and pack! schema-id buffer)
       (-> buffer
           (buffer/write-headers! schema-id diff-id diffed?)
-          (pack! value config diffed?)
+          (pack! value config)
           (buffer/compressed))
       :seria/invalid)))
 
@@ -33,11 +33,11 @@
   (let [buffer (buffer/wrap raw)
         {:keys [schema-id diff-id diffed?]} (buffer/read-headers! buffer)
         schema  (get-in config [:schema-bimap schema-id])
-        unpack! (get-in config [:processors schema :unpacker])]
+        unpack! (get-in config [:processors schema (if diffed? :diffed-unpacker :unpacker)])]
     (if (and unpack! schema)
       {:schema  schema
        :diff-id diff-id
-       :value   (unpack! buffer config diffed?)}
+       :value   (unpack! buffer config)}
       :seria/invalid)))
 
 (defn diff [value-1 value-2 & {:keys [config schema] :or {config *config* schema *schema*}}]
