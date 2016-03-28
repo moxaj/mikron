@@ -1,4 +1,5 @@
 (ns seria.config
+  "Pre-compile-time config generation."
   (:require [seria.util :as util]
             [seria.validate :as validate]
             [seria.diff :as diff]

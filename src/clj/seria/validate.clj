@@ -1,4 +1,5 @@
 (ns seria.validate
+  "Config validation."
   (:require [seria.type :as type]))
 
 (defn with-options [[a b & rest :as composite]]

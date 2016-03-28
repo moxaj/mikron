@@ -1,4 +1,5 @@
 (ns seria.benchmark
+  "Benchmarks comparing other methods."
   (:require [criterium.core :as crit]
             [seria.core :as core]
             [seria.config :as config]

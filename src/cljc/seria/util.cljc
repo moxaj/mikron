@@ -1,6 +1,8 @@
 (ns seria.util
+  "Utility functions."
   (:require [seria.type :as type]
             [clojure.set :as set]
+            [clojure.string :as string]
    #?(:cljs [cljs.reader :as reader])))
 
 (defn cljc-exception [s]
@@ -40,17 +42,12 @@
 (defn find-by [f form]
   (set (find-by* f form)))
 
-(defn schema-dispatch [schema & _]
-  (cond
-    (type/primitive-type? schema) schema
-    (type/composite-type? schema) (first schema)
-    (type/custom-type? schema)    :custom))
-
-(defn resolve-custom-schema [schema schemas]
-  (->> schema
-       (iterate schemas)
-       (drop-while type/custom-type?)
-       (first)))
+(defn postfix-gensym [sym s]
+  (let [sym-name (name sym)]
+    (gensym (format "%s-%s_" (if-let [index (string/last-index-of sym-name "_")]
+                               (subs sym-name 0 index)
+                               sym-name)
+                             s))))
 
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
   (if (empty? extends)
@@ -68,17 +65,20 @@
                    (merge record-map-1 record-map-2)]))
               (conj super-records record)))))
 
-(defn disj-indexed [[composite-type {:keys [constructor]} inner-schemas] value]
-  (map (fn [index]
-         {:index        index
-          :symbol       (gensym "inner-value_")
-          :inner-schema (inner-schemas index)
-          :inner-value  (case composite-type
-                          :tuple  `(~value ~index)
-                          :record `(get ~value ~index))})
-       (case composite-type
-         :tuple  (range (count inner-schemas))
-         :record (sort (keys inner-schemas)))))
+(defn destructure [[composite-type _ inner-schemas] value]
+  (let [tuple? (= :tuple composite-type)]
+    (map (fn [index]
+           {:index        index
+            :symbol       (gensym (if tuple?
+                                    (format "tuple_%d_" index)
+                                    (format "%s_" (name index))))
+            :inner-schema (inner-schemas index)
+            :inner-value  (if tuple?
+                            `(~value ~index)
+                            `(get ~value ~index))})
+         (if tuple?
+           (range (count inner-schemas))
+           (sort (keys inner-schemas))))))
 
 (defn runtime-fn [fn-key]
   `(get-in @(:state ~'config) [:fn-map ~fn-key]))

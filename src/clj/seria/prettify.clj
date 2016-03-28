@@ -1,4 +1,5 @@
 (ns seria.prettify
+  "Config output code pretiffication."
   (:require [clojure.walk :as walk]
             [clojure.string :as str]
             [clojure.set :as set]

@@ -1,8 +1,8 @@
 (ns seria.gen
-  (:require [seria.type :as type]
-            [seria.util :as util]))
+  "Random data generation for schemas."
+  (:require [seria.type :as type]))
 
-(def ^:dynamic *config*)
+(def ^:dynamic *opts*)
 
 (def symbol-chars
   (map char (concat [\_ \- \?]
@@ -35,7 +35,7 @@
          2 [:vector {} schema-1]
          3 [:map {:sorted-by :none} schema-1 schema-2])))))
 
-(defmulti gen util/schema-dispatch)
+(defmulti gen type/type-of)
 
 (defmethod gen :byte [_]
   (random-integer 1 true))
@@ -94,16 +94,20 @@
   (gen (random-schema)))
 
 (defmethod gen :list [[_ _ inner-schema]]
-  (doall (repeatedly (gen-size) #(gen inner-schema))))
+  (->> #(gen inner-schema)
+       (repeatedly (gen-size))
+       (doall)))
 
 (defmethod gen :vector [[_ _ inner-schema]]
-  (vec (repeatedly (gen-size) #(gen inner-schema))))
+  (->> #(gen inner-schema)
+       (repeatedly (gen-size))
+       (vec)))
 
 (defmethod gen :set [[_ {:keys [sorted-by]} inner-schema]]
   (into (case sorted-by
           :none    #{}
           :default (sorted-set)
-          (sorted-set-by (get-in @(:state *config*) [:fn-map sorted-by])))
+          (sorted-set-by (get-in @(:state (:config *opts*)) [:fn-map sorted-by])))
         (repeatedly (gen-size) #(gen inner-schema))))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
@@ -111,7 +115,7 @@
     (into (case sorted-by
             :none    {}
             :default (sorted-map)
-            (sorted-map-by (get-in @(:state *config*) [:fn-map sorted-by])))
+            (sorted-map-by (get-in @(:state (:config *opts*)) [:fn-map sorted-by])))
           (zipmap (repeatedly size #(gen key-schema))
                   (repeatedly size #(gen val-schema))))))
 
@@ -133,8 +137,12 @@
   (gen (rand-nth (vals multi-map))))
 
 (defmethod gen :custom [schema]
-  (gen (util/resolve-custom-schema schema (:schemas *config*))))
+  (gen ((:schemas (:config *opts*)) schema)))
 
 (defn sample [n schema config]
-  (binding [*config* config]
+  (binding [*opts* {:config config}]
     (doall (repeatedly n #(gen schema)))))
+
+(defn sample-one [schema config]
+  (binding [*opts* {:config config}]
+    (gen schema)))

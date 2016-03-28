@@ -1,32 +1,30 @@
 (ns seria.pack
+  "Packer and unpacker generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
             [seria.type :as type]
             [seria.varint :as varint]))
 
-(def ^:dynamic *config*)
-(def ^:dynamic *diffed?*)
+(def ^:dynamic *opts*)
 
-(defmulti pack util/schema-dispatch)
-(defmulti unpack util/schema-dispatch)
+(defmulti pack type/type-of)
+(defmulti unpack type/type-of)
 
-(defn as-diffed [value pack-value]
-  (let [pack-value-fn (gensym "pack-value-fn_")
-        value-dnil?   (gensym "value-dnil?_")]
-    (if-not *diffed?*
-      pack-value
+(defn as-diffed [value body]
+  (if-not (:diffed? *opts*)
+    body
+    (let [value-dnil? (util/postfix-gensym value "dnil?")]
       `(let [~value-dnil? (= :seria/dnil ~value)]
          ~(pack :boolean value-dnil?)
          (when-not ~value-dnil?
-           ~pack-value)))))
+           ~body)))))
 
-(defn as-undiffed [unpack-value]
-  (let [unpack-value-fn (gensym "unpack-value-fn_")]
-    (if-not *diffed?*
-      unpack-value
-      `(if ~(unpack :boolean)
-         :seria/dnil
-         ~unpack-value))))
+(defn as-undiffed [body]
+  (if-not (:diffed? *opts*)
+    body
+    `(if ~(unpack :boolean)
+       :seria/dnil
+       ~body)))
 
 (defmethod pack :byte [_ value]
   `(buffer/write-byte! ~'buffer ~value))
@@ -184,11 +182,11 @@
        (util/as-map sorted-by)))
 
 (defmethod pack :tuple [schema value]
-  (let [disjoined (util/disj-indexed schema value)]
-    `(let [~@(mapcat (juxt :symbol :inner-value) disjoined)]
+  (let [destructured (util/destructure schema value)]
+    `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
                        (as-diffed inner-value (pack inner-schema inner-value)))
-                     disjoined)))))
+                     destructured)))))
 
 (defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
@@ -196,15 +194,15 @@
                     inner-schemas)))
 
 (defmethod pack :record [schema value]
-  (let [schema    (util/expand-record schema (:schemas *config*))
-        disjoined (util/disj-indexed schema value)]
-    `(let [~@(mapcat (juxt :symbol :inner-value) disjoined)]
+  (let [schema       (util/expand-record schema (:schemas (:config *opts*)))
+        destructured (util/destructure schema value)]
+    `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
                        (as-diffed inner-value (pack inner-schema inner-value)))
-                     disjoined)))))
+                     destructured)))))
 
 (defmethod unpack :record [schema]
-  (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas *config*))]
+  (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas (:config *opts*)))]
     (->> (sort (keys record-map))
          (map (fn [key]
                 [key (as-undiffed (unpack (record-map key)))]))
@@ -224,21 +222,21 @@
   `(case (~(util/runtime-fn selector) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
-                  `(do ~(pack :varint (get-in *config* [:multi-bimap multi-case]))
+                  `(do ~(pack :varint (get-in (:config *opts*) [:multi-bimap multi-case]))
                        ~(as-diffed value (pack inner-schema value)))])
                arg-map)))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
-  `(case (get ~(:multi-bimap *config*) ~(unpack :varint))
+  `(case (get ~(:multi-bimap (:config *opts*)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (as-undiffed (unpack inner-schema))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
-  (pack :varint `(get ~(:enum-bimap *config*) ~value)))
+  (pack :varint `(~(:enum-bimap (:config *opts*)) ~value)))
 
 (defmethod unpack :enum [_]
-  `(get ~(:enum-bimap *config*) ~(unpack :varint)))
+  `(~(:enum-bimap (:config *opts*)) ~(unpack :varint)))
 
 (defmethod pack :custom [schema value]
   `(~(util/runtime-processor schema :packer) ~'buffer ~value ~'config))
@@ -247,14 +245,12 @@
   `(~(util/runtime-processor schema :unpacker) ~'buffer ~'config))
 
 (defn make-packer [schema config diffed?]
-  (binding [*config*  config
-            *diffed?* diffed?]
+  (binding [*opts* {:config config :diffed? diffed?}]
     `(fn [~'buffer ~'value ~'config]
        ~(as-diffed 'value (pack schema 'value))
        ~'buffer)))
 
 (defn make-unpacker [schema config diffed?]
-  (binding [*config*  config
-            *diffed?* diffed?]
+  (binding [*opts* {:config config :diffed? diffed?}]
     `(fn [~'buffer ~'config]
        ~(as-undiffed (unpack schema)))))

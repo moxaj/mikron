@@ -6,7 +6,9 @@
             [criterium.core :as crit]
             [taoensso.nippy :as nippy]
             [cheshire.core :as json]
-            [seria.util :as util])
+            [seria.prettify :as prettify]
+            [seria.util :as util]
+            [clojure.pprint :as pprint])
   (:import [seria SeriaByteBuffer
                   Seria Seria$Snapshot
                   Seria$Snapshot$Builder
@@ -26,7 +28,7 @@
    :fixture  [:record {:user-data [:record {:color :int}]
                        :coords    [:list :coord]}]
    :coord    [:tuple [:float :float]]
-   :snapshot [:record {:time   :int
+   :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
 (def snapshot
   (quote
@@ -133,10 +135,11 @@
 
 (def java-snapshot (clj->java snapshot))
 
-(let [buffer (core/allocate-buffer 10000)
-      config (config/make-test-config :schemas {:x :any})
+(let [buffer (core/allocate-buffer 100000)
+      config seria-config
+      schema :snapshot
       data   snapshot]
-  (->> (config/make-test-config :schemas box2d-schemas)
-       :sources
-       :snapshot
-       :packer))
+  ())
+
+(pprint/with-pprint-dispatch pprint/code-dispatch
+  (pprint/pprint (->> seria-config :sources prettify/prettify)))

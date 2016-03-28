@@ -1,4 +1,5 @@
 (ns seria.buffer
+  "Buffer protocol and implementations."
   #?(:clj (:import [seria SeriaByteBuffer]))
   (:require [seria.util :as util]
    #?(:cljs [cljsjs.bytebuffer])))
@@ -144,13 +145,14 @@
       (clear!)
       (write-byte! (if (little-endian? buffer) magic-number-little magic-number-big))
       (write-ushort! schema-id)
-      (write-ushort! (if-not diffed? diff-id (- diff-id)))))
+      (write-short! (if-not diffed? diff-id (- diff-id)))))
 
 (defn read-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer)]
   (little-endian! buffer (= magic-number-little (read-byte! buffer)))
   (let [schema-id (read-ushort! buffer)
-        diff-id   (long (util/cljc-abs (read-ushort! buffer)))
-        diffed?   (neg? diff-id)]
+        diff-id   (read-short! buffer)
+        diffed?   (neg? diff-id)
+        diff-id   (long (util/cljc-abs diff-id))]
     {:schema-id schema-id
      :diff-id   diff-id
      :diffed?   diffed?}))

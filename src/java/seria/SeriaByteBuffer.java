@@ -8,6 +8,7 @@ public class SeriaByteBuffer {
   private byte bitBuffer;
   private int bitPosition;
   private int bitIndex;
+  
 
   private SeriaByteBuffer(int capacity) {
     ByteOrder order = ByteOrder.nativeOrder();

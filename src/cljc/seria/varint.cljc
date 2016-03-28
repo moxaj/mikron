@@ -1,4 +1,5 @@
 (ns seria.varint
+  "Variable length integer implementation."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]))
 

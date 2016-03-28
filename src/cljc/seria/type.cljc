@@ -1,4 +1,5 @@
-(ns seria.type)
+(ns seria.type
+  "Types and predicates.")
 
 (def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double
                        :char :boolean :varint
@@ -20,8 +21,8 @@
 (def number-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
 (def number-type? number-types)
 
-(def floating-types #{:float :double})
-(def floating-type? floating-types)
+(def integer-types #{:byte :ubyte :short :ushort :int :uint :long :varint})
+(def integer-type? integer-types)
 
 (def traceable-types #{:list :vector :map :tuple :record :optional :multi})
 (defn traceable-type? [schema]
@@ -38,3 +39,9 @@
 (defn traceable-index? [index traceable-indices]
   (or (= :all traceable-indices)
       ((set traceable-indices) index)))
+
+(defn type-of [schema & _]
+  (cond
+    (primitive-type? schema) schema
+    (composite-type? schema) (first schema)
+    (custom-type? schema)    :custom))
