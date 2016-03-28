@@ -1,4 +1,4 @@
-(defproject moxaj/seria "0.1.225"
+(defproject moxaj/seria "0.1.23"
   :description "Seria is a schema-based serialization library for Clojure / ClojureScript."
   :url "https://github.com/moxaj/seria"
   :license {:name "Eclipse Public License"
