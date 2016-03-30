@@ -30,13 +30,14 @@
 (defmulti diff diff-dispatch)
 
 (defmethod diff :list [[_ _ inner-schema] value-1 value-2]
-  (let [index             (gensym "index_")
-        inner-value-1     (gensym "inner-value-1_")
-        inner-value-2     (gensym "inner-value-2_")
-        vec-inner-value-1 (gensym "vec-inner-value-1")]
-    `(let [~vec-inner-value-1 (vec ~value-1)]
+  (let [index         (gensym "index_")
+        inner-value-1 (gensym "inner-value-1_")
+        inner-value-2 (gensym "inner-value-2_")
+        vec-value-1   (with-meta (gensym "vec-value-1")
+                                 {:no-inline true})]
+    `(let [~vec-value-1 (vec ~value-1)]
        (map-indexed (fn [~index ~inner-value-2]
-                      (if-let [~inner-value-1 (get ~vec-inner-value-1 ~index)]
+                      (if-let [~inner-value-1 (get ~vec-value-1 ~index)]
                         ~(as-diffed inner-schema inner-value-1 inner-value-2
                                     (diff inner-schema inner-value-1 inner-value-2))
                         ~inner-value-2))
@@ -66,7 +67,7 @@
          (util/as-map sorted-by))))
 
 (defmethod diff :tuple [schema value-1 value-2]
-  (let [destructured-2 (util/destructure schema value-2)]
+  (let [destructured-2 (util/destructure-indexed schema value-2)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
        ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
                 (let [inner-value-1 (gensym "inner-value-1_")]
@@ -77,7 +78,7 @@
 
 (defmethod diff :record [schema value-1 value-2]
   (let [[_ {:keys [constructor]} :as schema] (util/expand-record schema (:schemas (:config *opts*)))
-        destructured-2 (util/destructure schema value-2)]
+        destructured-2 (util/destructure-indexed schema value-2)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
             ~(->> destructured-2
                   (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]

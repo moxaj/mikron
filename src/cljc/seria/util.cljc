@@ -65,7 +65,7 @@
                    (merge record-map-1 record-map-2)]))
               (conj super-records record)))))
 
-(defn destructure [[composite-type _ inner-schemas] value]
+(defn destructure-indexed [[composite-type _ inner-schemas] value]
   (let [tuple? (= :tuple composite-type)]
     (map (fn [index]
            {:index        index

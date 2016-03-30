@@ -135,11 +135,12 @@
 
 (def java-snapshot (clj->java snapshot))
 
-(let [buffer (core/allocate-buffer 100000)
-      config seria-config
-      schema :snapshot
-      data   snapshot]
-  ())
+(comment
+  (pprint/with-pprint-dispatch pprint/code-dispatch
+    (pprint/pprint (->> seria-config :sources prettify/prettify)))
 
-(pprint/with-pprint-dispatch pprint/code-dispatch
-  (pprint/pprint (->> seria-config :sources prettify/prettify)))
+  (let [buffer (core/allocate-buffer 10000)]
+    (core/with-params {:buffer buffer :config seria-config :schema :snapshot}
+      (crit/with-progress-reporting
+        (crit/quick-bench
+          (core/pack snapshot))))))

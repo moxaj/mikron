@@ -17,11 +17,10 @@
 (defn inline-let-symbols* [[_ binding-form & exprs]]
   (let [binding-map        (apply hash-map binding-form)
         inlineable-symbols (->> (keys binding-map)
-                                (map (fn [sym]
-                                       [sym (count (util/find-by* #{sym} exprs))]))
-                                (filter (fn [[_ sym-count]]
-                                          (< sym-count 2)))
-                                (map first))
+                                (filter (fn [sym]
+                                          (and (< (count (util/find-by* #{sym} exprs))
+                                                  2)
+                                               (not (:no-inline (meta sym)))))))
         new-binding-form   (->> (apply dissoc binding-map inlineable-symbols)
                                 (mapcat identity)
                                 (vec))

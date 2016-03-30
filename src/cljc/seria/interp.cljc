@@ -28,6 +28,19 @@
     ~value-1
     ~value-2))
 
+(defmethod interp :list [[_ _ inner-schema] value-1 value-2]
+  (let [index         (gensym "index_")
+        inner-value-1 (gensym "inner-value-1_")
+        inner-value-2 (gensym "inner-value-2_")
+        vec-value-1   (with-meta (gensym "vec-value-1")
+                                 {:no-inline true})]
+    `(let [~vec-value-1 (vec ~value-1)]
+       (vec (map-indexed (fn [~index ~inner-value-2]
+                           (if-let [~inner-value-1 (get ~vec-value-1 ~index)]
+                             ~(interp inner-schema inner-value-1 inner-value-2)
+                             ~inner-value-2))
+                         ~value-2)))))
+
 (defmethod interp :vector [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
         inner-value-1 (gensym "inner-value-1_")
@@ -50,7 +63,7 @@
          (util/as-map sorted-by))))
 
 (defmethod interp :tuple [[_ {:keys [interp]} :as schema] value-1 value-2]
-  (let [destructured-2 (util/destructure schema value-2)]
+  (let [destructured-2 (util/destructure-indexed schema value-2)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
        ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
                 (if-not (type/traceable-index? index interp)
@@ -61,7 +74,7 @@
               destructured-2))))
 
 (defmethod interp :record [[_ {:keys [interp constructor]} :as schema] value-1 value-2]
-  (let [destructured-2 (util/destructure schema value-2)]
+  (let [destructured-2 (util/destructure-indexed schema value-2)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
             ~(->> destructured-2
                   (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
