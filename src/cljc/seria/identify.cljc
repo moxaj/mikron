@@ -8,7 +8,7 @@
                      :fixtures  [:list :fixture]}]
  :fixture  [:record {:user-data [:record {:color :int}]
                      :coords    [:list :coord]}]
- ;:coord    [:tuple [:float :float]]
+ :coord    [:tuple [:float :float]]
  :snapshot [:record {:time   :long
                      :bodies [:list :body]}]}
 
@@ -38,9 +38,9 @@
 
   [:tuple [:x1 :xn]]        [vector? x1? xn?]
   [:record {:k1 :x1 :kn :xn}] [map? x1? xn?]
-  [:optional :x]) [nil? x?]
+  [:optional :x] [nil? x?]
 
-  input: schemas, output: identifier
+  input schemas, output identifier
    schemas -> condition-lists
      value + (map first condition-lists) -> remaining schemas
-     condition-lists -> (map next condition-lists)
+     condition-lists -> (map next condition-lists))

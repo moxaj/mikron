@@ -2,7 +2,6 @@
   "Config output code pretiffication."
   (:require [clojure.walk :as walk]
             [clojure.string :as str]
-            [clojure.set :as set]
             [clojure.pprint :as pprint]
             [seria.util :as util]))
 
@@ -16,11 +15,11 @@
 
 (defn inline-let-symbols* [[_ binding-form & exprs]]
   (let [binding-map        (apply hash-map binding-form)
-        inlineable-symbols (->> (keys binding-map)
-                                (filter (fn [sym]
-                                          (and (< (count (util/find-by* #{sym} exprs))
-                                                  2)
-                                               (not (:no-inline (meta sym)))))))
+        inlineable-symbols (filter (fn [sym]
+                                     (and (< (count (util/find-by* #{sym} exprs))
+                                             2)
+                                          (not (:no-inline (meta sym)))))
+                                   (keys binding-map))
         new-binding-form   (->> (apply dissoc binding-map inlineable-symbols)
                                 (mapcat identity)
                                 (vec))
@@ -78,7 +77,7 @@
 
     (or (map? form)
         (sequential? form))
-    (apply merge-with set/union (map requires form))
+    (apply merge-with (partial apply conj) (map requires form))
 
     :else
     {}))

@@ -20,7 +20,7 @@
                             buffer  (:buffer *params*)
                             diff-id 0
                             diffed? false}}]
-  (let [schema-id (get-in config [:schema-bimap schema])
+  (let [schema-id (get-in config [:schema-map schema])
         pack!     (get-in config [:processors schema (if diffed? :diffed-packer :packer)])]
     (if (and pack! schema-id buffer)
       (-> buffer
@@ -32,7 +32,7 @@
 (defn unpack [raw & {:keys [config] :or {config (:config *params*)}}]
   (let [buffer  (buffer/wrap raw)
         {:keys [schema-id diff-id diffed?]} (buffer/read-headers! buffer)
-        schema  (get-in config [:schema-bimap schema-id])
+        schema  (get-in config [:schema-map schema-id])
         unpack! (get-in config [:processors schema (if diffed? :diffed-unpacker :unpacker)])]
     (if (and unpack! schema)
       {:schema  schema

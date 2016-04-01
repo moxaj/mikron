@@ -1,33 +1,30 @@
 (ns seria.type
   "Types and predicates.")
 
-(def primitive-types #{:byte :ubyte :short :ushort :int :uint :long :float :double
+(def primitive-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double
                        :char :boolean :varint
                        :string :keyword :symbol :any})
-(def primitive-type? primitive-types)
 
-(def composite-types #{:list :vector :set :map :tuple :record :optional :multi :enum})
 (defn composite-type? [schema]
   (and (vector? schema)
-       (composite-types (first schema))))
+       (#{:list :vector :set :map :tuple :record :optional :multi :enum}
+        (first schema))))
 
-(def built-in-types (set (concat primitive-types composite-types)))
-(def built-in-type? built-in-types)
+(def built-in-type? #(or (primitive-type? %)
+                         (composite-type? %)))
 
 (defn custom-type? [schema]
   (and (keyword? schema)
        (not (built-in-type? schema))))
 
-(def number-types #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
-(def number-type? number-types)
+(def number-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
 
-(def integer-types #{:byte :ubyte :short :ushort :int :uint :long :varint})
-(def integer-type? integer-types)
+(def integer-type? #{:byte :ubyte :short :ushort :int :uint :long :varint})
 
-(def traceable-types #{:list :vector :map :tuple :record :optional :multi})
 (defn traceable-type? [schema]
-  (and (composite-type? schema)
-       (traceable-types (first schema))))
+  (and (vector? schema)
+       (#{:list :vector :map :tuple :record :optional :multi}
+        (first schema))))
 
 (defn interpable-type? [schema]
   (and (traceable-type? schema)

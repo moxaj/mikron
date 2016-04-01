@@ -136,11 +136,11 @@
 (def java-snapshot (clj->java snapshot))
 
 (comment
-  (pprint/with-pprint-dispatch pprint/code-dispatch
-    (pprint/pprint (->> seria-config :sources prettify/prettify)))
+  (spit "d:\\flubber.txt"
+    (with-out-str
+      (pprint/with-pprint-dispatch pprint/code-dispatch
+        (pprint/pprint (->> seria-config :sources prettify/prettify))))))
 
-  (let [buffer (core/allocate-buffer 10000)]
-    (core/with-params {:buffer buffer :config seria-config :schema :snapshot}
-      (crit/with-progress-reporting
-        (crit/quick-bench
-          (core/pack snapshot))))))
+(let [buffer (core/allocate-buffer 10000)]
+  (core/with-params {:buffer buffer :config seria-config :schema :snapshot}
+    (seq (core/pack snapshot))))

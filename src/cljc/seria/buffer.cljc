@@ -4,10 +4,6 @@
   (:require [seria.util :as util]
    #?(:cljs [cljsjs.bytebuffer])))
 
-
-(def ^:const magic-number-big 42)
-(def ^:const magic-number-little -42)
-
 (defprotocol Buffer
   (read-byte!    [this])
   (read-short!   [this])
@@ -132,6 +128,38 @@
                                           (.writeInt8 this (aget this "bitBuffer") bit-position)))
                                       (.toArrayBuffer (.slice this 0 (aget this "offset"))))))))
 
+(defn encode-negative [value]
+  (- (inc value)))
+
+(defn decode-negative [value]
+  (dec (- value)))
+
+(defn write-varint! [buffer value]
+  (let [neg-value? (neg? value)
+        value      (if-not neg-value? value (encode-negative value))]
+    (write-boolean! buffer neg-value?)
+    (loop [value value]
+      (if (zero? (bit-and value -128))
+        (write-byte! buffer (unchecked-byte value))
+        (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
+                                                        128)))
+            (recur (unsigned-bit-shift-right value 7)))))))
+
+(defn read-varint! [buffer]
+  (let [neg-value? (read-boolean! buffer)]
+    (loop [value  0
+           shift  0]
+      (if-not (< shift 64)
+        (throw (util/cljc-exception "Malformed varint!"))
+        (let [b     (read-byte! buffer)
+              value (bit-or value (bit-shift-left (bit-and b 127)
+                                                  shift))]
+           (if (zero? (bit-and b 128))
+             (if-not neg-value?
+               value
+               (decode-negative value))
+             (recur value (unchecked-add shift 7))))))))
+
 (defn wrap [raw]
   (clear! #?(:clj  (SeriaByteBuffer/wrap ^bytes raw)
              :cljs (.wrap js/ByteBuffer raw))))
@@ -143,16 +171,16 @@
 (defn write-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer) schema-id diff-id diffed?]
   (-> buffer
       (clear!)
-      (write-byte! (if (little-endian? buffer) magic-number-little magic-number-big))
-      (write-ushort! schema-id)
-      (write-short! (if-not diffed? diff-id (- diff-id)))))
+      (write-boolean! (little-endian? buffer))
+      (write-varint! schema-id)
+      (write-varint! diff-id)
+      (write-boolean! diffed?)))
 
 (defn read-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer)]
-  (little-endian! buffer (= magic-number-little (read-byte! buffer)))
-  (let [schema-id (read-ushort! buffer)
-        diff-id   (read-short! buffer)
-        diffed?   (neg? diff-id)
-        diff-id   (long (util/cljc-abs diff-id))]
+  (little-endian! buffer (read-boolean! buffer))
+  (let [schema-id (read-varint! buffer)
+        diff-id   (read-varint! buffer)
+        diffed?   (read-boolean! buffer)]
     {:schema-id schema-id
      :diff-id   diff-id
      :diffed?   diffed?}))

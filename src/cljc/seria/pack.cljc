@@ -2,8 +2,7 @@
   "Packer and unpacker generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
-            [seria.type :as type]
-            [seria.varint :as varint]))
+            [seria.type :as type]))
 
 (def ^:dynamic *opts*)
 
@@ -93,10 +92,10 @@
   `(buffer/read-boolean! ~'buffer))
 
 (defmethod pack :varint [_ value]
-  `(varint/write-varint! ~'buffer ~value))
+  `(buffer/write-varint! ~'buffer ~value))
 
 (defmethod unpack :varint [_]
-  `(varint/read-varint! ~'buffer))
+  `(buffer/read-varint! ~'buffer))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -222,21 +221,21 @@
   `(case (~(util/runtime-fn selector) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
-                  `(do ~(pack :varint (get-in (:config *opts*) [:multi-bimap multi-case]))
+                  `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
                        ~(as-diffed value (pack inner-schema value)))])
                arg-map)))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
-  `(case (get ~(:multi-bimap (:config *opts*)) ~(unpack :varint))
+  `(case (get ~(:multi-map (:config *opts*)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (as-undiffed (unpack inner-schema))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
-  (pack :varint `(~(:enum-bimap (:config *opts*)) ~value)))
+  (pack :varint `(~(:enum-map (:config *opts*)) ~value)))
 
 (defmethod unpack :enum [_]
-  `(~(:enum-bimap (:config *opts*)) ~(unpack :varint)))
+  `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
 (defmethod pack :custom [schema value]
   `(~(util/runtime-processor schema :packer) ~'buffer ~value ~'config))
