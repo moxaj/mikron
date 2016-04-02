@@ -3,14 +3,12 @@
   (:require [criterium.core :as crit]
             [seria.core :as core]
             [seria.config :as config]
-            [seria.gen :as gen]
             [taoensso.nippy :as nippy]
             [clj-kryo.core :as kryo]
             [cheshire.core :as cheshire]
             [prc])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream
-                    ObjectInputStream ObjectOutputStream]
-           [seria Seria]))
+                    ObjectInputStream ObjectOutputStream]))
 
 (defn java-serialize [data]
   (let [baos (ByteArrayOutputStream.)]
@@ -83,7 +81,7 @@
                       :nippy [nippy/freeze nippy/thaw]
                       :json  [cheshire/generate-string cheshire/parse-string]
                       :smile [cheshire/generate-smile cheshire/parse-smile]}
-                     (gen/sample 1000 schema config)
+                     (repeatedly 1000 #(core/gen :schema schema :config config))
                      stats)))
 
 (defn visualize-results [results]

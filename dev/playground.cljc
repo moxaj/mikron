@@ -2,22 +2,15 @@
   (:require [seria.buffer :as buffer]
             [seria.core :as core]
             [seria.config :as config]
-            [seria.gen :as gen]
+            [seria.gen-slow :as gen]
             [criterium.core :as crit]
             [taoensso.nippy :as nippy]
             [cheshire.core :as json]
             [seria.prettify :as prettify]
             [seria.util :as util]
-            [clojure.pprint :as pprint])
-  (:import [seria SeriaByteBuffer
-                  Seria Seria$Snapshot
-                  Seria$Snapshot$Builder
-                  Seria$Snapshot$Body
-                  Seria$Snapshot$BodyUserData
-                  Seria$Snapshot$Coord
-                  Seria$Snapshot$Fixture
-                  Seria$Snapshot$FixtureUserData
-                  Seria$Snapshot$BodyType]))
+            [clojure.pprint :as pprint]
+            [seria.gen :as gen-fast])
+  (:import [seria SeriaByteBuffer]))
 
 (def box2d-schemas
   {:body     [:record {:user-data [:record {:id :int}]
@@ -30,6 +23,7 @@
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
+
 (def snapshot
   (quote
     {:time -1413142939,
@@ -96,51 +90,11 @@
 
 (def seria-config (config/make-test-config :schemas box2d-schemas))
 
-(defn clj->java [{:keys [time bodies]}]
-  (let [snapshot-builder (Seria$Snapshot/newBuilder)]
-    (run! (fn [{:keys [body-type angle position fixtures user-data]}]
-            (let [body-builder (Seria$Snapshot$Body/newBuilder)
-                  user-data    (-> (Seria$Snapshot$BodyUserData/newBuilder)
-                                   (.setId (:id user-data))
-                                   (.build))
-                  position     (-> (Seria$Snapshot$Coord/newBuilder)
-                                   (.setX (first position))
-                                   (.setY (second position))
-                                   (.build))]
-              (-> body-builder
-                  (.setPosition position)
-                  (.setAngle angle)
-                  (.setBodyType (case body-type
-                                  :static Seria$Snapshot$BodyType/STATIC
-                                  :kinetic Seria$Snapshot$BodyType/KINETIC
-                                  :dynamic Seria$Snapshot$BodyType/DYNAMIC))
-                  (.setUserData user-data))
-              (run! (fn [{:keys [user-data coords]}]
-                      (let [fixture-builder (Seria$Snapshot$Fixture/newBuilder)
-                            user-data       (-> (Seria$Snapshot$FixtureUserData/newBuilder)
-                                                (.setColor (:color user-data)))]
-                        (run! (fn [[x y]]
-                                (.addCoord fixture-builder (-> (Seria$Snapshot$Coord/newBuilder)
-                                                               (.setX x)
-                                                               (.setY y))))
-                              coords)
-                        (-> fixture-builder
-                            (.setUserData user-data))
-                        (.addFixture body-builder fixture-builder)))
-                    fixtures)
-              (.addBody snapshot-builder body-builder)))
-          bodies)
-    (.setTime snapshot-builder time)
-    (.build snapshot-builder)))
-
-(def java-snapshot (clj->java snapshot))
-
 (comment
-  (spit "d:\\flubber.txt"
-    (with-out-str
-      (pprint/with-pprint-dispatch pprint/code-dispatch
-        (pprint/pprint (->> seria-config :sources prettify/prettify))))))
+  (let [buffer (core/allocate-buffer 10000)]
+    (core/with-params {:buffer buffer :config seria-config :schema :snapshot}
+      (seq (core/pack snapshot))))
 
-(let [buffer (core/allocate-buffer 10000)]
-  (core/with-params {:buffer buffer :config seria-config :schema :snapshot}
-    (seq (core/pack snapshot))))
+  (with-out-str
+    (pprint/with-pprint-dispatch pprint/code-dispatch
+      (pprint/pprint (->> seria-config :sources prettify/prettify)))))

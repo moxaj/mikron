@@ -21,18 +21,18 @@
 (defmulti interp interp-dispatch)
 
 (defmethod interp :interpable [schema value-1 value-2]
-  `(interp-values ~value-1 ~value-2 ~'time-factor ~(not (type/integer-type? schema))))
+  `(interp-values ~value-1 ~value-2 ~(:time-factor *opts*) ~(not (type/integer-type? schema))))
 
 (defmethod interp :non-interpable [_ value-1 value-2]
-  `(if ~'prefer-first?
+  `(if ~(:prefer-first? *opts*)
     ~value-1
     ~value-2))
 
 (defmethod interp :list [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
-        inner-value-1 (gensym "inner-value-1_")
-        inner-value-2 (gensym "inner-value-2_")
-        vec-value-1   (with-meta (gensym "vec-value-1")
+        inner-value-1 (util/postfix-gensym value-1 "item")
+        inner-value-2 (util/postfix-gensym value-2 "item")
+        vec-value-1   (with-meta (util/postfix-gensym value-1 "vec")
                                  {:no-inline true})]
     `(let [~vec-value-1 (vec ~value-1)]
        (vec (map-indexed (fn [~index ~inner-value-2]
@@ -43,8 +43,8 @@
 
 (defmethod interp :vector [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
-        inner-value-1 (gensym "inner-value-1_")
-        inner-value-2 (gensym "inner-value-2_")]
+        inner-value-1 (util/postfix-gensym value-1 "item")
+        inner-value-2 (util/postfix-gensym value-2 "item")]
     `(vec (map-indexed (fn [~index ~inner-value-2]
                          (if-let [~inner-value-1 (get ~value-1 ~index)]
                            ~(interp inner-schema inner-value-1 inner-value-2)
@@ -52,15 +52,15 @@
                        ~value-2))))
 
 (defmethod interp :map [[_ {:keys [sorted-by]} _ value-schema] value-1 value-2]
-  (let [key   (gensym "key_")
-        val-1 (gensym "val-1_")
-        val-2 (gensym "val-2_")]
+  (let [key   (util/postfix-gensym value-1 "key")
+        val-1 (util/postfix-gensym value-1 "val")
+        val-2 (util/postfix-gensym value-2 "val")]
     (->> `(map (fn [[~key ~val-2]]
                  [~key (if-let [~val-1 (get ~value-1 ~key)]
                          ~(interp value-schema val-1 val-2)
                          ~val-2)])
                ~value-2)
-         (util/as-map sorted-by))))
+         (util/as-map sorted-by (:live-config *opts*)))))
 
 (defmethod interp :tuple [[_ {:keys [interp]} :as schema] value-1 value-2]
   (let [destructured-2 (util/destructure-indexed schema value-2)]
@@ -84,11 +84,12 @@
                                     `(let [~inner-value-1 (get ~value-1 ~index)]
                                        ~(interp inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util/as-record constructor))))
+         (util/as-record constructor (:live-config *opts*)))))
 
 (defmethod interp :custom [schema value-1 value-2]
-  `(~(util/runtime-processor schema :interper)
-    ~value-1 ~value-2 ~'time-1 ~'time-2 ~'time ~'config))
+  (let [{:keys [time-1 time-2 time live-config]} *opts*]
+    `(~(util/runtime-processor schema :interper live-config)
+      ~value-1 ~value-2 ~time-1 ~time-2 ~time ~live-config)))
 
 (defmethod interp :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -99,7 +100,7 @@
   (let [selector-fn (gensym "selector-fn_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector)
+    `(let [~selector-fn ~(util/runtime-fn selector (:live-config *opts*))
            ~case-1      (~selector-fn ~value-1)
            ~case-2      (~selector-fn ~value-2)]
        (if-not (= ~case-1 ~case-2)
@@ -110,9 +111,23 @@
                      multi-cases))))))
 
 (defn make-interper [schema config]
-  (binding [*opts* {:config config}]
-    `(fn [~'value-1 ~'value-2 ~'time-1 ~'time-2 ~'time ~'config]
-       (let [~'prefer-first? (< (util/cljc-abs (- ~'time ~'time-1))
-                                (util/cljc-abs (- ~'time ~'time-2)))
-             ~'time-factor   (/ (- ~'time ~'time-1) (- ~'time-2 ~'time-1))]
-         ~(interp schema 'value-1 'value-2)))))
+  (let [value-1       (gensym "value-1_")
+        value-2       (gensym "value-2_")
+        time-1        (gensym "time-1_")
+        time-2        (gensym "time-2_")
+        time          (gensym "time_")
+        live-config   (gensym "config_")
+        prefer-first? (gensym "prefer-first?_")
+        time-factor   (gensym "time-factor_")]
+    (binding [*opts* {:config        config
+                      :time-1        time-1
+                      :time-2        time-2
+                      :time          time
+                      :live-config   live-config
+                      :prefer-first? prefer-first?
+                      :time-factor   time-factor}]
+      `(fn [~value-1 ~value-2 ~time-1 ~time-2 ~time ~live-config]
+         (let [~prefer-first? (< (util/cljc-abs (- ~time ~time-1))
+                                 (util/cljc-abs (- ~time ~time-2)))
+               ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
+           ~(interp schema value-1 value-2))))))

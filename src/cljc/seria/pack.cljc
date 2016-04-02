@@ -26,76 +26,76 @@
        ~body)))
 
 (defmethod pack :byte [_ value]
-  `(buffer/write-byte! ~'buffer ~value))
+  `(buffer/write-byte! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :byte [_]
-  `(buffer/read-byte! ~'buffer))
+  `(buffer/read-byte! ~(:buffer *opts*)))
 
 (defmethod pack :ubyte [_ value]
-  `(buffer/write-ubyte! ~'buffer ~value))
+  `(buffer/write-ubyte! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :ubyte [_]
-  `(buffer/read-ubyte! ~'buffer))
+  `(buffer/read-ubyte! ~(:buffer *opts*)))
 
 (defmethod pack :short [_ value]
-  `(buffer/write-short! ~'buffer ~value))
+  `(buffer/write-short! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :short [_]
-  `(buffer/read-short! ~'buffer))
+  `(buffer/read-short! ~(:buffer *opts*)))
 
 (defmethod pack :ushort [_ value]
-  `(buffer/write-ushort! ~'buffer ~value))
+  `(buffer/write-ushort! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :ushort [_]
-  `(buffer/read-ushort! ~'buffer))
+  `(buffer/read-ushort! ~(:buffer *opts*)))
 
 (defmethod pack :int [_ value]
-  `(buffer/write-int! ~'buffer ~value))
+  `(buffer/write-int! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :int [_]
-  `(buffer/read-int! ~'buffer))
+  `(buffer/read-int! ~(:buffer *opts*)))
 
 (defmethod pack :uint [_ value]
-  `(buffer/write-uint! ~'buffer ~value))
+  `(buffer/write-uint! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :uint [_]
-  `(buffer/read-uint! ~'buffer))
+  `(buffer/read-uint! ~(:buffer *opts*)))
 
 (defmethod pack :long [_ value]
-  `(buffer/write-long! ~'buffer ~value))
+  `(buffer/write-long! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :long [_]
-  `(buffer/read-long! ~'buffer))
+  `(buffer/read-long! ~(:buffer *opts*)))
 
 (defmethod pack :float [_ value]
-  `(buffer/write-float! ~'buffer ~value))
+  `(buffer/write-float! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :float [_]
-  `(buffer/read-float! ~'buffer))
+  `(buffer/read-float! ~(:buffer *opts*)))
 
 (defmethod pack :double [_ value]
-  `(buffer/write-double! ~'buffer ~value))
+  `(buffer/write-double! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :double [_]
-  `(buffer/read-double! ~'buffer))
+  `(buffer/read-double! ~(:buffer *opts*)))
 
 (defmethod pack :char [_ value]
-  `(buffer/write-char! ~'buffer ~value))
+  `(buffer/write-char! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :char [_]
-  `(buffer/read-char! ~'buffer))
+  `(buffer/read-char! ~(:buffer *opts*)))
 
 (defmethod pack :boolean [_ value]
-  `(buffer/write-boolean! ~'buffer ~value))
+  `(buffer/write-boolean! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :boolean [_]
-  `(buffer/read-boolean! ~'buffer))
+  `(buffer/read-boolean! ~(:buffer *opts*)))
 
 (defmethod pack :varint [_ value]
-  `(buffer/write-varint! ~'buffer ~value))
+  `(buffer/write-varint! ~(:buffer *opts*) ~value))
 
 (defmethod unpack :varint [_]
-  `(buffer/read-varint! ~'buffer))
+  `(buffer/read-varint! ~(:buffer *opts*)))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -116,7 +116,7 @@
   `(keyword ~(unpack :string)))
 
 (defmethod pack :symbol [_ value]
-  (let [symbol-as-str (gensym "symbol-as-str_")]
+  (let [symbol-as-str (util/postfix-gensym value "str")]
     `(let [~symbol-as-str (str ~value)]
        ~(pack :string symbol-as-str))))
 
@@ -124,7 +124,7 @@
   `(symbol ~(unpack :string)))
 
 (defmethod pack :any [_ value]
-  (let [any-as-str (gensym "any-as-str_")]
+  (let [any-as-str (util/postfix-gensym value "str")]
     `(let [~any-as-str (pr-str ~value)]
        ~(pack :string any-as-str))))
 
@@ -132,7 +132,7 @@
   `(util/cljc-read-string ~(unpack :string)))
 
 (defmethod pack :list [[_ _ inner-schema] value]
-  (let [inner-value (gensym "inner-value_")]
+  (let [inner-value (util/postfix-gensym value "item")]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [~inner-value]
                  ~(as-diffed inner-value (pack inner-schema inner-value)))
@@ -143,31 +143,21 @@
                       (fn [] ~(as-undiffed (unpack inner-schema))))))
 
 (defmethod pack :vector [[_ _ inner-schema] value]
-  (let [inner-value (gensym "inner-value_")]
-    `(do ~(pack :varint `(count ~value))
-         (run! (fn [~inner-value]
-                 ~(as-diffed inner-value (pack inner-schema inner-value)))
-               ~value))))
+  (pack [:list {} inner-schema] value))
 
 (defmethod unpack :vector [[_ _ inner-schema]]
-  `(vec (repeatedly ~(unpack :varint)
-                    (fn [] ~(as-undiffed (unpack inner-schema))))))
+  `(vec ~(unpack [:list {} inner-schema])))
 
 (defmethod pack :set [[_ _ inner-schema] value]
-  (let [inner-value (gensym "inner-value_")]
-    `(do ~(pack :varint `(count ~value))
-         (run! (fn [~inner-value]
-                 ~(pack inner-schema inner-value))
-               ~value))))
+  (pack [:list {} inner-schema] value))
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
-  (->> `(repeatedly ~(unpack :varint)
-                    (fn [] ~(unpack inner-schema)))
-       (util/as-set sorted-by)))
+  (->> (unpack [:list {} inner-schema])
+       (util/as-set sorted-by (:live-config *opts*))))
 
 (defmethod pack :map [[_ _ key-schema val-schema] value]
-  (let [key (gensym "key_")
-        val (gensym "val_")]
+  (let [key (util/postfix-gensym value "key")
+        val (util/postfix-gensym value "val")]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [[~key ~val]]
                  ~(pack key-schema key)
@@ -178,7 +168,7 @@
   (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
                             ~(as-undiffed (unpack val-schema))]))
-       (util/as-map sorted-by)))
+       (util/as-map sorted-by (:live-config *opts*))))
 
 (defmethod pack :tuple [schema value]
   (let [destructured (util/destructure-indexed schema value)]
@@ -206,7 +196,7 @@
          (map (fn [key]
                 [key (as-undiffed (unpack (record-map key)))]))
          (into {})
-         (util/as-record constructor))))
+         (util/as-record constructor (:live-config *opts*)))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
@@ -218,7 +208,7 @@
      ~(as-undiffed (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
-  `(case (~(util/runtime-fn selector) ~value)
+  `(case (~(util/runtime-fn selector (:live-config *opts*)) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
                   `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
@@ -238,18 +228,36 @@
   `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
 (defmethod pack :custom [schema value]
-  `(~(util/runtime-processor schema :packer) ~'buffer ~value ~'config))
+  (let [live-config (:live-config *opts*)]
+    `(~(util/runtime-processor schema :packer live-config)
+      ~(:buffer *opts*)
+      ~value
+      ~live-config)))
 
 (defmethod unpack :custom [schema]
-  `(~(util/runtime-processor schema :unpacker) ~'buffer ~'config))
+  (let [live-config (:live-config *opts*)]
+    `(~(util/runtime-processor schema :unpacker live-config)
+      ~(:buffer *opts*)
+      ~live-config)))
 
 (defn make-packer [schema config diffed?]
-  (binding [*opts* {:config config :diffed? diffed?}]
-    `(fn [~'buffer ~'value ~'config]
-       ~(as-diffed 'value (pack schema 'value))
-       ~'buffer)))
+  (let [buffer      (gensym "buffer_")
+        value       (gensym "value_")
+        live-config (gensym "config_")]
+    (binding [*opts* {:config      config
+                      :diffed?     diffed?
+                      :live-config live-config
+                      :buffer      buffer}]
+      `(fn [~buffer ~value ~live-config]
+         ~(as-diffed value (pack schema value))
+         ~(:buffer *opts*)))))
 
 (defn make-unpacker [schema config diffed?]
-  (binding [*opts* {:config config :diffed? diffed?}]
-    `(fn [~'buffer ~'config]
-       ~(as-undiffed (unpack schema)))))
+  (let [buffer      (gensym "buffer_")
+        live-config (gensym "config_")]
+    (binding [*opts* {:config      config
+                      :diffed?     diffed?
+                      :live-config live-config
+                      :buffer      buffer}]
+      `(fn [~buffer ~live-config]
+         ~(as-undiffed (unpack schema))))))

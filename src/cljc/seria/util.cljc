@@ -42,12 +42,14 @@
 (defn find-by [f form]
   (set (find-by* f form)))
 
-(defn postfix-gensym [sym s]
+(defn raw-gensym [sym]
   (let [sym-name (name sym)]
-    (gensym (format "%s-%s_" (if-let [index (string/last-index-of sym-name "_")]
-                               (subs sym-name 0 index)
-                               sym-name)
-                             s))))
+    (if-let [index (string/last-index-of sym-name "_")]
+      (subs sym-name 0 index)
+      sym-name)))
+
+(defn postfix-gensym [sym s]
+  (gensym (format "%s-%s_" (raw-gensym sym) s)))
 
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
   (if (empty? extends)
@@ -69,9 +71,9 @@
   (let [tuple? (= :tuple composite-type)]
     (map (fn [index]
            {:index        index
-            :symbol       (gensym (if tuple?
-                                    (format "tuple_%d_" index)
-                                    (format "%s_" (name index))))
+            :symbol       (postfix-gensym value (if tuple?
+                                                  (str index)
+                                                  (name index)))
             :inner-schema (inner-schemas index)
             :inner-value  (if tuple?
                             `(~value ~index)
@@ -80,27 +82,27 @@
            (range (count inner-schemas))
            (sort (keys inner-schemas))))))
 
-(defn runtime-fn [fn-key]
-  `(get-in @(:state ~'config) [:fn-map ~fn-key]))
+(defn runtime-fn [fn-key config]
+  `(get-in @(:state ~config) [:fn-map ~fn-key]))
 
-(defn runtime-processor [schema processor-type]
-  `(get-in ~'config [:processors ~schema ~processor-type]))
+(defn runtime-processor [schema processor-type config]
+  `(get-in ~config [:processors ~schema ~processor-type]))
 
-(defn as-set [sorted-by body]
+(defn as-set [sorted-by config body]
   `(into ~(case sorted-by
             :none    `#{}
             :default `(sorted-set)
-            `(sorted-set-by ~(runtime-fn sorted-by)))
+            `(sorted-set-by ~(runtime-fn sorted-by config)))
          ~body))
 
-(defn as-map [sorted-by body]
+(defn as-map [sorted-by config body]
   `(into ~(case sorted-by
             :none    `{}
             :default `(sorted-map)
-            `(sorted-map-by ~(runtime-fn sorted-by)))
+            `(sorted-map-by ~(runtime-fn sorted-by config)))
          ~body))
 
-(defn as-record [constructor body]
+(defn as-record [constructor config body]
   (if constructor
-    `(~(runtime-fn constructor) ~body)
+    `(~(runtime-fn constructor config) ~body)
     body))

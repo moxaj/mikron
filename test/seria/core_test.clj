@@ -1,7 +1,6 @@
 (ns seria.core-test
   (:require [seria.config :as config]
             [seria.core :as core]
-            [seria.gen :as gen]
             [clojure.test :as test]))
 
 (defn pack-roundtrip [value config buffer]
@@ -16,7 +15,7 @@
          buffer (core/allocate-buffer 100000)]
      (when functions
        (core/prepare-config! config :functions functions))
-     (doseq [value (gen/sample 10 :x config)]
+     (doseq [value (repeatedly 10 #(core/gen :schema :x :config config))]
        (test/is (= {:schema :x :diff-id 0 :value value}
                    (pack-roundtrip value config buffer)))))))
 
@@ -88,7 +87,7 @@
    (let [config (config/make-test-config :schemas schemas)]
      (when functions
        (core/prepare-config! config :functions functions))
-     (doseq [[value-1 value-2] (partition 2 (gen/sample 20 :x config))]
+     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(core/gen :schema :x :config config)))]
        (test/is (= value-2 (diff-roundtrip value-1 value-2 config)))))))
 
 (test/deftest diff-test
