@@ -146,8 +146,8 @@
 
 (defn read-varint! [buffer]
   (let [neg-value? (read-boolean! buffer)]
-    (loop [value  0
-           shift  0]
+    (loop [value 0
+           shift 0]
       (if-not (< shift 64)
         (throw (util/cljc-exception "Malformed varint!"))
         (let [b     (read-byte! buffer)
