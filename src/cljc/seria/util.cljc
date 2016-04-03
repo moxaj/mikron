@@ -71,7 +71,7 @@
   (let [tuple? (= :tuple composite-type)]
     (map (fn [index]
            {:index        index
-            :symbol       (if value?
+            :symbol       (if tuple?
                             (postfix-gensym value (str index))
                             (name index))
             :inner-schema (inner-schemas index)
