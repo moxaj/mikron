@@ -30,11 +30,14 @@
 
 (defmulti validate-composite first)
 
-(defmethod validate-composite :list [[_ _ inner-schema :as schema]]
-  (assert (= 3 (count schema))
-          (format "Invalid schema: %s. :list-s must have 1 or 2 arguments."
-                  schema))
-  [:list {} (validate-schema inner-schema)])
+(defmethod validate-composite :list [schema]
+  (let [[_ options inner-schema :as schema] (->> schema
+                                                 (validate-interpable))]
+    (assert (= 3 (count schema))
+            (format "Invalid schema: %s. :list-s must have 1 or 2 arguments."
+                    schema))
+    [:list (select-keys options [:interp])
+     (validate-schema inner-schema)]))
 
 (defmethod validate-composite :vector [schema]
   (let [[_ options inner-schema :as schema] (->> schema

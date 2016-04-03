@@ -97,4 +97,9 @@
 
   (with-out-str
     (pprint/with-pprint-dispatch pprint/code-dispatch
-      (pprint/pprint (->> seria-config :sources prettify/prettify)))))
+      (pprint/pprint (->> seria-config :sources prettify/prettify))))
+
+  (let [config (config/make-test-config :schemas {:x [:list :int]})
+        buffer (core/allocate-buffer 10000)]
+    (core/with-params {:config config :schema :x :buffer buffer}
+      (core/unpack (core/pack (core/gen))))))

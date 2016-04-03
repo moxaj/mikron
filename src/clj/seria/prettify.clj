@@ -84,11 +84,13 @@
 
 (defn ns-str [ns-name config-name form pretty-print?]
   (let [write (if pretty-print? pprint/pprint println)]
-    (pprint/with-pprint-dispatch pprint/code-dispatch
-      (with-out-str
-        (write `(~'ns ~ns-name
-                  (:require ~@(map (fn [[required-ns-name functions]]
-                                     [required-ns-name :refer (vec functions)])
-                                   (dissoc (requires form) 'clojure.core)))))
-        (newline)
-        (write `(~'def ~config-name ~(prettify form)))))))
+    (binding [pprint/*print-right-margin* 100
+              pprint/*print-miser-width*  100]
+      (pprint/with-pprint-dispatch pprint/code-dispatch
+        (with-out-str
+          (write `(~'ns ~ns-name
+                    (:require ~@(map (fn [[required-ns-name functions]]
+                                       [required-ns-name :refer (vec functions)])
+                                     (dissoc (requires form) 'clojure.core)))))
+          (newline)
+          (write `(~'def ~config-name ~(prettify form))))))))
