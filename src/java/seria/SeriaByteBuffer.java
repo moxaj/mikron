@@ -8,7 +8,7 @@ public class SeriaByteBuffer {
   private byte bitBuffer;
   private int bitPosition;
   private int bitIndex;
-  
+
 
   private SeriaByteBuffer(int capacity) {
     ByteOrder order = ByteOrder.nativeOrder();
@@ -60,9 +60,7 @@ public class SeriaByteBuffer {
 
   public boolean getBoolean() {
     if (bitIndex % 8 == 0) {
-      bitPosition = byteBuffer.position();
       bitBuffer = byteBuffer.get();
-      byteBuffer.position(bitPosition + 1);
     }
 
     return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));

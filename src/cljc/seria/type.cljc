@@ -7,8 +7,8 @@
 
 (defn composite-type? [schema]
   (and (vector? schema)
-       (#{:list :vector :set :map :tuple :record :optional :multi :enum}
-        (first schema))))
+       (contains? #{:list :vector :set :map :tuple :record :optional :multi :enum}
+                  (first schema))))
 
 (def built-in-type? #(or (primitive-type? %)
                          (composite-type? %)))
@@ -23,8 +23,8 @@
 
 (defn traceable-type? [schema]
   (and (vector? schema)
-       (#{:list :vector :map :tuple :record :optional :multi}
-        (first schema))))
+       (contains? #{:list :vector :map :tuple :record :optional :multi}
+                  (first schema))))
 
 (defn interpable-type? [schema]
   (and (traceable-type? schema)

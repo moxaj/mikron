@@ -49,7 +49,7 @@
       sym-name)))
 
 (defn postfix-gensym [sym s]
-  (gensym (format "%s-%s_" (raw-gensym sym) s)))
+  (gensym (str (raw-gensym sym) "-" s "_")))
 
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
   (if (empty? extends)
@@ -71,9 +71,9 @@
   (let [tuple? (= :tuple composite-type)]
     (map (fn [index]
            {:index        index
-            :symbol       (postfix-gensym value (if tuple?
-                                                  (str index)
-                                                  (name index)))
+            :symbol       (if value?
+                            (postfix-gensym value (str index))
+                            (name index))
             :inner-schema (inner-schemas index)
             :inner-value  (if tuple?
                             `(~value ~index)

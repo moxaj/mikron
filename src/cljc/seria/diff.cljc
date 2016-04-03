@@ -108,14 +108,15 @@
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]
-  (let [processor-type (case (:direction *opts*)
+  (let [{:keys [direction live-config]} *opts*
+        processor-type (case direction
                          :diff   :differ
                          :undiff :undiffer)]
-    `(~(util/runtime-processor schema processor-type (:live-config *opts*))
-      ~value-1 ~value-2 ~(:live-config *opts*))))
+    `(~(util/runtime-processor schema processor-type live-config)
+      ~value-1 ~value-2 ~live-config)))
 
 (defmethod diff :non-diffable [schema value-1 value-2]
-  (as-diffed schema value-1 value-2 value-2))
+  value-2)
 
 (defn make-common [schema config direction]
   (let [value-1     (gensym "value-1_")

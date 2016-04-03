@@ -75,14 +75,12 @@
                (read-float!   [this] (.readFloat32 this))
                (read-double!  [this] (.readFloat64 this))
                (read-char!    [this] (.readUint16 this))
-               (read-boolean! [this  (let [bit-index (aget this "bitIndex")]
+               (read-boolean! [this] (let [bit-index (aget this "bitIndex")]
                                        (when (zero? (mod bit-index 8))
-                                         (aset this "bitBuffer" (.readInt8 this))
-                                         (aset this "bitPosition" (aget this "offset"))
-                                         (.skip this 1))
+                                         (aset this "bitBuffer" (.readInt8 this)))
                                        (aset this "bitIndex" (inc bit-index))
                                        (not (zero? (bit-and (aget this "bitBuffer")
-                                                            (bit-shift-left 1 (mod bit-index 8))))))])
+                                                            (bit-shift-left 1 (mod bit-index 8)))))))
                (read-ubyte!   [this] (.readUint8 this))
                (read-ushort!  [this] (.readUint16 this))
                (read-uint!    [this] (.readUint32 this))
@@ -100,8 +98,9 @@
                                                   (.writeInt8 this (aget this "bitBuffer")
                                                                    (aget this "bitPosition")))
                                                 (aset this "bitBuffer" 0)
-                                                (aset this "bitPosition" (aget this "offset"))
-                                                (.skip this 1))
+                                                (let [offset (aget this "offset")]
+                                                  (aset this "bitPosition" offset)
+                                                  (aset this "offset" (inc offset))))
                                               (aset this "bitIndex" (inc bit-index))
                                               (aset this "bitBuffer"
                                                     (if value
@@ -116,7 +115,7 @@
                (write-uint!    [this value] (.writeUint32 this value))
 
                (little-endian? [this] (aget this "littleEndian"))
-               (little-endian! [this little-endian] (aset this "littleEndian" value))
+               (little-endian! [this little-endian] (aset this "littleEndian" little-endian))
 
                (clear! [this] (doto this
                                     (aset "offset" 0)

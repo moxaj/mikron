@@ -228,17 +228,14 @@
   `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
 (defmethod pack :custom [schema value]
-  (let [live-config (:live-config *opts*)]
+  (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :packer live-config)
-      ~(:buffer *opts*)
-      ~value
-      ~live-config)))
+      ~buffer ~value ~live-config)))
 
 (defmethod unpack :custom [schema]
-  (let [live-config (:live-config *opts*)]
+  (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :unpacker live-config)
-      ~(:buffer *opts*)
-      ~live-config)))
+      ~buffer ~live-config)))
 
 (defn make-packer [schema config diffed?]
   (let [buffer      (gensym "buffer_")
