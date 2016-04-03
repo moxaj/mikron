@@ -23,20 +23,33 @@
        (mapcat (fn [[_ _ values]]
                  values))))
 
-(defn make-processors [schemas config]
-  (->> schemas
-       (map (fn [[schema schema-def]]
-              [schema {:packer          (pack/make-packer schema-def config false)
-                       :diffed-packer   (pack/make-packer schema-def config true)
-                       :unpacker        (pack/make-unpacker schema-def config false)
-                       :diffed-unpacker (pack/make-unpacker schema-def config true)
-                       :differ          (diff/make-differ schema-def config)
-                       :undiffer        (diff/make-undiffer schema-def config)
-                       :interper        (interp/make-interper schema-def config)
-                       :generator       (gen/make-generator schema-def config)}]))
-       (into {})))
+(defn make-processors [schemas processors config]
+  (let [processors (or processors [:pack :diff :gen :interp])
+        need?      (set processors)]
+    (->> schemas
+         (map (fn [[schema schema-def]]
+                [schema (cond-> {}
+                          (need? :pack)
+                          (assoc :packer   (pack/make-packer schema-def config false)
+                                 :unpacker (pack/make-unpacker schema-def config false))
 
-(defn make-config [& {:keys [schemas eq-ops] :or {eq-ops {}}}]
+                          (need? :diff)
+                          (assoc :differ   (diff/make-differ schema-def config)
+                                 :undiffer (diff/make-undiffer schema-def config))
+
+                          (and (need? :pack)
+                               (need? :diff))
+                          (assoc :diffed-packer   (pack/make-packer schema-def config true)
+                                 :diffed-unpacker (pack/make-unpacker schema-def config true))
+
+                          (need? :gen)
+                          (assoc :generator (gen/make-generator schema-def config))
+
+                          (need? :interp)
+                          (assoc :interper (interp/make-interper schema-def config)))]))
+         (into {}))))
+
+(defn make-config [& {:keys [schemas eq-ops processors] :or {eq-ops {}}}]
   (let [schemas (validate/validate-schemas schemas)
         config  {:schemas    schemas
                  :schema-map (util/bimap (keys schemas))
@@ -44,7 +57,7 @@
                  :multi-map  (util/bimap (multi-cases schemas))
                  :eq-ops     eq-ops
                  :state      `(atom {})}]
-    (assoc config :processors (make-processors schemas config))))
+    (assoc config :processors (make-processors schemas processors config))))
 
 (defn make-raw-config [& args]
   (apply make-config args))

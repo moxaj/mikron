@@ -6,7 +6,10 @@
 (def ^:dynamic *params*)
 
 #?(:clj (defmacro with-params [{:keys [schema config buffer]} & body]
-          `(binding [*params* ~{:schema schema :config config :buffer buffer}]
+          `(binding [*params* ~(cond-> {}
+                                 schema (assoc :schema schema)
+                                 config (assoc :config config)
+                                 buffer (assoc :buffer buffer))]
              ~@body)))
 
 (def allocate-buffer buffer/allocate)
