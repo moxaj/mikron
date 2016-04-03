@@ -73,7 +73,7 @@
            {:index        index
             :symbol       (if tuple?
                             (postfix-gensym value (str index))
-                            (gensym (name index)))
+                            (gensym (str (name index) "_")))
             :inner-schema (inner-schemas index)
             :inner-value  (if tuple?
                             `(~value ~index)
