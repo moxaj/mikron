@@ -77,7 +77,7 @@
             :inner-schema (inner-schemas index)
             :inner-value  (if tuple?
                             `(~value ~index)
-                            `(get ~value ~index))})
+                            `(~index ~value))})
          (if tuple?
            (range (count inner-schemas))
            (sort (keys inner-schemas))))))
