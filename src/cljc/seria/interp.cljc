@@ -38,7 +38,7 @@
           val-1 (util/postfix-gensym value-1 "val")
           val-2 (util/postfix-gensym value-2 "val")]
       (->> `(map (fn [[~key ~val-2]]
-                   [~key (if-let [~val-1 (get ~value-1 ~key)]
+                   [~key (if-let [~val-1 (~value-1 ~key)]
                            ~(interp value-schema val-1 val-2)
                            ~val-2)])
                  ~value-2)
@@ -48,11 +48,11 @@
   (if (or (nil? interp)
           (= [] interp))
     (interp-default value-1 value-2)
-    (let [destructured-2 (util/destructure-indexed schema value-2)]
+    (let [destructured-2 (util/destructure-indexed schema value-2 true)]
       `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
          ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
                   (let [inner-value-1 (gensym "inner-value-1_")]
-                    `(let [~inner-value-1 (get ~value-1 ~index)]
+                    `(let [~inner-value-1 (~value-1 ~index)]
                        ~(if-not (interp-index? index interp)
                           (interp-default inner-value-1 inner-value-2)
                           (interp inner-schema inner-value-1 inner-value-2)))))
@@ -62,12 +62,12 @@
   (if (or (nil? interp)
           (= [] interp))
     (interp-default value-1 value-2)
-    (let [destructured-2 (util/destructure-indexed schema value-2)]
+    (let [destructured-2 (util/destructure-indexed schema value-2 true)]
       (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
               ~(->> destructured-2
                     (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
                            [index (let [inner-value-1 (gensym "inner-value-1_")]
-                                    `(let [~inner-value-1 (get ~value-1 ~index)]
+                                    `(let [~inner-value-1 (~index ~value-1)]
                                        ~(if-not (interp-index? index interp)
                                           (interp-default inner-value-1 inner-value-2)
                                           (interp inner-schema inner-value-1 inner-value-2))))]))

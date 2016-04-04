@@ -177,7 +177,7 @@
        (util/as-map sorted-by (:live-config *opts*))))
 
 (defmethod pack :tuple [schema value]
-  (let [destructured (util/destructure-indexed schema value)]
+  (let [destructured (util/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
                        (as-diffable inner-value (pack inner-schema inner-value)))
@@ -190,7 +190,7 @@
 
 (defmethod pack :record [schema value]
   (let [schema       (util/expand-record schema (:schemas (:config *opts*)))
-        destructured (util/destructure-indexed schema value)]
+        destructured (util/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
                        (as-diffable inner-value (pack inner-schema inner-value)))
