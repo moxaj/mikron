@@ -93,6 +93,9 @@
 (defmethod gen :any [_]
   (gen (random-schema)))
 
+(defmethod gen :nil [_]
+  nil)
+
 (defmethod gen :list [[_ _ inner-schema]]
   (->> #(gen inner-schema)
        (repeatedly (gen-size))
@@ -141,7 +144,7 @@
 (defmethod gen :multi [[_ _ _ multi-map]]
   (gen (rand-nth (vals multi-map))))
 
-(defmethod gen :custom [schema]
+(defmethod gen :default [schema]
   (gen ((:schemas (:config *opts*)) schema)))
 
 (defn sample [n schema config]

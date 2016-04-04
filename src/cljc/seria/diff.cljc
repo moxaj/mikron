@@ -6,11 +6,9 @@
 (def ^:dynamic *opts*)
 
 (defn equality-operator [schema]
-  (let [fn-key (get-in (:config *opts*) [:eq-ops schema])]
-    (if (or (type/composite-type? schema)
-            (nil? fn-key))
-      `=
-      (util/runtime-fn fn-key (:live-config *opts*)))))
+  (if-let [fn-key (get-in (:config *opts*) [:eq-ops schema])]
+    (util/runtime-fn fn-key (:live-config *opts*))
+    `=))
 
 (defn as-diffed [schema value-1 value-2 body]
   (case (:direction *opts*)
@@ -22,10 +20,11 @@
                ~body)))
 
 (defmulti diff (fn [schema _ _]
-                 (cond
-                   (type/traceable-type? schema) (first schema)
-                   (type/custom-type? schema)    :custom
-                   :else                         :non-diffable)))
+                 (let [schema-type (type/type-of schema)]
+                   (cond
+                     (type/diffable-type? schema-type) schema-type
+                     (type/custom-type? schema-type)   :custom
+                     :else                             :non-diffable))))
 
 (defmethod diff :list [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")

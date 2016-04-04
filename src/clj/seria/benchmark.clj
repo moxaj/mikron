@@ -98,8 +98,10 @@
                         (into {}))]
     (prc/bar-chart "Benchmarks" chart-data {:labels (map name stats)})))
 
-#_(visualize-results
+(comment
+  (visualize-results
     (run-benchmarks :schema :snapshot
                     :config seria-config
                     :buffer (core/allocate-buffer 10000)
                     :stats  [:size :serialize-speed :roundtrip-speed]))
+  nil)

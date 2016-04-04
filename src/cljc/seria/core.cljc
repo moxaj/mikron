@@ -29,7 +29,7 @@
       (-> buffer
           (buffer/write-headers! schema-id diff-id diffed?)
           (pack-fn value config)
-          (buffer/compressed))
+          (buffer/compress))
       :seria/invalid)))
 
 (defn unpack [raw & {:keys [config] :or {config (:config *params*)}}]

@@ -1,7 +1,6 @@
 (ns seria.util
   "Utility functions."
-  (:require [seria.type :as type]
-            [clojure.set :as set]
+  (:require [clojure.set :as set]
             [clojure.string :as string]
    #?(:cljs [cljs.reader :as reader])))
 
@@ -90,14 +89,14 @@
 
 (defn as-set [sorted-by config body]
   `(into ~(case sorted-by
-            :none    `#{}
+            nil      `#{}
             :default `(sorted-set)
             `(sorted-set-by ~(runtime-fn sorted-by config)))
          ~body))
 
 (defn as-map [sorted-by config body]
   `(into ~(case sorted-by
-            :none    `{}
+            nil      `{}
             :default `(sorted-map)
             `(sorted-map-by ~(runtime-fn sorted-by config)))
          ~body))

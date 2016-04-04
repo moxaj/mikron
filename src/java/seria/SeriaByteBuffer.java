@@ -37,7 +37,7 @@ public class SeriaByteBuffer {
     return this;
   }
 
-  public byte[] compressed() {
+  public byte[] compress() {
     if (bitPosition != -1) {
       byteBuffer.put(bitPosition, bitBuffer);
     }

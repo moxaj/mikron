@@ -33,7 +33,7 @@
   (little-endian! [this little-endian])
 
   (clear! [this])
-  (compressed [this]))
+  (compress [this]))
 
 (do #?(:clj  (extend-type SeriaByteBuffer
                Buffer
@@ -65,7 +65,7 @@
                (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
                (clear! [this] (.clear this))
-               (compressed [this] (.compressed this)))
+               (compress [this] (.compress this)))
        :cljs (extend-type js/ByteBuffer
                Buffer
                (read-byte!    [this] (.readInt8 this))
@@ -122,10 +122,10 @@
                                     (aset "bitIndex" 0)
                                     (aset "bitPosition" -1)
                                     (aset "bitBuffer" 0)))
-               (compressed [this] (do (let [bit-position (aget this "bitPosition")]
-                                        (when (not= bit-position -1)
-                                          (.writeInt8 this (aget this "bitBuffer") bit-position)))
-                                      (.toArrayBuffer (.slice this 0 (aget this "offset"))))))))
+               (compress [this] (do (let [bit-position (aget this "bitPosition")]
+                                      (when (not= bit-position -1)
+                                        (.writeInt8 this (aget this "bitBuffer") bit-position)))
+                                    (.toArrayBuffer (.slice this 0 (aget this "offset"))))))))
 
 (defn encode-negative [value]
   (- (inc value)))

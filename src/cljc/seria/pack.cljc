@@ -9,7 +9,7 @@
 (defmulti pack type/type-of)
 (defmulti unpack type/type-of)
 
-(defn as-diffed [value body]
+(defn as-diffable [value body]
   (if-not (:diffed? *opts*)
     body
     (let [value-dnil? (util/postfix-gensym value "dnil?")]
@@ -18,7 +18,7 @@
          (when-not ~value-dnil?
            ~body)))))
 
-(defn as-undiffed [body]
+(defn as-undiffable [body]
   (if-not (:diffed? *opts*)
     body
     `(if ~(unpack :boolean)
@@ -131,16 +131,22 @@
 (defmethod unpack :any [_]
   `(util/cljc-read-string ~(unpack :string)))
 
+(defmethod pack :nil [_ _]
+  nil)
+
+(defmethod unpack :nil [_]
+  nil)
+
 (defmethod pack :list [[_ _ inner-schema] value]
   (let [inner-value (util/postfix-gensym value "item")]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [~inner-value]
-                 ~(as-diffed inner-value (pack inner-schema inner-value)))
+                 ~(as-diffable inner-value (pack inner-schema inner-value)))
                ~value))))
 
 (defmethod unpack :list [[_ _ inner-schema]]
   `(doall (repeatedly ~(unpack :varint)
-                      (fn [] ~(as-undiffed (unpack inner-schema))))))
+                      (fn [] ~(as-undiffable (unpack inner-schema))))))
 
 (defmethod pack :vector [[_ _ inner-schema] value]
   (pack [:list {} inner-schema] value))
@@ -161,25 +167,25 @@
     `(do ~(pack :varint `(count ~value))
          (run! (fn [[~key ~val]]
                  ~(pack key-schema key)
-                 ~(as-diffed val (pack val-schema val)))
+                 ~(as-diffable val (pack val-schema val)))
                ~value))))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
-                            ~(as-undiffed (unpack val-schema))]))
+                            ~(as-undiffable (unpack val-schema))]))
        (util/as-map sorted-by (:live-config *opts*))))
 
 (defmethod pack :tuple [schema value]
   (let [destructured (util/destructure-indexed schema value)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
-                       (as-diffed inner-value (pack inner-schema inner-value)))
+                       (as-diffable inner-value (pack inner-schema inner-value)))
                      destructured)))))
 
 (defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
-                      (as-undiffed (unpack inner-schema)))
+                      (as-undiffable (unpack inner-schema)))
                     inner-schemas)))
 
 (defmethod pack :record [schema value]
@@ -187,38 +193,38 @@
         destructured (util/destructure-indexed schema value)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
-                       (as-diffed inner-value (pack inner-schema inner-value)))
+                       (as-diffable inner-value (pack inner-schema inner-value)))
                      destructured)))))
 
 (defmethod unpack :record [schema]
   (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas (:config *opts*)))]
     (->> (sort (keys record-map))
          (map (fn [key]
-                [key (as-undiffed (unpack (record-map key)))]))
+                [key (as-undiffable (unpack (record-map key)))]))
          (into {})
          (util/as-record constructor (:live-config *opts*)))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
        (when ~value
-         ~(as-diffed value (pack inner-schema value)))))
+         ~(as-diffable value (pack inner-schema value)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
-     ~(as-undiffed (unpack inner-schema))))
+     ~(as-undiffable (unpack inner-schema))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
   `(case (~(util/runtime-fn selector (:live-config *opts*)) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
                   `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
-                       ~(as-diffed value (pack inner-schema value)))])
+                       ~(as-diffable value (pack inner-schema value)))])
                arg-map)))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
   `(case (get ~(:multi-map (:config *opts*)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
-                 [multi-case (as-undiffed (unpack inner-schema))])
+                 [multi-case (as-undiffable (unpack inner-schema))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
@@ -227,12 +233,12 @@
 (defmethod unpack :enum [_]
   `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
-(defmethod pack :custom [schema value]
+(defmethod pack :default [schema value]
   (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :packer live-config)
       ~buffer ~value ~live-config)))
 
-(defmethod unpack :custom [schema]
+(defmethod unpack :default [schema]
   (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :unpacker live-config)
       ~buffer ~live-config)))
@@ -246,7 +252,7 @@
                       :live-config live-config
                       :buffer      buffer}]
       `(fn [~buffer ~value ~live-config]
-         ~(as-diffed value (pack schema value))
+         ~(as-diffable value (pack schema value))
          ~(:buffer *opts*)))))
 
 (defn make-unpacker [schema config diffed?]
@@ -257,4 +263,4 @@
                       :live-config live-config
                       :buffer      buffer}]
       `(fn [~buffer ~live-config]
-         ~(as-undiffed (unpack schema))))))
+         ~(as-undiffable (unpack schema))))))

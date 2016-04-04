@@ -1,44 +1,26 @@
 (ns seria.type
-  "Types and predicates.")
+  "Schema predicates.")
 
-(def primitive-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double
-                       :char :boolean :varint
-                       :string :keyword :symbol :any})
+(def simple-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint
+                    :boolean :char :string :keyword :symbol :nil :any})
 
-(defn composite-type? [schema]
-  (and (vector? schema)
-       (contains? #{:list :vector :set :map :tuple :record :optional :multi :enum}
-                  (first schema))))
+(def complex-type? #{:optional :multi :enum :list :vector :set :map :tuple :record})
 
-(def built-in-type? #(or (primitive-type? %)
-                         (composite-type? %)))
+(def built-in-type? #(or (simple-type? %)
+                         (complex-type? %)))
 
-(defn custom-type? [schema]
-  (and (keyword? schema)
-       (not (built-in-type? schema))))
+(def custom-type? #(and (keyword? %)
+                        (not (built-in-type? %))))
 
 (def number-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint})
 
 (def integer-type? #{:byte :ubyte :short :ushort :int :uint :long :varint})
 
-(defn traceable-type? [schema]
-  (and (vector? schema)
-       (contains? #{:list :vector :map :tuple :record :optional :multi}
-                  (first schema))))
+(def diffable-type? #{:list :vector :map :tuple :record :optional :multi})
 
-(defn interpable-type? [schema]
-  (and (traceable-type? schema)
-       (let [interp (:interp (second schema))]
-         (or (= :all interp)
-             (and (vector? interp)
-                  (not (empty? interp)))))))
-
-(defn traceable-index? [index traceable-indices]
-  (or (= :all traceable-indices)
-      ((set traceable-indices) index)))
+(def interpable-type? #{:map :tuple :record :optional :multi})
 
 (defn type-of [schema & _]
   (cond
-    (primitive-type? schema) schema
-    (composite-type? schema) (first schema)
-    (custom-type? schema)    :custom))
+    (keyword? schema) schema
+    (vector? schema)  (first schema)))

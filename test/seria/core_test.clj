@@ -22,7 +22,7 @@
 (test/deftest primitive-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
                   :float :double :char :boolean :varint
-                  :string :keyword :symbol :any]]
+                  :string :keyword :symbol :any :nil]]
     (test-pack-case {:x schema})))
 
 (test/deftest composite-test

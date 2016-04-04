@@ -24,8 +24,7 @@
                  values))))
 
 (defn make-processors [schemas processors config]
-  (let [processors (or processors [:pack :diff :gen :interp])
-        need?      (set processors)]
+  (let [need? (set processors)]
     (->> schemas
          (map (fn [[schema schema-def]]
                 [schema (cond-> {}
@@ -50,17 +49,18 @@
          (into {}))))
 
 (defn make-config [& {:keys [schemas eq-ops processors] :or {eq-ops {}}}]
-  (let [schemas (validate/validate-schemas schemas)
-        config  {:schemas    schemas
-                 :schema-map (util/bimap (keys schemas))
-                 :enum-map   (util/bimap (enum-values schemas))
-                 :multi-map  (util/bimap (multi-cases schemas))
-                 :eq-ops     eq-ops
-                 :state      `(atom {})}]
+  (let [schemas    (validate/validate-schemas schemas)
+        processors (validate/validate-processors processors)
+        config     {:schemas    schemas
+                    :schema-map (util/bimap (keys schemas))
+                    :enum-map   (util/bimap (enum-values schemas))
+                    :multi-map  (util/bimap (multi-cases schemas))
+                    :eq-ops     eq-ops
+                    :state      `(atom {})}]
     (assoc config :processors (make-processors schemas processors config))))
 
-(defn make-raw-config [& args]
-  (apply make-config args))
+(defmacro defconfig [config-name & args]
+  `(def ~config-name ~(apply make-config args)))
 
 (defn make-test-config [& args]
   (let [raw-config (apply make-config args)]

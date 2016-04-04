@@ -63,6 +63,9 @@
 (defmethod gen :any [_]
   `(gen-slow/gen (gen-slow/random-schema)))
 
+(defmethod gen :nil [_]
+  nil)
+
 (defmethod gen :list [[_ _ inner-schema]]
   `(repeatedly (gen-slow/gen-size) (fn [] ~(gen inner-schema))))
 
@@ -100,7 +103,7 @@
 (defmethod gen :enum [[_ _ enum-values]]
   `(rand-nth ~enum-values))
 
-(defmethod gen :custom [schema]
+(defmethod gen :default [schema]
   (let [live-config (:live-config *opts*)]
     `(~(util/runtime-processor schema :generator live-config) ~live-config)))
 
