@@ -9,7 +9,6 @@ public class SeriaByteBuffer {
   private int bitPosition;
   private int bitIndex;
 
-
   private SeriaByteBuffer(int capacity) {
     ByteOrder order = ByteOrder.nativeOrder();
     byteBuffer = ByteBuffer.allocateDirect(capacity).order(order);

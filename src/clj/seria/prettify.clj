@@ -5,9 +5,6 @@
             [clojure.pprint :as pprint]
             [seria.util :as util]))
 
-;; Todos
-;; unwrap do in: let, do, fn, when, when-not, when-let, ?
-
 (defn let-form? [form]
   (and (sequential? form)
        (symbol? (first form))
@@ -63,10 +60,38 @@
                      inner-form))
                  form))
 
+(defn do-form? [form]
+  (and (sequential? form)
+       (symbol? (first form))
+       (= "do" (name (first form)))))
+
+(defn unwrap-do-forms* [form]
+  (if-not (do-form? form)
+    [form]
+    (rest form)))
+
+(defn unwrap-do-forms [form]
+  (walk/postwalk (fn [inner-form]
+                   (if-not (and (sequential? inner-form)
+                                (symbol? (first inner-form)))
+                     inner-form
+                     (let [[f & args] inner-form]
+                       (condp contains? (name f)
+                         #{"let" "fn" "when" "when-not" "when-let"}
+                         `(~f ~(first args)
+                            ~@(mapcat unwrap-do-forms* (rest args)))
+
+                         #{"do"}
+                         `(do ~@(mapcat unwrap-do-forms* args))
+
+                         inner-form))))
+                 form))
+
 (defn prettify [form]
   (-> form
       (inline-let-symbols)
       (unwrap-single-arg-forms)
+      (unwrap-do-forms)
       (simplify-symbols)))
 
 (defn requires [form]
