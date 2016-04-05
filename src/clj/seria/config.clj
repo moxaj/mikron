@@ -4,6 +4,7 @@
             [seria.validate :as validate]
             [seria.diff :as diff]
             [seria.pack :as pack]
+            [seria.unpack :as unpack]
             [seria.interp :as interp]
             [seria.gen :as gen]))
 
@@ -30,7 +31,7 @@
                 [schema (cond-> {}
                           (need? :pack)
                           (assoc :packer   (pack/make-packer schema-def config false)
-                                 :unpacker (pack/make-unpacker schema-def config false))
+                                 :unpacker (unpack/make-unpacker schema-def config false))
 
                           (need? :diff)
                           (assoc :differ   (diff/make-differ schema-def config)
@@ -39,7 +40,7 @@
                           (and (need? :pack)
                                (need? :diff))
                           (assoc :diffed-packer   (pack/make-packer schema-def config true)
-                                 :diffed-unpacker (pack/make-unpacker schema-def config true))
+                                 :diffed-unpacker (unpack/make-unpacker schema-def config true))
 
                           (need? :gen)
                           (assoc :generator (gen/make-generator schema-def config))
