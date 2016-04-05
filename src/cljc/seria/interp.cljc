@@ -38,7 +38,7 @@
           val-1 (util/postfix-gensym value-1 "val")
           val-2 (util/postfix-gensym value-2 "val")]
       (->> `(map (fn [[~key ~val-2]]
-                   [~key (if-let [~val-1 (~value-1 ~key)]
+                   [~key (if-let [~val-1 (get ~value-1 ~key)]
                            ~(interp value-schema val-1 val-2)
                            ~val-2)])
                  ~value-2)

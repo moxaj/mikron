@@ -5,7 +5,7 @@
 
 (def ^:dynamic *opts*)
 
-(defmulti gen type/type-of)
+(defmulti gen type/type-of :default :custom)
 
 (defmethod gen :byte [_]
   `(gen-slow/random-integer 1 true))
@@ -103,7 +103,7 @@
 (defmethod gen :enum [[_ _ enum-values]]
   `(rand-nth ~enum-values))
 
-(defmethod gen :default [schema]
+(defmethod gen :custom [schema]
   (let [live-config (:live-config *opts*)]
     `(~(util/runtime-processor schema :generator live-config) ~live-config)))
 

@@ -34,7 +34,7 @@
                                  {:no-inline true})]
     `(let [~vec-value-1 (vec ~value-1)]
        (map-indexed (fn [~index ~inner-value-2]
-                      (if-let [~inner-value-1 (~vec-value-1 ~index)]
+                      (if-let [~inner-value-1 (get ~vec-value-1 ~index)]
                         ~(as-diffed inner-schema inner-value-1 inner-value-2
                                     (diff inner-schema inner-value-1 inner-value-2))
                         ~inner-value-2))
@@ -45,7 +45,7 @@
         inner-value-1 (util/postfix-gensym value-1 "item")
         inner-value-2 (util/postfix-gensym value-2 "item")]
     `(vec (map-indexed (fn [~index ~inner-value-2]
-                         (if-let [~inner-value-1 (~value-1 ~index)]
+                         (if-let [~inner-value-1 (get ~value-1 ~index)]
                            ~(as-diffed inner-schema inner-value-1 inner-value-2
                                        (diff inner-schema inner-value-1 inner-value-2))
                            ~inner-value-2))

@@ -6,8 +6,8 @@
 
 (def ^:dynamic *opts*)
 
-(defmulti pack type/type-of)
-(defmulti unpack type/type-of)
+(defmulti pack type/type-of :default :custom)
+(defmulti unpack type/type-of :default :custom)
 
 (defn as-diffable [value body]
   (if-not (:diffed? *opts*)
@@ -233,12 +233,12 @@
 (defmethod unpack :enum [_]
   `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
-(defmethod pack :default [schema value]
+(defmethod pack :custom [schema value]
   (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :packer live-config)
       ~buffer ~value ~live-config)))
 
-(defmethod unpack :default [schema]
+(defmethod unpack :custom [schema]
   (let [{:keys [live-config buffer]} *opts*]
     `(~(util/runtime-processor schema :unpacker live-config)
       ~buffer ~live-config)))
