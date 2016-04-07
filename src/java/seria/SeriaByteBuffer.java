@@ -10,14 +10,12 @@ public class SeriaByteBuffer {
   private int bitIndex;
 
   private SeriaByteBuffer(int capacity) {
-    ByteOrder order = ByteOrder.nativeOrder();
-    byteBuffer = ByteBuffer.allocateDirect(capacity).order(order);
+    byteBuffer = ByteBuffer.allocateDirect(capacity).order(ByteOrder.nativeOrder());
     clear();
   }
 
   private SeriaByteBuffer(byte[] bytes) {
-    ByteOrder order = ByteOrder.nativeOrder();
-    byteBuffer = ByteBuffer.wrap(bytes).order(order);
+    byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder());
     clear();
   }
 
