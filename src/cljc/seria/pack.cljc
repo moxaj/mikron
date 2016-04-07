@@ -107,7 +107,7 @@
                      destructured)))))
 
 (defmethod pack :record [schema value]
-  (let [schema       (util/expand-record schema (:schemas (:config *opts*)))
+  (let [schema       (util/expand-record schema (get-in *opts* [:config :schemas]))
         destructured (util/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
@@ -117,14 +117,14 @@
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)
        (when ~value
-         ~(as-diffable value (pack inner-schema value)))))
+         ~(pack inner-schema value))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
   `(case (~(util/runtime-fn selector (:live-config *opts*)) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
                   `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
-                       ~(as-diffable value (pack inner-schema value)))])
+                       ~(pack inner-schema value))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
