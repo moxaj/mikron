@@ -5,8 +5,8 @@
 
 (def ^:dynamic *opts*)
 
-(defn interped? [[composite-type {interped-indices :interp}]]
-  (condp contains? composite-type
+(defn interped? [[complex-type {interped-indices :interp}]]
+  (condp contains? complex-type
     #{:map}
     (= :all interped-indices)
 
@@ -26,8 +26,8 @@
 
 (defn interp-default [value-1 value-2]
   `(if ~(:prefer-first? *opts*)
-    ~value-1
-    ~value-2))
+     ~value-1
+     ~value-2))
 
 (defmulti interp (fn [schema value-1 value-2]
                    (let [schema-type (type/type-of schema)]
@@ -67,11 +67,11 @@
                 destructured-2)))))
 
 (defmethod interp :record [schema value-1 value-2]
-  (let [[_ {interp-indices :interp constructor :constructor} :as schema]
-        (util/expand-record schema (get-in *opts* [:config :schemas]))]
+  (let [schema (util/expand-record schema (get-in *opts* [:config :schemas]))]
     (if-not (interped? schema)
       (interp-default value-1 value-2)
-      (let [destructured-2 (util/destructure-indexed schema value-2 true)]
+      (let [[_ {interp-indices :interp constructor :constructor}] schema
+            destructured-2 (util/destructure-indexed schema value-2 true)]
         (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
                 ~(->> destructured-2
                       (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]

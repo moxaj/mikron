@@ -87,11 +87,29 @@
                          inner-form))))
                  form))
 
+(defn if-form? [form]
+  (and (sequential? form)
+       (symbol? (first form))
+       (= "if" (name (first form)))))
+
+(defn remove-unnecessary-ifs* [[_ conditional true-branch false-branch]]
+  (if (= true-branch false-branch)
+    true-branch
+    `(if ~conditional ~true-branch ~false-branch)))
+
+(defn remove-unnecessary-ifs [form]
+  (walk/postwalk (fn [inner-form]
+                   (if-not (if-form? inner-form)
+                     inner-form
+                     (remove-unnecessary-ifs* inner-form)))
+                 form))
+
 (defn prettify [form]
   (-> form
       (inline-let-symbols)
       (unwrap-single-arg-forms)
       (unwrap-do-forms)
+      (remove-unnecessary-ifs)
       (simplify-symbols)))
 
 (defn requires [form]

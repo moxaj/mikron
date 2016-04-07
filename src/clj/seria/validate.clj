@@ -20,22 +20,22 @@
           (format "Undefined schema: %s." schema))
   schema)
 
-(defn validate-sortable [[composite-type {:keys [sorted-by] :as options} & args :as schema]]
+(defn validate-sortable [[complex-type {:keys [sorted-by] :as options} & args :as schema]]
   (assert (or (nil? sorted-by)
               (keyword? sorted-by))
           (format "Invalid schema: %s. :sorted-by option must be either nil, :default,
                    or another keyword pointing to a function provided at runtime."
                   schema))
-  (vec (concat [composite-type options] args)))
+  (vec (concat [complex-type options] args)))
 
-(defn validate-interpable [[composite-type {:keys [interp] :as options} & args :as schema]]
+(defn validate-interpable [[complex-type {:keys [interp] :as options} & args :as schema]]
   (assert (or (nil? interp)
               (= :all interp)
               (vector? interp))
           (format "Invalid schema: %s. :interp option must be either nil, :all or a vector of indices
                    (integers for tuples, keywords for records)."
                   interp))
-  (vec (concat [composite-type options] args)))
+  (vec (concat [complex-type options] args)))
 
 (defmulti validate-complex first)
 
