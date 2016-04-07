@@ -99,12 +99,12 @@
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
-     ~(as-undiffable (unpack inner-schema))))
+     ~(unpack inner-schema)))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
   `(case (get ~(:multi-map (:config *opts*)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
-                 [multi-case (as-undiffable (unpack inner-schema))])
+                 [multi-case (unpack inner-schema)])
                arg-map)))
 
 (defmethod unpack :enum [_]

@@ -74,7 +74,7 @@
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [[_ {:keys [constructor]} :as schema] (util/expand-record schema (:schemas (:config *opts*)))
+  (let [schema         (util/expand-record schema (get-in *opts* [:config :schemas]))
         destructured-2 (util/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
             ~(->> destructured-2
@@ -84,11 +84,11 @@
                                      ~(as-diffed inner-schema inner-value-1 inner-value-2
                                                  (diff inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util/as-record constructor (:live-config *opts*)))))
+         (util/as-record (:constructor schema) (:live-config *opts*)))))
 
 (defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
-     ~(as-diffed inner-schema value-1 value-2 value-2)
+     ~(diff inner-schema value-1 value-2)
      ~value-2))
 
 (defmethod diff :multi [[_ _ selector multi-cases] value-1 value-2]
@@ -102,8 +102,7 @@
          ~value-2
          (condp = ~case-1
            ~@(mapcat (fn [[multi-case inner-schema]]
-                       [multi-case (as-diffed inner-schema value-1 value-2
-                                              (diff inner-schema value-1 value-2))])
+                       [multi-case (diff inner-schema value-1 value-2)])
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]

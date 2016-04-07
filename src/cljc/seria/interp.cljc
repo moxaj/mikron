@@ -5,6 +5,15 @@
 
 (def ^:dynamic *opts*)
 
+(defn interped? [[composite-type {interped-indices :interp}]]
+  (condp contains? composite-type
+    #{:map}
+    (= :all interped-indices)
+
+    #{:tuple :record}
+    (and (vector? interped-indices)
+         (seq? interped-indices))))
+
 (defn interp-index? [index indices]
   (or (= :all indices)
       ((set indices) index)))
@@ -31,10 +40,10 @@
   (let [round? (not (type/integer-type? (type/type-of schema)))]
     (interp-numbers value-1 value-2 (:time-factor *opts*) round?)))
 
-(defmethod interp :map [[_ {:keys [sorted-by interp]} _ value-schema] value-1 value-2]
-  (if (not= :all interp)
+(defmethod interp :map [[_ {:keys [sorted-by]} _ value-schema :as schema] value-1 value-2]
+  (if-not (interped? schema)
     (interp-default value-1 value-2)
-    (let [key   (util/postfix-gensym value-1 "key")
+    (let [key   (util/postfix-gensym value-2 "key")
           val-1 (util/postfix-gensym value-1 "val")
           val-2 (util/postfix-gensym value-2 "val")]
       (->> `(map (fn [[~key ~val-2]]
@@ -44,35 +53,35 @@
                  ~value-2)
            (util/as-map sorted-by (:live-config *opts*))))))
 
-(defmethod interp :tuple [[_ {:keys [interp]} :as schema] value-1 value-2]
-  (if (or (nil? interp)
-          (= [] interp))
+(defmethod interp :tuple [[_ {interp-indices :interp} :as schema] value-1 value-2]
+  (if-not (interped? schema)
     (interp-default value-1 value-2)
     (let [destructured-2 (util/destructure-indexed schema value-2 true)]
       `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
          ~(mapv (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
                   (let [inner-value-1 (gensym "inner-value-1_")]
                     `(let [~inner-value-1 (~value-1 ~index)]
-                       ~(if-not (interp-index? index interp)
+                       ~(if-not (interp-index? index interp-indices)
                           (interp-default inner-value-1 inner-value-2)
                           (interp inner-schema inner-value-1 inner-value-2)))))
                 destructured-2)))))
 
-(defmethod interp :record [[_ {:keys [interp constructor]} :as schema] value-1 value-2]
-  (if (or (nil? interp)
-          (= [] interp))
-    (interp-default value-1 value-2)
-    (let [destructured-2 (util/destructure-indexed schema value-2 true)]
-      (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
-              ~(->> destructured-2
-                    (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
-                           [index (let [inner-value-1 (gensym "inner-value-1_")]
-                                    `(let [~inner-value-1 (~index ~value-1)]
-                                       ~(if-not (interp-index? index interp)
-                                          (interp-default inner-value-1 inner-value-2)
-                                          (interp inner-schema inner-value-1 inner-value-2))))]))
-                    (into {})))
-           (util/as-record constructor (:live-config *opts*))))))
+(defmethod interp :record [schema value-1 value-2]
+  (let [[_ {interp-indices :interp constructor :constructor} :as schema]
+        (util/expand-record schema (get-in *opts* [:config :schemas]))]
+    (if-not (interped? schema)
+      (interp-default value-1 value-2)
+      (let [destructured-2 (util/destructure-indexed schema value-2 true)]
+        (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
+                ~(->> destructured-2
+                      (map (fn [{index :index inner-schema :inner-schema inner-value-2 :symbol}]
+                             [index (let [inner-value-1 (gensym "inner-value-1_")]
+                                      `(let [~inner-value-1 (~index ~value-1)]
+                                         ~(if-not (interp-index? index interp-indices)
+                                            (interp-default inner-value-1 inner-value-2)
+                                            (interp inner-schema inner-value-1 inner-value-2))))]))
+                      (into {})))
+             (util/as-record constructor (:live-config *opts*)))))))
 
 (defmethod interp :custom [schema value-1 value-2]
   (let [{:keys [time-1 time-2 time live-config]} *opts*]
