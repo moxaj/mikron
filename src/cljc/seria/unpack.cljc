@@ -112,7 +112,7 @@
 
 (defmethod unpack :custom [schema]
   (let [{:keys [live-config buffer]} *opts*]
-    `(~(util/runtime-processor schema :unpacker live-config)
+    `(~(util/runtime-processor schema :unpack live-config)
       ~buffer ~live-config)))
 
 (defn make-unpacker [schema config diffed?]

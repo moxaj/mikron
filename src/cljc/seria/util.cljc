@@ -83,27 +83,27 @@
            (range (count inner-schemas))
            (sort (keys inner-schemas))))))
 
-(defn runtime-fn [fn-key config]
-  `(get-in @(:state ~config) [:fn-map ~fn-key]))
+(defn runtime-fn [fn-key runtime-config]
+  `(get-in @(:state ~runtime-config) [:fn-map ~fn-key]))
 
-(defn runtime-processor [schema processor-type config]
-  `(get-in ~config [:processors ~schema ~processor-type]))
+(defn runtime-processor [schema processor-type runtime-config]
+  `(get-in ~runtime-config [:processors ~schema ~processor-type]))
 
-(defn as-set [sorted-by config body]
+(defn as-set [sorted-by runtime-config body]
   `(into ~(case sorted-by
             nil      `#{}
             :default `(sorted-set)
-            `(sorted-set-by ~(runtime-fn sorted-by config)))
+            `(sorted-set-by ~(runtime-fn sorted-by runtime-config)))
          ~body))
 
-(defn as-map [sorted-by config body]
+(defn as-map [sorted-by runtime-config body]
   `(into ~(case sorted-by
             nil      `{}
             :default `(sorted-map)
-            `(sorted-map-by ~(runtime-fn sorted-by config)))
+            `(sorted-map-by ~(runtime-fn sorted-by runtime-config)))
          ~body))
 
-(defn as-record [constructor config body]
+(defn as-record [constructor runtime-config body]
   (if constructor
-    `(~(runtime-fn constructor config) ~body)
+    `(~(runtime-fn constructor runtime-config) ~body)
     body))

@@ -24,7 +24,7 @@
                             diff-id 0
                             diffed? false}}]
   (let [schema-id (get-in config [:schema-map schema])
-        pack-fn   (get-in config [:processors schema (if diffed? :diffed-packer :packer)])]
+        pack-fn   (get-in config [:processors schema (if diffed? :diffed-pack :pack)])]
     (if (and pack-fn schema-id buffer)
       (-> buffer
           (buffer/write-headers! schema-id diff-id diffed?)
@@ -36,7 +36,7 @@
   (let [buffer  (buffer/wrap raw)
         {:keys [schema-id diff-id diffed?]} (buffer/read-headers! buffer)
         schema    (get-in config [:schema-map schema-id])
-        unpack-fn (get-in config [:processors schema (if diffed? :diffed-unpacker :unpacker)])]
+        unpack-fn (get-in config [:processors schema (if diffed? :diffed-unpack :unpack)])]
     (if (and unpack-fn schema)
       {:schema  schema
        :diff-id diff-id
@@ -46,14 +46,14 @@
 (defn diff [value-1 value-2 & {:keys [config schema]
                                :or   {config (:config *params*)
                                       schema (:schema *params*)}}]
-  (if-let [diff-fn (get-in config [:processors schema :differ])]
+  (if-let [diff-fn (get-in config [:processors schema :diff])]
     (diff-fn value-1 value-2 config)
     :seria/invalid))
 
 (defn undiff [value-1 value-2 & {:keys [config schema]
                                  :or   {config (:config *params*)
                                         schema (:schema *params*)}}]
-  (if-let [undiff-fn (get-in config [:processors schema :undiffer])]
+  (if-let [undiff-fn (get-in config [:processors schema :undiff])]
     (undiff-fn value-1 value-2 config)
     :seria/invalid))
 
@@ -61,13 +61,13 @@
               & {:keys [schema config]
                  :or   {config (:config *params*)
                         schema (:schema *params*)}}]
-  (if-let [interp-fn (get-in config [:processors schema :interper])]
+  (if-let [interp-fn (get-in config [:processors schema :interp])]
     (interp-fn value-1 value-2 time-1 time-2 time config)
     :seria/invalid))
 
 (defn gen [& {:keys [schema config]
               :or   {config (:config *params*)
                      schema (:schema *params*)}}]
-  (if-let [gen-fn (get-in config [:processors schema :generator])]
+  (if-let [gen-fn (get-in config [:processors schema :gen])]
     (gen-fn config)
     :seria/invalid))

@@ -132,7 +132,7 @@
 
 (defmethod pack :custom [schema value]
   (let [{:keys [live-config buffer]} *opts*]
-    `(~(util/runtime-processor schema :packer live-config)
+    `(~(util/runtime-processor schema :pack live-config)
       ~buffer ~value ~live-config)))
 
 (defn make-packer [schema config diffed?]

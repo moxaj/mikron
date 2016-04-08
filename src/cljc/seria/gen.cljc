@@ -105,7 +105,7 @@
 
 (defmethod gen :custom [schema]
   (let [live-config (:live-config *opts*)]
-    `(~(util/runtime-processor schema :generator live-config) ~live-config)))
+    `(~(util/runtime-processor schema :gen live-config) ~live-config)))
 
 (defn make-generator [schema config]
   (let [live-config (gensym "config_")]

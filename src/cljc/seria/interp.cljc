@@ -85,7 +85,7 @@
 
 (defmethod interp :custom [schema value-1 value-2]
   (let [{:keys [time-1 time-2 time live-config]} *opts*]
-    `(~(util/runtime-processor schema :interper live-config)
+    `(~(util/runtime-processor schema :interp live-config)
       ~value-1 ~value-2 ~time-1 ~time-2 ~time ~live-config)))
 
 (defmethod interp :optional [[_ _ inner-schema] value-1 value-2]
