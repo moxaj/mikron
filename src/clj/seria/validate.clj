@@ -168,16 +168,16 @@
   (assert (not-any? type/built-in-type? (keys schemas))
           "Invalid :schemas parameter: you cannot redefine built-in schemas.")
   (binding [*schemas* schemas]
-    (->> (for [[schema schema-def] schemas]
-           [schema (validate-schema schema-def)])
+    (->> (for [[schema-name schema] schemas]
+           [schema-name (validate-schema schema)])
          (into {}))))
 
-(defn validate-processors [processors]
-  (let [processors (or processors [:pack :diff :gen :interp])]
-    (assert (vector? processors)
+(defn validate-processor-types [processor-types]
+  (let [processor-types (or processor-types [:pack :diff :gen :interp])]
+    (assert (vector? processor-types)
             "Invalid :processors parameter: must be nil or a vector.")
-    (let [invalid-processors (remove #{:pack :diff :interp :gen} processors)]
-      (assert (empty? invalid-processors)
+    (let [invalid-processor-types (remove #{:pack :diff :interp :gen} processor-types)]
+      (assert (empty? invalid-processor-types)
               (format "Invalid :processors parameter: [%s] are not valid processors."
-                      (string/join ", " invalid-processors))))
-    processors))
+                      (string/join ", " invalid-processor-types))))
+    processor-types))

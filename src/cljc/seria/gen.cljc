@@ -74,12 +74,12 @@
 
 (defmethod gen :set [[_ {:keys [sorted-by]} inner-schema]]
   (->> (gen [:list {} inner-schema])
-       (util/as-set sorted-by (:live-config *opts*))))
+       (util/as-set sorted-by (:runtime-config *opts*))))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(->> (repeatedly (gen-slow/gen-size) (fn [] ~[(gen key-schema) (gen val-schema)]))
              (into {}))
-       (util/as-map sorted-by (:live-config *opts*))))
+       (util/as-map sorted-by (:runtime-config *opts*))))
 
 (defmethod gen :tuple [[_ _ inner-schemas]]
   (mapv gen inner-schemas))
@@ -91,7 +91,7 @@
          (map (fn [[key inner-schema]]
                 [key (gen inner-schema)]))
          (into {})
-         (util/as-record constructor (:live-config *opts*)))))
+         (util/as-record constructor (:runtime-config *opts*)))))
 
 (defmethod gen :optional [[_ _ inner-schema]]
   `(when ~(gen :boolean)
@@ -104,11 +104,11 @@
   `(rand-nth ~enum-values))
 
 (defmethod gen :custom [schema]
-  (let [live-config (:live-config *opts*)]
-    `(~(util/runtime-processor schema :gen live-config) ~live-config)))
+  (let [runtime-config (:runtime-config *opts*)]
+    `(~(util/runtime-processor schema :gen runtime-config) ~runtime-config)))
 
 (defn make-generator [schema config]
-  (let [live-config (gensym "config_")]
-    (binding [*opts* {:config config :live-config live-config}]
-      `(fn [~live-config]
+  (let [runtime-config (gensym "config_")]
+    (binding [*opts* {:config config :runtime-config runtime-config}]
+      `(fn [~runtime-config]
          ~(gen schema)))))

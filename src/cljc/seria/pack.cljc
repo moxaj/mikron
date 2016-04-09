@@ -120,7 +120,7 @@
          ~(pack inner-schema value))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
-  `(case (~(util/runtime-fn selector (:live-config *opts*)) ~value)
+  `(case (~(util/runtime-fn selector (:runtime-config *opts*)) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
                   `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
@@ -131,18 +131,18 @@
   (pack :varint `(~(:enum-map (:config *opts*)) ~value)))
 
 (defmethod pack :custom [schema value]
-  (let [{:keys [live-config buffer]} *opts*]
-    `(~(util/runtime-processor schema :pack live-config)
-      ~buffer ~value ~live-config)))
+  (let [{:keys [runtime-config buffer]} *opts*]
+    `(~(util/runtime-processor schema :pack runtime-config)
+      ~buffer ~value ~runtime-config)))
 
 (defn make-packer [schema config diffed?]
-  (let [buffer      (gensym "buffer_")
-        value       (gensym "value_")
-        live-config (gensym "config_")]
-    (binding [*opts* {:config      config
-                      :diffed?     diffed?
-                      :live-config live-config
-                      :buffer      buffer}]
-      `(fn [~buffer ~value ~live-config]
+  (let [buffer         (gensym "buffer_")
+        value          (gensym "value_")
+        runtime-config (gensym "config_")]
+    (binding [*opts* {:config         config
+                      :diffed?        diffed?
+                      :runtime-config runtime-config
+                      :buffer         buffer}]
+      `(fn [~buffer ~value ~runtime-config]
          ~(as-diffable value (pack schema value))
          ~(:buffer *opts*)))))

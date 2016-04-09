@@ -76,13 +76,13 @@
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
   (->> (unpack [:list {} inner-schema])
-       (util/as-set sorted-by (:live-config *opts*))))
+       (util/as-set sorted-by (:runtime-config *opts*))))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
                             ~(as-undiffable (unpack val-schema))]))
-       (util/as-map sorted-by (:live-config *opts*))))
+       (util/as-map sorted-by (:runtime-config *opts*))))
 
 (defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
@@ -95,7 +95,7 @@
          (map (fn [key]
                 [key (as-undiffable (unpack (record-map key)))]))
          (into {})
-         (util/as-record constructor (:live-config *opts*)))))
+         (util/as-record constructor (:runtime-config *opts*)))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
@@ -111,16 +111,16 @@
   `(~(:enum-map (:config *opts*)) ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
-  (let [{:keys [live-config buffer]} *opts*]
-    `(~(util/runtime-processor schema :unpack live-config)
-      ~buffer ~live-config)))
+  (let [{:keys [runtime-config buffer]} *opts*]
+    `(~(util/runtime-processor schema :unpack runtime-config)
+      ~buffer ~runtime-config)))
 
 (defn make-unpacker [schema config diffed?]
-  (let [buffer      (gensym "buffer_")
-        live-config (gensym "config_")]
-    (binding [*opts* {:config      config
-                      :diffed?     diffed?
-                      :live-config live-config
-                      :buffer      buffer}]
-      `(fn [~buffer ~live-config]
+  (let [buffer         (gensym "buffer_")
+        runtime-config (gensym "config_")]
+    (binding [*opts* {:config         config
+                      :diffed?        diffed?
+                      :runtime-config runtime-config
+                      :buffer         buffer}]
+      `(fn [~buffer ~runtime-config]
          ~(as-undiffable (unpack schema))))))

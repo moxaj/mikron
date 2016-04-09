@@ -50,6 +50,9 @@
 (defn postfix-gensym [sym s]
   (gensym (str (raw-gensym sym) "-" s "_")))
 
+(defn processor-name [processor-type schema-name]
+  (symbol (str (name processor-type) "-" (name schema-name))))
+
 (defn expand-record [[_ {:keys [extends]} record-map :as record] schemas]
   (if (empty? extends)
     record

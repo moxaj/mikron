@@ -7,7 +7,7 @@
 
 (defn equality-operator [schema]
   (if-let [fn-key (get-in (:config *opts*) [:eq-ops schema])]
-    (util/runtime-fn fn-key (:live-config *opts*))
+    (util/runtime-fn fn-key (:runtime-config *opts*))
     `=))
 
 (defn as-diffed [schema value-1 value-2 body]
@@ -61,7 +61,7 @@
                                      (diff val-schema val-1 val-2))
                          ~val-2)])
                ~value-2)
-         (util/as-map sorted-by (:live-config *opts*)))))
+         (util/as-map sorted-by (:runtime-config *opts*)))))
 
 (defmethod diff :tuple [schema value-1 value-2]
   (let [destructured-2 (util/destructure-indexed schema value-2 true)]
@@ -84,7 +84,7 @@
                                      ~(as-diffed inner-schema inner-value-1 inner-value-2
                                                  (diff inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util/as-record (:constructor schema) (:live-config *opts*)))))
+         (util/as-record (:constructor schema) (:runtime-config *opts*)))))
 
 (defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -95,7 +95,7 @@
   (let [selector-fn (gensym "selector_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector (:live-config *opts*))
+    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *opts*))
            ~case-1      (~selector-fn ~value-1)
            ~case-2      (~selector-fn ~value-2)]
        (if (not= ~case-1 ~case-2)
@@ -106,21 +106,21 @@
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]
-  (let [{:keys [direction live-config]} *opts*]
-    `(~(util/runtime-processor schema direction live-config)
-      ~value-1 ~value-2 ~live-config)))
+  (let [{:keys [direction runtime-config]} *opts*]
+    `(~(util/runtime-processor schema direction runtime-config)
+      ~value-1 ~value-2 ~runtime-config)))
 
 (defmethod diff :non-diffable [schema value-1 value-2]
   value-2)
 
 (defn make-common [schema config direction]
-  (let [value-1     (gensym "value-1_")
-        value-2     (gensym "value-2_")
-        live-config (gensym "config_")]
-    (binding [*opts* {:config      config
-                      :direction   direction
-                      :live-config live-config}]
-      `(fn [~value-1 ~value-2 ~live-config]
+  (let [value-1        (gensym "value-1_")
+        value-2        (gensym "value-2_")
+        runtime-config (gensym "config_")]
+    (binding [*opts* {:config         config
+                      :direction      direction
+                      :runtime-config runtime-config}]
+      `(fn [~value-1 ~value-2 ~runtime-config]
          ~(as-diffed schema value-1 value-2
                      (diff schema value-1 value-2))))))
 
