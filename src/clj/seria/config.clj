@@ -10,17 +10,17 @@
 
 (defn multi-cases [schemas]
   (->> schemas
-       (util/find-by (fn [form]
-                       (and (vector? form)
-                            (= :multi (first form)))))
+       (util/find-by-unique (fn [form]
+                              (and (vector? form)
+                                   (= :multi (first form)))))
        (mapcat (fn [[_ _ _ multi-map]]
                  (keys multi-map)))))
 
 (defn enum-values [schemas]
   (->> schemas
-       (util/find-by (fn [form]
-                       (and (vector? form)
-                            (= :enum (first form)))))
+       (util/find-by-unique (fn [form]
+                              (and (vector? form)
+                                   (= :enum (first form)))))
        (mapcat (fn [[_ _ values]]
                  values))))
 
@@ -58,9 +58,6 @@
                          :multi-map  (util/bimap (multi-cases schemas))}]
     (assoc config :processors (make-processors processor-types config)
                   :state      `(atom {}))))
-
-;; access runtime-config: symbol lookup or parameter?
-;; access other processors: symbol lookup or hashmap lookup?
 
 (defn make-test-config [& args]
   (let [raw-config (apply make-config args)]

@@ -1,4 +1,4 @@
-/(ns seria.pack
+/(ns seria.codegen.pack
   "Packer generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
@@ -120,7 +120,7 @@
          ~(pack inner-schema value))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
-  `(case (~(util/runtime-fn selector (:runtime-config *options*)) ~value)
+  `(case (~selector ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
                   `(do ~(pack :varint (get-in *options* [:config :multi-map multi-case]))
@@ -131,18 +131,14 @@
   (pack :varint `(~(:enum-map (:config *options*)) ~value)))
 
 (defmethod pack :custom [schema value]
-  (let [{:keys [runtime-config buffer]} *options*]
-    `(~(util/runtime-processor schema :pack runtime-config)
-      ~buffer ~value ~runtime-config)))
+  `(~(util/processor-name :pack schema) ~(:buffer *options*) ~value))
 
 (defn make-packer [schema config diffed?]
-  (let [buffer         (gensym "buffer_")
-        value          (gensym "value_")
-        runtime-config (gensym "config_")]
-    (binding [*options* {:config         config
-                         :diffed?        diffed?
-                         :runtime-config runtime-config
-                         :buffer         buffer}]
-      `(fn [~buffer ~value ~runtime-config]
-         ~(as-diffable value (pack schema value))
-         ~(:buffer *options*)))))
+  (let [buffer (gensym "buffer_")
+        value  (gensym "value_")]
+    (binding [*options* {:config  config
+                         :diffed? diffed?
+                         :buffer  buffer}]
+      `([~buffer ~value]
+        ~(as-diffable value (pack schema value))
+        ~buffer))))

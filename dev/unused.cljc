@@ -78,4 +78,17 @@
       (.setTime snapshot-builder time)
       (.build snapshot-builder)))
 
-  (def java-snapshot (clj->java snapshot)))
+  (def java-snapshot (clj->java snapshot))
+
+  (defn random-schema
+    ([]
+     (random-schema 3))
+    ([depth]
+     (if (zero? depth)
+       (rand-nth [:long :double :varint :char :boolean :string :keyword :symbol])
+       (let [[schema-1 schema-2] (repeatedly 2 #(random-schema (dec depth)))]
+         (case (rand-int 4)
+           0 [:list {} schema-1]
+           1 [:set {:sorted-by :none} schema-1]
+           2 [:vector {} schema-1]
+           3 [:map {:sorted-by :none} schema-1 schema-2]))))))

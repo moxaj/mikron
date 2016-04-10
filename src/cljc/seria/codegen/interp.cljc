@@ -1,4 +1,4 @@
-(ns seria.interp
+(ns seria.codegen.interp
   "Interpolator generating functions."
   (:require [seria.type :as type]
             [seria.util :as util]))
@@ -51,7 +51,7 @@
                            ~(interp value-schema val-1 val-2)
                            ~val-2)])
                  ~value-2)
-           (util/as-map sorted-by (:runtime-config *options*))))))
+           (util/as-map sorted-by)))))
 
 (defmethod interp :tuple [[_ {interp-indices :interp} :as schema] value-1 value-2]
   (if-not (interped? schema)
@@ -81,12 +81,12 @@
                                             (interp-default inner-value-1 inner-value-2)
                                             (interp inner-schema inner-value-1 inner-value-2))))]))
                       (into {})))
-             (util/as-record constructor (:runtime-config *options*)))))))
+             (util/as-record constructor))))))
 
 (defmethod interp :custom [schema value-1 value-2]
-  (let [{:keys [time-1 time-2 time runtime-config]} *options*]
-    `(~(util/runtime-processor schema :interp runtime-config)
-      ~value-1 ~value-2 ~time-1 ~time-2 ~time ~runtime-config)))
+  (let [{:keys [time-1 time-2 time]} *options*]
+    `(~(util/processor-name :interp schema)
+      ~value-1 ~value-2 ~time-1 ~time-2 ~time)))
 
 (defmethod interp :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -94,12 +94,10 @@
      ~(interp-default value-1 value-2)))
 
 (defmethod interp :multi [[_ _ selector multi-cases] value-1 value-2]
-  (let [selector-fn (gensym "selector-fn_")
-        case-1      (gensym "case-1_")
-        case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *options*))
-           ~case-1      (~selector-fn ~value-1)
-           ~case-2      (~selector-fn ~value-2)]
+  (let [case-1 (gensym "case-1_")
+        case-2 (gensym "case-2_")]
+    `(let [~case-1 (~selector ~value-1)
+           ~case-2 (~selector ~value-2)]
        (if (not= ~case-1 ~case-2)
          ~(interp-default value-1 value-2)
          (condp = ~case-1
@@ -114,23 +112,21 @@
   (interp-default value-1 value-2))
 
 (defn make-interper [schema config]
-  (let [value-1        (gensym "value-1_")
-        value-2        (gensym "value-2_")
-        time-1         (gensym "time-1_")
-        time-2         (gensym "time-2_")
-        time           (gensym "time_")
-        runtime-config (gensym "config_")
-        prefer-first?  (gensym "prefer-first?_")
-        time-factor    (gensym "time-factor_")]
-    (binding [*options* {:config         config
-                         :time-1         time-1
-                         :time-2         time-2
-                         :time           time
-                         :runtime-config runtime-config
-                         :prefer-first?  prefer-first?
-                         :time-factor    time-factor}]
-      `(fn [~value-1 ~value-2 ~time-1 ~time-2 ~time ~runtime-config]
-         (let [~prefer-first? (< (util/cljc-abs (- ~time ~time-1))
-                                 (util/cljc-abs (- ~time ~time-2)))
-               ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
-           ~(interp schema value-1 value-2))))))
+  (let [value-1       (gensym "value-1_")
+        value-2       (gensym "value-2_")
+        time-1        (gensym "time-1_")
+        time-2        (gensym "time-2_")
+        time          (gensym "time_")
+        prefer-first? (gensym "prefer-first?_")
+        time-factor   (gensym "time-factor_")]
+    (binding [*options* {:config        config
+                         :time-1        time-1
+                         :time-2        time-2
+                         :time          time
+                         :prefer-first? prefer-first?
+                         :time-factor   time-factor}]
+      `([~value-1 ~value-2 ~time-1 ~time-2 ~time]
+        (let [~prefer-first? (< (util/cljc-abs (- ~time ~time-1))
+                                (util/cljc-abs (- ~time ~time-2)))
+              ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
+          ~(interp schema value-1 value-2))))))

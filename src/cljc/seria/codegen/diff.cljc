@@ -1,4 +1,4 @@
-(ns seria.diff
+(ns seria.codegen.diff
   "Differ and undiffer generating functions."
   (:require [seria.type :as type]
             [seria.util :as util]))
@@ -6,7 +6,7 @@
 (def ^:dynamic *options*)
 
 (defn equality-operator [schema]
-  (if-let [fn-key (get-in (:config *options*) [:eq-ops schema])]
+  (if-let [fn (get-in (:config *options*) [:eq-ops schema])]
     (util/runtime-fn fn-key (:runtime-config *options*))
     `=))
 
@@ -61,7 +61,7 @@
                                      (diff val-schema val-1 val-2))
                          ~val-2)])
                ~value-2)
-         (util/as-map sorted-by (:runtime-config *options*)))))
+         (util/as-map sorted-by))))
 
 (defmethod diff :tuple [schema value-1 value-2]
   (let [destructured-2 (util/destructure-indexed schema value-2 true)]
@@ -74,7 +74,7 @@
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [schema         (util/expand-record schema (get-in *options* [:config :schemas]))
+  (let [[_ {:keys [constructor]} :as schema] (util/expand-record schema (get-in *options* [:config :schemas]))
         destructured-2 (util/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
             ~(->> destructured-2
@@ -84,7 +84,7 @@
                                      ~(as-diffed inner-schema inner-value-1 inner-value-2
                                                  (diff inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util/as-record (:constructor schema) (:runtime-config *options*)))))
+         (util/as-record constructor))))
 
 (defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -92,12 +92,10 @@
      ~value-2))
 
 (defmethod diff :multi [[_ _ selector multi-cases] value-1 value-2]
-  (let [selector-fn (gensym "selector_")
-        case-1      (gensym "case-1_")
-        case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *options*))
-           ~case-1      (~selector-fn ~value-1)
-           ~case-2      (~selector-fn ~value-2)]
+  (let [case-1 (gensym "case-1_")
+        case-2 (gensym "case-2_")]
+    `(let [~case-1 (~selector ~value-1)
+           ~case-2 (~selector ~value-2)]
        (if (not= ~case-1 ~case-2)
          ~value-2
          (condp = ~case-1
@@ -106,23 +104,18 @@
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]
-  (let [{:keys [direction runtime-config]} *options*]
-    `(~(util/runtime-processor schema direction runtime-config)
-      ~value-1 ~value-2 ~runtime-config)))
+  `(~(util/processor-name (:direction *options*) schema) ~value-1 ~value-2))
 
 (defmethod diff :non-diffable [schema value-1 value-2]
   value-2)
 
 (defn make-common [schema config direction]
-  (let [value-1        (gensym "value-1_")
-        value-2        (gensym "value-2_")
-        runtime-config (gensym "config_")]
-    (binding [*options* {:config         config
-                         :direction      direction
-                         :runtime-config runtime-config}]
-      `(fn [~value-1 ~value-2 ~runtime-config]
-         ~(as-diffed schema value-1 value-2
-                     (diff schema value-1 value-2))))))
+  (let [value-1 (gensym "value-1_")
+        value-2 (gensym "value-2_")]
+    (binding [*options* {:config    config
+                         :direction direction}]
+      `([~value-1 ~value-2]
+        ~(as-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
 
 (defn make-differ [schema config]
   (make-common schema config :diff))

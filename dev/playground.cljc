@@ -24,7 +24,7 @@
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
 
-(def seria-config (config/make-test-config :schemas box2d-schemas))
+;(def seria-config (config/make-test-config :schemas box2d-schemas))
 
 (comment
   (let [buffer (core/allocate-buffer 10000)]
@@ -42,3 +42,7 @@
   (let [config (config/make-test-config :schemas {:x :nil})]
     (pprint/with-pprint-dispatch pprint/code-dispatch
       (pprint/pprint (->> config :sources prettify/prettify)))))
+
+
+;; generate into same file
+;; capture namespace name, config name, config

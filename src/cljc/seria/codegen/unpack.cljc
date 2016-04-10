@@ -1,4 +1,4 @@
-(ns seria.unpack
+(ns seria.codegen.unpack
   "Unpacker generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
@@ -76,13 +76,13 @@
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
   (->> (unpack [:list {} inner-schema])
-       (util/as-set sorted-by (:runtime-config *options*))))
+       (util/as-set sorted-by)))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
                             ~(as-undiffable (unpack val-schema))]))
-       (util/as-map sorted-by (:runtime-config *options*))))
+       (util/as-map sorted-by)))
 
 (defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
@@ -95,7 +95,7 @@
          (map (fn [key]
                 [key (as-undiffable (unpack (record-map key)))]))
          (into {})
-         (util/as-record constructor (:runtime-config *options*)))))
+         (util/as-record constructor))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)
@@ -111,16 +111,12 @@
   `(~(:enum-map (:config *options*)) ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
-  (let [{:keys [runtime-config buffer]} *options*]
-    `(~(util/runtime-processor schema :unpack runtime-config)
-      ~buffer ~runtime-config)))
+  `(~(util/processor-name :unpack schema) ~(:buffer *options*)))
 
 (defn make-unpacker [schema config diffed?]
-  (let [buffer         (gensym "buffer_")
-        runtime-config (gensym "config_")]
-    (binding [*options* {:config         config
-                         :diffed?        diffed?
-                         :runtime-config runtime-config
-                         :buffer         buffer}]
-      `(fn [~buffer ~runtime-config]
-         ~(as-undiffable (unpack schema))))))
+  (let [buffer (gensym "buffer_")]
+    (binding [*options* {:config  config
+                         :diffed? diffed?
+                         :buffer  buffer}]
+      `([~buffer]
+        ~(as-undiffable (unpack schema))))))

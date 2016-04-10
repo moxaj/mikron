@@ -31,15 +31,15 @@
        (mapcat (fn [[a b]] [[a b] [b a]]))
        (into {})))
 
-(defn find-by* [f form]
+(defn find-by [f form]
   (concat (if (f form) [form] [])
           (if (or (sequential? form)
                   (map? form))
-            (mapcat (partial find-by* f) form)
+            (mapcat (partial find-by f) form)
             [])))
 
-(defn find-by [f form]
-  (set (find-by* f form)))
+(defn find-unique-by [f form]
+  (set (find-by f form)))
 
 (defn raw-gensym [sym]
   (let [sym-name (name sym)]
@@ -86,27 +86,21 @@
            (range (count inner-schemas))
            (sort (keys inner-schemas))))))
 
-(defn runtime-fn [fn-key runtime-config]
-  `(get-in @(:state ~runtime-config) [:fn-map ~fn-key]))
-
-(defn runtime-processor [schema processor-type runtime-config]
-  `(get-in ~runtime-config [:processors ~schema ~processor-type]))
-
-(defn as-set [sorted-by runtime-config body]
+(defn as-set [sorted-by body]
   `(into ~(case sorted-by
             nil      `#{}
             :default `(sorted-set)
-            `(sorted-set-by ~(runtime-fn sorted-by runtime-config)))
+            `(sorted-set-by ~sorted-by))
          ~body))
 
-(defn as-map [sorted-by runtime-config body]
+(defn as-map [sorted-by body]
   `(into ~(case sorted-by
             nil      `{}
             :default `(sorted-map)
-            `(sorted-map-by ~(runtime-fn sorted-by runtime-config)))
+            `(sorted-map-by ~sorted-by))
          ~body))
 
-(defn as-record [constructor runtime-config body]
+(defn as-record [constructor body]
   (if constructor
-    `(~(runtime-fn constructor runtime-config) ~body)
+    `(~constructor ~body)
     body))
