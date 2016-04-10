@@ -4,12 +4,12 @@
             [seria.util :as util]
             [seria.type :as type]))
 
-(def ^:dynamic *opts*)
+(def ^:dynamic *options*)
 
 (defmulti pack type/type-of :default :custom)
 
 (defn as-diffable [value body]
-  (if-not (:diffed? *opts*)
+  (if-not (:diffed? *options*)
     body
     (let [value-dnil? (util/postfix-gensym value "dnil?")]
       `(let [~value-dnil? (= :seria/dnil ~value)]
@@ -18,40 +18,40 @@
            ~body)))))
 
 (defmethod pack :byte [_ value]
-  `(buffer/write-byte! ~(:buffer *opts*) ~value))
+  `(buffer/write-byte! ~(:buffer *options*) ~value))
 
 (defmethod pack :ubyte [_ value]
-  `(buffer/write-ubyte! ~(:buffer *opts*) ~value))
+  `(buffer/write-ubyte! ~(:buffer *options*) ~value))
 
 (defmethod pack :short [_ value]
-  `(buffer/write-short! ~(:buffer *opts*) ~value))
+  `(buffer/write-short! ~(:buffer *options*) ~value))
 
 (defmethod pack :ushort [_ value]
-  `(buffer/write-ushort! ~(:buffer *opts*) ~value))
+  `(buffer/write-ushort! ~(:buffer *options*) ~value))
 
 (defmethod pack :int [_ value]
-  `(buffer/write-int! ~(:buffer *opts*) ~value))
+  `(buffer/write-int! ~(:buffer *options*) ~value))
 
 (defmethod pack :uint [_ value]
-  `(buffer/write-uint! ~(:buffer *opts*) ~value))
+  `(buffer/write-uint! ~(:buffer *options*) ~value))
 
 (defmethod pack :long [_ value]
-  `(buffer/write-long! ~(:buffer *opts*) ~value))
+  `(buffer/write-long! ~(:buffer *options*) ~value))
 
 (defmethod pack :float [_ value]
-  `(buffer/write-float! ~(:buffer *opts*) ~value))
+  `(buffer/write-float! ~(:buffer *options*) ~value))
 
 (defmethod pack :double [_ value]
-  `(buffer/write-double! ~(:buffer *opts*) ~value))
+  `(buffer/write-double! ~(:buffer *options*) ~value))
 
 (defmethod pack :char [_ value]
-  `(buffer/write-char! ~(:buffer *opts*) ~value))
+  `(buffer/write-char! ~(:buffer *options*) ~value))
 
 (defmethod pack :boolean [_ value]
-  `(buffer/write-boolean! ~(:buffer *opts*) ~value))
+  `(buffer/write-boolean! ~(:buffer *options*) ~value))
 
 (defmethod pack :varint [_ value]
-  `(buffer/write-varint! ~(:buffer *opts*) ~value))
+  `(buffer/write-varint! ~(:buffer *options*) ~value))
 
 (defmethod pack :string [_ value]
   (let [char (gensym "char_")]
@@ -107,7 +107,7 @@
                      destructured)))))
 
 (defmethod pack :record [schema value]
-  (let [schema       (util/expand-record schema (get-in *opts* [:config :schemas]))
+  (let [schema       (util/expand-record schema (get-in *options* [:config :schemas]))
         destructured (util/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :inner-value) destructured)]
        ~@(doall (map (fn [{inner-schema :inner-schema inner-value :symbol index :index}]
@@ -120,18 +120,18 @@
          ~(pack inner-schema value))))
 
 (defmethod pack :multi [[_ _ selector arg-map] value]
-  `(case (~(util/runtime-fn selector (:runtime-config *opts*)) ~value)
+  `(case (~(util/runtime-fn selector (:runtime-config *options*)) ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
-                  `(do ~(pack :varint (get-in *opts* [:config :multi-map multi-case]))
+                  `(do ~(pack :varint (get-in *options* [:config :multi-map multi-case]))
                        ~(pack inner-schema value))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
-  (pack :varint `(~(:enum-map (:config *opts*)) ~value)))
+  (pack :varint `(~(:enum-map (:config *options*)) ~value)))
 
 (defmethod pack :custom [schema value]
-  (let [{:keys [runtime-config buffer]} *opts*]
+  (let [{:keys [runtime-config buffer]} *options*]
     `(~(util/runtime-processor schema :pack runtime-config)
       ~buffer ~value ~runtime-config)))
 
@@ -139,10 +139,10 @@
   (let [buffer         (gensym "buffer_")
         value          (gensym "value_")
         runtime-config (gensym "config_")]
-    (binding [*opts* {:config         config
-                      :diffed?        diffed?
-                      :runtime-config runtime-config
-                      :buffer         buffer}]
+    (binding [*options* {:config         config
+                         :diffed?        diffed?
+                         :runtime-config runtime-config
+                         :buffer         buffer}]
       `(fn [~buffer ~value ~runtime-config]
          ~(as-diffable value (pack schema value))
-         ~(:buffer *opts*)))))
+         ~(:buffer *options*)))))

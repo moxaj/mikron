@@ -59,6 +59,9 @@
     (assoc config :processors (make-processors processor-types config)
                   :state      `(atom {}))))
 
+;; access runtime-config: symbol lookup or parameter?
+;; access other processors: symbol lookup or hashmap lookup?
+
 (defn make-test-config [& args]
   (let [raw-config (apply make-config args)]
     (assoc (eval raw-config) :sources (:processors raw-config))))

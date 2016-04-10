@@ -3,15 +3,15 @@
   (:require [seria.type :as type]
             [seria.util :as util]))
 
-(def ^:dynamic *opts*)
+(def ^:dynamic *options*)
 
 (defn equality-operator [schema]
-  (if-let [fn-key (get-in (:config *opts*) [:eq-ops schema])]
-    (util/runtime-fn fn-key (:runtime-config *opts*))
+  (if-let [fn-key (get-in (:config *options*) [:eq-ops schema])]
+    (util/runtime-fn fn-key (:runtime-config *options*))
     `=))
 
 (defn as-diffed [schema value-1 value-2 body]
-  (case (:direction *opts*)
+  (case (:direction *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
                :seria/dnil
                ~body)
@@ -61,7 +61,7 @@
                                      (diff val-schema val-1 val-2))
                          ~val-2)])
                ~value-2)
-         (util/as-map sorted-by (:runtime-config *opts*)))))
+         (util/as-map sorted-by (:runtime-config *options*)))))
 
 (defmethod diff :tuple [schema value-1 value-2]
   (let [destructured-2 (util/destructure-indexed schema value-2 true)]
@@ -74,7 +74,7 @@
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [schema         (util/expand-record schema (get-in *opts* [:config :schemas]))
+  (let [schema         (util/expand-record schema (get-in *options* [:config :schemas]))
         destructured-2 (util/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :inner-value) destructured-2)]
             ~(->> destructured-2
@@ -84,7 +84,7 @@
                                      ~(as-diffed inner-schema inner-value-1 inner-value-2
                                                  (diff inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util/as-record (:constructor schema) (:runtime-config *opts*)))))
+         (util/as-record (:constructor schema) (:runtime-config *options*)))))
 
 (defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -95,7 +95,7 @@
   (let [selector-fn (gensym "selector_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *opts*))
+    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *options*))
            ~case-1      (~selector-fn ~value-1)
            ~case-2      (~selector-fn ~value-2)]
        (if (not= ~case-1 ~case-2)
@@ -106,7 +106,7 @@
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]
-  (let [{:keys [direction runtime-config]} *opts*]
+  (let [{:keys [direction runtime-config]} *options*]
     `(~(util/runtime-processor schema direction runtime-config)
       ~value-1 ~value-2 ~runtime-config)))
 
@@ -117,9 +117,9 @@
   (let [value-1        (gensym "value-1_")
         value-2        (gensym "value-2_")
         runtime-config (gensym "config_")]
-    (binding [*opts* {:config         config
-                      :direction      direction
-                      :runtime-config runtime-config}]
+    (binding [*options* {:config         config
+                         :direction      direction
+                         :runtime-config runtime-config}]
       `(fn [~value-1 ~value-2 ~runtime-config]
          ~(as-diffed schema value-1 value-2
                      (diff schema value-1 value-2))))))

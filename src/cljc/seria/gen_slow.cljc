@@ -2,7 +2,7 @@
   "Random data generation for schemas."
   (:require [seria.type :as type]))
 
-(def ^:dynamic *opts*)
+(def ^:dynamic *options*)
 
 (def symbol-chars
   (map char (concat [\_ \- \?]
@@ -110,7 +110,7 @@
   (into (case sorted-by
           :none    #{}
           :default (sorted-set)
-          (sorted-set-by (get-in @(:state (:config *opts*)) [:fn-map sorted-by])))
+          (sorted-set-by (get-in @(:state (:config *options*)) [:fn-map sorted-by])))
         (repeatedly (gen-size) #(gen inner-schema))))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
@@ -118,7 +118,7 @@
     (into (case sorted-by
             :none    {}
             :default (sorted-map)
-            (sorted-map-by (get-in @(:state (:config *opts*)) [:fn-map sorted-by])))
+            (sorted-map-by (get-in @(:state (:config *options*)) [:fn-map sorted-by])))
           (zipmap (repeatedly size #(gen key-schema))
                   (repeatedly size #(gen val-schema))))))
 
@@ -131,7 +131,7 @@
                         (into {}))]
     (if-not constructor
       raw-record
-      ((get-in @(:state (:config *opts*)) [:fn-map constructor])
+      ((get-in @(:state (:config *options*)) [:fn-map constructor])
        raw-record))))
 
 (defmethod gen :optional [[_ _ inner-schema]]
@@ -145,12 +145,12 @@
   (gen (rand-nth (vals multi-map))))
 
 (defmethod gen :default [schema]
-  (gen ((:schemas (:config *opts*)) schema)))
+  (gen ((:schemas (:config *options*)) schema)))
 
 (defn sample [n schema config]
-  (binding [*opts* {:config config}]
+  (binding [*options* {:config config}]
     (doall (repeatedly n #(gen schema)))))
 
 (defn sample-one [schema config]
-  (binding [*opts* {:config config}]
+  (binding [*options* {:config config}]
     (gen schema)))

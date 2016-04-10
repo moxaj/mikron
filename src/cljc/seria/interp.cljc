@@ -3,7 +3,7 @@
   (:require [seria.type :as type]
             [seria.util :as util]))
 
-(def ^:dynamic *opts*)
+(def ^:dynamic *options*)
 
 (defn interped? [[complex-type {interped-indices :interp}]]
   (condp contains? complex-type
@@ -25,7 +25,7 @@
       x)))
 
 (defn interp-default [value-1 value-2]
-  `(if ~(:prefer-first? *opts*)
+  `(if ~(:prefer-first? *options*)
      ~value-1
      ~value-2))
 
@@ -38,7 +38,7 @@
 
 (defmethod interp :number [schema value-1 value-2]
   (let [round? (not (type/integer-type? (type/type-of schema)))]
-    (interp-numbers value-1 value-2 (:time-factor *opts*) round?)))
+    (interp-numbers value-1 value-2 (:time-factor *options*) round?)))
 
 (defmethod interp :map [[_ {:keys [sorted-by]} _ value-schema :as schema] value-1 value-2]
   (if-not (interped? schema)
@@ -51,7 +51,7 @@
                            ~(interp value-schema val-1 val-2)
                            ~val-2)])
                  ~value-2)
-           (util/as-map sorted-by (:runtime-config *opts*))))))
+           (util/as-map sorted-by (:runtime-config *options*))))))
 
 (defmethod interp :tuple [[_ {interp-indices :interp} :as schema] value-1 value-2]
   (if-not (interped? schema)
@@ -67,7 +67,7 @@
                 destructured-2)))))
 
 (defmethod interp :record [schema value-1 value-2]
-  (let [schema (util/expand-record schema (get-in *opts* [:config :schemas]))]
+  (let [schema (util/expand-record schema (get-in *options* [:config :schemas]))]
     (if-not (interped? schema)
       (interp-default value-1 value-2)
       (let [[_ {interp-indices :interp constructor :constructor}] schema
@@ -81,10 +81,10 @@
                                             (interp-default inner-value-1 inner-value-2)
                                             (interp inner-schema inner-value-1 inner-value-2))))]))
                       (into {})))
-             (util/as-record constructor (:runtime-config *opts*)))))))
+             (util/as-record constructor (:runtime-config *options*)))))))
 
 (defmethod interp :custom [schema value-1 value-2]
-  (let [{:keys [time-1 time-2 time runtime-config]} *opts*]
+  (let [{:keys [time-1 time-2 time runtime-config]} *options*]
     `(~(util/runtime-processor schema :interp runtime-config)
       ~value-1 ~value-2 ~time-1 ~time-2 ~time ~runtime-config)))
 
@@ -97,7 +97,7 @@
   (let [selector-fn (gensym "selector-fn_")
         case-1      (gensym "case-1_")
         case-2      (gensym "case-2_")]
-    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *opts*))
+    `(let [~selector-fn ~(util/runtime-fn selector (:runtime-config *options*))
            ~case-1      (~selector-fn ~value-1)
            ~case-2      (~selector-fn ~value-2)]
        (if (not= ~case-1 ~case-2)
@@ -122,13 +122,13 @@
         runtime-config (gensym "config_")
         prefer-first?  (gensym "prefer-first?_")
         time-factor    (gensym "time-factor_")]
-    (binding [*opts* {:config         config
-                      :time-1         time-1
-                      :time-2         time-2
-                      :time           time
-                      :runtime-config runtime-config
-                      :prefer-first?  prefer-first?
-                      :time-factor    time-factor}]
+    (binding [*options* {:config         config
+                         :time-1         time-1
+                         :time-2         time-2
+                         :time           time
+                         :runtime-config runtime-config
+                         :prefer-first?  prefer-first?
+                         :time-factor    time-factor}]
       `(fn [~value-1 ~value-2 ~time-1 ~time-2 ~time ~runtime-config]
          (let [~prefer-first? (< (util/cljc-abs (- ~time ~time-1))
                                  (util/cljc-abs (- ~time ~time-2)))
