@@ -1,4 +1,4 @@
-/(ns seria.codegen.pack
+(ns seria.codegen.pack
   "Packer generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]

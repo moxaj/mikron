@@ -6,9 +6,8 @@
 (def ^:dynamic *options*)
 
 (defn equality-operator [schema]
-  (if-let [fn (get-in (:config *options*) [:eq-ops schema])]
-    (util/runtime-fn fn-key (:runtime-config *options*))
-    `=))
+  (or (get-in *options* [:config :eq-ops schema])
+      `=))
 
 (defn as-diffed [schema value-1 value-2 body]
   (case (:direction *options*)
