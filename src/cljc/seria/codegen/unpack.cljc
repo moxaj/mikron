@@ -111,12 +111,45 @@
   `(~(:enum-map (:config *options*)) ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
-  `(~(util/processor-name :unpack schema) ~(:buffer *options*)))
+  (let [{:keys [diffed? buffer]} *options*]
+    `(~(util/processor-name (if diffed? :unpack-diffed-inner :unpack-inner)
+                            schema)
+      ~buffer)))
 
-(defn make-unpacker [schema config diffed?]
-  (let [buffer (gensym "buffer_")]
+(defn make-inner-unpacker [schema-name config diffed?]
+  (let [buffer (gensym "buffer_")
+        schema (get-in config [:schemas schema-name])]
     (binding [*options* {:config  config
                          :diffed? diffed?
                          :buffer  buffer}]
-      `([~buffer]
+      `(~(util/processor-name (if diffed? :unpack-diffed :unpack)
+                              schema-name)
+        [~buffer]
         ~(as-undiffable (unpack schema))))))
+
+(defn make-unpacker [{:keys [schemas schema-map]}]
+  (let [raw       (gensym "raw_")
+        buffer    (with-meta (gensym "buffer_")
+                             {:no-inline true})
+        schema-id (gensym "schema-id_")
+        diff-id   (gensym "diff-id_")
+        diffed?   (gensym "diffed?_")
+        schema    (gensym "schema_")
+        unpack-fn (gensym "unpack-fn_")]
+    `(~'unpack
+      [~raw]
+      (let [~buffer (buffer/wrap ~raw)
+            {:keys [~schema-id ~diff-id ~diffed?]} (buffer/read-headers! ~buffer)
+            ~schema (get ~schema-map schema-id)]
+        (if-not ~schema
+          :seria/invalid
+          (let [~unpack-fn (case ~schema
+                             ~@(mapcat (fn [schema-name]
+                                         [schema-name `(if ~diffed?
+                                                         ~(util/processor-name :unpack-diffed schema-name)
+                                                         ~(util/processor-name :unpack schema-name))])
+                                       (keys schemas)))]
+            {:schema  ~schema
+             :diffed? ~diffed?
+             :diff-id ~diff-id
+             :value   (~unpack-fn ~buffer)}))))))

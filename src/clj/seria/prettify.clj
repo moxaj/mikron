@@ -12,21 +12,25 @@
 
 (defn inline-let-symbols* [[_ binding-form & exprs]]
   (let [binding-map        (apply hash-map binding-form)
+        binding-order      (->> binding-form
+                                (partition 1 2)
+                                (map first))
         inlineable-symbols (filter (fn [sym]
-                                     (and (< (count (util/find-by* #{sym} exprs))
-                                             2)
-                                          (not (:no-inline (meta sym)))))
+                                     (and (symbol? sym)
+                                          (not (:no-inline (meta sym)))
+                                          (< (count (util/find-by #{sym} exprs))
+                                             2)))
                                    (keys binding-map))
-        new-binding-form   (->> (apply dissoc binding-map inlineable-symbols)
-                                (mapcat identity)
-                                (vec))
+        new-binding-form   (apply dissoc binding-map inlineable-symbols)
         new-exprs          (-> (select-keys binding-map inlineable-symbols)
                                (walk/postwalk-replace exprs))]
     (if (empty? new-binding-form)
       (if (= 1 (count new-exprs))
         (first new-exprs)
         `(do ~@new-exprs))
-      `(let ~new-binding-form
+      `(let ~(vec (mapcat (fn [sym]
+                            [sym (new-binding-form sym)])
+                          binding-order))
          ~@new-exprs))))
 
 (defn inline-let-symbols [form]
@@ -137,3 +141,7 @@
                                      (dissoc (requires form) 'clojure.core)))))
           (newline)
           (write `(~'def ~config-name ~(prettify form))))))))
+
+;; ====================================================================
+;; The code below was automatically generated. Please do not modify it!
+;; ====================================================================

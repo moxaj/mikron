@@ -5,6 +5,19 @@
 
 (def ^:dynamic *options*)
 
+(defn equality-operator [schema]
+  (or (get-in *options* [:config :eq-ops schema])
+      `=))
+
+(defn as-diffed [schema value-1 value-2 body]
+  (case (:direction *options*)
+    :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
+               :seria/dnil
+               ~body)
+    :undiff `(if (= :seria/dnil ~value-2)
+               ~value-1
+               ~body)))
+
 (defn interped? [[complex-type {interped-indices :interp}]]
   (condp contains? complex-type
     #{:map}
@@ -111,21 +124,23 @@
 (defmethod interp :default [_ value-1 value-2]
   (interp-default value-1 value-2))
 
-(defn make-interper [schema config]
+(defn make-interper [schema-name config]
   (let [value-1       (gensym "value-1_")
         value-2       (gensym "value-2_")
         time-1        (gensym "time-1_")
         time-2        (gensym "time-2_")
         time          (gensym "time_")
         prefer-first? (gensym "prefer-first?_")
-        time-factor   (gensym "time-factor_")]
+        time-factor   (gensym "time-factor_")
+        schema        (get-in config [:schemas schema-name])]
     (binding [*options* {:config        config
                          :time-1        time-1
                          :time-2        time-2
                          :time          time
                          :prefer-first? prefer-first?
                          :time-factor   time-factor}]
-      `([~value-1 ~value-2 ~time-1 ~time-2 ~time]
+      `(~(util/processor-name :interp schema-name)
+        [~value-1 ~value-2 ~time-1 ~time-2 ~time]
         (let [~prefer-first? (< (util/cljc-abs (- ~time ~time-1))
                                 (util/cljc-abs (- ~time ~time-2)))
               ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]

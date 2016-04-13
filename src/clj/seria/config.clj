@@ -24,30 +24,33 @@
        (mapcat (fn [[_ _ values]]
                  values))))
 
-(defn make-processors [processor-types config]
+(defn make-processors [processor-types {:keys [schemas] :as config}]
   (let [need? (set processor-types)]
-    (->> (:schemas config)
-         (map (fn [[schema-name schema]]
-                [schema-name (cond-> (sorted-map)
-                               (need? :pack)
-                               (assoc :pack   (pack/make-packer schema config false)
-                                      :unpack (unpack/make-unpacker schema config false))
+    (->> (keys schemas)
+         (mapcat (fn [schema-name]
+                   (cond-> []
+                     (need? :pack)
+                     (conj (pack/make-inner-packer schema-name config false)
+                           (pack/make-packer schema-name config)
+                           (unpack/make-inner-unpacker schema-name config false))
 
-                               (need? :diff)
-                               (assoc :diff   (diff/make-differ schema config)
-                                      :undiff (diff/make-undiffer schema config))
+                     (need? :diff)
+                     (conj (diff/make-differ schema-name config)
+                           (diff/make-undiffer schema-name config))
 
-                               (and (need? :pack)
-                                    (need? :diff))
-                               (assoc :diffed-pack   (pack/make-packer schema config true)
-                                      :diffed-unpack (unpack/make-unpacker schema config true))
+                     (and (need? :pack)
+                          (need? :diff))
+                     (conj (pack/make-inner-packer schema-name config true)
+                           (unpack/make-inner-unpacker schema-name config true))
 
-                               (need? :gen)
-                               (assoc :gen (gen/make-generator schema config))
+                     (need? :gen)
+                     (conj (gen/make-generator schema-name config))
 
-                               (need? :interp)
-                               (assoc :interp (interp/make-interper schema config)))]))
-         (into (sorted-map)))))
+                     (need? :interp)
+                     (conj (interp/make-interper schema-name config)))))
+         (concat (if (need? :pack)
+                   [(unpack/make-unpacker config)]
+                   [])))))
 
 (defn make-config [spec]
   (let [schemas         (validate/validate-schemas (:schemas spec))
@@ -57,16 +60,14 @@
                          :enum-map   (util/bimap (enum-values schemas))
                          :multi-map  (util/bimap (multi-cases schemas))}
         processors      (make-processors processor-types config)]
-    `(letfn [~@(for [[schema processor-map]     processors
-                     [processor-name processor] processor-map]
-                 `(~(util/processor-name processor-name schema)
-                   ~@processor))])))
+    `[(declare ~@(map first processors))
+      ~@(map (fn [processor]
+               `(defn ~@processor))
+             processors)]))
 
 (defn make-test-config [args]
   (let [raw-config (apply make-config args)]
     (assoc (eval raw-config) :sources (:processors raw-config))))
-
-(make-config {:schemas {:x :int} :processors [:gen]})
 
 ;; config file: file size, flexibility?
 ;; macro: only unevaluated, simple

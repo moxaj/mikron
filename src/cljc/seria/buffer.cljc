@@ -2,7 +2,8 @@
   "Buffer protocol and implementations."
   #?(:clj (:import [seria SeriaByteBuffer]))
   (:require [seria.util :as util]
-   #?(:cljs [cljsjs.bytebuffer])))
+            #?(:cljs [cljsjs.bytebuffer]))
+  #?(:cljs (:require-macros seria.buffer)))
 
 (defprotocol Buffer
   (read-byte!    [this])
@@ -183,3 +184,9 @@
     {:schema-id schema-id
      :diff-id   diff-id
      :diffed?   diffed?}))
+
+(def ^:dynamic *buffer*)
+
+#?(:clj (defmacro with-buffer [buffer & body]
+          `(binding [*buffer* ~buffer]
+             ~@body)))

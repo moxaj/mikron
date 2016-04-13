@@ -122,6 +122,8 @@
 (defmethod gen :custom [schema]
   `(~(util/processor-name :gen schema)))
 
-(defn make-generator [schema config]
+(defn make-generator [schema-name config]
   (binding [*options* {:config config}]
-    `([] ~(gen schema))))
+    `(~(util/processor-name :gen schema-name)
+      []
+      ~(gen (get-in config [:schemas schema-name])))))

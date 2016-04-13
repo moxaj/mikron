@@ -2,14 +2,13 @@
   (:require [seria.buffer :as buffer]
             [seria.core :as core]
             [seria.config :as config]
-            [seria.gen-slow :as gen]
             [criterium.core :as crit]
             [taoensso.nippy :as nippy]
             [cheshire.core :as json]
             [seria.prettify :as prettify]
             [seria.util :as util]
             [clojure.pprint :as pprint]
-            [seria.gen :as gen-fast])
+            [seria.codegen.gen :as gen])
   (:import [seria SeriaByteBuffer]))
 
 (def box2d-schemas
@@ -23,6 +22,14 @@
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
+
+{:schemas {}
+ :diff {}
+ :interp {:snapshot [[:time] [:bodies :all]]
+          :body     [[:position] [:angle]]
+          :coord    [[0] [1]]}
+ :processors [:pack :diff :gen]
+ :eq-ops {:float +}}
 
 ;(def seria-config (config/make-test-config :schemas box2d-schemas))
 
@@ -43,6 +50,13 @@
     (pprint/with-pprint-dispatch pprint/code-dispatch
       (pprint/pprint (->> config :sources prettify/prettify)))))
 
+
+(pprint/with-pprint-dispatch pprint/code-dispatch
+  (->> {:schemas {:x :int}
+        :processors [:pack :diff :gen :interp]}
+       (config/make-config)
+       (prettify/prettify)
+       (pprint/pprint)))
 
 ;; generate into same file
 ;; capture namespace name, config name, config

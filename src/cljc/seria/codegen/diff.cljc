@@ -10,7 +10,7 @@
       `=))
 
 (defn as-diffed [schema value-1 value-2 body]
-  (case (:direction *options*)
+  (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
                :seria/dnil
                ~body)
@@ -103,21 +103,24 @@
                      multi-cases))))))
 
 (defmethod diff :custom [schema value-1 value-2]
-  `(~(util/processor-name (:direction *options*) schema) ~value-1 ~value-2))
+  `(~(util/processor-name (:processor-type *options*) schema) ~value-1 ~value-2))
 
 (defmethod diff :non-diffable [schema value-1 value-2]
   value-2)
 
-(defn make-common [schema config direction]
+(defn make-common [schema-name config]
   (let [value-1 (gensym "value-1_")
-        value-2 (gensym "value-2_")]
-    (binding [*options* {:config    config
-                         :direction direction}]
-      `([~value-1 ~value-2]
+        value-2 (gensym "value-2_")
+        schema  (get-in config [:schemas schema-name])]
+    (binding [*options* (assoc *options* :config config)]
+      `(~(util/processor-name (:processor-type *options*) schema-name)
+        [~value-1 ~value-2]
         ~(as-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
 
-(defn make-differ [schema config]
-  (make-common schema config :diff))
+(defn make-differ [schema-name config]
+  (binding [*options* {:processor-type :diff}]
+    (make-common schema-name config)))
 
-(defn make-undiffer [schema config]
-  (make-common schema config :undiff))
+(defn make-undiffer [schema-name config]
+  (binding [*options* {:processor-type :undiff}]
+    (make-common schema-name config)))

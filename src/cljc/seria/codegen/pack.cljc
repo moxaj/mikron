@@ -131,14 +131,39 @@
   (pack :varint `(~(:enum-map (:config *options*)) ~value)))
 
 (defmethod pack :custom [schema value]
-  `(~(util/processor-name :pack schema) ~(:buffer *options*) ~value))
+  (let [{:keys [diffed? buffer]} *options*]
+    `(~(util/processor-name (if diffed? :pack-diffed-inner :pack-inner)
+                            schema)
+      ~buffer ~value)))
 
-(defn make-packer [schema config diffed?]
+(defn make-inner-packer [schema-name config diffed?]
   (let [buffer (gensym "buffer_")
-        value  (gensym "value_")]
+        value  (gensym "value_")
+        schema (get-in config [:schemas schema-name])]
     (binding [*options* {:config  config
                          :diffed? diffed?
                          :buffer  buffer}]
-      `([~buffer ~value]
+      `(~(util/processor-name (if diffed? :pack-diffed-inner :pack-inner)
+                              schema-name)
+        [~buffer ~value]
         ~(as-diffable value (pack schema value))
         ~buffer))))
+
+(defn make-packer [schema-name config]
+  (let [buffer  (gensym "buffer_")
+        value   (gensym "value_")
+        diff-id (gensym "diff-id_")
+        diffed? (gensym "diffed?_")]
+    `(~(util/processor-name :pack schema-name)
+      [~value & {:keys [~buffer ~diff-id ~diffed?]
+                 :or   {~buffer  seria.core/*buffer*
+                        ~diffed? false
+                        ~diff-id 0}}]
+      (-> ~buffer
+          (buffer/write-headers! ~(get-in config [:schema-map schema-name])
+                                 ~diff-id
+                                 ~diffed?)
+          ((if diffed?
+             ~(util/processor-name :pack-diffed-inner schema-name)
+             ~(util/processor-name :pack-inner schema-name)))
+          (buffer/compress)))))
