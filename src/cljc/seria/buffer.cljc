@@ -65,7 +65,7 @@
            (little-endian? [this] (.isLittleEndian this))
            (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
-           (clear! [this] (.clear this))
+           (clear!   [this] (.clear this))
            (compress [this] (.compress this)))
    :cljs (extend-type js/ByteBuffer
            Buffer
@@ -118,11 +118,11 @@
            (little-endian? [this] (aget this "littleEndian"))
            (little-endian! [this little-endian] (aset this "littleEndian" little-endian))
 
-           (clear! [this] (doto this
-                                (aset "offset" 0)
-                                (aset "bitIndex" 0)
-                                (aset "bitPosition" -1)
-                                (aset "bitBuffer" 0)))
+           (clear!   [this] (doto this
+                                  (aset "offset" 0)
+                                  (aset "bitIndex" 0)
+                                  (aset "bitPosition" -1)
+                                  (aset "bitBuffer" 0)))
            (compress [this] (do (let [bit-position (aget this "bitPosition")]
                                   (when (not= bit-position -1)
                                     (.writeInt8 this (aget this "bitBuffer") bit-position)))

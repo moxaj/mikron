@@ -123,12 +123,12 @@
   `(case (~selector ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
-                  `(do ~(pack :varint (get-in *options* [:config :multi-map multi-case]))
+                  `(do ~(pack :varint (get-in *options* [:config :multi-ids multi-case]))
                        ~(pack inner-schema value))])
                arg-map)))
 
 (defmethod pack :enum [_ value]
-  (pack :varint `(~(:enum-map (:config *options*)) ~value)))
+  (pack :varint `(~(:enum-ids (:config *options*)) ~value)))
 
 (defmethod pack :custom [schema value]
   (let [{:keys [diffed? buffer]} *options*]
@@ -156,14 +156,20 @@
         diffed? (gensym "diffed?_")]
     `(~(util/processor-name :pack schema-name)
       [~value & {:keys [~buffer ~diff-id ~diffed?]
-                 :or   {~buffer  seria.core/*buffer*
+                 :or   {~buffer  seria.buffer/*buffer*
                         ~diffed? false
                         ~diff-id 0}}]
       (-> ~buffer
-          (buffer/write-headers! ~(get-in config [:schema-map schema-name])
+          (buffer/write-headers! ~(get-in config [:schema-ids schema-name])
                                  ~diff-id
                                  ~diffed?)
           ((if diffed?
              ~(util/processor-name :pack-diffed-inner schema-name)
              ~(util/processor-name :pack-inner schema-name)))
           (buffer/compress)))))
+
+(comment
+  (pack-x
+    [value buffer]                 -> [value buffer 0       false]
+    [value buffer diff-id]         -> [value buffer diff-id false]
+    [value buffer diff-id diffed?] -> [value buffer diff-id diffed?]))

@@ -1,5 +1,5 @@
 (ns seria.config
-  "Pre-compile-time config generation."
+  "Code generation from static config."
   (:require [seria.util :as util]
             [seria.validate :as validate]
             [seria.codegen.diff :as diff]
@@ -24,50 +24,71 @@
        (mapcat (fn [[_ _ values]]
                  values))))
 
+(def ^:dynamic *options*)
+
 (defn make-processors [processor-types {:keys [schemas] :as config}]
-  (let [need? (set processor-types)]
+  (let [include-processor? (set processor-types)]
     (->> (keys schemas)
          (mapcat (fn [schema-name]
                    (cond-> []
-                     (need? :pack)
+                     (include-processor? :pack)
                      (conj (pack/make-inner-packer schema-name config false)
                            (pack/make-packer schema-name config)
                            (unpack/make-inner-unpacker schema-name config false))
 
-                     (need? :diff)
+                     (include-processor? :diff)
                      (conj (diff/make-differ schema-name config)
                            (diff/make-undiffer schema-name config))
 
-                     (and (need? :pack)
-                          (need? :diff))
+                     (and (include-processor? :pack)
+                          (include-processor? :diff))
                      (conj (pack/make-inner-packer schema-name config true)
                            (unpack/make-inner-unpacker schema-name config true))
 
-                     (need? :gen)
+                     (include-processor? :gen)
                      (conj (gen/make-generator schema-name config))
 
-                     (need? :interp)
+                     (include-processor? :interp)
                      (conj (interp/make-interper schema-name config)))))
-         (concat (if (need? :pack)
+         (concat (if (include-processor? :pack)
                    [(unpack/make-unpacker config)]
                    [])))))
 
 (defn make-config [spec]
-  (let [schemas         (validate/validate-schemas (:schemas spec))
-        processor-types (validate/validate-processor-types (:processors spec))
+  (let [schemas         (validate/validated-schemas (:schemas spec))
+        processor-types (validate/validated-processor-types (:processors spec))
         config          {:schemas    schemas
-                         :schema-map (util/bimap (keys schemas))
-                         :enum-map   (util/bimap (enum-values schemas))
-                         :multi-map  (util/bimap (multi-cases schemas))}
+                         :schema-ids (util/bimap (keys schemas))
+                         :enum-ids   (util/bimap (enum-values schemas))
+                         :multi-ids  (util/bimap (multi-cases schemas))}
         processors      (make-processors processor-types config)]
     `[(declare ~@(map first processors))
       ~@(map (fn [processor]
                `(defn ~@processor))
              processors)]))
 
-(defn make-test-config [args]
-  (let [raw-config (apply make-config args)]
-    (assoc (eval raw-config) :sources (:processors raw-config))))
+(comment
+  (defn pack [value & {:keys [schema buffer diff-id diffed?]
+                       :or   {schema  (:schema *params*)
+                              buffer  (:buffer *params*)
+                              diff-id 0
+                              diffed? false}}]
+    (let [schema-id (get-in config [:schema-ids schema])
+          pack-fn   (get-in config [:processors schema (if diffed? :diffed-pack :pack)])]
+      (if (and pack-fn schema-id buffer)
+        (-> buffer
+            (buffer/write-headers! schema-id diff-id diffed?)
+            (pack-fn value config)
+            (buffer/compress))
+        :seria/invalid)))
 
-;; config file: file size, flexibility?
-;; macro: only unevaluated, simple
+  (defn unpack [raw]
+    (let [buffer  (buffer/wrap raw)
+          {:keys [schema-id diff-id diffed?]} (buffer/read-headers! buffer)
+          schema    (get-in config [:schema-ids schema-id])
+          unpack-fn (get-in config [:processors schema (if diffed? :diffed-unpack :unpack)])]
+      (if (and unpack-fn schema)
+        {:schema  schema
+         :diff-id diff-id
+         :value   (unpack-fn buffer config)}
+        :seria/invalid))))

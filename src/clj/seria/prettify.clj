@@ -1,5 +1,5 @@
 (ns seria.prettify
-  "Config output code pretiffication."
+  "Output code pretiffication."
   (:require [clojure.walk :as walk]
             [clojure.string :as str]
             [clojure.pprint :as pprint]
@@ -9,6 +9,8 @@
   (and (sequential? form)
        (symbol? (first form))
        (= "let" (name (first form)))))
+
+;; todo refactor - binding form related
 
 (defn inline-let-symbols* [[_ binding-form & exprs]]
   (let [binding-map        (apply hash-map binding-form)
@@ -44,8 +46,8 @@
   (and (symbol? form)
        (some #{\/} (str form))))
 
-(defn split-symbol [s]
-  (map symbol (str/split (str s) #"/" 2)))
+(defn split-symbol [sym]
+  (map symbol (str/split (str sym) #"/" 2)))
 
 (defn simplify-symbols [form]
   (walk/postwalk (fn [inner-form]
@@ -96,10 +98,10 @@
        (symbol? (first form))
        (= "if" (name (first form)))))
 
-(defn remove-unnecessary-ifs* [[_ conditional true-branch false-branch]]
+(defn remove-unnecessary-ifs* [[_ conditional true-branch false-branch :as if-form]]
   (if (= true-branch false-branch)
     true-branch
-    `(if ~conditional ~true-branch ~false-branch)))
+    if-form))
 
 (defn remove-unnecessary-ifs [form]
   (walk/postwalk (fn [inner-form]

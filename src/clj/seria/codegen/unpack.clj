@@ -102,13 +102,13 @@
      ~(unpack inner-schema)))
 
 (defmethod unpack :multi [[_ _ _ arg-map]]
-  `(case (get ~(:multi-map (:config *options*)) ~(unpack :varint))
+  `(case (get ~(:multi-ids (:config *options*)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (unpack inner-schema)])
                arg-map)))
 
 (defmethod unpack :enum [_]
-  `(~(:enum-map (:config *options*)) ~(unpack :varint)))
+  `(~(:enum-ids (:config *options*)) ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
@@ -127,7 +127,7 @@
         [~buffer]
         ~(as-undiffable (unpack schema))))))
 
-(defn make-unpacker [{:keys [schemas schema-map]}]
+(defn make-unpacker [{:keys [schemas schema-ids]}]
   (let [raw       (gensym "raw_")
         buffer    (with-meta (gensym "buffer_")
                              {:no-inline true})
@@ -140,7 +140,7 @@
       [~raw]
       (let [~buffer (buffer/wrap ~raw)
             {:keys [~schema-id ~diff-id ~diffed?]} (buffer/read-headers! ~buffer)
-            ~schema (get ~schema-map schema-id)]
+            ~schema (get ~schema-ids schema-id)]
         (if-not ~schema
           :seria/invalid
           (let [~unpack-fn (case ~schema

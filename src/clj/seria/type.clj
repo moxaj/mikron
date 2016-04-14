@@ -1,5 +1,5 @@
 (ns seria.type
-  "Schema predicates.")
+  "Types and predicates.")
 
 (def simple-type? #{:byte :ubyte :short :ushort :int :uint :long :float :double :varint
                     :boolean :char :string :keyword :symbol :nil :any})

@@ -1,6 +1,5 @@
 (ns playground
   (:require [seria.buffer :as buffer]
-            [seria.core :as core]
             [seria.config :as config]
             [criterium.core :as crit]
             [taoensso.nippy :as nippy]
