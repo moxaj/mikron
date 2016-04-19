@@ -1,6 +1,8 @@
 (ns seria.codegen.gen
+  "Generator generating functions."
   (:require [seria.type :as type]
-            [seria.util :as util]))
+            [seria.util.symbol :as util.symbol]
+            [seria.util.schema :as util.schema]))
 
 (def ^:dynamic *options*)
 
@@ -22,108 +24,108 @@
             r
             (- r (/ max-value 2))))))
 
-(defmulti gen type/type-of :default :custom)
+(defmulti gen type/type-of :hierarchy #'type/hierarchy)
 
-(defmethod gen :byte [_]
+(defmethod gen :s/byte [_]
   `(random-integer 1 true))
 
-(defmethod gen :ubyte [_]
+(defmethod gen :s/ubyte [_]
   `(random-integer 1 false))
 
-(defmethod gen :short [_]
+(defmethod gen :s/short [_]
   `(random-integer 2 true))
 
-(defmethod gen :ushort [_]
+(defmethod gen :s/ushort [_]
   `(random-integer 2 false))
 
-(defmethod gen :int [_]
+(defmethod gen :s/int [_]
   `(random-integer 4 true))
 
-(defmethod gen :uint [_]
+(defmethod gen :s/uint [_]
   `(random-integer 4 false))
 
-(defmethod gen :long [_]
+(defmethod gen :s/long [_]
   `(random-integer 8 true))
 
-(defmethod gen :float [_]
+(defmethod gen :s/float [_]
   `(float (rand)))
 
-(defmethod gen :double [_]
+(defmethod gen :s/double [_]
   `(double (rand)))
 
-(defmethod gen :char [_]
-  `(char ~(gen :ushort)))
+(defmethod gen :s/char [_]
+  `(char ~(gen :s/ushort)))
 
-(defmethod gen :boolean [_]
+(defmethod gen :s/boolean [_]
   `(zero? (rand-int 2)))
 
-(defmethod gen :varint [_]
-  (gen :long))
+(defmethod gen :s/varint [_]
+  (gen :s/long))
 
-(defmethod gen :string [_]
-  `(->> (fn [] ~(gen :char))
+(defmethod gen :s/string [_]
+  `(->> (fn [] ~(gen :s/char))
         (repeatedly (gen-size))
         (apply str)))
 
-(defmethod gen :keyword [_]
+(defmethod gen :s/keyword [_]
   `(->> (fn [] ~(gen-symbol-char))
         (repeatedly (gen-size))
         (apply str)
         (keyword)))
 
-(defmethod gen :symbol [_]
+(defmethod gen :s/symbol [_]
   `(->> (fn [] ~(gen-symbol-char))
         (repeatedly (gen-size))
         (apply str)
         (symbol)))
 
-(defmethod gen :any [_]
+(defmethod gen :s/any [_]
   "TODO")
 
-(defmethod gen :nil [_]
+(defmethod gen :s/nil [_]
   nil)
 
-(defmethod gen :list [[_ _ inner-schema]]
+(defmethod gen :s/list [[_ _ inner-schema]]
   `(repeatedly (gen-size) (fn [] ~(gen inner-schema))))
 
-(defmethod gen :vector [[_ _ inner-schema]]
-  `(vec ~(gen [:list {} inner-schema])))
+(defmethod gen :s/vector [[_ _ inner-schema]]
+  `(vec ~(gen [:s/list {} inner-schema])))
 
-(defmethod gen :set [[_ {:keys [sorted-by]} inner-schema]]
-  (->> (gen [:list {} inner-schema])
-       (util/as-set sorted-by)))
+(defmethod gen :s/set [[_ {:keys [sorted-by]} inner-schema]]
+  (->> (gen [:s/list {} inner-schema])
+       (util.schema/as-set sorted-by)))
 
-(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
+(defmethod gen :s/map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(->> (repeatedly (gen-size) (fn [] ~[(gen key-schema) (gen val-schema)]))
              (into {}))
-       (util/as-map sorted-by)))
+       (util.schema/as-map sorted-by)))
 
-(defmethod gen :tuple [[_ _ inner-schemas]]
+(defmethod gen :s/tuple [[_ _ inner-schemas]]
   (mapv gen inner-schemas))
 
-(defmethod gen :record [schema]
-  (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas (:config *options*)))]
+(defmethod gen :s/record [schema]
+  (let [[_ {:keys [constructor]} record-map] (util.schema/expand-record schema (:schemas *options*))]
     (->> record-map
          (map (fn [[key inner-schema]]
                 [key (gen inner-schema)]))
          (into {})
-         (util/as-record constructor))))
+         (util.schema/as-record constructor))))
 
-(defmethod gen :optional [[_ _ inner-schema]]
-  `(when ~(gen :boolean)
+(defmethod gen :s/optional [[_ _ inner-schema]]
+  `(when ~(gen :s/boolean)
      ~(gen inner-schema)))
 
-(defmethod gen :multi [[_ _ _ multi-map]]
+(defmethod gen :s/multi [[_ _ _ multi-map]]
   `(rand-nth ~(mapv gen (vals multi-map))))
 
-(defmethod gen :enum [[_ _ enum-values]]
+(defmethod gen :s/enum [[_ _ enum-values]]
   `(rand-nth ~enum-values))
 
-(defmethod gen :custom [schema]
-  `(~(util/processor-name :gen schema)))
+(defmethod gen :s/custom [schema]
+  `(~(util.symbol/processor-name :gen schema)))
 
-(defn make-generator [schema-name config]
-  (binding [*options* {:config config}]
-    `(~(util/processor-name :gen schema-name)
+(defn make-generator [schema-name {:keys [schemas] :as options}]
+  (binding [*options* options]
+    `(~(util.symbol/processor-name :gen schema-name)
       []
-      ~(gen (get-in config [:schemas schema-name])))))
+      ~(gen (schemas schema-name)))))

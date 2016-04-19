@@ -1,100 +1,74 @@
 (ns seria.core-test
-  (:require [seria.config :as config]
-            [seria.core :as core]
-            [clojure.test :as test]))
+  (:require [clojure.test :as test]
+            [seria.config :as config]
+            [seria.buffer :as buffer]))
 
-(defn pack-roundtrip [value config buffer]
-  (core/with-params {:schema :x :config config :buffer buffer}
-    (core/unpack (core/pack value))))
+(defn pack-roundtrip [value buffer]
+  ((resolve 'unpack) ((resolve 'pack-x) value buffer)))
 
-(defn test-pack-case
-  ([schemas]
-   (test-pack-case schemas nil))
-  ([schemas functions]
-   (let [config (config/make-test-config :schemas schemas)
-         buffer (core/allocate-buffer 100000)]
-     (when functions
-       (core/prepare-config! config :functions functions))
-     (doseq [value (repeatedly 10 #(core/gen :schema :x :config config))]
-       (test/is (= {:schema :x :diff-id 0 :value value}
-                   (pack-roundtrip value config buffer)))))))
+(defn test-pack-case [schemas]
+  (config/eval-output (config/process-config {:schemas schemas :processors [:pack :gen]}))
+  (let [buffer (buffer/allocate 100000)]
+    (doseq [value (repeatedly 10 (resolve 'gen-x))]
+      (test/is (= {:schema :x :diff-id 0 :diffed? false :value value}
+                  (pack-roundtrip value buffer))))))
 
-(test/deftest primitive-test
-  (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
-                  :float :double :char :boolean :varint
-                  :string :keyword :symbol :any :nil]]
+(test/deftest simple-test
+  (doseq [schema [:s/byte :s/ubyte :s/short :s/ushort :s/int :s/uint :s/long
+                  :s/float :s/double :s/char :s/boolean :s/varint
+                  :s/string :s/keyword :s/symbol :s/any :s/nil]]
     (test-pack-case {:x schema})))
 
-(test/deftest composite-test
-  (doseq [schema [[:list :byte]
-                  [:vector :int]
-                  [:set :short]
-                  [:set {:sorted-by :default} :short]
-                  [:map :byte :string]
-                  [:map {:sorted-by :default} :byte :string]
-                  [:optional :byte]
-                  [:enum [:cat :dog :measurement :error]]
-                  [:tuple [:int :float :double]]
-                  [:record {:a :int :b :string :c :byte}]]]
+(test/deftest complex-test
+  (doseq [schema [[:s/list :s/byte]
+                  [:s/vector :s/int]
+                  [:s/set :s/short]
+                  [:s/set {:sorted-by :default} :s/short]
+                  [:s/set {:sorted-by 'clojure.core/>} :s/int]
+                  [:s/map :s/byte :s/string]
+                  [:s/map {:sorted-by :default} :s/byte :s/string]
+                  [:s/map {:sorted-by 'clojure.core/>} :s/byte :s/string]
+                  [:s/optional :s/byte]
+                  [:s/enum [:s/cat :s/dog :s/measurement :s/error]]
+                  [:s/tuple [:s/int :s/float :s/double]]
+                  [:s/record {:s/a :s/int :s/b :s/string :s/c :s/byte}]
+                  [:s/multi 'clojure.core/number? {true :s/int false :s/string}]]]
     (test-pack-case {:x schema})))
-
-(test/deftest function-test
-  (doseq [[schema functions] [[[:set {:sorted-by :f} :int] {:f <}]
-                              [[:map {:sorted-by :f} :byte :string] {:f >}]
-                              [[:multi :f {true :int false :string}] {:f number?}]]]
-    (test-pack-case {:x schema} functions)))
-
-(defrecord TestRecord [a b])
-(test/deftest constructor-test
-  (let [config (config/make-test-config :schemas {:x [:record {:constructor :c}
-                                                      {:a :int :b :string}]})
-        value  (map->TestRecord {:a 1 :b "hi there"})
-        buffer (core/allocate-buffer 100000)]
-    (core/prepare-config! config :functions {:c map->TestRecord})
-    (test/is (= {:schema :x :diff-id 0 :value value}
-                (core/with-params {:config config :schema :x :buffer buffer}
-                  (core/unpack (core/pack value)))))))
 
 (test/deftest custom-test
-  (doseq [schemas [{:x [:list :y]
-                    :y [:tuple [:int :int]]}
-                   {:x [:list :y]
-                    :y [:record {:a :int
-                                 :b :string
-                                 :c [:tuple [:float :float :float]]
-                                 :d [:list :int]}]}
-                   {:body     [:record {:user-data [:record {:id :int}]
-                                        :position  :coord
-                                        :angle     :float
-                                        :body-type [:enum [:dynamic :static :kinetic]]
-                                        :fixtures  [:list :fixture]}]
-                    :fixture  [:record {:user-data [:record {:color :int}]
-                                        :coords    [:list :coord]}]
-                    :coord    [:tuple [:float :float]]
-                    :snapshot [:record {:time   :long
-                                        :bodies [:list :body]}]
+  (doseq [schemas [{:x [:s/list :y]
+                    :y [:s/tuple [:s/int :s/int]]}
+                   {:x [:s/list :y]
+                    :y [:s/record {:a :s/int
+                                   :b :s/string
+                                   :c [:s/tuple [:s/float :s/float :s/float]]
+                                   :d [:s/list :s/int]}]}
+                   {:body     [:s/record {:user-data [:s/record {:id :s/int}]
+                                          :position  :coord
+                                          :angle     :s/float
+                                          :body-type [:s/enum [:dynamic :static :kinetic]]
+                                          :fixtures  [:s/list :fixture]}]
+                    :fixture  [:s/record {:user-data [:s/record {:color :s/int}]
+                                          :coords    [:s/list :coord]}]
+                    :coord    [:s/tuple [:s/float :s/float]]
+                    :snapshot [:s/record {:time   :s/long
+                                          :bodies [:s/list :body]}]
                     :x        :snapshot}]]
     (test-pack-case schemas)))
 
-(defn diff-roundtrip [value-1 value-2 config]
-  (core/with-params {:schema :x :config config}
-    (core/undiff value-1 (core/diff value-1 value-2))))
+(defn diff-roundtrip [value-1 value-2]
+  ((resolve 'undiff-x) value-1 ((resolve 'diff-x) value-1 value-2)))
 
-(defn test-diff-case
-  ([schemas]
-   (test-diff-case schemas nil))
-  ([schemas functions]
-   (let [config (config/make-test-config :schemas schemas)]
-     (when functions
-       (core/prepare-config! config :functions functions))
-     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(core/gen :schema :x :config config)))]
-       (test/is (= value-2 (diff-roundtrip value-1 value-2 config)))))))
+(defn test-diff-case [schemas]
+  (config/eval-output (config/process-config {:schemas schemas :processors [:diff :gen]}))
+  (doseq [[value-1 value-2] (partition 2 (repeatedly 20 (resolve 'gen-x)))]
+    (test/is (= value-2 (diff-roundtrip value-1 value-2)))))
 
 (test/deftest diff-test
-  (doseq [schemas [{:x [:record {:a :int
-                                 :b [:tuple [:y :y :y :y]]}]
-                    :y [:enum [:a :b :c :d]]}
-                   {:x [:record {:a :byte
-                                 :b [:tuple [:byte :byte]]
-                                 :c [:vector [:enum [:cat :dog]]]}]}]]
+  (doseq [schemas [{:x [:s/record {:a :s/int
+                                   :b [:s/tuple [:y :y :y :y]]}]
+                    :y [:s/enum [:a :b :c :d]]}
+                   {:x [:s/record {:a :s/byte
+                                   :b [:s/tuple [:s/byte :s/byte]]
+                                   :c [:s/vector [:s/enum [:cat :dog]]]}]}]]
       (test-diff-case schemas)))

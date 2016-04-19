@@ -1,39 +1,40 @@
 (ns seria.prettify
-  "Output code pretiffication."
+  "Output code prettiffication."
   (:require [clojure.walk :as walk]
+            [clojure.set :as set]
             [clojure.string :as str]
             [clojure.pprint :as pprint]
-            [seria.util :as util]))
+            [seria.util.coll :as util.coll]))
 
 (defn let-form? [form]
   (and (sequential? form)
        (symbol? (first form))
        (= "let" (name (first form)))))
 
-;; todo refactor - binding form related
+(defn make-let-form [bindings body]
+  (if (empty? bindings)
+    (if (= 1 (count body))
+      (first body)
+      `(do ~@body))
+    `(let [~@(mapcat identity bindings)]
+       ~@body)))
 
-(defn inline-let-symbols* [[_ binding-form & exprs]]
-  (let [binding-map        (apply hash-map binding-form)
-        binding-order      (->> binding-form
-                                (partition 1 2)
-                                (map first))
-        inlineable-symbols (filter (fn [sym]
-                                     (and (symbol? sym)
-                                          (not (:no-inline (meta sym)))
-                                          (< (count (util/find-by #{sym} exprs))
-                                             2)))
-                                   (keys binding-map))
-        new-binding-form   (apply dissoc binding-map inlineable-symbols)
-        new-exprs          (-> (select-keys binding-map inlineable-symbols)
-                               (walk/postwalk-replace exprs))]
-    (if (empty? new-binding-form)
-      (if (= 1 (count new-exprs))
-        (first new-exprs)
-        `(do ~@new-exprs))
-      `(let ~(vec (mapcat (fn [sym]
-                            [sym (new-binding-form sym)])
-                          binding-order))
-         ~@new-exprs))))
+(defn inline-let-symbols* [[_ binding-form & body]]
+  (let [initial-bindings (partition 2 binding-form)]
+    (loop [finished-bindings []
+           [[from to] & bindings] initial-bindings
+           body body]
+      (if-not from
+        (make-let-form finished-bindings body)
+        (if (and (symbol? from)
+                 (not (:no-inline (meta from)))
+                 (> 2 (count (util.coll/find-by #{from} [bindings body]))))
+          (recur finished-bindings
+                 (walk/postwalk-replace {from to} bindings)
+                 (walk/postwalk-replace {from to} body))
+          (recur (conj finished-bindings [from to])
+                 bindings
+                 body))))))
 
 (defn inline-let-symbols [form]
   (walk/postwalk (fn [inner-form]
@@ -42,17 +43,12 @@
                      (inline-let-symbols* inner-form)))
                  form))
 
-(defn namespaced-symbol? [form]
-  (and (symbol? form)
-       (some #{\/} (str form))))
-
-(defn split-symbol [sym]
-  (map symbol (str/split (str sym) #"/" 2)))
-
-(defn simplify-symbols [form]
+(defn simplify-symbols [form protected-symbols]
   (walk/postwalk (fn [inner-form]
-                   (if (namespaced-symbol? inner-form)
-                     (second (split-symbol inner-form))
+                   (if (and (symbol? inner-form)
+                            (namespace inner-form)
+                            (not (protected-symbols (symbol (name inner-form)))))
+                     (symbol (name inner-form))
                      inner-form))
                  form))
 
@@ -65,6 +61,8 @@
                      (second inner-form)
                      inner-form))
                  form))
+
+(def has-implicit-do? #{"let" "fn" "when" "when-not" "when-let" "defn" "defn-" "do"})
 
 (defn do-form? [form]
   (and (sequential? form)
@@ -79,18 +77,14 @@
 (defn unwrap-do-forms [form]
   (walk/postwalk (fn [inner-form]
                    (if-not (and (sequential? inner-form)
-                                (symbol? (first inner-form)))
+                                (symbol? (first inner-form))
+                                (has-implicit-do? (name (first inner-form))))
                      inner-form
                      (let [[f & args] inner-form]
-                       (condp contains? (name f)
-                         #{"let" "fn" "when" "when-not" "when-let"}
-                         `(~f ~(first args)
-                            ~@(mapcat unwrap-do-forms* (rest args)))
-
-                         #{"do"}
-                         `(do ~@(mapcat unwrap-do-forms* args))
-
-                         inner-form))))
+                      (if (= "do" (name f))
+                        `(do ~@(mapcat unwrap-do-forms* args))
+                        `(~f ~(first args)
+                           ~@(mapcat unwrap-do-forms* (rest args)))))))
                  form))
 
 (defn if-form? [form]
@@ -110,40 +104,10 @@
                      (remove-unnecessary-ifs* inner-form)))
                  form))
 
-(defn prettify [form]
+(defn prettify [form protected-symbols]
   (-> form
-      (inline-let-symbols)
       (unwrap-single-arg-forms)
+      (inline-let-symbols)
       (unwrap-do-forms)
       (remove-unnecessary-ifs)
-      (simplify-symbols)))
-
-(defn requires [form]
-  (cond
-    (namespaced-symbol? form)
-    (let [[namespace function] (split-symbol form)]
-      (sorted-map namespace (sorted-set function)))
-
-    (or (map? form)
-        (sequential? form))
-    (apply merge-with (partial apply conj) (map requires form))
-
-    :else
-    {}))
-
-(defn ns-str [ns-name config-name form pretty-print?]
-  (let [write (if pretty-print? pprint/pprint println)]
-    (binding [pprint/*print-right-margin* 100
-              pprint/*print-miser-width*  100]
-      (pprint/with-pprint-dispatch pprint/code-dispatch
-        (with-out-str
-          (write `(~'ns ~ns-name
-                    (:require ~@(map (fn [[required-ns-name functions]]
-                                       [required-ns-name :refer (vec functions)])
-                                     (dissoc (requires form) 'clojure.core)))))
-          (newline)
-          (write `(~'def ~config-name ~(prettify form))))))))
-
-;; ====================================================================
-;; The code below was automatically generated. Please do not modify it!
-;; ====================================================================
+      (simplify-symbols protected-symbols)))

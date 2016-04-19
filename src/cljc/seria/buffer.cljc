@@ -1,7 +1,7 @@
 (ns seria.buffer
   "Buffer protocol and implementations."
   #?(:clj (:import [seria SeriaByteBuffer]))
-  (:require [seria.util :as util]
+  (:require [seria.util.common :as util.common]
             #?(:cljs [cljsjs.bytebuffer]))
   #?(:cljs (:require-macros seria.buffer)))
 
@@ -150,7 +150,7 @@
     (loop [value 0
            shift 0]
       (if-not (< shift 64)
-        (throw (util/cljc-exception "Malformed varint!"))
+        (throw (util.common/cljc-exception "Malformed varint!"))
         (let [b     (read-byte! buffer)
               value (bit-or value (bit-shift-left (bit-and b 127)
                                                   shift))]
@@ -184,9 +184,3 @@
     {:schema-id schema-id
      :diff-id   diff-id
      :diffed?   diffed?}))
-
-(def ^:dynamic *buffer*)
-
-#?(:clj (defmacro with-buffer [buffer & body]
-          `(binding [*buffer* ~buffer]
-             ~@body)))

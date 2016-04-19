@@ -1,4 +1,4 @@
-(defproject moxaj/seria "0.1.3"
+(defproject moxaj/seria "0.2"
   :description "Seria is a schema-based serialization library for Clojure / ClojureScript."
   :url "https://github.com/moxaj/seria"
   :license {:name "Eclipse Public License"
@@ -18,7 +18,4 @@
                                   [org.clojars.runa/clj-kryo "1.5.0"]
                                   [cheshire "5.5.0"]]
                    :plugins [[moxaj/lein-seria "0.1.2"]]
-                   :seria {"cat" {:source        "src/seria-config/config1.cljc"
-                                  :target        "src/seria-config/config1-compiled.cljc"
-                                  :namespace     "config1-compiled"
-                                  :pretty-print? false}}}})
+                   :seria {"cat" {:source "src/seria-config/config1.cljc"}}}})

@@ -1,155 +1,118 @@
 (ns seria.codegen.unpack
   "Unpacker generating functions."
   (:require [seria.buffer :as buffer]
-            [seria.util :as util]
+            [seria.util.schema :as util.schema]
+            [seria.util.symbol :as util.symbol]
+            [seria.util.common :as util.common]
             [seria.type :as type]))
 
 (def ^:dynamic *options*)
 
-(defmulti unpack type/type-of :default :custom)
+(defmulti unpack type/type-of :hierarchy #'type/hierarchy)
 
 (defn as-undiffable [body]
   (if-not (:diffed? *options*)
     body
-    `(if ~(unpack :boolean)
-       :seria/dnil
+    `(if ~(unpack :s/boolean)
+       :s/dnil
        ~body)))
 
-(defmethod unpack :byte [_]
-  `(buffer/read-byte! ~(:buffer *options*)))
+(defmethod unpack :s/primitive [schema]
+  `(~(symbol (format "seria.buffer/read-%s!" (name schema)))
+    ~(:buffer *options*)))
 
-(defmethod unpack :ubyte [_]
-  `(buffer/read-ubyte! ~(:buffer *options*)))
+(defmethod unpack :s/string [_]
+  `(apply str (repeatedly ~(unpack :s/varint)
+                          (fn [] ~(unpack :s/char)))))
 
-(defmethod unpack :short [_]
-  `(buffer/read-short! ~(:buffer *options*)))
+(defmethod unpack :s/keyword [_]
+  `(keyword ~(unpack :s/string)))
 
-(defmethod unpack :ushort [_]
-  `(buffer/read-ushort! ~(:buffer *options*)))
+(defmethod unpack :s/symbol [_]
+  `(symbol ~(unpack :s/string)))
 
-(defmethod unpack :int [_]
-  `(buffer/read-int! ~(:buffer *options*)))
+(defmethod unpack :s/any [_]
+  `(util.common/cljc-read-string ~(unpack :s/string)))
 
-(defmethod unpack :uint [_]
-  `(buffer/read-uint! ~(:buffer *options*)))
-
-(defmethod unpack :long [_]
-  `(buffer/read-long! ~(:buffer *options*)))
-
-(defmethod unpack :float [_]
-  `(buffer/read-float! ~(:buffer *options*)))
-
-(defmethod unpack :double [_]
-  `(buffer/read-double! ~(:buffer *options*)))
-
-(defmethod unpack :char [_]
-  `(buffer/read-char! ~(:buffer *options*)))
-
-(defmethod unpack :boolean [_]
-  `(buffer/read-boolean! ~(:buffer *options*)))
-
-(defmethod unpack :varint [_]
-  `(buffer/read-varint! ~(:buffer *options*)))
-
-(defmethod unpack :string [_]
-  `(apply str (repeatedly ~(unpack :varint)
-                          (fn [] ~(unpack :char)))))
-
-(defmethod unpack :keyword [_]
-  `(keyword ~(unpack :string)))
-
-(defmethod unpack :symbol [_]
-  `(symbol ~(unpack :string)))
-
-(defmethod unpack :any [_]
-  `(util/cljc-read-string ~(unpack :string)))
-
-(defmethod unpack :nil [_]
+(defmethod unpack :s/nil [_]
   nil)
 
-(defmethod unpack :list [[_ _ inner-schema]]
-  `(doall (repeatedly ~(unpack :varint)
+(defmethod unpack :s/list [[_ _ inner-schema]]
+  `(doall (repeatedly ~(unpack :s/varint)
                       (fn [] ~(as-undiffable (unpack inner-schema))))))
 
-(defmethod unpack :vector [[_ _ inner-schema]]
-  `(vec ~(unpack [:list {} inner-schema])))
+(defmethod unpack :s/vector [[_ _ inner-schema]]
+  `(vec ~(unpack [:s/list {} inner-schema])))
 
-(defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
-  (->> (unpack [:list {} inner-schema])
-       (util/as-set sorted-by)))
+(defmethod unpack :s/set [[_ {:keys [sorted-by]} inner-schema]]
+  (->> (unpack [:s/list {} inner-schema])
+       (util.schema/as-set sorted-by)))
 
-(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
-  (->> `(repeatedly ~(unpack :varint)
+(defmethod unpack :s/map [[_ {:keys [sorted-by]} key-schema val-schema]]
+  (->> `(repeatedly ~(unpack :s/varint)
                     (fn [] [~(unpack key-schema)
                             ~(as-undiffable (unpack val-schema))]))
-       (util/as-map sorted-by)))
+       (util.schema/as-map sorted-by)))
 
-(defmethod unpack :tuple [[_ _ inner-schemas]]
+(defmethod unpack :s/tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
                       (as-undiffable (unpack inner-schema)))
                     inner-schemas)))
 
-(defmethod unpack :record [schema]
-  (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas (:config *options*)))]
+(defmethod unpack :s/record [schema]
+  (let [[_ {:keys [constructor]} record-map] (util.schema/expand-record schema (:schemas *options*))]
     (->> (sort (keys record-map))
          (map (fn [key]
                 [key (as-undiffable (unpack (record-map key)))]))
          (into {})
-         (util/as-record constructor))))
+         (util.schema/as-record constructor))))
 
-(defmethod unpack :optional [[_ _ inner-schema]]
-  `(when ~(unpack :boolean)
+(defmethod unpack :s/optional [[_ _ inner-schema]]
+  `(when ~(unpack :s/boolean)
      ~(unpack inner-schema)))
 
-(defmethod unpack :multi [[_ _ _ arg-map]]
-  `(case (get ~(:multi-ids (:config *options*)) ~(unpack :varint))
+(defmethod unpack :s/multi [[_ _ _ arg-map]]
+  `(case (~'multi-ids ~(unpack :s/varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (unpack inner-schema)])
                arg-map)))
 
-(defmethod unpack :enum [_]
-  `(~(:enum-ids (:config *options*)) ~(unpack :varint)))
+(defmethod unpack :s/enum [_]
+  `(~'enum-ids ~(unpack :s/varint)))
 
-(defmethod unpack :custom [schema]
+(defmethod unpack :s/custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
-    `(~(util/processor-name (if diffed? :unpack-diffed-inner :unpack-inner)
-                            schema)
+    `(~(util.symbol/processor-name (if diffed? :unpack-diffed-inner* :unpack-inner*)
+                                   schema)
       ~buffer)))
 
-(defn make-inner-unpacker [schema-name config diffed?]
-  (let [buffer (gensym "buffer_")
-        schema (get-in config [:schemas schema-name])]
-    (binding [*options* {:config  config
-                         :diffed? diffed?
-                         :buffer  buffer}]
-      `(~(util/processor-name (if diffed? :unpack-diffed :unpack)
-                              schema-name)
+(defn make-inner-unpacker [schema-name {:keys [schemas diffed?] :as options}]
+  (util.symbol/with-gensyms [buffer]
+    (binding [*options* (assoc options :buffer buffer)]
+      `(~(with-meta (util.symbol/processor-name (if diffed? :unpack-diffed-inner* :unpack-inner*)
+                                                schema-name)
+                    {:private true})
         [~buffer]
-        ~(as-undiffable (unpack schema))))))
+        ~(as-undiffable (unpack (schemas schema-name)))))))
 
-(defn make-unpacker [{:keys [schemas schema-ids]}]
-  (let [raw       (gensym "raw_")
-        buffer    (with-meta (gensym "buffer_")
-                             {:no-inline true})
-        schema-id (gensym "schema-id_")
-        diff-id   (gensym "diff-id_")
-        diffed?   (gensym "diffed?_")
-        schema    (gensym "schema_")
-        unpack-fn (gensym "unpack-fn_")]
+(defn make-unpacker [{:keys [schemas processor-types]}]
+  (util.symbol/with-gensyms [raw buffer headers diff-id diffed? schema unpack-fn]
     `(~'unpack
       [~raw]
-      (let [~buffer (buffer/wrap ~raw)
-            {:keys [~schema-id ~diff-id ~diffed?]} (buffer/read-headers! ~buffer)
-            ~schema (get ~schema-ids schema-id)]
+      (let [~(with-meta buffer {:no-inline true}) (buffer/wrap ~raw)
+            ~headers (buffer/read-headers! ~buffer)
+            ~schema  (~'schema-ids (:schema-id ~headers))]
         (if-not ~schema
-          :seria/invalid
-          (let [~unpack-fn (case ~schema
-                             ~@(mapcat (fn [schema-name]
-                                         [schema-name `(if ~diffed?
-                                                         ~(util/processor-name :unpack-diffed schema-name)
-                                                         ~(util/processor-name :unpack schema-name))])
-                                       (keys schemas)))]
-            {:schema  ~schema
-             :diffed? ~diffed?
-             :diff-id ~diff-id
-             :value   (~unpack-fn ~buffer)}))))))
+          :s/invalid
+          {:schema  ~schema
+           :diffed? (:diffed? ~headers)
+           :diff-id (:diff-id ~headers)
+           :value   ((case ~schema
+                       ~@(mapcat (fn [schema-name]
+                                   [schema-name (if-not (processor-types :diff)
+                                                  (util.symbol/processor-name :unpack-inner* schema-name)
+                                                  `(if (:diffed ~headers)
+                                                     ~(util.symbol/processor-name :unpack-diffed-inner* schema-name)
+                                                     ~(util.symbol/processor-name :unpack-inner* schema-name)))])
+                                 (keys schemas)))
+                     ~buffer)})))))
