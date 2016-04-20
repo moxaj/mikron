@@ -17,8 +17,8 @@ data conforming to your schemas.
 - Schema evolution (forward / backward compability)
 
 ## Latest versions
-- `[moxaj/seria "x.x.x"]`
-- `[moxaj/lein-seria "x.x.x"]`
+- `[moxaj/seria "0.2.1"]`
+- `[moxaj/lein-seria "0.2.1"]`
 
 Available at [clojars](https://clojars.org/).
 
@@ -58,9 +58,32 @@ For more detailed information and advanced features, please check out the [wiki]
 ## Benchmarks
 
 Google's [protobuf](https://github.com/google/protobuf) currently runs circles around
-seria, but compared to schema-less solutions, seria does pretty well:
+seria (benchmarks to come), but compared to schema-less solutions, seria does pretty well:
 
 ![benchmarks](https://raw.githubusercontent.com/moxaj/seria/master/benchmarks.png)
+
+Stress data were `:snapshots`:
+```
+{:body     [:s/record {:user-data [:s/record {:id :s/int}]
+                       :position  :coord
+                       :angle     :s/float
+                       :body-type [:s/enum [:dynamic :static :kinetic]]
+                       :fixtures  [:s/list :fixture]}]
+ :fixture  [:s/record {:user-data [:s/record {:color :s/int}]
+                       :coords    [:s/list :coord]}]
+ :coord    [:s/tuple [:s/float :s/float]]
+ :snapshot [:s/record {:time   :s/long
+                       :bodies [:s/list :body]}]}
+```
+This of course heavily favors seria (which for example does not serialize the
+keys of the records).
+
+Considering a list of 3 to 5 doubles, we get the following results:
+
+![benchmarks](https://raw.githubusercontent.com/moxaj/seria/master/benchmarks2.png)
+
+Even with such a simple schema, seria performs a roundtrip roughly twice as fast
+as the next contender!
 
 ## License
 

@@ -44,7 +44,7 @@
    :snapshot [:s/record {:time   :s/long
                          :bodies [:s/list :body]}]})
 
-(config/eval-output (config/process-config {:schemas box2d-schemas}))
+(config/eval-output (config/process-config {:schemas {:snapshot [:s/list :s/double]}}))
 
 (defmulti measure-stat (fn [stat & _] stat))
 
@@ -130,3 +130,8 @@
                           :json [56.87289864382199
                                  72.31563457982426
                                  43.72929004153248]}}}}])
+
+;; 1
+{:seria [8.502563595875728
+         11.274565521893088
+         7.390651649796993]}
