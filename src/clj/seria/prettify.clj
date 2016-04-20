@@ -104,10 +104,19 @@
                      (remove-unnecessary-ifs* inner-form)))
                  form))
 
+(defn remove-helper-meta [form]
+  (walk/postwalk (fn [inner-form]
+                   (if (and (symbol? inner-form)
+                            (:no-inline (meta inner-form)))
+                     (with-meta inner-form {})
+                     inner-form))
+                 form))
+
 (defn prettify [form protected-symbols]
   (-> form
       (unwrap-single-arg-forms)
       (inline-let-symbols)
       (unwrap-do-forms)
       (remove-unnecessary-ifs)
+      (remove-helper-meta)
       (simplify-symbols protected-symbols)))

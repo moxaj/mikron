@@ -119,12 +119,6 @@
         ~(as-diffable value (pack (schemas schema-name) value))
         ~buffer))))
 
-(defn pack-common [value buffer schema-id diff-id diffed? pack-fn]
-  (-> buffer
-      (buffer/write-headers! schema-id diff-id diffed?)
-      (pack-fn value)
-      (buffer/compress)))
-
 (def common-packer
   (util.symbol/with-gensyms [value buffer schema-id diff-id diffed? pack-fn]
     `(~(with-meta 'pack {:private true})

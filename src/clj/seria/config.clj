@@ -63,11 +63,18 @@
                                       :schema-ids      schema-ids
                                       :enum-ids        enum-ids
                                       :multi-ids       multi-ids})]
-    {:vars     (cond-> []
-                 (seq schema-ids) (conj `(def ~'schema-ids ~(set/map-invert schema-ids)))
-                 (seq enum-ids)   (conj `(def ~'enum-ids   ~(set/map-invert enum-ids)))
-                 (seq multi-ids)  (conj `(def ~'multi-ids  ~(set/map-invert multi-ids))))
-     :declares `(declare ~@(map first processors))
+    {:vars     (if-not ((set processor-types) :pack)
+                 []
+                 (cond-> []
+                   (seq schema-ids) (conj `(def ~(with-meta 'schema-ids {:private true})
+                                                ~(set/map-invert schema-ids)))
+                   (seq enum-ids)   (conj `(def ~(with-meta 'enum-ids {:private true})
+                                                ~(set/map-invert enum-ids)))
+                   (seq multi-ids)  (conj `(def ~(with-meta 'multi-ids {:private true})
+                                                ~(set/map-invert multi-ids)))))
+     :declares `(declare ~@(map (fn [[processor-name]]
+                                  (with-meta processor-name {}))
+                                processors))
      :fns      (mapv (fn [[processor-name & body]]
                        `(defn ~processor-name ~@body))
                      processors)}))

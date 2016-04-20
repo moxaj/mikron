@@ -1,9 +1,10 @@
-(defproject moxaj/seria "0.2"
+(defproject moxaj/seria "0.2.1"
   :description "Seria is a schema-based serialization library for Clojure / ClojureScript."
   :url "https://github.com/moxaj/seria"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [rewrite-clj "0.5.0"]
                  [cljsjs/bytebuffer "5.0.1-0"]]
   :target-path "target/%s"
   :source-paths ["src/cljc" "src/clj"]
