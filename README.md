@@ -1,21 +1,26 @@
 # seria
-seria is a schema-based serialization library. Features:
+seria is a schema-based serialization library. Using a rich set of built in types,
+you define your 'schemas' and seria generates tailor-made functions to handle any
+data conforming to your schemas.
+
+#### Features:
 - Efficient (de)serialization of edn values
 - Produces compact binary frames
 - Supports both clj and cljs
 - Extras goodies: delta compression, random data generation
 
-Future improvements:
+#### Likely future improvements:
 - Interpolation
 - Node.js implementation
 
-**Not** supported (yet?):
+#### Not supported (yet?):
 - Schema evolution (forward / backward compability)
-
 
 ## Latest versions
 - `[moxaj/seria "x.x.x"]`
 - `[moxaj/lein-seria "x.x.x"]`
+
+Available at [clojars](https://clojars.org/).
 
 ## Installation
 - add `[moxaj/seria "x.x.x"]` to your `:dependencies`
@@ -50,8 +55,15 @@ Future improvements:
 
 For more detailed information and advanced features, please check out the [wiki](https://github.com/moxaj/seria/wiki).  
 
+## Benchmarks
+
+Google's [protobuf](https://github.com/google/protobuf) currently runs circles around
+seria, but compared to schema-less solutions, seria does pretty well:
+
+![benchmarks](benchmarks.png?raw=true)
+
 ## License
 
 Copyright © 2016 Viktor Magyari
 
-Distributed under the Eclipse Public License version 1.0.
+Distributed under the Eclipse Public License v1.0.
