@@ -31,29 +31,28 @@ Available at [clojars](https://clojars.org/).
 ## Usage
 
 1. define your config in `bar.clj`
-```
-(ns foo.bar)
+   ```
+   (ns foo.bar)
 
-{:schemas {:x ...}}
-```
+   {:schemas {:x ...}}
+   ```
 
 2. add a build to your `project.clj`:
-```
-:seria {"baz" {:source "src/foo/bar.clj"
-```
+   ```
+   :seria {"baz" {:source "src/foo/bar.clj"
+   ```
 
 3. `lein seria baz`
 
 4. use your config  
-```
-(require '[seria.buffer :refer [allocate]]
-         '[foo.bar :refer [pack-x gen-x unpack]])
+   ```
+   (require '[seria.buffer :refer [allocate]]
+            '[foo.bar :refer [pack-x gen-x unpack]])
 
-(let [buffer (allocate 10000)])
-  (-> (gen-x) (pack-x buffer) (unpack)))
-;; allocates a 10Kb buffer, generates an :x, packs it and unpacks it
-
-```
+   (let [buffer (allocate 10000)])
+     (-> (gen-x) (pack-x buffer) (unpack)))
+   ;; allocates a 10Kb buffer, generates an :x, packs it and unpacks it
+   ```
 
 For more detailed information and advanced features, please check out the [wiki](https://github.com/moxaj/seria/wiki).  
 
