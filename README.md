@@ -60,7 +60,7 @@ For more detailed information and advanced features, please check out the [wiki]
 Google's [protobuf](https://github.com/google/protobuf) currently runs circles around
 seria, but compared to schema-less solutions, seria does pretty well:
 
-![benchmarks](benchmarks.png?raw=true)
+![benchmarks](https://raw.githubusercontent.com/moxaj/seria/master/benchmarks.png)
 
 ## License
 
