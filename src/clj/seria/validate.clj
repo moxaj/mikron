@@ -24,48 +24,48 @@
 
 (defmulti validate-schema type/type-of :hierarchy #'type/hierarchy)
 
-(defmethod validate-schema :s/simple [schema]
+(defmethod validate-schema :simple [schema]
   schema)
 
-(defmethod validate-schema :s/list [schema]
+(defmethod validate-schema :list [schema]
   (let [[_ _ inner-schema :as schema] (with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:list <options> :x]."
                     schema))
-    [:s/list {} (validate-schema inner-schema)]))
+    [:list {} (validate-schema inner-schema)]))
 
-(defmethod validate-schema :s/vector [schema]
+(defmethod validate-schema :vector [schema]
   (let [[_ _ inner-schema :as schema] (with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:vector <options> :x]."
                     schema))
-    [:s/vector {} (validate-schema inner-schema)]))
+    [:vector {} (validate-schema inner-schema)]))
 
-(defmethod validate-schema :s/set [schema]
+(defmethod validate-schema :set [schema]
   (let [[_ options inner-schema :as schema] (-> schema (with-options) (validate-sortable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:set <options> :x]."
                     schema))
-    [:s/set (select-keys options [:sorted-by])
+    [:set (select-keys options [:sorted-by])
      (validate-schema inner-schema)]))
 
-(defmethod validate-schema :s/map [schema]
+(defmethod validate-schema :map [schema]
   (let [[_ options key-schema val-schema :as schema] (-> schema (with-options) (validate-sortable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. Correct signature: [:map <options> :x :y]."
                     schema))
-    [:s/map (select-keys options [:sorted-by])
+    [:map (select-keys options [:sorted-by])
      (validate-schema key-schema)
      (validate-schema val-schema)]))
 
-(defmethod validate-schema :s/optional [schema]
+(defmethod validate-schema :optional [schema]
   (let [[_ options inner-schema :as schema] (with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:optional <options> :x]."
                     schema))
-    [:s/optional {} (validate-schema inner-schema)]))
+    [:optional {} (validate-schema inner-schema)]))
 
-(defmethod validate-schema :s/enum [schema]
+(defmethod validate-schema :enum [schema]
   (let [[_ _ values :as schema] (with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:enum <options> [:v1 ... :vn]]."
@@ -76,22 +76,22 @@
     (assert (every? keyword? values)
             (format "Invalid schema: %s. :enum values must be keywords."
                     schema))
-    [:s/enum {} values]))
+    [:enum {} values]))
 
-(defmethod validate-schema :s/tuple [schema]
+(defmethod validate-schema :tuple [schema]
   (let [[_ _ inner-schemas :as schema] (with-options schema)]
     (assert (= 3 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:s/tuple <options> [:x1 ... :xn]]."
+            (format "Invalid schema: %s. Correct signature: [:tuple <options> [:x1 ... :xn]]."
                     schema))
     (assert (vector? inner-schemas)
             (format "Invalid schema: %s. Inner schemas must be listed in a vector."
                     schema))
-    [:s/tuple {} (mapv validate-schema inner-schemas)]))
+    [:tuple {} (mapv validate-schema inner-schemas)]))
 
-(defmethod validate-schema :s/record [schema]
+(defmethod validate-schema :record [schema]
   (let [[_ {:keys [extends constructor] :as options} record-map :as schema] (with-options schema)]
     (assert (= 3 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:s/record <options> {:k1 :x1 ... :kn :xn}]"
+            (format "Invalid schema: %s. Correct signature: [:record <options> {:k1 :x1 ... :kn :xn}]"
                     schema))
     (assert (map? record-map)
             (format "Invalid schema: %s. The last parameter must be a map."
@@ -110,15 +110,15 @@
     (let [fields        (keys record-map)
           inner-schemas (vals record-map)]
       (assert (every? keyword? fields)
-              (format "Invalid schema: %s. :s/record fields must be accessible by keywords."
+              (format "Invalid schema: %s. :record fields must be accessible by keywords."
                       schema))
-      [:s/record (select-keys options [:constructor :extends])
+      [:record (select-keys options [:constructor :extends])
        (zipmap fields (map validate-schema inner-schemas))])))
 
-(defmethod validate-schema :s/multi [schema]
+(defmethod validate-schema :multi [schema]
   (let [[_ _ selector multi-map :as schema] (with-options schema)]
     (assert (= 4 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:s/multi selector {:k1 :x1 ... :kn :xn}]."
+            (format "Invalid schema: %s. Correct signature: [:multi selector {:k1 :x1 ... :kn :xn}]."
                     schema))
     (assert (symbol? selector)
             (format "Invalid schema: %s. The selector must be a symbol."
@@ -128,9 +128,9 @@
                     schema))
     (let [multi-cases   (keys multi-map)
           inner-schemas (vals multi-map)]
-      [:s/multi {} selector (zipmap multi-cases (map validate-schema inner-schemas))])))
+      [:multi {} selector (zipmap multi-cases (map validate-schema inner-schemas))])))
 
-(defmethod validate-schema :s/custom [schema]
+(defmethod validate-schema :custom [schema]
   (assert (contains? *schemas* schema)
           (format "Undefined schema: %s."
                   schema))
@@ -150,7 +150,7 @@
             (format "Invalid :schemas parameter: [%s] are not keywords."
                     (string/join invalid-schema-names))))
   (let [invalid-schema-names (filter (fn [schema-name]
-                                       (isa? schema-name :s/built-in))
+                                       (isa? schema-name :built-in))
                                      (keys schemas))]
     (assert (empty? invalid-schema-names)
             (format "Invalid :schemas parameter: [%s] shadow built-in types."
@@ -174,7 +174,7 @@
   (assert (map? eq-ops)
           "Invalid :eq-ops parameter: must be a map.")
   (assert (every? (fn [schema]
-                    (or (isa? schema :s/built-in)
+                    (or (isa? schema :built-in)
                         (contains? schemas schema)))
                   (keys eq-ops))
           "Invalid :eq-ops parameter: keys must be valid schemas.")

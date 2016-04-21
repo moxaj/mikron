@@ -14,45 +14,45 @@
                   (pack-roundtrip value buffer))))))
 
 (test/deftest simple-test
-  (doseq [schema [:s/byte :s/ubyte :s/short :s/ushort :s/int :s/uint :s/long
-                  :s/float :s/double :s/char :s/boolean :s/varint
-                  :s/string :s/keyword :s/symbol :s/any :s/nil]]
+  (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
+                  :float :double :char :boolean :varint
+                  :string :keyword :symbol :any :nil]]
     (test-pack-case {:x schema})))
 
 (test/deftest complex-test
-  (doseq [schema [[:s/list :s/byte]
-                  [:s/vector :s/int]
-                  [:s/set :s/short]
-                  [:s/set {:sorted-by :default} :s/short]
-                  [:s/set {:sorted-by 'clojure.core/>} :s/int]
-                  [:s/map :s/byte :s/string]
-                  [:s/map {:sorted-by :default} :s/byte :s/string]
-                  [:s/map {:sorted-by 'clojure.core/>} :s/byte :s/string]
-                  [:s/optional :s/byte]
-                  [:s/enum [:s/cat :s/dog :s/measurement :s/error]]
-                  [:s/tuple [:s/int :s/float :s/double]]
-                  [:s/record {:s/a :s/int :s/b :s/string :s/c :s/byte}]
-                  [:s/multi 'clojure.core/number? {true :s/int false :s/string}]]]
+  (doseq [schema [[:list :byte]
+                  [:vector :int]
+                  [:set :short]
+                  [:set {:sorted-by :default} :short]
+                  [:set {:sorted-by 'clojure.core/>} :int]
+                  [:map :byte :string]
+                  [:map {:sorted-by :default} :byte :string]
+                  [:map {:sorted-by 'clojure.core/>} :byte :string]
+                  [:optional :byte]
+                  [:enum [:cat :dog :measurement :error]]
+                  [:tuple [:int :float :double]]
+                  [:record {:a :int :b :string :c :byte}]
+                  [:multi 'clojure.core/number? {true :int false :string}]]]
     (test-pack-case {:x schema})))
 
 (test/deftest custom-test
-  (doseq [schemas [{:x [:s/list :y]
-                    :y [:s/tuple [:s/int :s/int]]}
-                   {:x [:s/list :y]
-                    :y [:s/record {:a :s/int
-                                   :b :s/string
-                                   :c [:s/tuple [:s/float :s/float :s/float]]
-                                   :d [:s/list :s/int]}]}
-                   {:body     [:s/record {:user-data [:s/record {:id :s/int}]
-                                          :position  :coord
-                                          :angle     :s/float
-                                          :body-type [:s/enum [:dynamic :static :kinetic]]
-                                          :fixtures  [:s/list :fixture]}]
-                    :fixture  [:s/record {:user-data [:s/record {:color :s/int}]
-                                          :coords    [:s/list :coord]}]
-                    :coord    [:s/tuple [:s/float :s/float]]
-                    :snapshot [:s/record {:time   :s/long
-                                          :bodies [:s/list :body]}]
+  (doseq [schemas [{:x [:list :y]
+                    :y [:tuple [:int :int]]}
+                   {:x [:list :y]
+                    :y [:record {:a :int
+                                 :b :string
+                                 :c [:tuple [:float :float :float]]
+                                 :d [:list :int]}]}
+                   {:body     [:record {:user-data [:record {:id :int}]
+                                        :position  :coord
+                                        :angle     :float
+                                        :body-type [:enum [:dynamic :static :kinetic]]
+                                        :fixtures  [:list :fixture]}]
+                    :fixture  [:record {:user-data [:record {:color :int}]
+                                        :coords    [:list :coord]}]
+                    :coord    [:tuple [:float :float]]
+                    :snapshot [:record {:time   :long
+                                        :bodies [:list :body]}]
                     :x        :snapshot}]]
     (test-pack-case schemas)))
 
@@ -65,10 +65,10 @@
     (test/is (= value-2 (diff-roundtrip value-1 value-2)))))
 
 (test/deftest diff-test
-  (doseq [schemas [{:x [:s/record {:a :s/int
-                                   :b [:s/tuple [:y :y :y :y]]}]
-                    :y [:s/enum [:a :b :c :d]]}
-                   {:x [:s/record {:a :s/byte
-                                   :b [:s/tuple [:s/byte :s/byte]]
-                                   :c [:s/vector [:s/enum [:cat :dog]]]}]}]]
+  (doseq [schemas [{:x [:record {:a :int
+                                 :b [:tuple [:y :y :y :y]]}]
+                    :y [:enum [:a :b :c :d]]}
+                   {:x [:record {:a :byte
+                                 :b [:tuple [:byte :byte]]
+                                 :c [:vector [:enum [:cat :dog]]]}]}]]
       (test-diff-case schemas)))

@@ -14,16 +14,15 @@
 
 (def initial-hierarchy
   (-> (make-hierarchy)
-      (derives :s/integer   [:s/byte :s/ubyte :s/short :s/ushort :s/int :s/uint :s/long :s/varint])
-      (derives :s/floating  [:s/float :s/double])
-      (derives :s/number    [:s/integer :s/floating])
-      (derives :s/primitive [:s/number :s/boolean :s/char])
-      (derives :s/simple    [:s/primitive :s/string :s/keyword :s/symbol :s/nil :s/any])
-      (derives :s/complex   [:s/list :s/vector :s/set :s/map :s/tuple :s/record :s/optional :s/multi :s/enum])
-      (derives :s/built-in  [:s/simple :s/complex])
-      (derives :s/diffable  [:s/list :s/vector :s/map :s/tuple :s/record :s/optional :s/multi])))
+      (derives :integer   [:byte :ubyte :short :ushort :int :uint :long :varint])
+      (derives :floating  [:float :double])
+      (derives :number    [:integer :floating])
+      (derives :primitive [:number :boolean :char])
+      (derives :simple    [:primitive :string :keyword :symbol :nil :any])
+      (derives :complex   [:list :vector :set :map :tuple :record :optional :multi :enum])
+      (derives :built-in  [:simple :complex])))
 
 (def hierarchy nil)
 
 (defn init-hierarchy [_ custom-types]
-  (derives initial-hierarchy :s/custom custom-types))
+  (derives initial-hierarchy :custom custom-types))

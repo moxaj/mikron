@@ -1,6 +1,23 @@
 (ns seria.util.schema
   "Schema related utils."
-  (:require [seria.util.symbol :as util.symbol]))
+  (:require [seria.util.symbol :as util.symbol]
+            [seria.util.coll :as util.coll]))
+
+(defn multi-cases [schemas]
+  (->> schemas
+       (util.coll/find-unique-by (fn [form]
+                                   (and (vector? form)
+                                        (= :multi (first form)))))
+       (mapcat (fn [[_ _ _ multi-map]]
+                 (keys multi-map)))))
+
+(defn enum-values [schemas]
+  (->> schemas
+       (util.coll/find-unique-by (fn [form]
+                                   (and (vector? form)
+                                        (= :enum (first form)))))
+       (mapcat (fn [[_ _ values]]
+                 values))))
 
 (defn super-records [[_ {:keys [extends]} :as record] schemas]
   (conj (mapcat (fn [extend]
@@ -17,10 +34,10 @@
                          (map (comp :constructor second))
                          (remove nil?)
                          (last))]
-    [:s/record {:constructor constructor} record-map]))
+    [:record {:constructor constructor} record-map]))
 
 (defn destructure-indexed [[complex-type _ inner-schemas] value postfix-sym?]
-  (let [tuple? (= :s/tuple complex-type)]
+  (let [tuple? (= :tuple complex-type)]
     (map (fn [index]
            {:index  index
             :symbol (if tuple?

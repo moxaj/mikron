@@ -13,53 +13,53 @@
 (defn as-undiffable [body]
   (if-not (:diffed? *options*)
     body
-    `(if ~(unpack :s/boolean)
-       :s/dnil
+    `(if ~(unpack :boolean)
+       :dnil
        ~body)))
 
-(defmethod unpack :s/primitive [schema]
+(defmethod unpack :primitive [schema]
   `(~(symbol (format "seria.buffer/read-%s!" (name schema)))
     ~(:buffer *options*)))
 
-(defmethod unpack :s/string [_]
-  `(apply str (repeatedly ~(unpack :s/varint)
-                          (fn [] ~(unpack :s/char)))))
+(defmethod unpack :string [_]
+  `(apply str (repeatedly ~(unpack :varint)
+                          (fn [] ~(unpack :char)))))
 
-(defmethod unpack :s/keyword [_]
-  `(keyword ~(unpack :s/string)))
+(defmethod unpack :keyword [_]
+  `(keyword ~(unpack :string)))
 
-(defmethod unpack :s/symbol [_]
-  `(symbol ~(unpack :s/string)))
+(defmethod unpack :symbol [_]
+  `(symbol ~(unpack :string)))
 
-(defmethod unpack :s/any [_]
-  `(util.common/cljc-read-string ~(unpack :s/string)))
+(defmethod unpack :any [_]
+  `(util.common/cljc-read-string ~(unpack :string)))
 
-(defmethod unpack :s/nil [_]
+(defmethod unpack :nil [_]
   nil)
 
-(defmethod unpack :s/list [[_ _ inner-schema]]
-  `(doall (repeatedly ~(unpack :s/varint)
+(defmethod unpack :list [[_ _ inner-schema]]
+  `(doall (repeatedly ~(unpack :varint)
                       (fn [] ~(as-undiffable (unpack inner-schema))))))
 
-(defmethod unpack :s/vector [[_ _ inner-schema]]
-  `(vec ~(unpack [:s/list {} inner-schema])))
+(defmethod unpack :vector [[_ _ inner-schema]]
+  `(vec ~(unpack [:list {} inner-schema])))
 
-(defmethod unpack :s/set [[_ {:keys [sorted-by]} inner-schema]]
-  (->> (unpack [:s/list {} inner-schema])
+(defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
+  (->> (unpack [:list {} inner-schema])
        (util.schema/as-set sorted-by)))
 
-(defmethod unpack :s/map [[_ {:keys [sorted-by]} key-schema val-schema]]
-  (->> `(repeatedly ~(unpack :s/varint)
+(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
+  (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
                             ~(as-undiffable (unpack val-schema))]))
        (util.schema/as-map sorted-by)))
 
-(defmethod unpack :s/tuple [[_ _ inner-schemas]]
+(defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
                       (as-undiffable (unpack inner-schema)))
                     inner-schemas)))
 
-(defmethod unpack :s/record [schema]
+(defmethod unpack :record [schema]
   (let [[_ {:keys [constructor]} record-map] (util.schema/expand-record schema (:schemas *options*))]
     (->> (sort (keys record-map))
          (map (fn [key]
@@ -67,20 +67,20 @@
          (into {})
          (util.schema/as-record constructor))))
 
-(defmethod unpack :s/optional [[_ _ inner-schema]]
-  `(when ~(unpack :s/boolean)
+(defmethod unpack :optional [[_ _ inner-schema]]
+  `(when ~(unpack :boolean)
      ~(unpack inner-schema)))
 
-(defmethod unpack :s/multi [[_ _ _ arg-map]]
-  `(case (~'multi-ids ~(unpack :s/varint))
+(defmethod unpack :multi [[_ _ _ arg-map]]
+  `(case (~'multi-ids ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (unpack inner-schema)])
                arg-map)))
 
-(defmethod unpack :s/enum [_]
-  `(~'enum-ids ~(unpack :s/varint)))
+(defmethod unpack :enum [_]
+  `(~'enum-ids ~(unpack :varint)))
 
-(defmethod unpack :s/custom [schema]
+(defmethod unpack :custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
     `(~(util.symbol/processor-name (if diffed? :unpack-diffed-inner* :unpack-inner*)
                                    schema)
@@ -103,7 +103,7 @@
             ~headers (buffer/read-headers! ~buffer)
             ~schema  (~'schema-ids (:schema-id ~headers))]
         (if-not ~schema
-          :s/invalid
+          :invalid
           {:schema  ~schema
            :diffed? (:diffed? ~headers)
            :diff-id (:diff-id ~headers)

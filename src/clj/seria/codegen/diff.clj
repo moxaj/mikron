@@ -15,15 +15,15 @@
 (defn as-diffed [schema value-1 value-2 body]
   (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
-               :s/dnil
+               :dnil
                ~body)
-    :undiff `(if (= :s/dnil ~value-2)
+    :undiff `(if (= :dnil ~value-2)
                ~value-1
                ~body)))
 
 (defmulti diff type/type-of :hierarchy #'type/hierarchy)
 
-(defmethod diff :s/list [[_ _ inner-schema] value-1 value-2]
+(defmethod diff :list [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
         inner-value-1 (util.symbol/postfix-gensym value-1 "item")
         inner-value-2 (util.symbol/postfix-gensym value-2 "item")
@@ -37,7 +37,7 @@
                         ~inner-value-2))
                     ~value-2))))
 
-(defmethod diff :s/vector [[_ _ inner-schema] value-1 value-2]
+(defmethod diff :vector [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
         inner-value-1 (util.symbol/postfix-gensym value-1 "item")
         inner-value-2 (util.symbol/postfix-gensym value-2 "item")]
@@ -48,7 +48,7 @@
                            ~inner-value-2))
                        ~value-2))))
 
-(defmethod diff :s/map [[_ {:keys [sorted-by]} _ val-schema] value-1 value-2]
+(defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] value-1 value-2]
   (let [key   (util.symbol/postfix-gensym value-1 "key")
         val-1 (util.symbol/postfix-gensym value-1 "val")
         val-2 (util.symbol/postfix-gensym value-2 "val")]
@@ -60,7 +60,7 @@
                ~value-2)
          (util.schema/as-map sorted-by))))
 
-(defmethod diff :s/tuple [schema value-1 value-2]
+(defmethod diff :tuple [schema value-1 value-2]
   (let [destructured-2 (util.schema/destructure-indexed schema value-2 true)]
     `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
        ~(mapv (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
@@ -70,7 +70,7 @@
                                  (diff inner-schema inner-value-1 inner-value-2)))))
               destructured-2))))
 
-(defmethod diff :s/record [schema value-1 value-2]
+(defmethod diff :record [schema value-1 value-2]
   (let [[_ {:keys [constructor]} :as schema] (util.schema/expand-record schema (:schemas  *options*))
         destructured-2 (util.schema/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
@@ -83,12 +83,12 @@
                   (into {})))
          (util.schema/as-record constructor))))
 
-(defmethod diff :s/optional [[_ _ inner-schema] value-1 value-2]
+(defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
      ~(diff inner-schema value-1 value-2)
      ~value-2))
 
-(defmethod diff :s/multi [[_ _ selector multi-cases value-1 value-2]]
+(defmethod diff :multi [[_ _ selector multi-cases value-1 value-2]]
   (util.symbol/with-gensyms [case-1 case-2]
     `(let [~case-1 (~selector ~value-1)
            ~case-2 (~selector ~value-2)]
@@ -99,7 +99,7 @@
                        [multi-case (diff inner-schema value-1 value-2)])
                      multi-cases))))))
 
-(defmethod diff :s/custom [schema value-1 value-2]
+(defmethod diff :custom [schema value-1 value-2]
   `(~(util.symbol/processor-name (:processor-type *options*) schema) ~value-1 ~value-2))
 
 (defmethod diff :default [schema value-1 value-2]

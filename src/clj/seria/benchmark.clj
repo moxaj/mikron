@@ -33,18 +33,18 @@
       (kryo/read-object in))))
 
 (def box2d-schemas
-  {:body     [:s/record {:user-data [:s/record {:id :s/int}]
-                         :position  :coord
-                         :angle     :s/float
-                         :body-type [:s/enum [:dynamic :static :kinetic]]
-                         :fixtures  [:s/list :fixture]}]
-   :fixture  [:s/record {:user-data [:s/record {:color :s/int}]
-                         :coords    [:s/list :coord]}]
-   :coord    [:s/tuple [:s/float :s/float]]
-   :snapshot [:s/record {:time   :s/long
-                         :bodies [:s/list :body]}]})
+  {:body     [:record {:user-data [:record {:id :int}]
+                       :position  :coord
+                       :angle     :float
+                       :body-type [:enum [:dynamic :static :kinetic]]
+                       :fixtures  [:list :fixture]}]
+   :fixture  [:record {:user-data [:record {:color :int}]
+                       :coords    [:list :coord]}]
+   :coord    [:tuple [:float :float]]
+   :snapshot [:record {:time   :long
+                       :bodies [:list :body]}]})
 
-(config/eval-output (config/process-config {:schemas {:snapshot [:s/list :s/double]}}))
+(config/eval-output (config/process-config {:schemas {:snapshot [:list :double]}}))
 
 (defmulti measure-stat (fn [stat & _] stat))
 
