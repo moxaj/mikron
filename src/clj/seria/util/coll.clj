@@ -7,13 +7,6 @@
        (map-indexed #(vector %2 %1))
        (into {})))
 
-(defn bimap [coll]
-  (->> coll
-       (distinct)
-       (map-indexed vector)
-       (into {})
-       ((juxt set/map-invert identity))))
-
 (defn find-by [f form]
   (cond-> []
     (f form)
