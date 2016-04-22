@@ -18,5 +18,5 @@
                                   [com.google.protobuf/protobuf-java "3.0.0-beta-2"]
                                   [org.clojars.runa/clj-kryo "1.5.0"]
                                   [cheshire "5.5.0"]]
-                   :plugins [[moxaj/lein-seria "0.1.2"]]
+                   :plugins [[moxaj/lein-seria "0.2.1"]]
                    :seria {"cat" {:source "src/seria-config/config1.cljc"}}}})
