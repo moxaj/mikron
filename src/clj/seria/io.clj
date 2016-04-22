@@ -71,7 +71,7 @@
           (println separator) (newline)
           (println config-string) (newline)
 
-          (when (or (seq declares))
+          (when (seq declares)
             (println separator)
             (println ";; Forward declarations")
             (println separator) (newline))

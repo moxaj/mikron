@@ -71,8 +71,8 @@
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [[_ {:keys [constructor]} :as schema] (util.schema/expand-record schema (:schemas  *options*))
-        destructured-2 (util.schema/destructure-indexed schema value-2 true)]
+  (let [[_ {:keys [constructor]} :as schema] (util.schema/expand-record schema (:schemas *options*))
+        destructured-2                       (util.schema/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
             ~(->> destructured-2
                   (map (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
