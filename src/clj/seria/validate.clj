@@ -8,11 +8,6 @@
 
 (def ^:dynamic *schemas*)
 
-(defn with-options [[a b & rest :as composite]]
-  (if (and (map? b) (seq rest))
-    composite
-    (vec (concat [a {} b] rest))))
-
 (defn validate-sortable [[complex-type {:keys [sorted-by] :as options} & args :as schema]]
   (assert (or (nil? sorted-by)
               (= :default sorted-by)
@@ -28,21 +23,23 @@
   schema)
 
 (defmethod validate-schema :list [schema]
-  (let [[_ _ inner-schema :as schema] (with-options schema)]
+  (let [[_ _ inner-schema :as schema] (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:list <options> :x]."
                     schema))
     [:list {} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :vector [schema]
-  (let [[_ _ inner-schema :as schema] (with-options schema)]
+  (let [[_ _ inner-schema :as schema] (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:vector <options> :x]."
                     schema))
     [:vector {} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :set [schema]
-  (let [[_ options inner-schema :as schema] (-> schema (with-options) (validate-sortable))]
+  (let [[_ options inner-schema :as schema] (-> schema
+                                                (util.schema/with-options)
+                                                (validate-sortable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:set <options> :x]."
                     schema))
@@ -50,7 +47,9 @@
      (validate-schema inner-schema)]))
 
 (defmethod validate-schema :map [schema]
-  (let [[_ options key-schema val-schema :as schema] (-> schema (with-options) (validate-sortable))]
+  (let [[_ options key-schema val-schema :as schema] (-> schema
+                                                         (util.schema/with-options)
+                                                         (validate-sortable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. Correct signature: [:map <options> :x :y]."
                     schema))
@@ -59,14 +58,14 @@
      (validate-schema val-schema)]))
 
 (defmethod validate-schema :optional [schema]
-  (let [[_ options inner-schema :as schema] (with-options schema)]
+  (let [[_ options inner-schema :as schema] (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:optional <options> :x]."
                     schema))
     [:optional {} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :enum [schema]
-  (let [[_ _ values :as schema] (with-options schema)]
+  (let [[_ _ values :as schema] (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:enum <options> [:v1 ... :vn]]."
                     schema))
@@ -79,7 +78,7 @@
     [:enum {} values]))
 
 (defmethod validate-schema :tuple [schema]
-  (let [[_ _ inner-schemas :as schema] (with-options schema)]
+  (let [[_ _ inner-schemas :as schema] (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:tuple <options> [:x1 ... :xn]]."
                     schema))
@@ -89,7 +88,8 @@
     [:tuple {} (mapv validate-schema inner-schemas)]))
 
 (defmethod validate-schema :record [schema]
-  (let [[_ {:keys [extends constructor] :as options} record-map :as schema] (with-options schema)]
+  (let [[_ {:keys [extends constructor] :as options} record-map :as schema]
+        (util.schema/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:record <options> {:k1 :x1 ... :kn :xn}]"
                     schema))
@@ -116,7 +116,7 @@
        (zipmap fields (map validate-schema inner-schemas))])))
 
 (defmethod validate-schema :multi [schema]
-  (let [[_ _ selector multi-map :as schema] (with-options schema)]
+  (let [[_ _ selector multi-map :as schema] (util.schema/with-options schema)]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. Correct signature: [:multi selector {:k1 :x1 ... :kn :xn}]."
                     schema))

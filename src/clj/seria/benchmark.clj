@@ -44,7 +44,7 @@
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
 
-(config/eval-output (config/process-config {:schemas {:snapshot [:list :double]}}))
+(config/eval-output (config/process-config {:schemas box2d-schemas}))
 
 (defmulti measure-stat (fn [stat & _] stat))
 
@@ -74,7 +74,9 @@
        (into {})))
 
 (defn run-benchmarks [& {:keys [buffer stats]}]
-  (measure-methods {:seria [#((resolve 'pack-snapshot) % buffer) (resolve 'unpack)]
+  (measure-methods {:seria (let [pack   @(resolve 'pack-snapshot)
+                                 unpack @(resolve 'unpack)]
+                              [#(pack % buffer) unpack])
                     :java  [java-serialize java-deserialize]
                     :kryo  [kryo-serialize kryo-deserialize]
                     :nippy [nippy/freeze nippy/thaw]
@@ -132,6 +134,11 @@
                                  43.72929004153248]}}}}])
 
 ;; 1
-{:seria [8.502563595875728
-         11.274565521893088
-         7.390651649796993]}
+[8.502563595875728
+ 11.274565521893088
+ 7.390651649796993]
+
+;; 2
+[7.830408084944682
+ 10.667805742399354
+ 7.391915340005673]

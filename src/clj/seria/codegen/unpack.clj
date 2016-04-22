@@ -72,13 +72,13 @@
      ~(unpack inner-schema)))
 
 (defmethod unpack :multi [[_ _ _ multi-map]]
-  `(case (nth ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint))
+  `(case (get ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (unpack inner-schema)])
                multi-map)))
 
 (defmethod unpack :enum [[_ _ enum-values]]
-  `(nth ~enum-values ~(unpack :varint)))
+  `(get ~enum-values ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
@@ -100,7 +100,7 @@
     `(defn ~'unpack [~raw]
       (let [~buffer  (buffer/wrap ~raw)
             ~headers (buffer/read-headers! ~buffer)
-            ~schema  (nth ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))]
+            ~schema  (get ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))]
         (if-not ~schema
           :invalid
           {:schema  ~schema

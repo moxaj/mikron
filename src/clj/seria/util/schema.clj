@@ -8,6 +8,11 @@
     (keyword? schema) schema
     (vector? schema)  (first schema)))
 
+(defn with-options [[a b & rest :as complex]]
+  (if (and (map? b) (seq rest))
+    complex
+    (vec (concat [a {} b] rest))))
+
 (defn multi-cases [schemas]
   (->> schemas
        (util.coll/find-unique-by (fn [form]
