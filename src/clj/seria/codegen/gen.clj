@@ -24,7 +24,7 @@
             r
             (- r (/ max-value 2))))))
 
-(defmulti gen type/type-of :hierarchy #'type/hierarchy)
+(defmulti gen util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod gen :byte [_]
   `(random-integer 1 true))
@@ -126,6 +126,6 @@
 
 (defn make-generator [schema-name {:keys [schemas] :as options}]
   (binding [*options* options]
-    `(~(util.symbol/processor-name :gen schema-name)
+    `(defn ~(util.symbol/processor-name :gen schema-name)
       []
       ~(gen (schemas schema-name)))))

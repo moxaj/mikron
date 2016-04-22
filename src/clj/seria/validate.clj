@@ -1,8 +1,8 @@
 (ns seria.validate
   "Static config validation."
   (:require [clojure.string :as string]
-            [clojure.walk :as walk]
-            [seria.type :as type]))
+            [seria.type :as type]
+            [seria.util.schema :as util.schema]))
 
 ;; Schema validation
 
@@ -22,7 +22,7 @@
                   schema))
   (vec (concat [complex-type options] args)))
 
-(defmulti validate-schema type/type-of :hierarchy #'type/hierarchy)
+(defmulti validate-schema util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod validate-schema :simple [schema]
   schema)
@@ -168,7 +168,7 @@
     (assert (empty? invalid-processor-types)
             (format "Invalid :processors parameter: [%s] are not valid processors."
                     (string/join ", " invalid-processor-types))))
-  processor-types)
+  (set processor-types))
 
 (defn validate-eq-ops [eq-ops schemas]
   (assert (map? eq-ops)

@@ -7,11 +7,6 @@
           hierarchy
           children))
 
-(defn type-of [schema & _]
-  (cond
-    (keyword? schema) schema
-    (vector? schema)  (first schema)))
-
 (def initial-hierarchy
   (-> (make-hierarchy)
       (derives :integer   [:byte :ubyte :short :ushort :int :uint :long :varint])

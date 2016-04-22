@@ -22,23 +22,7 @@
       :else
       []))
 
-  (defn schema-graph [schemas])
-  (->> schemas
-       (map (fn [[schema-name schema]]
-              [schema-name (set (inner-schemas schemas))]))
-       (into {}))
 
-  (defn schema-order [graph])
-  (loop [graph graph
-         order []]
-    (if (empty? graph)
-      order
-      (if-let [schema (->> graph (filter #(empty? (second %))) (ffirst))]
-        (recur (->> (dissoc graph schema)
-                    (map (fn [[k v]] [k (disj v schema)]))
-                    (into {}))
-               (conj order schema))
-        nil)))
 
 
   (defn clj->java [{:keys [time bodies]}]

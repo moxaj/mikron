@@ -8,7 +8,7 @@
 
 (def ^:dynamic *options*)
 
-(defmulti unpack type/type-of :hierarchy #'type/hierarchy)
+(defmulti unpack util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defn as-undiffable [body]
   (if-not (:diffed? *options*)
@@ -71,14 +71,14 @@
   `(when ~(unpack :boolean)
      ~(unpack inner-schema)))
 
-(defmethod unpack :multi [[_ _ _ arg-map]]
-  `(case (~'multi-ids ~(unpack :varint))
+(defmethod unpack :multi [[_ _ _ multi-map]]
+  `(case (nth ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint))
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case (unpack inner-schema)])
-               arg-map)))
+               multi-map)))
 
-(defmethod unpack :enum [_]
-  `(~'enum-ids ~(unpack :varint)))
+(defmethod unpack :enum [[_ _ enum-values]]
+  `(nth ~enum-values ~(unpack :varint)))
 
 (defmethod unpack :custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
@@ -89,19 +89,18 @@
 (defn make-inner-unpacker [schema-name {:keys [schemas diffed?] :as options}]
   (util.symbol/with-gensyms [buffer]
     (binding [*options* (assoc options :buffer buffer)]
-      `(~(with-meta (util.symbol/processor-name (if diffed? :unpack-diffed-inner* :unpack-inner*)
-                                                schema-name)
-                    {:private true})
+      `(defn ~(with-meta (util.symbol/processor-name (if diffed? :unpack-diffed-inner* :unpack-inner*)
+                                                     schema-name)
+                         {:private true})
         [~buffer]
         ~(as-undiffable (unpack (schemas schema-name)))))))
 
 (defn make-unpacker [{:keys [schemas processor-types]}]
   (util.symbol/with-gensyms [raw buffer headers diff-id diffed? schema unpack-fn]
-    `(~'unpack
-      [~raw]
-      (let [~(with-meta buffer {:no-inline true}) (buffer/wrap ~raw)
+    `(defn ~'unpack [~raw]
+      (let [~buffer  (buffer/wrap ~raw)
             ~headers (buffer/read-headers! ~buffer)
-            ~schema  (~'schema-ids (:schema-id ~headers))]
+            ~schema  (nth ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))]
         (if-not ~schema
           :invalid
           {:schema  ~schema

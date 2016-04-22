@@ -1,221 +1,139 @@
 (ns my.config
-  "This namespace was automatically generated at 2016.04.22. 11:02."
-  (:require [seria.buffer :refer [compress
-                                  read-float!
+  "This namespace was automatically generated at 2016.04.22. 15:26."
+  (:require [my :refer [apple]]
+            [seria.buffer :refer [compress
+                                  read-boolean!
                                   read-headers!
                                   read-int!
-                                  read-long!
                                   read-varint!
                                   wrap
-                                  write-float!
+                                  write-boolean!
                                   write-headers!
                                   write-int!
-                                  write-long! write-varint!]]))
+                                  write-varint!]]
+            [seria.codegen.gen :refer [gen-size random-integer]]))
 
 ;; ============================================================================
-;; Static seria config 
+;; Static seria config
 ;; ============================================================================
 
-{:schemas {:body     [:record {:user-data [:record {:id :int}]
-                               :position  :coord
-                               :angle     :float
-                               :body-type [:enum [:dynamic :static :kinetic]]
-                               :fixtures  [:list :fixture]}]
-           :fixture  [:record {:user-data [:record {:color :int}]
-                               :coords    [:list :coord]}]
-           :coord    [:tuple [:float :float]]
-           :snapshot [:record {:time   :long
-                               :bodies [:list :body]}]}
- :processors [:pack]}
+{:schemas {:x [:set {:sorted-by 'my/apple} :int]}}
 
 ;; ============================================================================
-;; Vars and declarations
+;; Forward declarations
 ;; ============================================================================
-
-(def ^{:private true} enum-ids {0 :dynamic, 1 :static, 2 :kinetic})
-
-(def ^{:private true} schema-ids
- {0 :coord, 1 :snapshot, 2 :fixture, 3 :body})
 
 (declare
   pack
   unpack
-  pack-inner*-coord
-  pack-coord
-  unpack-inner*-coord
-  pack-inner*-snapshot
-  pack-snapshot
-  unpack-inner*-snapshot
-  pack-inner*-fixture
-  pack-fixture
-  unpack-inner*-fixture
-  pack-inner*-body
-  pack-body
-  unpack-inner*-body)
+  pack-inner*-x
+  pack-x
+  unpack-inner*-x
+  diff-x
+  undiff-x
+  pack-diffed-inner*-x
+  unpack-diffed-inner*-x
+  gen-x)
 
 ;; ============================================================================
 ;; Private functions
 ;; ============================================================================
 
-(defn ^{:private true} pack [value_3614
-                             buffer_3615
-                             schema-id_3616
-                             diff-id_3617
-                             diffed?_3618
-                             pack-fn_3619]
-  (-> buffer_3615
-   (write-headers! schema-id_3616 diff-id_3617 diffed?_3618)
-   (pack-fn_3619 value_3614)
+(defn ^{:private true} pack [value_3615
+                             buffer_3616
+                             schema-id_3617
+                             diff-id_3618
+                             diffed?_3619
+                             pack-fn_3620]
+  (-> buffer_3616
+   (write-headers! schema-id_3617 diff-id_3618 diffed?_3619)
+   (pack-fn_3620 value_3615)
    (compress)))
 
-(defn ^{:private true} pack-inner*-body [buffer_4011 value_4010]
-  (let [fixtures_4014 (:fixtures value_4010)]
-    (write-float! buffer_4011 (:angle value_4010))
-    (write-varint!
-      buffer_4011
-      (case (:body-type value_4010) :dynamic 0 :static 1 :kinetic 2))
-    (write-varint! buffer_4011 (count fixtures_4014))
-    (run!
-      (fn [fixtures-item_4017]
-        (pack-inner*-fixture buffer_4011 fixtures-item_4017))
-      fixtures_4014)
-    (pack-inner*-coord buffer_4011 (:position value_4010))
-    (write-int! buffer_4011 (:id (:user-data value_4010))))
-  buffer_4011)
+(defn ^{:private true} pack-diffed-inner*-x [buffer_3991 value_3990]
+  (let [value-dnil?_3994 (= :dnil value_3990)]
+    (write-boolean! buffer_3991 value-dnil?_3994)
+    (when-not value-dnil?_3994
+      (write-varint! buffer_3991 (count value_3990))
+      (run!
+        (fn [value-item_3992]
+          (let [value-item-dnil?_3993 (= :dnil value-item_3992)]
+            (write-boolean! buffer_3991 value-item-dnil?_3993)
+            (when-not value-item-dnil?_3993
+              (write-int! buffer_3991 value-item_3992))))
+        value_3990)))
+  buffer_3991)
 
-(defn ^{:private true} pack-inner*-coord [buffer_3981 value_3980]
-  (write-float! buffer_3981 (value_3980 0))
-  (write-float! buffer_3981 (value_3980 1))
-  buffer_3981)
+(defn ^{:private true} pack-inner*-x [buffer_3979 value_3978]
+  (write-varint! buffer_3979 (count value_3978))
+  (run!
+    (fn [value-item_3980] (write-int! buffer_3979 value-item_3980))
+    value_3978)
+  buffer_3979)
 
-(defn ^{:private true} pack-inner*-fixture [buffer_4000 value_3999]
-  (let [coords_4001 (:coords value_3999)]
-    (write-varint! buffer_4000 (count coords_4001))
-    (run!
-      (fn [coords-item_4003]
-        (pack-inner*-coord buffer_4000 coords-item_4003))
-      coords_4001)
-    (write-int! buffer_4000 (:color (:user-data value_3999))))
-  buffer_4000)
+(defn ^{:private true} unpack-diffed-inner*-x [buffer_3995]
+  (if (read-boolean! buffer_3995)
+    :dnil
+    (into
+      (sorted-set-by apple)
+      (doall
+        (repeatedly
+          (read-varint! buffer_3995)
+          (fn []
+            (if (read-boolean! buffer_3995)
+              :dnil
+              (read-int! buffer_3995))))))))
 
-(defn ^{:private true} pack-inner*-snapshot [buffer_3990 value_3989]
-  (let [bodies_3991 (:bodies value_3989)]
-    (write-varint! buffer_3990 (count bodies_3991))
-    (run!
-      (fn [bodies-item_3993]
-        (pack-inner*-body buffer_3990 bodies-item_3993))
-      bodies_3991)
-    (write-long! buffer_3990 (:time value_3989)))
-  buffer_3990)
-
-(defn ^{:private true} unpack-inner*-body [buffer_4023]
-  {:angle (read-float! buffer_4023),
-   :body-type (enum-ids (read-varint! buffer_4023)),
-   :fixtures
-   (doall
-     (repeatedly
-       (read-varint! buffer_4023)
-       (fn [] (unpack-inner*-fixture buffer_4023)))),
-   :position (unpack-inner*-coord buffer_4023),
-   :user-data {:id (read-int! buffer_4023)}})
-
-(defn ^{:private true} unpack-inner*-coord [buffer_3988]
-  [(read-float! buffer_3988) (read-float! buffer_3988)])
-
-(defn ^{:private true} unpack-inner*-fixture [buffer_4009]
-  {:coords
-   (doall
-     (repeatedly
-       (read-varint! buffer_4009)
-       (fn [] (unpack-inner*-coord buffer_4009)))),
-   :user-data {:color (read-int! buffer_4009)}})
-
-(defn ^{:private true} unpack-inner*-snapshot [buffer_3998]
-  {:bodies
-   (doall
-     (repeatedly
-       (read-varint! buffer_3998)
-       (fn [] (unpack-inner*-body buffer_3998)))),
-   :time (read-long! buffer_3998)})
+(defn ^{:private true} unpack-inner*-x [buffer_3985]
+  (into
+    (sorted-set-by apple)
+    (doall
+      (repeatedly
+        (read-varint! buffer_3985)
+        (fn [] (read-int! buffer_3985))))))
 
 ;; ============================================================================
 ;; Public functions
 ;; ============================================================================
 
-(defn pack-body
-  ([value_4019 buffer_4020] (pack-body value_4019 buffer_4020 0 false))
-  ([value_4019 buffer_4020 diff-id_4021]
-    (pack-body value_4019 diff-id_4021 false))
-  ([value_4019 buffer_4020 diff-id_4021 diffed?_4022]
-    (pack
-      value_4019
-      buffer_4020
-      3
-      diff-id_4021
-      diffed?_4022
-      pack-inner*-body)))
+(defn diff-x [value-1_3986 value-2_3987]
+  (if (= value-1_3986 value-2_3987) :dnil value-2_3987))
 
-(defn pack-coord
-  ([value_3984 buffer_3985]
-    (pack-coord value_3984 buffer_3985 0 false))
-  ([value_3984 buffer_3985 diff-id_3986]
-    (pack-coord value_3984 diff-id_3986 false))
-  ([value_3984 buffer_3985 diff-id_3986 diffed?_3987]
-    (pack
-      value_3984
-      buffer_3985
-      0
-      diff-id_3986
-      diffed?_3987
-      pack-inner*-coord)))
+(defn gen-x []
+  (into
+    (sorted-set-by apple)
+    (repeatedly (gen-size) (fn [] (random-integer 4 true)))))
 
-(defn pack-fixture
-  ([value_4005 buffer_4006]
-    (pack-fixture value_4005 buffer_4006 0 false))
-  ([value_4005 buffer_4006 diff-id_4007]
-    (pack-fixture value_4005 diff-id_4007 false))
-  ([value_4005 buffer_4006 diff-id_4007 diffed?_4008]
-    (pack
-      value_4005
-      buffer_4006
-      2
-      diff-id_4007
-      diffed?_4008
-      pack-inner*-fixture)))
+(defn pack-x
+  ([value_3981 buffer_3982] (pack-x value_3981 buffer_3982 0 false))
+  ([value_3981 buffer_3982 diff-id_3983]
+   (pack-x value_3981 diff-id_3983 false))
+  ([value_3981 buffer_3982 diff-id_3983 diffed?_3984]
+   (pack
+     value_3981
+     buffer_3982
+     0
+     diff-id_3983
+     diffed?_3984
+     (if diffed?_3984 pack-diffed-inner*-x pack-inner*-x))))
 
-(defn pack-snapshot
-  ([value_3994 buffer_3995]
-    (pack-snapshot value_3994 buffer_3995 0 false))
-  ([value_3994 buffer_3995 diff-id_3996]
-    (pack-snapshot value_3994 diff-id_3996 false))
-  ([value_3994 buffer_3995 diff-id_3996 diffed?_3997]
-    (pack
-      value_3994
-      buffer_3995
-      1
-      diff-id_3996
-      diffed?_3997
-      pack-inner*-snapshot)))
+(defn undiff-x [value-1_3988 value-2_3989]
+  (if (= :dnil value-2_3989) value-1_3988 value-2_3989))
 
-(defn unpack [raw_3973]
-  (let [buffer_3974 (wrap raw_3973)
-        headers_3975 (read-headers! buffer_3974)
-        schema_3978 (schema-ids (:schema-id headers_3975))]
-    (if-not schema_3978
+(defn unpack [raw_3971]
+  (let [buffer_3972 (wrap raw_3971)
+        headers_3973 (read-headers! buffer_3972)
+        schema_3976 (nth [:x] (:schema-id headers_3973))]
+    (if-not schema_3976
       :invalid
-      {:schema schema_3978,
-       :diffed? (:diffed? headers_3975),
+      {:schema schema_3976,
+       :diffed? (:diffed? headers_3973),
        :value
        ((case
-          schema_3978
-          :coord
-          unpack-inner*-coord
-          :snapshot
-          unpack-inner*-snapshot
-          :fixture
-          unpack-inner*-fixture
-          :body
-          unpack-inner*-body)
-         buffer_3974),
-       :diff-id (:diff-id headers_3975)})))
-
+          schema_3976
+          :x
+          (if (:diffed headers_3973)
+            unpack-diffed-inner*-x
+            unpack-inner*-x)
+         buffer_3972),)
+       :diff-id (:diff-id headers_3973)})))

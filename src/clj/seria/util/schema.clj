@@ -3,6 +3,11 @@
   (:require [seria.util.symbol :as util.symbol]
             [seria.util.coll :as util.coll]))
 
+(defn type-of [schema & _]
+  (cond
+    (keyword? schema) schema
+    (vector? schema)  (first schema)))
+
 (defn multi-cases [schemas]
   (->> schemas
        (util.coll/find-unique-by (fn [form]

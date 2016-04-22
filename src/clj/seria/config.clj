@@ -35,34 +35,16 @@
                    ; (processor-types :interp)
                    ; (conj (interp/make-interper schema-name options)))]))
        (concat (when (processor-types :pack)
-                 [pack/common-packer (unpack/make-unpacker options)]))))
+                 [pack/common-packer (unpack/make-unpacker options)]))
+       (vec)))
 
 (defn process-config [config]
-  (let [{:keys [schemas processor-types eq-ops]} (validate/validate-config config)
-        schema-ids  (util.coll/id-map (keys schemas))
-        enum-ids    (util.coll/id-map (util.schema/enum-values schemas))
-        multi-ids   (util.coll/id-map (util.schema/multi-cases schemas))
-        processors  (make-processors {:schemas         schemas
-                                      :eq-ops          eq-ops
-                                      :processor-types (set processor-types)
-                                      :schema-ids      schema-ids
-                                      :enum-ids        enum-ids
-                                      :multi-ids       multi-ids})]
-    {:vars     (if-not ((set processor-types) :pack)
-                 []
-                 (cond-> []
-                   (seq schema-ids) (conj `(def ~(with-meta 'schema-ids {:private true})
-                                                ~(set/map-invert schema-ids)))
-                   (seq enum-ids)   (conj `(def ~(with-meta 'enum-ids {:private true})
-                                                ~(set/map-invert enum-ids)))
-                   (seq multi-ids)  (conj `(def ~(with-meta 'multi-ids {:private true})
-                                                ~(set/map-invert multi-ids)))))
-     :declares `(declare ~@(map (fn [[processor-name]]
+  (let [{:keys [schemas] :as config} (validate/validate-config config)
+        processors                   (make-processors config)]
+    {:fns      processors
+     :declares `(declare ~@(map (fn [[_ processor-name]]
                                   (with-meta processor-name {}))
-                                processors))
-     :fns      (mapv (fn [[processor-name & body]]
-                       `(defn ~processor-name ~@body))
-                     processors)}))
+                                processors))}))
 
-(defn eval-output [{:keys [vars declares fns]}]
-  (eval [vars declares fns]))
+(defn eval-output [{:keys [declares fns]}]
+  (eval [declares fns]))

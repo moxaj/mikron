@@ -21,7 +21,7 @@
                ~value-1
                ~body)))
 
-(defmulti diff type/type-of :hierarchy #'type/hierarchy)
+(defmulti diff util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod diff :list [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
@@ -108,7 +108,7 @@
 (defn make-common [schema-name]
   (util.symbol/with-gensyms [value-1 value-2]
     (let [schema (get-in *options* [:schemas schema-name])]
-      `(~(util.symbol/processor-name (:processor-type *options*) schema-name)
+      `(defn ~(util.symbol/processor-name (:processor-type *options*) schema-name)
         [~value-1 ~value-2]
         ~(as-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
 

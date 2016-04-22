@@ -60,7 +60,7 @@
   (let [ns-requires                       (ns-requires forms)
         protected-symbols                 (protected-symbols ns-requires)
         ns-form                           (ns-form ns-name ns-requires protected-symbols)
-        {:keys [vars declares fns]}       (prettify/prettify forms protected-symbols)
+        {:keys [declares fns]}            (prettify/prettify forms protected-symbols)
         {private-fns true public-fns nil} (group-by (comp :private meta second) fns)]
     (with-out-str
       (pprint/with-pprint-dispatch pprint/code-dispatch
@@ -71,11 +71,10 @@
           (println separator) (newline)
           (println config-string) (newline)
 
-          (when (or (seq vars) (seq declares))
+          (when (or (seq declares))
             (println separator)
-            (println ";; Vars and declarations")
+            (println ";; Forward declarations")
             (println separator) (newline))
-          (->> vars (sort-by second) (run! pprintln))
           (pprintln declares)
 
           (when (seq private-fns)
@@ -109,6 +108,7 @@
       (throw (Exception. "Invalid source file!")))
     (-> config-node
         (node/sexpr)
+        (eval)
         (config/process-config)
         (format-forms :ns-name       (second (node/sexpr ns-node))
                       :config-string (node/string config-node)))))

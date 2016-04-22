@@ -1,5 +1,6 @@
-(ns playground)
-  
+(ns playground
+  (:require [seria.config :as config]))
+
 (def box2d-schemas
   {:body     [:s/record {:user-data [:s/record {:id :s/int}]
                          :position  :coord
@@ -19,3 +20,12 @@
           :coord    [[0] [1]]}
  :processors [:pack :diff :gen]
  :eq-ops {:float +}}
+
+
+(let [c (config/process-config
+          {:schemas {:x [:list :y]
+                     :y :int}
+           :processors [:pack]})]
+  c)
+
+(config/eval-output *1)

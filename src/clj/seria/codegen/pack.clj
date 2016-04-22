@@ -3,11 +3,12 @@
   (:require [seria.buffer :as buffer]
             [seria.util.schema :as util.schema]
             [seria.util.symbol :as util.symbol]
+            [seria.util.coll :as util.coll]
             [seria.type :as type]))
 
 (def ^:dynamic *options*)
 
-(defmulti pack type/type-of :hierarchy #'type/hierarchy)
+(defmulti pack util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defn as-diffable [value body]
   (if-not (:diffed? *options*)
@@ -89,19 +90,19 @@
        (when ~value
          ~(pack inner-schema value))))
 
-(defmethod pack :multi [[_ _ selector arg-map] value]
+(defmethod pack :multi [[_ _ selector multi-map] value]
   `(case (~selector ~value)
      ~@(mapcat (fn [[multi-case inner-schema]]
                  [multi-case
-                  `(do ~(pack :varint (get-in *options* [:multi-ids multi-case]))
+                  `(do ~(pack :varint (->> multi-map (keys) (sort) (util.coll/index-of multi-case)))
                        ~(pack inner-schema value))])
-               arg-map)))
+               multi-map)))
 
 (defmethod pack :enum [[_ _ enum-values] value]
   (pack :varint `(case ~value
-                     ~@(mapcat (fn [enum-value]
-                                 [enum-value (get-in *options* [:enum-ids enum-value])])
-                               enum-values))))
+                   ~@(mapcat (fn [enum-value]
+                               [enum-value (util.coll/index-of enum-value enum-values)])
+                             enum-values))))
 
 (defmethod pack :custom [schema value]
   (let [{:keys [diffed? buffer]} *options*]
@@ -112,26 +113,26 @@
 (defn make-inner-packer [schema-name {:keys [schemas diffed?] :as options}]
   (util.symbol/with-gensyms [value buffer]
     (binding [*options* (assoc options :buffer buffer)]
-      `(~(with-meta (util.symbol/processor-name (if diffed? :pack-diffed-inner* :pack-inner*)
-                                                schema-name)
-                    {:private true})
+      `(defn ~(with-meta (util.symbol/processor-name (if diffed? :pack-diffed-inner* :pack-inner*)
+                                                     schema-name)
+                         {:private true})
         [~buffer ~value]
         ~(as-diffable value (pack (schemas schema-name) value))
         ~buffer))))
 
 (def common-packer
   (util.symbol/with-gensyms [value buffer schema-id diff-id diffed? pack-fn]
-    `(~(with-meta 'pack {:private true})
+    `(defn ~(with-meta 'pack {:private true})
       [~value ~buffer ~schema-id ~diff-id ~diffed? ~pack-fn]
       (-> ~buffer
           (buffer/write-headers! ~schema-id ~diff-id ~diffed?)
           (~pack-fn ~value)
           (buffer/compress)))))
 
-(defn make-packer [schema-name {:keys [schema-ids processor-types]}]
+(defn make-packer [schema-name {:keys [schemas processor-types]}]
   (util.symbol/with-gensyms [value buffer diff-id diffed?]
     (let [processor-name (util.symbol/processor-name :pack schema-name)]
-      `(~processor-name
+      `(defn ~processor-name
         ([~value ~buffer]
          (~processor-name ~value ~buffer 0 false))
         ([~value ~buffer ~diff-id]
@@ -139,7 +140,7 @@
         ([~value ~buffer ~diff-id ~diffed?]
          (~'pack ~value
                  ~buffer
-                 ~(schema-ids schema-name)
+                 ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
                  ~diff-id
                  ~diffed?
                  ~(if-not (processor-types :diff)
