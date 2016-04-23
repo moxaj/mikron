@@ -8,9 +8,6 @@
 (defn wrap-equal [value-1 value-2 body]
   `(if (= ~value-1 ~value-2) ~value-1 ~body))
 
-(defn interp-numbers [value-1 value-2 time-factor]
-  (long (+' value-1 (* time-factor (-' value-2 value-1)))))
-
 (def ^:dynamic *options*)
 
 (defmulti interp util.schema/type-of :hierarchy #'type/hierarchy)
@@ -19,7 +16,7 @@
   `(util.common/cljc-round ~(interp :floating nil value-1 value-2)))
 
 (defmethod interp :floating [_ _ value-1 value-2]
-  `(interp-numbers ~value-1 ~value-2 ~(:time-factor *options*)))
+  `(util.common/interp-numbers ~value-1 ~value-2 ~(:time-factor *options*)))
 
 (defmethod interp :list [[_ _ inner-schema] route value-1 value-2]
   (if-not (:all route)

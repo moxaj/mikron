@@ -19,7 +19,7 @@
             [seria.util.common :refer [cljc-abs cljc-round]]))
 
 ;; ============================================================================
-;; Static seria config 
+;; Static seria config
 ;; ============================================================================
 
 {:schemas {:body     [:record {:user-data [:record {:id :int}]
@@ -652,61 +652,61 @@
 (defn pack-body
   ([value_4212 buffer_4213] (pack-body value_4212 buffer_4213 0 false))
   ([value_4212 buffer_4213 diff-id_4214]
-    (pack-body value_4212 diff-id_4214 false))
+   (pack-body value_4212 diff-id_4214 false))
   ([value_4212 buffer_4213 diff-id_4214 diffed?_4215]
-    (pack
-      value_4212
-      buffer_4213
-      0
-      diff-id_4214
-      diffed?_4215
-      (if diffed?_4215 pack-diffed-inner*-body pack-inner*-body))))
+   (pack
+     value_4212
+     buffer_4213
+     0
+     diff-id_4214
+     diffed?_4215
+     (if diffed?_4215 pack-diffed-inner*-body pack-inner*-body))))
 
 (defn pack-coord
   ([value_4058 buffer_4059]
-    (pack-coord value_4058 buffer_4059 0 false))
+   (pack-coord value_4058 buffer_4059 0 false))
   ([value_4058 buffer_4059 diff-id_4060]
-    (pack-coord value_4058 diff-id_4060 false))
+   (pack-coord value_4058 diff-id_4060 false))
   ([value_4058 buffer_4059 diff-id_4060 diffed?_4061]
-    (pack
-      value_4058
-      buffer_4059
-      1
-      diff-id_4060
-      diffed?_4061
-      (if diffed?_4061 pack-diffed-inner*-coord pack-inner*-coord))))
+   (pack
+     value_4058
+     buffer_4059
+     1
+     diff-id_4060
+     diffed?_4061
+     (if diffed?_4061 pack-diffed-inner*-coord pack-inner*-coord))))
 
 (defn pack-fixture
   ([value_4155 buffer_4156]
-    (pack-fixture value_4155 buffer_4156 0 false))
+   (pack-fixture value_4155 buffer_4156 0 false))
   ([value_4155 buffer_4156 diff-id_4157]
-    (pack-fixture value_4155 diff-id_4157 false))
+   (pack-fixture value_4155 diff-id_4157 false))
   ([value_4155 buffer_4156 diff-id_4157 diffed?_4158]
-    (pack
-      value_4155
-      buffer_4156
-      2
-      diff-id_4157
-      diffed?_4158
-      (if diffed?_4158
-        pack-diffed-inner*-fixture
-        pack-inner*-fixture))))
+   (pack
+     value_4155
+     buffer_4156
+     2
+     diff-id_4157
+     diffed?_4158
+     (if diffed?_4158
+       pack-diffed-inner*-fixture
+       pack-inner*-fixture))))
 
 (defn pack-snapshot
   ([value_4099 buffer_4100]
-    (pack-snapshot value_4099 buffer_4100 0 false))
+   (pack-snapshot value_4099 buffer_4100 0 false))
   ([value_4099 buffer_4100 diff-id_4101]
-    (pack-snapshot value_4099 diff-id_4101 false))
+   (pack-snapshot value_4099 diff-id_4101 false))
   ([value_4099 buffer_4100 diff-id_4101 diffed?_4102]
-    (pack
-      value_4099
-      buffer_4100
-      3
-      diff-id_4101
-      diffed?_4102
-      (if diffed?_4102
-        pack-diffed-inner*-snapshot
-        pack-inner*-snapshot))))
+   (pack
+     value_4099
+     buffer_4100
+     3
+     diff-id_4101
+     diffed?_4102
+     (if diffed?_4102
+       pack-diffed-inner*-snapshot
+       pack-inner*-snapshot))))
 
 (defn undiff-body [value-1_4235 value-2_4236]
   (if (= :dnil value-2_4236)
@@ -858,6 +858,5 @@
           (if (:diffed headers_4049)
             unpack-diffed-inner*-body
             unpack-inner*-body))
-         buffer_4048),
+        buffer_4048),
        :diff-id (:diff-id headers_4049)})))
-

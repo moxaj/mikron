@@ -2,8 +2,7 @@
   "Buffer protocol and implementations."
   #?(:clj (:import [seria SeriaByteBuffer]))
   (:require [seria.util.common :as util.common]
-            #?(:cljs [cljsjs.bytebuffer]))
-  #?(:cljs (:require-macros seria.buffer)))
+            #?(:cljs [cljsjs.bytebuffer])))
 
 (defprotocol Buffer
   (read-byte!    [this])

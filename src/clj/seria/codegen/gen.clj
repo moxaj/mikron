@@ -2,50 +2,33 @@
   "Generator generating functions."
   (:require [seria.type :as type]
             [seria.util.symbol :as util.symbol]
-            [seria.util.schema :as util.schema]))
+            [seria.util.schema :as util.schema]
+            [seria.util.common :as util.common]))
 
 (def ^:dynamic *options*)
-
-(def symbol-chars
-  (map char (concat [\_ \- \?]
-                    (range 97 123)
-                    (range 65 91))))
-
-(defn gen-symbol-char []
-  (rand-nth symbol-chars))
-
-(defn gen-size []
-  (+ 2 (rand-int 4)))
-
-(defn random-integer [bytes signed?]
-  (let [max-value (Math/pow 2 (* bytes 8))
-        r         (Math/floor (* max-value (rand)))]
-    (long (if-not signed?
-            r
-            (- r (/ max-value 2))))))
 
 (defmulti gen util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod gen :byte [_]
-  `(random-integer 1 true))
+  `(util.common/random-integer 1 true))
 
 (defmethod gen :ubyte [_]
-  `(random-integer 1 false))
+  `(util.common/random-integer 1 false))
 
 (defmethod gen :short [_]
-  `(random-integer 2 true))
+  `(util.common/random-integer 2 true))
 
 (defmethod gen :ushort [_]
-  `(random-integer 2 false))
+  `(util.common/random-integer 2 false))
 
 (defmethod gen :int [_]
-  `(random-integer 4 true))
+  `(util.common/random-integer 4 true))
 
 (defmethod gen :uint [_]
-  `(random-integer 4 false))
+  `(util.common/random-integer 4 false))
 
 (defmethod gen :long [_]
-  `(random-integer 8 true))
+  `(util.common/random-integer 8 true))
 
 (defmethod gen :float [_]
   `(float (rand)))
@@ -64,18 +47,16 @@
 
 (defmethod gen :string [_]
   `(->> (fn [] ~(gen :char))
-        (repeatedly (gen-size))
+        (repeatedly (util.common/gen-size))
         (apply str)))
 
 (defmethod gen :keyword [_]
-  `(->> (fn [] ~(gen-symbol-char))
-        (repeatedly (gen-size))
+  `(->> (repeatedly (util.common/gen-size) util.common/gen-symbol-char)
         (apply str)
         (keyword)))
 
 (defmethod gen :symbol [_]
-  `(->> (fn [] ~(gen-symbol-char))
-        (repeatedly (gen-size))
+  `(->> (repeatedly (util.common/gen-size) util.common/gen-symbol-char)
         (apply str)
         (symbol)))
 
@@ -86,7 +67,7 @@
   nil)
 
 (defmethod gen :list [[_ _ inner-schema]]
-  `(repeatedly (gen-size) (fn [] ~(gen inner-schema))))
+  `(repeatedly (util.common/gen-size) (fn [] ~(gen inner-schema))))
 
 (defmethod gen :vector [[_ _ inner-schema]]
   `(vec ~(gen [:list {} inner-schema])))
@@ -96,7 +77,7 @@
        (util.schema/as-set sorted-by)))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
-  (->> `(->> (repeatedly (gen-size) (fn [] ~[(gen key-schema) (gen val-schema)]))
+  (->> `(->> (repeatedly (util.common/gen-size) (fn [] ~[(gen key-schema) (gen val-schema)]))
              (into {}))
        (util.schema/as-map sorted-by)))
 
