@@ -72,3 +72,24 @@
                                  :b [:tuple [:byte :byte]]
                                  :c [:vector [:enum [:cat :dog]]]}]}]]
       (test-diff-case schemas)))
+
+(defn test-interp-case [schema]
+  (config/eval-output (config/process-config {:schemas {:x schema} :processors [:interp :gen]}))
+  (doseq [[value-1 value-2] (partition 2 (repeatedly 20 (resolve 'gen-x)))]
+    ((resolve 'interp-x) value-1 value-2 0 1 0.5))) ;; real tests later
+
+(deftest interp-test
+  (doseq [schema [[:list :byte]
+                  [:vector :int]
+                  [:set :short]
+                  [:set {:sorted-by :default} :short]
+                  [:set {:sorted-by 'clojure.core/>} :int]
+                  [:map :byte :string]
+                  [:map {:sorted-by :default} :byte :string]
+                  [:map {:sorted-by 'clojure.core/>} :byte :string]
+                  [:optional :byte]
+                  [:enum [:cat :dog :measurement :error]]
+                  [:tuple [:int :float :double]]
+                  [:record {:a :int :b :string :c :byte}]
+                  [:multi 'clojure.core/number? {true :int false :string}]]]
+    (test-interp-case schema)))
