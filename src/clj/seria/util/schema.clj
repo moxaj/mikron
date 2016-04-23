@@ -46,6 +46,9 @@
                          (last))]
     [:record {:constructor constructor} record-map]))
 
+(defn expand-interp-route [route routes]
+  route)
+
 (defn destructure-indexed [[complex-type _ inner-schemas] value postfix-sym?]
   (let [tuple? (= :tuple complex-type)]
     (map (fn [index]

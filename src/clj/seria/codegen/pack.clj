@@ -10,7 +10,7 @@
 
 (defmulti pack util.schema/type-of :hierarchy #'type/hierarchy)
 
-(defn as-diffable [value body]
+(defn wrap-diffed [value body]
   (if-not (:diffed? *options*)
     body
     (let [value-dnil? (util.symbol/postfix-gensym value "dnil?")]
@@ -52,7 +52,7 @@
   (let [inner-value (util.symbol/postfix-gensym value "item")]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [~inner-value]
-                 ~(as-diffable inner-value (pack inner-schema inner-value)))
+                 ~(wrap-diffed inner-value (pack inner-schema inner-value)))
                ~value))))
 
 (defmethod pack :vector [[_ _ inner-schema] value]
@@ -67,14 +67,14 @@
     `(do ~(pack :varint `(count ~value))
          (run! (fn [[~key ~val]]
                  ~(pack key-schema key)
-                 ~(as-diffable val (pack val-schema val)))
+                 ~(wrap-diffed val (pack val-schema val)))
                ~value))))
 
 (defmethod pack :tuple [schema value]
   (let [destructured (util.schema/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :value) destructured)]
        ~@(doall (map (fn [{inner-schema :schema inner-value :symbol index :index}]
-                       (as-diffable inner-value (pack inner-schema inner-value)))
+                       (wrap-diffed inner-value (pack inner-schema inner-value)))
                      destructured)))))
 
 (defmethod pack :record [schema value]
@@ -82,7 +82,7 @@
         destructured (util.schema/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :value) destructured)]
        ~@(doall (map (fn [{inner-schema :schema inner-value :symbol index :index}]
-                       (as-diffable inner-value (pack inner-schema inner-value)))
+                       (wrap-diffed inner-value (pack inner-schema inner-value)))
                      destructured)))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
@@ -117,7 +117,7 @@
                                                      schema-name)
                          {:private true})
         [~buffer ~value]
-        ~(as-diffable value (pack (schemas schema-name) value))
+        ~(wrap-diffed value (pack (schemas schema-name) value))
         ~buffer))))
 
 (def common-packer

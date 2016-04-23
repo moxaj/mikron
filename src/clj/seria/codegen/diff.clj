@@ -12,7 +12,7 @@
   (or (get-in *options* [:eq-ops schema])
       `=))
 
-(defn as-diffed [schema value-1 value-2 body]
+(defn wrap-diffed [schema value-1 value-2 body]
   (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
                :dnil
@@ -32,8 +32,8 @@
     `(let [~vec-value-1 (vec ~value-1)]
        (map-indexed (fn [~index ~inner-value-2]
                       (if-let [~inner-value-1 (get ~vec-value-1 ~index)]
-                        ~(as-diffed inner-schema inner-value-1 inner-value-2
-                                    (diff inner-schema inner-value-1 inner-value-2))
+                        ~(wrap-diffed inner-schema inner-value-1 inner-value-2
+                                      (diff inner-schema inner-value-1 inner-value-2))
                         ~inner-value-2))
                     ~value-2))))
 
@@ -43,19 +43,19 @@
         inner-value-2 (util.symbol/postfix-gensym value-2 "item")]
     `(vec (map-indexed (fn [~index ~inner-value-2]
                          (if-let [~inner-value-1 (get ~value-1 ~index)]
-                           ~(as-diffed inner-schema inner-value-1 inner-value-2
-                                       (diff inner-schema inner-value-1 inner-value-2))
+                           ~(wrap-diffed inner-schema inner-value-1 inner-value-2
+                                         (diff inner-schema inner-value-1 inner-value-2))
                            ~inner-value-2))
                        ~value-2))))
 
 (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] value-1 value-2]
-  (let [key   (util.symbol/postfix-gensym value-1 "key")
+  (let [key   (util.symbol/postfix-gensym value-2 "key")
         val-1 (util.symbol/postfix-gensym value-1 "val")
         val-2 (util.symbol/postfix-gensym value-2 "val")]
     (->> `(map (fn [[~key ~val-2]]
                  [~key (if-let [~val-1 (~value-1 ~key)]
-                         ~(as-diffed val-schema val-1 val-2
-                                     (diff val-schema val-1 val-2))
+                         ~(wrap-diffed val-schema val-1 val-2
+                                       (diff val-schema val-1 val-2))
                          ~val-2)])
                ~value-2)
          (util.schema/as-map sorted-by))))
@@ -66,22 +66,22 @@
        ~(mapv (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
                 (let [inner-value-1 (util.symbol/postfix-gensym value-1 (str index))]
                   `(let [~inner-value-1 (~value-1 ~index)]
-                     ~(as-diffed inner-schema inner-value-1 inner-value-2
-                                 (diff inner-schema inner-value-1 inner-value-2)))))
+                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2
+                                   (diff inner-schema inner-value-1 inner-value-2)))))
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
-  (let [[_ {:keys [constructor]} :as schema] (util.schema/expand-record schema (:schemas *options*))
-        destructured-2                       (util.schema/destructure-indexed schema value-2 true)]
+  (let [schema         (util.schema/expand-record schema (:schemas *options*))
+        destructured-2 (util.schema/destructure-indexed schema value-2 true)]
     (->> `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
             ~(->> destructured-2
                   (map (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
                          [index (let [inner-value-1 (util.symbol/postfix-gensym value-1 (name index))]
                                   `(let [~inner-value-1 (~index ~value-1)]
-                                     ~(as-diffed inner-schema inner-value-1 inner-value-2
-                                                 (diff inner-schema inner-value-1 inner-value-2))))]))
+                                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2
+                                                   (diff inner-schema inner-value-1 inner-value-2))))]))
                   (into {})))
-         (util.schema/as-record constructor))))
+         (util.schema/as-record (:constructor (second schema))))))
 
 (defmethod diff :optional [[_ _ inner-schema] value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -110,7 +110,7 @@
     (let [schema (get-in *options* [:schemas schema-name])]
       `(defn ~(util.symbol/processor-name (:processor-type *options*) schema-name)
         [~value-1 ~value-2]
-        ~(as-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
+        ~(wrap-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
 
 (defn make-differ [schema-name options]
   (binding [*options* (assoc options :processor-type :diff)]

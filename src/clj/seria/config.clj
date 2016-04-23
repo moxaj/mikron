@@ -30,21 +30,20 @@
                          (unpack/make-inner-unpacker schema-name (assoc options :diffed? true)))
 
                    (processor-types :gen)
-                   (conj (gen/make-generator schema-name options)))))
+                   (conj (gen/make-generator schema-name options))
 
-                   ; (processor-types :interp)
-                   ; (conj (interp/make-interper schema-name options)))]))
+                   (processor-types :interp)
+                   (conj (interp/make-interper schema-name options)))))
        (concat (when (processor-types :pack)
-                 [pack/common-packer (unpack/make-unpacker options)]))
-       (vec)))
+                 [pack/common-packer (unpack/make-unpacker options)]))))
 
 (defn process-config [config]
-  (let [{:keys [schemas] :as config} (validate/validate-config config)
-        processors                   (make-processors config)]
+  (let [processors (make-processors (validate/validate-config config))
+        declares   `(declare ~@(map (fn [[_ processor-name]]
+                                      (with-meta processor-name {}))
+                                    processors))]
     {:fns      processors
-     :declares `(declare ~@(map (fn [[_ processor-name]]
-                                  (with-meta processor-name {}))
-                                processors))}))
+     :declares declares}))
 
 (defn eval-output [{:keys [declares fns]}]
-  (eval [declares fns]))
+  (eval [declares (vec fns)]))

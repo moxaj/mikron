@@ -10,7 +10,7 @@
 
 (defmulti unpack util.schema/type-of :hierarchy #'type/hierarchy)
 
-(defn as-undiffable [body]
+(defn wrap-diffed [body]
   (if-not (:diffed? *options*)
     body
     `(if ~(unpack :boolean)
@@ -39,7 +39,7 @@
 
 (defmethod unpack :list [[_ _ inner-schema]]
   `(doall (repeatedly ~(unpack :varint)
-                      (fn [] ~(as-undiffable (unpack inner-schema))))))
+                      (fn [] ~(wrap-diffed (unpack inner-schema))))))
 
 (defmethod unpack :vector [[_ _ inner-schema]]
   `(vec ~(unpack [:list {} inner-schema])))
@@ -51,19 +51,19 @@
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
   (->> `(repeatedly ~(unpack :varint)
                     (fn [] [~(unpack key-schema)
-                            ~(as-undiffable (unpack val-schema))]))
+                            ~(wrap-diffed (unpack val-schema))]))
        (util.schema/as-map sorted-by)))
 
 (defmethod unpack :tuple [[_ _ inner-schemas]]
   (vec (map-indexed (fn [index inner-schema]
-                      (as-undiffable (unpack inner-schema)))
+                      (wrap-diffed (unpack inner-schema)))
                     inner-schemas)))
 
 (defmethod unpack :record [schema]
   (let [[_ {:keys [constructor]} record-map] (util.schema/expand-record schema (:schemas *options*))]
     (->> (sort (keys record-map))
          (map (fn [key]
-                [key (as-undiffable (unpack (record-map key)))]))
+                [key (wrap-diffed (unpack (record-map key)))]))
          (into {})
          (util.schema/as-record constructor))))
 
@@ -93,7 +93,7 @@
                                                      schema-name)
                          {:private true})
         [~buffer]
-        ~(as-undiffable (unpack (schemas schema-name)))))))
+        ~(wrap-diffed (unpack (schemas schema-name)))))))
 
 (defn make-unpacker [{:keys [schemas processor-types]}]
   (util.symbol/with-gensyms [raw buffer headers diff-id diffed? schema unpack-fn]

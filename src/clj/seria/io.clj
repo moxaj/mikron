@@ -13,7 +13,7 @@
   (cond
     (symbol? form)
     (let [form-ns (namespace form)]
-      (if (or (= "clojure.core" form-ns))
+      (if (= "clojure.core" form-ns)
         (sorted-map)
         (sorted-map (if form-ns (symbol form-ns) 'none)
                     (sorted-set (symbol (name form))))))
@@ -32,7 +32,7 @@
                         {fn-name [ns-name]})
                       fn-names)))
        (apply merge-with concat)
-       (filter (fn [[fn-name ns-names]]
+       (filter (fn [[_ ns-names]]
                  (< 1 (count ns-names))))
        (map first)
        (set)))

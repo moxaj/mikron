@@ -182,13 +182,19 @@
           "Invalid :eq-ops parameter: values must be symbols.")
   eq-ops)
 
-(defn validate-config [{:keys [schemas processors eq-ops]
+(defn validate-interp-routes [interp-routes]
+  interp-routes)
+
+(defn validate-config [{:keys [schemas processors eq-ops interp]
                         :or   {schemas    {}
                                processors [:pack :diff :gen :interp]
-                               eq-ops     {}}}]
+                               eq-ops     {}
+                               interp     {}}}]
   (let [schemas         (validate-schemas schemas)
         processor-types (validate-processor-types processors)
-        eq-ops          (validate-eq-ops eq-ops schemas)]
+        eq-ops          (validate-eq-ops eq-ops schemas)
+        interp-routes   (validate-interp-routes interp)]
     {:schemas         schemas
      :processor-types processor-types
-     :eq-ops          eq-ops}))
+     :eq-ops          eq-ops
+     :interp-routes   interp-routes}))

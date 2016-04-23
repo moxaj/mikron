@@ -105,7 +105,6 @@
                     :stats  [:size :serialize-speed :roundtrip-speed]))
   nil)
 
-;; roundtrip serialize size
 (def results
   '[:proto-repl-code-execution-extension
     "proto-repl-charts"
