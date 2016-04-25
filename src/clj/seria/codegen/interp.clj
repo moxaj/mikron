@@ -5,12 +5,14 @@
             [seria.util.symbol :as util.symbol]
             [seria.util.common :as util.common]))
 
-(defn wrap-equal [value-1 value-2 body]
-  `(if (= ~value-1 ~value-2) ~value-1 ~body))
-
 (def ^:dynamic *options*)
 
 (defmulti interp util.schema/type-of :hierarchy #'type/hierarchy)
+
+(defn wrap-equal [schema route value-1 value-2]
+  `(if (= ~value-1 ~value-2)
+     ~value-1
+     ~(interp schema route value-1 value-2)))
 
 (defmethod interp :integer [_ _ value-1 value-2]
   `(util.common/cljc-round ~(interp :floating nil value-1 value-2)))
@@ -35,8 +37,7 @@
             inner-value-2 (util.symbol/postfix-gensym value-2 "item")]
         `(vec (map-indexed (fn [~index ~inner-value-2]
                              (if-let [~inner-value-1 (get ~value-1 ~index)]
-                               ~(wrap-equal inner-value-1 inner-value-2
-                                            (interp inner-schema inner-route inner-value-1 inner-value-2))
+                               ~(wrap-equal inner-schema inner-route inner-value-1 inner-value-2)
                                ~inner-value-2))
                            ~value-2))))))
 
@@ -49,8 +50,7 @@
             val-2 (util.symbol/postfix-gensym value-2 "item")]
         (->> `(map (fn [[~key ~val-2]]
                      [~key (if-let [~val-1 (~value-1 ~key)]
-                             ~(wrap-equal val-1 val-2
-                                          (interp val-schema inner-route val-1 val-2))
+                             ~(wrap-equal val-schema inner-route val-1 val-2)
                              ~val-2)])
                    ~value-2)
              (util.schema/as-map sorted-by))))))
@@ -64,8 +64,7 @@
                   (let [inner-value-1 (util.symbol/postfix-gensym value-1 (str index))]
                     `(let [~inner-value-1 (~value-1 ~index)]
                        ~(if-let [inner-route (route index)]
-                          (wrap-equal inner-value-1 inner-value-2
-                                      (interp inner-schema inner-route inner-value-1 inner-value-2))
+                          (wrap-equal inner-schema inner-route inner-value-1 inner-value-2)
                           (interp :default nil inner-value-1 inner-value-2)))))
                 destructured-2)))))
 
@@ -80,8 +79,7 @@
                         [index (let [inner-value-1 (util.symbol/postfix-gensym value-1 (name index))]
                                  `(let [~inner-value-1 (~index ~value-1)]
                                     ~(if-let [inner-route (route index)]
-                                       (wrap-equal inner-value-1 inner-value-2
-                                                   (interp inner-schema inner-route inner-value-1 inner-value-2))
+                                       (wrap-equal inner-schema inner-route inner-value-1 inner-value-2)
                                        (interp :default nil inner-value-1 inner-value-2))))])
                       destructured-2)
                  (into {})
@@ -128,5 +126,4 @@
            (let [~prefer-first? (< (util.common/cljc-abs (- ~time ~time-1))
                                    (util.common/cljc-abs (- ~time ~time-2)))
                  ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
-             ~(wrap-equal value-1 value-2
-                          (interp schema route value-1 value-2))))))))
+             ~(wrap-equal schema route value-1 value-2)))))))

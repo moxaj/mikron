@@ -5,23 +5,22 @@
             [seria.util.schema :as util.schema]
             [seria.util.symbol :as util.symbol]))
 
-
 (def ^:dynamic *options*)
 
 (defn equality-operator [schema]
   (or (get-in *options* [:eq-ops schema])
       `=))
 
-(defn wrap-diffed [schema value-1 value-2 body]
+(defmulti diff util.schema/type-of :hierarchy #'type/hierarchy)
+
+(defn wrap-diffed [schema value-1 value-2]
   (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
                :dnil
-               ~body)
+               ~(diff schema value-1 value-2))
     :undiff `(if (= :dnil ~value-2)
                ~value-1
-               ~body)))
-
-(defmulti diff util.schema/type-of :hierarchy #'type/hierarchy)
+               ~(diff schema value-1 value-2))))
 
 (defmethod diff :list [[_ _ inner-schema] value-1 value-2]
   (let [index         (gensym "index_")
@@ -32,8 +31,7 @@
     `(let [~vec-value-1 (vec ~value-1)]
        (map-indexed (fn [~index ~inner-value-2]
                       (if-let [~inner-value-1 (get ~vec-value-1 ~index)]
-                        ~(wrap-diffed inner-schema inner-value-1 inner-value-2
-                                      (diff inner-schema inner-value-1 inner-value-2))
+                        ~(wrap-diffed inner-schema inner-value-1 inner-value-2)
                         ~inner-value-2))
                     ~value-2))))
 
@@ -43,8 +41,7 @@
         inner-value-2 (util.symbol/postfix-gensym value-2 "item")]
     `(vec (map-indexed (fn [~index ~inner-value-2]
                          (if-let [~inner-value-1 (get ~value-1 ~index)]
-                           ~(wrap-diffed inner-schema inner-value-1 inner-value-2
-                                         (diff inner-schema inner-value-1 inner-value-2))
+                           ~(wrap-diffed inner-schema inner-value-1 inner-value-2)
                            ~inner-value-2))
                        ~value-2))))
 
@@ -54,8 +51,7 @@
         val-2 (util.symbol/postfix-gensym value-2 "val")]
     (->> `(map (fn [[~key ~val-2]]
                  [~key (if-let [~val-1 (~value-1 ~key)]
-                         ~(wrap-diffed val-schema val-1 val-2
-                                       (diff val-schema val-1 val-2))
+                         ~(wrap-diffed val-schema val-1 val-2)
                          ~val-2)])
                ~value-2)
          (util.schema/as-map sorted-by))))
@@ -66,8 +62,7 @@
        ~(mapv (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
                 (let [inner-value-1 (util.symbol/postfix-gensym value-1 (str index))]
                   `(let [~inner-value-1 (~value-1 ~index)]
-                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2
-                                   (diff inner-schema inner-value-1 inner-value-2)))))
+                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2))))
               destructured-2))))
 
 (defmethod diff :record [schema value-1 value-2]
@@ -78,8 +73,7 @@
                   (map (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
                          [index (let [inner-value-1 (util.symbol/postfix-gensym value-1 (name index))]
                                   `(let [~inner-value-1 (~index ~value-1)]
-                                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2
-                                                   (diff inner-schema inner-value-1 inner-value-2))))]))
+                                     ~(wrap-diffed inner-schema inner-value-1 inner-value-2)))]))
                   (into {})))
          (util.schema/as-record (:constructor (second schema))))))
 
@@ -110,7 +104,7 @@
     (let [schema (get-in *options* [:schemas schema-name])]
       `(defn ~(util.symbol/processor-name (:processor-type *options*) schema-name)
         [~value-1 ~value-2]
-        ~(wrap-diffed schema value-1 value-2 (diff schema value-1 value-2))))))
+        ~(wrap-diffed schema value-1 value-2)))))
 
 (defn make-differ [schema-name options]
   (binding [*options* (assoc options :processor-type :diff)]

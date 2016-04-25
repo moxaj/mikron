@@ -7,6 +7,10 @@
 
 (def ^:dynamic *options*)
 
+(def gen-size `(+ 2 (rand-int 4)))
+
+(def gen-symbol-char `(rand-nth util.common/symbol-chars))
+
 (defmulti gen util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod gen :byte [_]
@@ -47,16 +51,18 @@
 
 (defmethod gen :string [_]
   `(->> (fn [] ~(gen :char))
-        (repeatedly (util.common/gen-size))
+        (repeatedly ~gen-size)
         (apply str)))
 
 (defmethod gen :keyword [_]
-  `(->> (repeatedly (util.common/gen-size) util.common/gen-symbol-char)
+  `(->> (fn [] ~gen-symbol-char)
+        (repeatedly ~gen-size)
         (apply str)
         (keyword)))
 
 (defmethod gen :symbol [_]
-  `(->> (repeatedly (util.common/gen-size) util.common/gen-symbol-char)
+  `(->> (fn [] ~gen-symbol-char)
+        (repeatedly ~gen-size)
         (apply str)
         (symbol)))
 
@@ -67,7 +73,7 @@
   nil)
 
 (defmethod gen :list [[_ _ inner-schema]]
-  `(repeatedly (util.common/gen-size) (fn [] ~(gen inner-schema))))
+  `(repeatedly ~gen-size (fn [] ~(gen inner-schema))))
 
 (defmethod gen :vector [[_ _ inner-schema]]
   `(vec ~(gen [:list {} inner-schema])))
@@ -77,7 +83,7 @@
        (util.schema/as-set sorted-by)))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
-  (->> `(->> (repeatedly (util.common/gen-size) (fn [] ~[(gen key-schema) (gen val-schema)]))
+  (->> `(->> (repeatedly ~gen-size (fn [] ~[(gen key-schema) (gen val-schema)]))
              (into {}))
        (util.schema/as-map sorted-by)))
 

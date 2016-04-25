@@ -31,15 +31,10 @@
 ;; gen
 
 (def symbol-chars
-  (map char (concat [\_ \- \?]
+  (map char (concat [\_ \- \? \!]
                     (range 97 123)
-                    (range 65 91))))
-
-(defn gen-symbol-char []
-  (rand-nth symbol-chars))
-
-(defn gen-size []
-  (+ 2 (rand-int 4)))
+                    (range 65 91)
+                    (range 48 58))))
 
 (defn random-integer [bytes signed?]
   (let [max-value (cljc-pow 2 (* bytes 8))

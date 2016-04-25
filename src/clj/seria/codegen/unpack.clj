@@ -115,3 +115,10 @@
                                                      ~(util.symbol/processor-name :unpack-inner* schema-name)))])
                                  (keys schemas)))
                      ~buffer)})))))
+
+(comment
+  (defn unpack [raw store]
+    unpacks raw, if diff-id != 0, looks up previous message, undiffs)
+  (defn make-diff-store []))
+
+(count (.getBytes (pr-str {:diff-id 10102012 :diff-group 2})))
