@@ -64,7 +64,7 @@
     (->> (sort (keys record-map))
          (map (fn [key]
                 [key (wrap-diffed (unpack (record-map key)))]))
-         (into {})
+         (into (sorted-map))
          (util.schema/as-record constructor))))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
@@ -96,7 +96,7 @@
         ~(wrap-diffed (unpack (schemas schema-name)))))))
 
 (defn make-unpacker [{:keys [schemas processor-types]}]
-  (util.symbol/with-gensyms [raw buffer headers diff-id diffed? schema unpack-fn]
+  (util.symbol/with-gensyms [raw buffer headers diffed? schema unpack-fn]
     `(defn ~'unpack [~raw]
       (let [~buffer  (buffer/wrap ~raw)
             ~headers (buffer/read-headers! ~buffer)
@@ -105,20 +105,12 @@
           :invalid
           {:schema  ~schema
            :diffed? (:diffed? ~headers)
-           :diff-id (:diff-id ~headers)
            :value   ((case ~schema
                        ~@(mapcat (fn [schema-name]
                                    [schema-name (if-not (processor-types :diff)
                                                   (util.symbol/processor-name :unpack-inner* schema-name)
-                                                  `(if (:diffed ~headers)
+                                                  `(if (:diffed? ~headers)
                                                      ~(util.symbol/processor-name :unpack-diffed-inner* schema-name)
                                                      ~(util.symbol/processor-name :unpack-inner* schema-name)))])
                                  (keys schemas)))
                      ~buffer)})))))
-
-(comment
-  (defn unpack [raw store]
-    unpacks raw, if diff-id != 0, looks up previous message, undiffs)
-  (defn make-diff-store []))
-
-(count (.getBytes (pr-str {:diff-id 10102012 :diff-group 2})))

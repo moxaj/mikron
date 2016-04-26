@@ -121,27 +121,24 @@
         ~buffer))))
 
 (def common-packer
-  (util.symbol/with-gensyms [value buffer schema-id diff-id diffed? pack-fn]
+  (util.symbol/with-gensyms [value buffer schema-id diffed? pack-fn]
     `(defn ~(with-meta 'pack {:private true})
-      [~value ~buffer ~schema-id ~diff-id ~diffed? ~pack-fn]
+      [~value ~buffer ~schema-id ~diffed? ~pack-fn]
       (-> ~buffer
-          (buffer/write-headers! ~schema-id ~diff-id ~diffed?)
+          (buffer/write-headers! ~schema-id ~diffed?)
           (~pack-fn ~value)
           (buffer/compress)))))
 
 (defn make-packer [schema-name {:keys [schemas processor-types]}]
-  (util.symbol/with-gensyms [value buffer diff-id diffed?]
+  (util.symbol/with-gensyms [value buffer diffed?]
     (let [processor-name (util.symbol/processor-name :pack schema-name)]
       `(defn ~processor-name
         ([~value ~buffer]
-         (~processor-name ~value ~buffer 0 false))
-        ([~value ~buffer ~diff-id]
-         (~processor-name ~value ~diff-id false))
-        ([~value ~buffer ~diff-id ~diffed?]
+         (~processor-name ~value ~buffer false))
+        ([~value ~buffer ~diffed?]
          (~'pack ~value
                  ~buffer
                  ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
-                 ~diff-id
                  ~diffed?
                  ~(if-not (processor-types :diff)
                     (util.symbol/processor-name :pack-inner* schema-name)

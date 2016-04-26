@@ -10,7 +10,7 @@
   (config/eval-output (config/process-config {:schemas schemas :processors [:pack :gen]}))
   (let [buffer (buffer/allocate 100000)]
     (doseq [value (repeatedly 10 (resolve 'gen-x))]
-      (is (= {:schema :x :diff-id 0 :diffed? false :value value}
+      (is (= {:schema :x :diffed? false :value value}
              (pack-roundtrip value buffer))))))
 
 (deftest simple-test

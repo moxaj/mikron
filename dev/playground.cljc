@@ -1,5 +1,6 @@
 (ns playground
   (:require [seria.config :as config]
+            [seria.buffer :as buffer]
             [criterium.core :as crit]
             [seria.prettify :as prettify]))
 
@@ -16,18 +17,18 @@
                        :bodies [:list :body]}]})
 
 (def box2d-interp-routes
-  {:snapshot {:time   :!
-              :bodies {:all :!}}
-   :body     {:position :!
-              :angle    :!}
-   :coord    {0 :!
-              1 :!}})
+  {:snapshot {:time   true
+              :bodies {:all true}}
+   :body     {:position true
+              :angle    true}
+   :coord    {0 true
+              1 true}})
 
-(let [config   (config/process-config {:schemas    box2d-schemas
-                                       :interp     box2d-interp-routes
-                                       :processors [:diff :gen]})
-      _        (config/eval-output config)
-      diff-x   @(resolve 'diff-snapshot)
-      gen-x    @(resolve 'gen-snapshot)
-      a        (gen-x)
-      b        (gen-x)])
+(def box2d-diff-routes
+  {:snapshot {:time   true
+              :bodies {:all true}}
+   :body     {:user-data {:id true}
+              :body-type true
+              :fixtures  {:all true}}
+   :fixture  {:user-data {:color true}
+              :coords    true}})

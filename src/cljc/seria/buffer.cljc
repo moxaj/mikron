@@ -167,19 +167,16 @@
   (clear! #?(:clj  (SeriaByteBuffer/allocate size)
              :cljs (.allocate js/ByteBuffer size))))
 
-(defn write-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer) schema-id diff-id diffed?]
+(defn write-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer) schema-id diffed?]
   (-> buffer
       (clear!)
       (write-boolean! (little-endian? buffer))
       (write-varint! schema-id)
-      (write-varint! diff-id)
       (write-boolean! diffed?)))
 
 (defn read-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer)]
   (little-endian! buffer (read-boolean! buffer))
   (let [schema-id (read-varint! buffer)
-        diff-id   (read-varint! buffer)
         diffed?   (read-boolean! buffer)]
     {:schema-id schema-id
-     :diff-id   diff-id
      :diffed?   diffed?}))
