@@ -4,8 +4,9 @@
             [seria.util.schema :as util.schema]
             [seria.util.symbol :as util.symbol]
             [seria.util.coll :as util.coll]
-            [seria.codegen.diff :as diff]
-            [seria.type :as type]))
+            [seria.type :as type]
+            [seria.util.common :as util.common])
+  (:import  [seria.util.common DiffedValue]))
 
 (def ^:dynamic *options*)
 
@@ -15,7 +16,7 @@
   (if-not (:diffed? *options*)
     (pack schema value)
     (let [value-dnil? (util.symbol/postfix-gensym value "dnil?")]
-      `(let [~value-dnil? (= :dnil ~value)]
+      `(let [~value-dnil? (util.common/dnil? ~value)]
          ~(pack :boolean value-dnil?)
          (when-not ~value-dnil?
            ~(pack schema value))))))
@@ -124,16 +125,18 @@
         ~buffer))))
 
 (defn make-packer [schema-name {:keys [schemas processor-types]}]
-  (util.symbol/with-gensyms [value options buffer diffed?]
-    `(~(util.symbol/processor-name :pack schema-name)
-      [~value ~options]
-      (let [~diffed? (instance? diff/DiffedValue ~value)
-            ~value   (if ~diffed? (:value ~value) ~value)]
-        (-> (:buffer ~options)
-            (buffer/write-headers! ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
-                                   ~diffed?)
-            ((if ~diffed?
-               ~(util.symbol/processor-name :pack-diffed-inner* schema-name)
-               ~(util.symbol/processor-name :pack-inner* schema-name))
-             ~value)
-            (buffer/compress))))))
+  (util.symbol/with-gensyms [value options diffed?]
+    (let [buffer (util.symbol/var-name :buffer)]
+      `(~(util.symbol/processor-name :pack schema-name)
+        [~value ~options]
+        (let [~diffed? (instance? DiffedValue ~value)
+              ~value   (if ~diffed? (:value ~value) ~value)]
+          ~(util.common/wrap-locking buffer
+             `(-> ~buffer
+                  (buffer/write-headers! ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
+                                         ~diffed?)
+                  ((if ~diffed?
+                     ~(util.symbol/processor-name :pack-diffed-inner* schema-name)
+                     ~(util.symbol/processor-name :pack-inner* schema-name))
+                   ~value)
+                  (buffer/compress))))))))

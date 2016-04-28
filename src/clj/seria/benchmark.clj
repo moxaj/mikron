@@ -1,8 +1,7 @@
 (ns seria.benchmark
   "Benchmarks comparing other methods."
   (:require [criterium.core :as crit]
-            [seria.buffer :as buffer]
-            [seria.config :as config]
+            [seria.processor :as processor]
             [taoensso.nippy :as nippy]
             [clj-kryo.core :as kryo]
             [cheshire.core :as cheshire]
@@ -32,7 +31,7 @@
     (with-open [in (kryo/make-input bais)]
       (kryo/read-object in))))
 
-(config/defprocessors [pack-snapshot gen-snapshot unpack]
+(processor/defprocessors [pack-snapshot gen-snapshot unpack]
   :schemas  {:body     [:record {:user-data [:record {:id :int}]
                                  :position  :coord
                                  :angle     :float
@@ -71,15 +70,14 @@
                     (into {}))])
        (into {})))
 
-(defn run-benchmarks [& {:keys [buffer stats]}]
-  (measure-methods {:seria [#(pack-snapshot % {:buffer buffer})
-                            unpack]
+(defn run-benchmarks [& {:keys [stats]}]
+  (measure-methods {:seria [#(pack-snapshot % {}) unpack]
                     :java  [java-serialize java-deserialize]
                     :kryo  [kryo-serialize kryo-deserialize]
                     :nippy [nippy/freeze nippy/thaw]
                     :json  [cheshire/generate-string cheshire/parse-string]
                     :smile [cheshire/generate-smile cheshire/parse-smile]}
-                   (repeatedly 1000 (resolve 'gen-snapshot))
+                   (repeatedly 1000 gen-snapshot)
                    stats))
 
 (defn visualize-results [results]
@@ -98,8 +96,7 @@
 
 (comment
   (visualize-results
-    (run-benchmarks :buffer (buffer/allocate 10000)
-                    :stats  [:size :serialize-speed :roundtrip-speed]))
+    (run-benchmarks :stats [:size :serialize-speed :roundtrip-speed]))
   nil)
 
 (def results

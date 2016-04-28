@@ -1,8 +1,7 @@
 (ns playground
-  (:require [seria.config :as config]
-            [seria.buffer :as buffer]
-            [criterium.core :as crit]
-            [seria.prettify :as prettify]))
+  (:require [criterium.core :as crit]
+            [seria.processor :as processor]))
+
 
 (def box2d-schemas
   {:body     [:record {:user-data [:record {:id :int}]
@@ -32,3 +31,6 @@
               :fixtures  {:all true}}
    :fixture  {:user-data {:color true}
               :coords    true}})
+
+(processor/make-test-processors
+  '{:schemas {:x [:multi + {true :int false :string}]}})

@@ -4,18 +4,26 @@
 
 (defn raw-gensym [sym]
   (let [sym-name (name sym)]
-    (if-let [index (string/last-index-of sym-name "_")]
-      (subs sym-name 0 index)
-      sym-name)))
+    (symbol (if-let [index (string/last-index-of sym-name "_")]
+              (subs sym-name 0 index)
+              sym-name))))
 
 (defn postfix-gensym [sym s]
-  (gensym (str (raw-gensym sym) "-" s "_")))
-
-(defn processor-name [processor-type schema-name]
-  (symbol (str (name processor-type) "-" (name schema-name))))
+  (gensym (str (name (raw-gensym sym)) "-" s "_")))
 
 (defmacro with-gensyms [binding-form & body]
   `(let [~@(mapcat (fn [sym]
                      [sym `(gensym ~(str sym "_"))])
                    binding-form)]
      ~@body))
+
+(def var-name
+  (memoize
+    (fn [key]
+      (gensym (format "%s_" (name key))))))
+
+(defn processor-name
+  ([processor-type]
+   (var-name processor-type))
+  ([processor-type schema-name]
+   (var-name (keyword (format "%s-%s" (name processor-type) (name schema-name))))))

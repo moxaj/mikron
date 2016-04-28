@@ -1,17 +1,15 @@
 (ns seria.test
   (:require [clojure.test :refer [deftest is]]
-            [seria.config :as config]
-            [seria.buffer :as buffer]))
+            [seria.processor :as processor]))
 
-(defn pack-roundtrip [value buffer]
-  ((resolve 'unpack) ((resolve 'pack-x) value buffer)))
+(defn pack-roundtrip [value {:keys [pack-x unpack]}]
+  (unpack (pack-x value {})))
 
 (defn test-pack-case [schemas]
-  (config/eval-output (config/process-config {:schemas schemas :processors [:pack :gen]}))
-  (let [buffer (buffer/allocate 100000)]
-    (doseq [value (repeatedly 10 (resolve 'gen-x))]
+  (let [{:keys [gen-x] :as processors} (processor/make-test-processors {:schemas schemas})]
+    (doseq [value (repeatedly 10 gen-x)]
       (is (= {:schema :x :diffed? false :value value}
-             (pack-roundtrip value buffer))))))
+             (pack-roundtrip value processors))))))
 
 (deftest simple-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
@@ -56,13 +54,14 @@
                     :x        :snapshot}]]
     (test-pack-case schemas)))
 
-(defn diff-roundtrip [value-1 value-2]
-  ((resolve 'undiff-x) value-1 ((resolve 'diff-x) value-1 value-2)))
+(defn diff-roundtrip [value-1 value-2 {:keys [diff-x undiff-x]}]
+  (undiff-x value-1 (diff-x value-1 value-2)))
 
 (defn test-diff-case [schemas]
-  (config/eval-output (config/process-config {:schemas schemas :processors [:diff :gen]}))
-  (doseq [[value-1 value-2] (partition 2 (repeatedly 20 (resolve 'gen-x)))]
-    (is (= value-2 (diff-roundtrip value-1 value-2)))))
+  (let [{:keys [gen-x] :as processors}
+        (processor/make-test-processors {:schemas schemas})]
+    (doseq [[value-1 value-2] (partition 2 (repeatedly 20 gen-x))]
+      (is (= value-2 (diff-roundtrip value-1 value-2 processors))))))
 
 (deftest diff-test
   (doseq [schemas [{:x [:record {:a :int
@@ -73,10 +72,12 @@
                                  :c [:vector [:enum [:cat :dog]]]}]}]]
       (test-diff-case schemas)))
 
+
 (defn test-interp-case [schema]
-  (config/eval-output (config/process-config {:schemas {:x schema} :processors [:interp :gen]}))
-  (doseq [[value-1 value-2] (partition 2 (repeatedly 20 (resolve 'gen-x)))]
-    ((resolve 'interp-x) value-1 value-2 0 1 0.5))) ;; real tests later
+  (let [{:keys [interp-x gen-x] :as processors}
+        (processor/make-test-processors {:schemas {:x schema}})]
+    (doseq [[value-1 value-2] (partition 2 (repeatedly 20 gen-x))]
+      (interp-x value-1 value-2 0 1 0.5))))
 
 (deftest interp-test
   (doseq [schema [[:list :byte]

@@ -48,3 +48,30 @@
 (defn interp-numbers [value-1 value-2 time-factor]
   #?(:clj  (long (+' value-1 (* time-factor (-' value-2 value-1))))
      :cljs (+ value-1 (* time-factor (- value-2 value-1)))))
+
+;; diff
+
+(defrecord Dnil [])
+
+(def dnil (Dnil.))
+
+(defn dnil? [value]
+  (identical? dnil value))
+
+(defrecord DiffedValue [value])
+
+(defn diffed? [value]
+  (instance? DiffedValue value))
+
+(defn wrap-diffed [value]
+  (->DiffedValue value))
+
+(defn unwrap-diffed [value]
+  {:pre [(instance? DiffedValue value)]}
+  (:value value))
+
+;; pack
+
+(defn wrap-locking [lock & body]
+  #?(:clj  `(locking ~lock ~@body)
+     :cljs `(do ~@body)))

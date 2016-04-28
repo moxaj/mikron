@@ -15,7 +15,7 @@
   (if-not (:diffed? *options*)
     (unpack schema)
     `(if ~(unpack :boolean)
-       :dnil
+       util.common/dnil
        ~(unpack schema))))
 
 (defmethod unpack :primitive [schema]
@@ -100,7 +100,7 @@
 
 (defn make-unpacker [{:keys [schemas processor-types]}]
   (util.symbol/with-gensyms [raw buffer headers diffed? schema value]
-    `(~'unpack [~raw]
+    `(~(util.symbol/processor-name :unpack) [~raw]
       (let [~buffer  (buffer/wrap ~raw)
             ~headers (buffer/read-headers! ~buffer)
             ~schema  (get ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))

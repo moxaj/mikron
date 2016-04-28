@@ -1,5 +1,5 @@
 (ns seria.validate
-  "Static config validation."
+  "Static options validation."
   (:require [clojure.string :as string]
             [seria.type :as type]
             [seria.util.schema :as util.schema]))
@@ -140,7 +140,7 @@
   (throw (Exception. (format "Invalid schema: %s. No such schema type."
                              schema))))
 
-;; Config validation
+;; options validation
 
 (defn validate-schemas [schemas]
   (assert (map? schemas)
@@ -161,15 +161,6 @@
            [schema-name (validate-schema schema)])
          (into {}))))
 
-(defn validate-processor-types [processor-types]
-  (assert (vector? processor-types)
-          "Invalid :processors parameter: must be nil or a vector.")
-  (let [invalid-processor-types (remove #{:pack :diff :interp :gen} processor-types)]
-    (assert (empty? invalid-processor-types)
-            (format "Invalid :processors parameter: [%s] are not valid processors."
-                    (string/join ", " invalid-processor-types))))
-  (set processor-types))
-
 (defn validate-eq-ops [eq-ops schemas]
   (assert (map? eq-ops)
           "Invalid :eq-ops parameter: must be a map.")
@@ -185,16 +176,15 @@
 (defn validate-interp-routes [interp-routes]
   interp-routes)
 
-(defn validate-config [{:keys [schemas processors eq-ops interp]
-                        :or   {schemas    {}
-                               processors [:pack :diff :gen :interp]
-                               eq-ops     {}
-                               interp     {}}}]
-  (let [schemas         (validate-schemas schemas)
-        processor-types (validate-processor-types processors)
-        eq-ops          (validate-eq-ops eq-ops schemas)
-        interp-routes   (validate-interp-routes interp)]
-    {:schemas         schemas
-     :processor-types processor-types
-     :eq-ops          eq-ops
-     :interp-routes   interp-routes}))
+(defn validate-options [{:keys [schemas eq-ops interp buffer-size]
+                         :or   {schemas     {}
+                                eq-ops      {}
+                                interp      {}
+                                buffer-size 10000}}]
+  (let [schemas       (validate-schemas schemas)
+        eq-ops        (validate-eq-ops eq-ops schemas)
+        interp-routes (validate-interp-routes interp)]
+    {:schemas       schemas
+     :eq-ops        eq-ops
+     :interp-routes interp-routes
+     :buffer-size   buffer-size}))
