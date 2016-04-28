@@ -32,5 +32,9 @@
    :fixture  {:user-data {:color true}
               :coords    true}})
 
-(processor/make-test-processors
-  '{:schemas {:x [:multi + {true :int false :string}]}})
+(let [{:keys [pack-x unpack undiff-x diff-x]} (processor/make-test-processors {:schemas {:x :int}})]
+  (undiff-x 10
+    (-> (diff-x 100 101)
+        (pack-x {})
+        (unpack)
+        :value)))

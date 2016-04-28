@@ -118,5 +118,5 @@
                                        (keys schemas)))
                            ~buffer)]
                       (if ~diffed?
-                        (diff/->DiffedValue ~value)
+                        (util.common/wrap-diffed ~value)
                         ~value))})))))
