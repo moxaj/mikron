@@ -4,20 +4,21 @@
             [seria.util.schema :as util.schema]
             [seria.util.symbol :as util.symbol]
             [seria.util.coll :as util.coll]
+            [seria.codegen.diff :as diff]
             [seria.type :as type]))
 
 (def ^:dynamic *options*)
 
 (defmulti pack util.schema/type-of :hierarchy #'type/hierarchy)
 
-(defn wrap-diffed [value body]
+(defn pack-diffed [schema value]
   (if-not (:diffed? *options*)
-    body
+    (pack schema value)
     (let [value-dnil? (util.symbol/postfix-gensym value "dnil?")]
       `(let [~value-dnil? (= :dnil ~value)]
          ~(pack :boolean value-dnil?)
          (when-not ~value-dnil?
-           ~body)))))
+           ~(pack schema value))))))
 
 (defmethod pack :primitive [schema value]
   `(~(symbol (format "seria.buffer/write-%s!" (name schema)))
@@ -52,7 +53,7 @@
   (let [inner-value (util.symbol/postfix-gensym value "item")]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [~inner-value]
-                 ~(wrap-diffed inner-value (pack inner-schema inner-value)))
+                 ~(pack-diffed inner-schema inner-value))
                ~value))))
 
 (defmethod pack :vector [[_ _ inner-schema] value]
@@ -67,14 +68,14 @@
     `(do ~(pack :varint `(count ~value))
          (run! (fn [[~key ~val]]
                  ~(pack key-schema key)
-                 ~(wrap-diffed val (pack val-schema val)))
+                 ~(pack-diffed val-schema val))
                ~value))))
 
 (defmethod pack :tuple [schema value]
   (let [destructured (util.schema/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :value) destructured)]
        ~@(doall (map (fn [{inner-schema :schema inner-value :symbol index :index}]
-                       (wrap-diffed inner-value (pack inner-schema inner-value)))
+                       (pack-diffed inner-schema inner-value))
                      destructured)))))
 
 (defmethod pack :record [schema value]
@@ -82,7 +83,7 @@
         destructured (util.schema/destructure-indexed schema value false)]
     `(let [~@(mapcat (juxt :symbol :value) destructured)]
        ~@(doall (map (fn [{inner-schema :schema inner-value :symbol index :index}]
-                       (wrap-diffed inner-value (pack inner-schema inner-value)))
+                       (pack-diffed inner-schema inner-value))
                      destructured)))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
@@ -110,38 +111,29 @@
                                    schema)
       ~buffer ~value)))
 
+;; API
+
 (defn make-inner-packer [schema-name {:keys [schemas diffed?] :as options}]
   (util.symbol/with-gensyms [value buffer]
     (binding [*options* (assoc options :buffer buffer)]
-      `(defn ~(with-meta (util.symbol/processor-name (if diffed? :pack-diffed-inner* :pack-inner*)
-                                                     schema-name)
-                         {:private true})
+      `(~(with-meta (util.symbol/processor-name (if diffed? :pack-diffed-inner* :pack-inner*)
+                                                schema-name)
+                    {:private true})
         [~buffer ~value]
-        ~(wrap-diffed value (pack (schemas schema-name) value))
+        ~(pack-diffed (schemas schema-name) value)
         ~buffer))))
 
-(def common-packer
-  (util.symbol/with-gensyms [value buffer schema-id diffed? pack-fn]
-    `(defn ~(with-meta 'pack {:private true})
-      [~value ~buffer ~schema-id ~diffed? ~pack-fn]
-      (-> ~buffer
-          (buffer/write-headers! ~schema-id ~diffed?)
-          (~pack-fn ~value)
-          (buffer/compress)))))
-
 (defn make-packer [schema-name {:keys [schemas processor-types]}]
-  (util.symbol/with-gensyms [value buffer diffed?]
-    (let [processor-name (util.symbol/processor-name :pack schema-name)]
-      `(defn ~processor-name
-        ([~value ~buffer]
-         (~processor-name ~value ~buffer false))
-        ([~value ~buffer ~diffed?]
-         (~'pack ~value
-                 ~buffer
-                 ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
-                 ~diffed?
-                 ~(if-not (processor-types :diff)
-                    (util.symbol/processor-name :pack-inner* schema-name)
-                    `(if ~diffed?
-                       ~(util.symbol/processor-name :pack-diffed-inner* schema-name)
-                       ~(util.symbol/processor-name :pack-inner* schema-name)))))))))
+  (util.symbol/with-gensyms [value options buffer diffed?]
+    `(~(util.symbol/processor-name :pack schema-name)
+      [~value ~options]
+      (let [~diffed? (instance? diff/DiffedValue ~value)
+            ~value   (if ~diffed? (:value ~value) ~value)]
+        (-> (:buffer ~options)
+            (buffer/write-headers! ~(->> schemas (keys) (sort) (util.coll/index-of schema-name))
+                                   ~diffed?)
+            ((if ~diffed?
+               ~(util.symbol/processor-name :pack-diffed-inner* schema-name)
+               ~(util.symbol/processor-name :pack-inner* schema-name))
+             ~value)
+            (buffer/compress))))))

@@ -12,7 +12,8 @@
     :diff-routes {}
     :interp-routes {}) ;; => {:keys [pack-x pack-y ...]} letfn implementation!!
 
-  (pack-x value buffer {:diffed? true})
+  (pack-x value {:buffer buffer})
+  (pack-diffed-x value {:buffer buffer})
   (unpack raw) ;; =>{:keys [value schema diffed?]}
   (gen-x)
   (diff-x value-1 value-2)

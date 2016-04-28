@@ -1,11 +1,5 @@
 (ns seria.util.coll
-  "Generic collection utils."
-  (:require [clojure.set :as set]))
-
-(defn id-map [coll]
-  (->> coll
-       (map-indexed #(vector %2 %1))
-       (into {})))
+  "Generic collection utils.")
 
 (defn find-by [pred form]
   (cond-> []

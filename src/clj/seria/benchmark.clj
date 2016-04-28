@@ -32,19 +32,17 @@
     (with-open [in (kryo/make-input bais)]
       (kryo/read-object in))))
 
-(def box2d-schemas
-  {:body     [:record {:user-data [:record {:id :int}]
-                       :position  :coord
-                       :angle     :float
-                       :body-type [:enum [:dynamic :static :kinetic]]
-                       :fixtures  [:list :fixture]}]
-   :fixture  [:record {:user-data [:record {:color :int}]
-                       :coords    [:list :coord]}]
-   :coord    [:tuple [:float :float]]
-   :snapshot [:record {:time   :long
-                       :bodies [:list :body]}]})
-
-(config/eval-output (config/process-config {:schemas box2d-schemas}))
+(config/defprocessors [pack-snapshot gen-snapshot unpack]
+  :schemas  {:body     [:record {:user-data [:record {:id :int}]
+                                 :position  :coord
+                                 :angle     :float
+                                 :body-type [:enum [:dynamic :static :kinetic]]
+                                 :fixtures  [:list :fixture]}]
+             :fixture  [:record {:user-data [:record {:color :int}]
+                                 :coords    [:list :coord]}]
+             :coord    [:tuple [:float :float]]
+             :snapshot [:record {:time   :long
+                                 :bodies [:list :body]}]})
 
 (defmulti measure-stat (fn [stat & _] stat))
 
@@ -74,9 +72,8 @@
        (into {})))
 
 (defn run-benchmarks [& {:keys [buffer stats]}]
-  (measure-methods {:seria (let [pack   @(resolve 'pack-snapshot)
-                                 unpack @(resolve 'unpack)]
-                              [#(pack % buffer) unpack])
+  (measure-methods {:seria [#(pack-snapshot % {:buffer buffer})
+                            unpack]
                     :java  [java-serialize java-deserialize]
                     :kryo  [kryo-serialize kryo-deserialize]
                     :nippy [nippy/freeze nippy/thaw]
@@ -141,3 +138,8 @@
 [7.830408084944682
  10.667805742399354
  7.391915340005673]
+
+;; 3
+[8.317679630678501
+ 6.052328725344759
+ 7.366870683528338]

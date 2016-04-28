@@ -9,8 +9,6 @@
 
 (def gen-size `(+ 2 (rand-int 4)))
 
-(def gen-symbol-char `(rand-nth util.common/symbol-chars))
-
 (defmulti gen util.schema/type-of :hierarchy #'type/hierarchy)
 
 (defmethod gen :byte [_]
@@ -55,13 +53,13 @@
         (apply str)))
 
 (defmethod gen :keyword [_]
-  `(->> (fn [] ~gen-symbol-char)
+  `(->> (fn [] (rand-nth util.common/symbol-chars))
         (repeatedly ~gen-size)
         (apply str)
         (keyword)))
 
 (defmethod gen :symbol [_]
-  `(->> (fn [] ~gen-symbol-char)
+  `(->> (fn [] (rand-nth util.common/symbol-chars))
         (repeatedly ~gen-size)
         (apply str)
         (symbol)))
@@ -111,8 +109,10 @@
 (defmethod gen :custom [schema]
   `(~(util.symbol/processor-name :gen schema)))
 
+;; API
+
 (defn make-generator [schema-name {:keys [schemas] :as options}]
   (binding [*options* options]
-    `(defn ~(util.symbol/processor-name :gen schema-name)
+    `(~(util.symbol/processor-name :gen schema-name)
       []
       ~(gen (schemas schema-name)))))

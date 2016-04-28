@@ -1,49 +1,39 @@
 (ns seria.config
   "Code generation from static config."
-  (:require [clojure.set :as set]
-            [seria.util.coll :as util.coll]
-            [seria.util.schema :as util.schema]
-            [seria.validate :as validate]
+  (:require [seria.validate :as validate]
             [seria.codegen.diff :as diff]
             [seria.codegen.pack :as pack]
             [seria.codegen.unpack :as unpack]
             [seria.codegen.interp :as interp]
-            [seria.codegen.gen :as gen])
-  (:import  [java.util Date]))
+            [seria.codegen.gen :as gen]))
 
-(defn make-processors [{:keys [processor-types schemas] :as options}]
+(defn make-processors* [{:keys [schemas] :as options}]
   (->> (keys schemas)
        (mapcat (fn [schema-name]
-                 (cond-> []
-                   (processor-types :pack)
-                   (conj (pack/make-inner-packer schema-name options)
-                         (pack/make-packer schema-name options)
-                         (unpack/make-inner-unpacker schema-name options))
+                 [(pack/make-inner-packer schema-name options)
+                  (pack/make-inner-packer schema-name (assoc options :diffed? true))
+                  (pack/make-packer schema-name options)
+                  (pack/make-packer schema-name (assoc options :diffed? true))
+                  (unpack/make-inner-unpacker schema-name options)
+                  (unpack/make-inner-unpacker schema-name (assoc options :diffed? true))
+                  (diff/make-differ schema-name options)
+                  (diff/make-undiffer schema-name options)
+                  (gen/make-generator schema-name options)
+                  (interp/make-interper schema-name options)]))
+       (concat [(unpack/make-unpacker options)])))
 
-                   (processor-types :diff)
-                   (conj (diff/make-differ schema-name options)
-                         (diff/make-undiffer schema-name options))
+(defmacro make-processors [config]
+  (let [processors (make-processors* (validate/validate-config config))]
+    `(letfn [~@processors]
+       (hash-map ~@(->> processors
+                        (map first)
+                        (filter (comp not :private meta))
+                        (mapcat (fn [processor-name]
+                                  [(keyword processor-name) processor-name])))))))
 
-                   (and (processor-types :pack)
-                        (processor-types :diff))
-                   (conj (pack/make-inner-packer schema-name (assoc options :diffed? true))
-                         (unpack/make-inner-unpacker schema-name (assoc options :diffed? true)))
-
-                   (processor-types :gen)
-                   (conj (gen/make-generator schema-name options))
-
-                   (processor-types :interp)
-                   (conj (interp/make-interper schema-name options)))))
-       (concat (when (processor-types :pack)
-                 [pack/common-packer (unpack/make-unpacker options)]))))
-
-(defn process-config [config]
-  (let [processors (make-processors (validate/validate-config config))
-        declares   `(declare ~@(map (fn [[_ processor-name]]
-                                      (with-meta processor-name {}))
-                                    processors))]
-    {:fns      processors
-     :declares declares}))
-
-(defn eval-output [{:keys [declares fns]}]
-  (eval [declares (vec fns)]))
+(defmacro defprocessors [names & {:as config}]
+  (let [processors (gensym)]
+    `(let [~processors (make-processors ~config)]
+       ~@(map (fn [name]
+                `(def ~name (~(keyword name) ~processors)))
+              names))))

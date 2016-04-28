@@ -1,7 +1,6 @@
 (ns seria.util.schema
   "Schema related utils."
-  (:require [seria.util.symbol :as util.symbol]
-            [seria.util.coll :as util.coll]))
+  (:require [seria.util.symbol :as util.symbol]))
 
 (defn type-of [schema & _]
   (cond
@@ -12,22 +11,6 @@
   (if (and (map? b) (seq rest))
     complex
     (vec (concat [a {} b] rest))))
-
-(defn multi-cases [schemas]
-  (->> schemas
-       (util.coll/find-unique-by (fn [form]
-                                   (and (vector? form)
-                                        (= :multi (first form)))))
-       (mapcat (fn [[_ _ _ multi-map]]
-                 (keys multi-map)))))
-
-(defn enum-values [schemas]
-  (->> schemas
-       (util.coll/find-unique-by (fn [form]
-                                   (and (vector? form)
-                                        (= :enum (first form)))))
-       (mapcat (fn [[_ _ values]]
-                 values))))
 
 (defn super-records [[_ {:keys [extends]} :as record] schemas]
   (conj (mapcat (fn [extend]
