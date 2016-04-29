@@ -1,13 +1,12 @@
 (ns seria.codegen.interp
   "Linear interpolator generating functions."
   (:require [seria.type :as type]
-            [seria.util.schema :as util.schema]
-            [seria.util.symbol :as util.symbol]
-            [seria.util.common :as util.common]))
+            [seria.util :as util]
+            [seria.common :as common]))
 
 (def ^:dynamic *options*)
 
-(defmulti interp util.schema/type-of :hierarchy #'type/hierarchy)
+(defmulti interp util/type-of :hierarchy #'type/hierarchy)
 
 (defn interp-equal [schema route value-1 value-2]
   `(if (= ~value-1 ~value-2)
@@ -15,16 +14,15 @@
      ~(interp schema route value-1 value-2)))
 
 (defmethod interp :integer [_ _ value-1 value-2]
-  `(util.common/cljc-round ~(interp :floating nil value-1 value-2)))
+  `(common/cljc-round ~(interp :floating nil value-1 value-2)))
 
 (defmethod interp :floating [_ _ value-1 value-2]
-  `(util.common/interp-numbers ~value-1 ~value-2 ~(:time-factor *options*)))
+  `(common/interp-numbers ~value-1 ~value-2 ~(:time-factor *options*)))
 
 (defmethod interp :list [[_ _ inner-schema] route value-1 value-2]
   (if-not (:all route)
     (interp :default nil value-1 value-2)
-    (let [vec-value-1 (with-meta (util.symbol/postfix-gensym value-1 "vec")
-                                 {:no-inline true})]
+    (util/with-gensyms [vec-value-1]
       `(let [~vec-value-1 (vec ~value-1)]
          ~(interp [:vector {} inner-schema] route vec-value-1 value-2)))))
 
@@ -32,9 +30,7 @@
   (let [inner-route (:all route)]
     (if-not inner-route
       (interp :default nil value-1 value-2)
-      (let [index         (gensym "index_")
-            inner-value-1 (util.symbol/postfix-gensym value-1 "item")
-            inner-value-2 (util.symbol/postfix-gensym value-2 "item")]
+      (util/with-gensyms [index inner-value-1 inner-value-2]
         `(vec (map-indexed (fn [~index ~inner-value-2]
                              (if-let [~inner-value-1 (get ~value-1 ~index)]
                                ~(interp-equal inner-schema inner-route inner-value-1 inner-value-2)
@@ -45,45 +41,42 @@
   (let [inner-route (:all route)]
     (if-not inner-route
       (interp :default nil value-1 value-2)
-      (let [key   (util.symbol/postfix-gensym value-2 "key")
-            val-1 (util.symbol/postfix-gensym value-1 "item")
-            val-2 (util.symbol/postfix-gensym value-2 "item")]
+      (util/with-gensyms [key val-1 val-2]
         (->> `(map (fn [[~key ~val-2]]
                      [~key (if-let [~val-1 (~value-1 ~key)]
                              ~(interp-equal val-schema inner-route val-1 val-2)
                              ~val-2)])
                    ~value-2)
-             (util.schema/as-map sorted-by))))))
+             (util/as-map sorted-by))))))
 
-(defmethod interp :tuple [schema route value-1 value-2]
+(defmethod interp :tuple [[_ _ inner-schemas] route value-1 value-2]
   (if-not (map? route)
     (interp :default nil value-1 value-2)
-    (let [destructured-2 (util.schema/destructure-indexed schema value-2 true)]
-      `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
-         ~(mapv (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
-                  (let [inner-value-1 (util.symbol/postfix-gensym value-1 (str index))]
-                    `(let [~inner-value-1 (~value-1 ~index)]
-                       ~(if-let [inner-route (route index)]
-                          (interp-equal inner-schema inner-route inner-value-1 inner-value-2)
-                          (interp :default nil inner-value-1 inner-value-2)))))
-                destructured-2)))))
+    (util/with-gensyms [inner-value-1 inner-value-2]
+      (->> inner-schemas
+           (map-indexed (fn [index inner-schema]
+                          `(let [~inner-value-1 (~value-1 ~index)
+                                 ~inner-value-2 (~value-2 ~index)]
+                             ~(if-let [inner-route (route index)]
+                                (interp-equal inner-schema inner-route inner-value-1 inner-value-2)
+                                (interp :default nil inner-value-1 inner-value-2)))))
+           (vec)))))
 
 (defmethod interp :record [schema route value-1 value-2]
-  (let [schema (util.schema/expand-record schema (:schemas *options*))
-        route  (util.schema/expand-interp-route route (:interp-routes *options*))]
+  (let [[_ options inner-schemas] (util/expand-record schema (:schemas *options*))
+        route                     (util/expand-route route (:interp-routes *options*))]
     (if-not (map? route)
       (interp :default nil value-1 value-2)
-      (let [destructured-2 (util.schema/destructure-indexed schema value-2 true)]
-        `(let [~@(mapcat (juxt :symbol :value) destructured-2)]
-           ~(->> (map (fn [{index :index inner-schema :schema inner-value-2 :symbol}]
-                        [index (let [inner-value-1 (util.symbol/postfix-gensym value-1 (name index))]
-                                 `(let [~inner-value-1 (~index ~value-1)]
-                                    ~(if-let [inner-route (route index)]
-                                       (interp-equal inner-schema inner-route inner-value-1 inner-value-2)
-                                       (interp :default nil inner-value-1 inner-value-2))))])
-                      destructured-2)
-                 (into {})
-                 (util.schema/as-record (:constructor (second schema)))))))))
+      (util/with-gensyms [inner-value-1 inner-value-2]
+        (->> inner-schemas
+             (map (fn [[index inner-schema]]
+                    [index `(let [~inner-value-1 (~index ~value-1)
+                                  ~inner-value-2 (~index ~value-2)]
+                              ~(if-let [inner-route (route index)]
+                                 (interp-equal inner-schema inner-route inner-value-1 inner-value-2)
+                                 (interp :default nil inner-value-1 inner-value-2)))]))
+             (into {})
+             (util/as-record (:constructor options)))))))
 
 (defmethod interp :optional [[_ _ inner-schema] route value-1 value-2]
   `(if (and ~value-1 ~value-2)
@@ -91,7 +84,7 @@
      ~(interp :default nil value-1 value-2)))
 
 (defmethod interp :multi [[_ _ selector multi-map] route value-1 value-2]
-  (util.symbol/with-gensyms [case-1 case-2]
+  (util/with-gensyms [case-1 case-2]
     `(let [~case-1 (~selector ~value-1)
            ~case-2 (~selector ~value-2)]
        (if-not (= ~case-1 ~case-2)
@@ -102,7 +95,7 @@
                      multi-map))))))
 
 (defmethod interp :custom [schema _ value-1 value-2]
-  `(~(util.symbol/processor-name :interp schema)
+  `(~(util/processor-name :interp schema)
     ~value-1
     ~value-2
     ~(:time-1 *options*)
@@ -112,20 +105,31 @@
 (defmethod interp :default [_ _ value-1 value-2]
   `(if ~(:prefer-first? *options*) ~value-1 ~value-2))
 
-;; API
+;; private api
 
 (defn make-interper [schema-name {:keys [schemas interp-routes] :as options}]
-  (util.symbol/with-gensyms [value-1 value-2 time-1 time-2 time prefer-first? time-factor]
-    (let [schema (schemas schema-name)
-          route  (interp-routes schema-name)]
-      (binding [*options* (assoc options :prefer-first? prefer-first?
-                                         :time-factor   time-factor
-                                         :time-1        time-1
-                                         :time-2        time-2
-                                         :time          time)]
-        `(~(util.symbol/processor-name :interp schema-name)
-           [~value-1 ~value-2 ~time-1 ~time-2 ~time]
-           (let [~prefer-first? (< (util.common/cljc-abs (- ~time ~time-1))
-                                   (util.common/cljc-abs (- ~time ~time-2)))
-                 ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
-             ~(interp-equal schema route value-1 value-2)))))))
+  (util/with-gensyms [value-1 value-2 time-1 time-2 time prefer-first? time-factor]
+    (binding [*options* (assoc options :prefer-first? prefer-first?
+                                       :time-factor   time-factor
+                                       :time-1        time-1
+                                       :time-2        time-2
+                                       :time          time)]
+      `(~(with-meta (util/processor-name :interp schema-name)
+                    {:private true})
+        [~value-1 ~value-2 ~time-1 ~time-2 ~time]
+        (let [~prefer-first? (< (common/cljc-abs (- ~time ~time-1))
+                                (common/cljc-abs (- ~time ~time-2)))
+              ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
+          ~(interp-equal (schemas schema-name) (interp-routes schema-name) value-1 value-2))))))
+
+;; public api
+
+(defn make-global-interper [{:keys [schemas]}]
+  (util/with-gensyms [schema value-1 value-2 time-1 time-2 time]
+    `(~(util/processor-name :interp)
+      [~schema ~value-1 ~value-2 ~time-1 ~time-2 ~time]
+      ((case ~schema
+         ~@(mapcat (fn [schema-name]
+                     [schema-name (util/processor-name :interp schema-name)])
+                   (keys schemas)))
+       ~value-1 ~value-2 ~time-1 ~time-2 ~time))))

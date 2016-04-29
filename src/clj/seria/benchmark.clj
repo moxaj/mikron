@@ -31,7 +31,7 @@
     (with-open [in (kryo/make-input bais)]
       (kryo/read-object in))))
 
-(processor/defprocessors [pack-snapshot gen-snapshot unpack]
+(processor/defprocessors [pack gen unpack]
   :schemas  {:body     [:record {:user-data [:record {:id :int}]
                                  :position  :coord
                                  :angle     :float
@@ -71,13 +71,13 @@
        (into {})))
 
 (defn run-benchmarks [& {:keys [stats]}]
-  (measure-methods {:seria [#(pack-snapshot % {}) unpack]
+  (measure-methods {:seria [#(pack :snapshot %) unpack]
                     :java  [java-serialize java-deserialize]
                     :kryo  [kryo-serialize kryo-deserialize]
                     :nippy [nippy/freeze nippy/thaw]
                     :json  [cheshire/generate-string cheshire/parse-string]
                     :smile [cheshire/generate-smile cheshire/parse-smile]}
-                   (repeatedly 1000 gen-snapshot)
+                   (repeatedly 1000 #(gen :snapshot))
                    stats))
 
 (defn visualize-results [results]

@@ -1,6 +1,28 @@
-(ns seria.util.schema
-  "Schema related utils."
-  (:require [seria.util.symbol :as util.symbol]))
+(ns seria.util
+  "Utility functions."
+  (:require [clojure.string :as string]))
+
+;; coll
+
+(defn find-by [pred form]
+  (cond-> []
+    (pred form)
+    (conj form)
+
+    (or (sequential? form)
+        (map? form))
+    (concat (mapcat (partial find-by pred) form))))
+
+(defn find-unique-by [pred form]
+  (distinct (find-by pred form)))
+
+(defn index-of [item coll]
+  (->> coll
+       (map-indexed vector)
+       (filter (comp (partial = item) second))
+       (ffirst)))
+
+;; schema
 
 (defn type-of [schema & _]
   (cond
@@ -29,25 +51,8 @@
                          (last))]
     [:record {:constructor constructor} record-map]))
 
-(defn expand-interp-route [route routes]
+(defn expand-route [route routes]
   route)
-
-(defn destructure-indexed [[complex-type _ inner-schemas] value postfix-sym?]
-  (let [tuple? (= :tuple complex-type)]
-    (map (fn [index]
-           {:index  index
-            :symbol (if tuple?
-                      (util.symbol/postfix-gensym value (str index))
-                      (if postfix-sym?
-                        (util.symbol/postfix-gensym value (name index))
-                        (gensym (str (name index) "_"))))
-            :schema (inner-schemas index)
-            :value  (if tuple?
-                      `(~value ~index)
-                      `(~index ~value))})
-         (if tuple?
-           (range (count inner-schemas))
-           (sort (keys inner-schemas))))))
 
 (defn as-set [sorted-by body]
   `(into ~(case sorted-by
@@ -67,3 +72,28 @@
   (if constructor
     `(~constructor ~body)
     body))
+
+;; symbol
+
+(defn raw-gensym [sym]
+  (let [sym-name (name sym)]
+    (if-let [index (string/last-index-of sym-name "_")]
+      (symbol (subs sym-name 0 index))
+      sym)))
+
+(defmacro with-gensyms [binding-form & body]
+  `(let [~@(mapcat (fn [sym]
+                     [sym `(gensym ~(str sym "_"))])
+                   binding-form)]
+     ~@body))
+
+(def var-name
+  (memoize
+    (fn [key]
+      (gensym (format "%s_" (name key))))))
+
+(defn processor-name
+  ([processor-type]
+   (var-name processor-type))
+  ([processor-type schema-name]
+   (var-name (keyword (format "%s-%s" (name processor-type) (name schema-name))))))

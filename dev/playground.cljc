@@ -32,9 +32,18 @@
    :fixture  {:user-data {:color true}
               :coords    true}})
 
-(let [{:keys [pack-x unpack undiff-x diff-x]} (processor/make-test-processors {:schemas {:x :int}})]
-  (undiff-x 10
-    (-> (diff-x 100 101)
-        (pack-x {})
-        (unpack)
-        :value)))
+(let [{:keys [pack unpack undiff diff]}
+      (processor/make-test-processors {:schemas {:x :int}})]
+  (undiff :x 10
+    (->> (diff :x 100 110)
+         (pack :x)
+         (unpack)
+         :value)))
+
+(processor/defprocessors [pack gen unpack]
+  :schemas {:message [:list :byte]})
+
+(unpack (pack :message [1 2 3]))
+
+(processor/make-processors
+  {:schemas {:x [:record {:a :int}]}})

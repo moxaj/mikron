@@ -1,4 +1,4 @@
-(ns seria.util.common
+(ns seria.common
   "Cross-platform utility functions."
    #?(:cljs (:require [cljs.reader :as reader])))
 

@@ -1,7 +1,7 @@
 (ns seria.buffer
   "Buffer protocol and implementations."
   #?(:clj (:import [seria SeriaByteBuffer]))
-  (:require [seria.util.common :as util.common]
+  (:require [seria.common :as common]
             #?(:cljs [cljsjs.bytebuffer])))
 
 (defprotocol Buffer
@@ -149,7 +149,7 @@
     (loop [value 0
            shift 0]
       (if-not (< shift 64)
-        (throw (util.common/cljc-exception "Malformed varint!"))
+        (throw (common/cljc-exception "Malformed varint!"))
         (let [b     (read-byte! buffer)
               value (bit-or value (bit-shift-left (bit-and b 127)
                                                   shift))]

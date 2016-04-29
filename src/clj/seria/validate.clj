@@ -2,7 +2,7 @@
   "Static options validation."
   (:require [clojure.string :as string]
             [seria.type :as type]
-            [seria.util.schema :as util.schema]))
+            [seria.util :as util]))
 
 ;; Schema validation
 
@@ -17,20 +17,20 @@
                   schema))
   (vec (concat [complex-type options] args)))
 
-(defmulti validate-schema util.schema/type-of :hierarchy #'type/hierarchy)
+(defmulti validate-schema util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod validate-schema :simple [schema]
   schema)
 
 (defmethod validate-schema :list [schema]
-  (let [[_ _ inner-schema :as schema] (util.schema/with-options schema)]
+  (let [[_ _ inner-schema :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:list <options> :x]."
                     schema))
     [:list {} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :vector [schema]
-  (let [[_ _ inner-schema :as schema] (util.schema/with-options schema)]
+  (let [[_ _ inner-schema :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:vector <options> :x]."
                     schema))
@@ -38,7 +38,7 @@
 
 (defmethod validate-schema :set [schema]
   (let [[_ options inner-schema :as schema] (-> schema
-                                                (util.schema/with-options)
+                                                (util/with-options)
                                                 (validate-sortable))]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:set <options> :x]."
@@ -48,7 +48,7 @@
 
 (defmethod validate-schema :map [schema]
   (let [[_ options key-schema val-schema :as schema] (-> schema
-                                                         (util.schema/with-options)
+                                                         (util/with-options)
                                                          (validate-sortable))]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. Correct signature: [:map <options> :x :y]."
@@ -58,14 +58,14 @@
      (validate-schema val-schema)]))
 
 (defmethod validate-schema :optional [schema]
-  (let [[_ options inner-schema :as schema] (util.schema/with-options schema)]
+  (let [[_ options inner-schema :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:optional <options> :x]."
                     schema))
     [:optional {} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :enum [schema]
-  (let [[_ _ values :as schema] (util.schema/with-options schema)]
+  (let [[_ _ values :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:enum <options> [:v1 ... :vn]]."
                     schema))
@@ -78,7 +78,7 @@
     [:enum {} values]))
 
 (defmethod validate-schema :tuple [schema]
-  (let [[_ _ inner-schemas :as schema] (util.schema/with-options schema)]
+  (let [[_ _ inner-schemas :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:tuple <options> [:x1 ... :xn]]."
                     schema))
@@ -89,7 +89,7 @@
 
 (defmethod validate-schema :record [schema]
   (let [[_ {:keys [extends constructor] :as options} record-map :as schema]
-        (util.schema/with-options schema)]
+        (util/with-options schema)]
     (assert (= 3 (count schema))
             (format "Invalid schema: %s. Correct signature: [:record <options> {:k1 :x1 ... :kn :xn}]"
                     schema))
@@ -116,7 +116,7 @@
        (zipmap fields (map validate-schema inner-schemas))])))
 
 (defmethod validate-schema :multi [schema]
-  (let [[_ _ selector multi-map :as schema] (util.schema/with-options schema)]
+  (let [[_ _ selector multi-map :as schema] (util/with-options schema)]
     (assert (= 4 (count schema))
             (format "Invalid schema: %s. Correct signature: [:multi selector {:k1 :x1 ... :kn :xn}]."
                     schema))
@@ -173,18 +173,21 @@
           "Invalid :eq-ops parameter: values must be symbols.")
   eq-ops)
 
-(defn validate-interp-routes [interp-routes]
-  interp-routes)
+(defn validate-routes [routes]
+  routes)
 
-(defn validate-options [{:keys [schemas eq-ops interp buffer-size]
+(defn validate-options [{:keys [schemas eq-ops interp diff buffer-size]
                          :or   {schemas     {}
                                 eq-ops      {}
                                 interp      {}
+                                diff        {}
                                 buffer-size 10000}}]
   (let [schemas       (validate-schemas schemas)
         eq-ops        (validate-eq-ops eq-ops schemas)
-        interp-routes (validate-interp-routes interp)]
+        interp-routes (validate-routes interp)
+        diff-routes   (validate-routes diff)]
     {:schemas       schemas
      :eq-ops        eq-ops
      :interp-routes interp-routes
+     :diff-routes   diff-routes
      :buffer-size   buffer-size}))
