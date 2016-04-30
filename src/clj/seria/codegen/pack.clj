@@ -2,19 +2,23 @@
   "Packer generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
-            [seria.common :as common]
-            [seria.type :as type])
-  (:import  [seria.common DiffedValue]))
+            [seria.type :as type]
+            [seria.common :as common]))
 
 (def ^:dynamic *options*)
 
-(defmulti pack util/type-of :hierarchy #'type/hierarchy)
+(defn wrap-locking [lock & body]
+  (if-not (:cljs-mode? *options*)
+    `(locking ~lock ~@body)
+    `(do ~@body)))
+
+(defmulti pack util/type-of :hierarchy #'type/*hierarchy*)
 
 (defn pack-diffed [schema value]
   (if-not (:diffed? *options*)
     (pack schema value)
     (util/with-gensyms [value-dnil?]
-      `(let [~value-dnil? (common/dnil? ~value)]
+      `(let [~value-dnil? (= :seria/dnil ~value)]
          ~(pack :boolean value-dnil?)
          (when-not ~value-dnil?
            ~(pack schema value))))))
@@ -126,26 +130,27 @@
 
 ;; public api
 
-(defn make-global-packer [{:keys [schemas processor-types]}]
+(defn make-global-packer [{:keys [schemas processor-types] :as options}]
   (util/with-gensyms [schema value schema-id diffed?]
-    (let [buffer (util/var-name :buffer)]
-      `(~(util/processor-name :pack)
-        [~schema ~value]
-        (let [~diffed?   (common/diffed? ~value)
-              ~value     (if-not ~diffed? ~value (common/unwrap-diffed ~value))
-              ~schema-id (~(->> (keys schemas)
-                                (map-indexed #(vector %2 %1))
-                                (into {}))
-                          ~schema)]
-          ~(common/wrap-locking buffer
-             `(-> ~buffer
-                  (buffer/write-headers! ~schema-id ~diffed?)
-                  ((case ~schema
-                     ~@(mapcat (fn [schema-name]
-                                 [schema-name
-                                  `(if ~diffed?
-                                     ~(util/processor-name :pack-diffed schema-name)
-                                     ~(util/processor-name :pack schema-name))])
-                               (keys schemas)))
-                   ~value)
-                  (buffer/compress))))))))
+    (binding [*options* options]
+      (let [buffer (util/var-name :buffer)]
+        `(~(util/processor-name :pack)
+          [~schema ~value]
+          (let [~diffed?   (common/diffed? ~value)
+                ~value     (if-not ~diffed? ~value (common/unwrap-diffed ~value))
+                ~schema-id (~(->> (keys schemas)
+                                  (map-indexed #(vector %2 %1))
+                                  (into {}))
+                            ~schema)]
+            ~(wrap-locking buffer
+               `(-> ~buffer
+                    (buffer/write-headers! ~schema-id ~diffed?)
+                    ((case ~schema
+                       ~@(mapcat (fn [schema-name]
+                                   [schema-name
+                                    `(if ~diffed?
+                                       ~(util/processor-name :pack-diffed schema-name)
+                                       ~(util/processor-name :pack schema-name))])
+                                 (keys schemas)))
+                     ~value)
+                    (buffer/compress)))))))))

@@ -2,18 +2,18 @@
   "Unpacker generating functions."
   (:require [seria.buffer :as buffer]
             [seria.util :as util]
-            [seria.common :as common]
-            [seria.type :as type]))
+            [seria.type :as type]
+            [seria.common :as common]))
 
 (def ^:dynamic *options*)
 
-(defmulti unpack util/type-of :hierarchy #'type/hierarchy)
+(defmulti unpack util/type-of :hierarchy #'type/*hierarchy*)
 
 (defn unpack-diffed [schema]
   (if-not (:diffed? *options*)
     (unpack schema)
     `(if ~(unpack :boolean)
-       common/dnil
+       :seria/dnil
        ~(unpack schema))))
 
 (defmethod unpack :primitive [schema]
@@ -106,7 +106,7 @@
             ~schema  (get ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))
             ~diffed? (:diffed? ~headers)]
         (if-not ~schema
-          :invalid
+          :seria/invalid
           {:schema  ~schema
            :diffed? ~diffed?
            :value   (let [~value

@@ -17,7 +17,8 @@
       (derives :complex   [:list :vector :set :map :tuple :record :optional :multi :enum])
       (derives :built-in  [:simple :complex])))
 
-(def hierarchy nil)
+(def ^:dynamic *hierarchy*)
 
-(defn init-hierarchy [_ custom-types]
-  (derives initial-hierarchy :custom custom-types))
+(defmacro with-custom-types [custom-types & body]
+  `(binding [*hierarchy* (derives initial-hierarchy :custom ~custom-types)]
+     ~@body))

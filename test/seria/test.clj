@@ -1,12 +1,12 @@
 (ns seria.test
   (:require [clojure.test :refer [deftest is]]
-            [seria.processor :as processor]))
+            [seria.core :as core]))
 
 (defn pack-roundtrip [value {:keys [pack unpack]}]
   (unpack (pack :x value)))
 
 (defn test-pack-case [schemas]
-  (let [{:keys [gen] :as processors} (processor/make-test-processors {:schemas schemas})]
+  (let [{:keys [gen] :as processors} (core/make-test-processors {:schemas schemas})]
     (doseq [value (repeatedly 10 #(gen :x))]
       (is (= {:schema :x :diffed? false :value value}
              (pack-roundtrip value processors))))))
@@ -59,7 +59,7 @@
 
 (defn test-diff-case [schemas]
   (let [{:keys [gen] :as processors}
-        (processor/make-test-processors {:schemas schemas})]
+        (core/make-test-processors {:schemas schemas})]
     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
       (is (= value-2 (diff-roundtrip value-1 value-2 processors))))))
 
@@ -75,7 +75,7 @@
 
 (defn test-interp-case [schema]
   (let [{:keys [interp gen] :as processors}
-        (processor/make-test-processors {:schemas {:x schema}})]
+        (core/make-test-processors {:schemas {:x schema}})]
     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
       (interp :x value-1 value-2 0 1 0.5))))
 

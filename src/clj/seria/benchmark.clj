@@ -1,7 +1,7 @@
 (ns seria.benchmark
   "Benchmarks comparing other methods."
   (:require [criterium.core :as crit]
-            [seria.processor :as processor]
+            [seria.core :as seria]
             [taoensso.nippy :as nippy]
             [clj-kryo.core :as kryo]
             [cheshire.core :as cheshire]
@@ -31,17 +31,17 @@
     (with-open [in (kryo/make-input bais)]
       (kryo/read-object in))))
 
-(processor/defprocessors [pack gen unpack]
-  :schemas  {:body     [:record {:user-data [:record {:id :int}]
-                                 :position  :coord
-                                 :angle     :float
-                                 :body-type [:enum [:dynamic :static :kinetic]]
-                                 :fixtures  [:list :fixture]}]
-             :fixture  [:record {:user-data [:record {:color :int}]
-                                 :coords    [:list :coord]}]
-             :coord    [:tuple [:float :float]]
-             :snapshot [:record {:time   :long
-                                 :bodies [:list :body]}]})
+(seria/defprocessors [pack gen unpack]
+  {:schemas  {:body     [:record {:user-data [:record {:id :int}]
+                                  :position  :coord
+                                  :angle     :float
+                                  :body-type [:enum [:dynamic :static :kinetic]]
+                                  :fixtures  [:list :fixture]}]
+              :fixture  [:record {:user-data [:record {:color :int}]
+                                  :coords    [:list :coord]}]
+              :coord    [:tuple [:float :float]]
+              :snapshot [:record {:time   :long
+                                  :bodies [:list :body]}]}})
 
 (defmulti measure-stat (fn [stat & _] stat))
 
@@ -138,5 +138,10 @@
 
 ;; 3
 [8.317679630678501
- 6.052328725344759
+ 6.052328725344759 ;; ???
  7.366870683528338]
+
+;; 4
+[8.324240702158392
+ 10.035389753854808
+ 7.353889282552303]

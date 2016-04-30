@@ -4,22 +4,20 @@
             [seria.util :as util]
             [seria.common :as common]))
 
-(defrecord DiffedValue [value])
-
 (def ^:dynamic *options*)
 
 (defn equality-operator [schema]
   (or (get-in *options* [:eq-ops schema])
       `=))
 
-(defmulti diff util/type-of :hierarchy #'type/hierarchy)
+(defmulti diff util/type-of :hierarchy #'type/*hierarchy*)
 
 (defn wrap-diffed [schema route value-1 value-2]
   (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
-               common/dnil
+               :seria/dnil
                ~(diff schema route value-1 value-2))
-    :undiff `(if (common/dnil? ~value-2)
+    :undiff `(if (= :seria/dnil ~value-2)
                ~value-1
                ~(diff schema route value-1 value-2))))
 
@@ -62,7 +60,7 @@
                           `(let [~inner-value-1 (~value-1 ~index)
                                  ~inner-value-2 (~value-2 ~index)]
                              ~(if-let [inner-route (route index)]
-                                (wrap-diffed inner-schema inner-value-1 inner-value-2)
+                                (wrap-diffed inner-schema inner-route inner-value-1 inner-value-2)
                                 (diff :default nil inner-value-1 inner-value-2)))))
            (vec)))))
 
@@ -78,7 +76,7 @@
                     [index `(let [~inner-value-1 (~index ~value-1)
                                   ~inner-value-2 (~index ~value-2)]
                               ~(if-let [inner-route (route index)]
-                                 (wrap-diffed inner-schema inner-value-1 inner-value-2)
+                                 (wrap-diffed inner-schema inner-route inner-value-1 inner-value-2)
                                  (diff :default nil inner-value-1 inner-value-2)))]))
              (into {})
              (util/as-record (:constructor options)))))))

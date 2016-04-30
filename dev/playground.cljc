@@ -1,7 +1,6 @@
 (ns playground
   (:require [criterium.core :as crit]
-            [seria.processor :as processor]))
-
+            [seria.core :as seria]))
 
 (def box2d-schemas
   {:body     [:record {:user-data [:record {:id :int}]
@@ -32,18 +31,7 @@
    :fixture  {:user-data {:color true}
               :coords    true}})
 
-(let [{:keys [pack unpack undiff diff]}
-      (processor/make-test-processors {:schemas {:x :int}})]
-  (undiff :x 10
-    (->> (diff :x 100 110)
-         (pack :x)
-         (unpack)
-         :value)))
+(seria/defprocessors [pack unpack gen]
+   {:schemas {:x :int}})
 
-(processor/defprocessors [pack gen unpack]
-  :schemas {:message [:list :byte]})
-
-(unpack (pack :message [1 2 3]))
-
-(processor/make-processors
-  {:schemas {:x [:record {:a :int}]}})
+(pack :x 10)
