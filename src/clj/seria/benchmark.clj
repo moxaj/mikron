@@ -62,23 +62,13 @@
        (first)
        (* 1000)))
 
-(defn measure-methods [methods data stats]
+(defn measure-methods [& {:keys [methods stats data]}]
   (->> (for [stat stats]
          [stat (->> (for [[method-name fns] methods]
                       (do (println "Measuring " method-name stat)
                           [method-name (measure-stat stat fns data)]))
                     (into {}))])
        (into {})))
-
-(defn run-benchmarks [& {:keys [stats]}]
-  (measure-methods {:seria [#(pack :snapshot %) unpack]
-                    :java  [java-serialize java-deserialize]
-                    :kryo  [kryo-serialize kryo-deserialize]
-                    :nippy [nippy/freeze nippy/thaw]
-                    :json  [cheshire/generate-string cheshire/parse-string]
-                    :smile [cheshire/generate-smile cheshire/parse-smile]}
-                   (repeatedly 1000 #(gen :snapshot))
-                   stats))
 
 (defn visualize-results [results]
   (let [stats      (-> results (keys) (sort))
@@ -96,35 +86,15 @@
 
 (comment
   (visualize-results
-    (run-benchmarks :stats [:size :serialize-speed :roundtrip-speed]))
+    (measure-methods :methods {:seria [#(pack :snapshot %) unpack]
+                               :java  [java-serialize java-deserialize]
+                               :kryo  [kryo-serialize kryo-deserialize]
+                               :nippy [nippy/freeze nippy/thaw]
+                               :json  [cheshire/generate-string cheshire/parse-string]
+                               :smile [cheshire/generate-smile cheshire/parse-smile]}
+                     :stats   [:size :serialize-speed :roundtrip-speed]
+                     :data    (repeatedly 1000 #(gen :snapshot))))
   nil)
-
-(def results
-  '[:proto-repl-code-execution-extension
-    "proto-repl-charts"
-    {:name "Benchmarks",
-     :type "chart",
-     :data {:axis {:x {:type "category",
-                       :categories ("roundtrip-speed"
-                                    "serialize-speed"
-                                    "size",)}}
-            :data {:type "bar",
-                   :json {:nippy [35.51072945787636
-                                  54.249653456539136
-                                  14.57736740286537,]
-                          :java [100 100 100],
-                          :smile [27.583548945570033
-                                  43.78076706942772
-                                  23.128091751022712,]
-                          :seria [8.502563595875728
-                                  11.274565521893088
-                                  7.390651649796993,]
-                          :kryo [31.973661501951366
-                                 46.315971057037345
-                                 23.7524082061801,]
-                          :json [56.87289864382199
-                                 72.31563457982426
-                                 43.72929004153248]}}}}])
 
 ;; 1
 [8.502563595875728
