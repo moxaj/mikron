@@ -32,6 +32,15 @@
               :coords    true}})
 
 (seria/defprocessors [pack unpack gen]
-   {:schemas {:x :int}})
+   {:schemas {:x    :byte
+              :meta [:record {:a :int :b :string}]}})
 
-(pack :x 10)
+(let [x    10
+      meta (gen :meta)]
+  (unpack (pack :x x)))
+
+
+(clojure.walk/macroexpand-all
+  '(seria.processor/make-processors {:schemas {:x :int}}))
+
+(macroexpand '(cond-> {} u (assoc v) x (assoc y)))

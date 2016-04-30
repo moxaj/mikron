@@ -131,26 +131,31 @@
 ;; public api
 
 (defn make-global-packer [{:keys [schemas processor-types] :as options}]
-  (util/with-gensyms [schema value schema-id diffed?]
+  (util/with-gensyms [schema value diffed? meta-schema meta-value meta-schema-id]
     (binding [*options* options]
-      (let [buffer (util/var-name :buffer)]
-        `(~(util/processor-name :pack)
-          [~schema ~value]
-          (let [~diffed?   (common/diffed? ~value)
-                ~value     (if-not ~diffed? ~value (common/unwrap-diffed ~value))
-                ~schema-id (~(->> (keys schemas)
-                                  (map-indexed #(vector %2 %1))
-                                  (into {}))
-                            ~schema)]
-            ~(wrap-locking buffer
-               `(-> ~buffer
-                    (buffer/write-headers! ~schema-id ~diffed?)
-                    ((case ~schema
-                       ~@(mapcat (fn [schema-name]
-                                   [schema-name
-                                    `(if ~diffed?
-                                       ~(util/processor-name :pack-diffed schema-name)
-                                       ~(util/processor-name :pack schema-name))])
-                                 (keys schemas)))
-                     ~value)
-                    (buffer/compress)))))))))
+      (let [buffer         (util/var-name :buffer)
+            processor-name (util/processor-name :pack)
+            schema-ids     (->> (keys schemas)
+                                (sort)
+                                (map-indexed #(vector %2 %1))
+                                (into {}))]
+        `(~processor-name
+          ([~schema ~value]
+           (~processor-name ~schema ~value nil nil))
+          ([~schema ~value ~meta-schema ~meta-value]
+           (let [~diffed? (common/diffed? ~value)
+                 ~value   (cond-> ~value ~diffed? (common/unwrap-diffed))]
+             ~(wrap-locking buffer
+                `(-> ~buffer
+                     (buffer/write-headers! (~schema-ids ~schema)
+                                            (~schema-ids ~meta-schema)
+                                            ~diffed?)
+                     ((if ~diffed?
+                        ~(util/select-processor :pack-diffed schema schemas)
+                        ~(util/select-processor :pack schema schemas))
+                      ~value)
+                     (cond->
+                       ~meta-schema
+                       (~(util/select-processor :pack meta-schema schemas)
+                        ~meta-value))
+                     (buffer/compress))))))))))

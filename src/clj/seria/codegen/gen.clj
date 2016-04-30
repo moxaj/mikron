@@ -123,7 +123,4 @@
   (util/with-gensyms [schema]
     `(~(util/processor-name :gen)
       [~schema]
-      ((case ~schema
-         ~@(mapcat (fn [schema-name]
-                     [schema-name (util/processor-name :gen schema-name)])
-                   (keys schemas)))))))
+      (~(util/select-processor :gen schema schemas)))))

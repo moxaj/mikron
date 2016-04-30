@@ -99,25 +99,27 @@
 ;; public api
 
 (defn make-global-unpacker [{:keys [schemas processor-types]}]
-  (util/with-gensyms [raw buffer headers diffed? schema value]
-    `(~(util/processor-name :unpack) [~raw]
-      (let [~buffer  (buffer/wrap ~raw)
-            ~headers (buffer/read-headers! ~buffer)
-            ~schema  (get ~(-> schemas (keys) (sort) (vec)) (:schema-id ~headers))
-            ~diffed? (:diffed? ~headers)]
-        (if-not ~schema
-          :seria/invalid
-          {:schema  ~schema
-           :diffed? ~diffed?
-           :value   (let [~value
-                          ((case ~schema
-                             ~@(mapcat (fn [schema-name]
-                                         [schema-name
-                                          `(if ~diffed?
-                                             ~(util/processor-name :unpack-diffed schema-name)
-                                             ~(util/processor-name :unpack schema-name))])
-                                       (keys schemas)))
-                           ~buffer)]
-                      (if ~diffed?
-                        (common/wrap-diffed ~value)
-                        ~value))})))))
+  (util/with-gensyms [raw buffer headers diffed? schema meta-schema meta-schema-id]
+    (let [schema-ids (-> schemas (keys) (sort) (vec))]
+      `(~(util/processor-name :unpack) [~raw]
+        (let [~buffer         (buffer/wrap ~raw)
+              ~headers        (buffer/read-headers! ~buffer)
+              ~schema         (get ~schema-ids (:schema-id ~headers))
+              ~meta-schema-id (:meta-schema-id ~headers)
+              ~meta-schema    (get ~schema-ids ~meta-schema-id)
+              ~diffed?        (:diffed? ~headers)]
+          (if (or (not ~schema)
+                  (and ~meta-schema-id
+                       (not ~meta-schema)))
+            :seria/invalid
+            (cond-> {:schema  ~schema
+                     :diffed? ~diffed?
+                     :value   (cond-> ((if ~diffed?
+                                         ~(util/select-processor :unpack-diffed schema schemas)
+                                         ~(util/select-processor :unpack schema schemas))
+                                       ~buffer)
+                                ~diffed? (common/wrap-diffed))}
+              ~meta-schema
+              (assoc :meta-schema ~meta-schema
+                     :meta-value  (~(util/select-processor :unpack meta-schema schemas)
+                                   ~buffer)))))))))

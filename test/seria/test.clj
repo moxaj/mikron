@@ -54,6 +54,15 @@
                     :x        :snapshot}]]
     (test-pack-case schemas)))
 
+(deftest meta-schema-test
+  (let [{:keys [pack unpack gen]} (core/make-processors
+                                    {:schemas {:x [:record {:a :int :b :byte :c :string}]}})
+        value-1 (gen :x)
+        meta-1  (gen :x)
+        {:keys [schema value meta-schema meta-value]} (unpack (pack :x value-1 :x meta-1))]
+    (is (= [:x value-1 :x meta-1]
+           [schema value meta-schema meta-value]))))
+
 (defn diff-roundtrip [value-1 value-2 {:keys [diff undiff]}]
   (undiff :x value-1 (diff :x value-1 value-2)))
 

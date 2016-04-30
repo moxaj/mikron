@@ -20,6 +20,7 @@
      parts, structuring, varints
 
   Code generation
+     !!!compile-time!!!
      parsing, validating, code generation
 
   Data generation

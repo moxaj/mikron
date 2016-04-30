@@ -129,10 +129,7 @@
   (util/with-gensyms [schema value-1 value-2]
     `(~(util/processor-name processor-type)
       [~schema ~value-1 ~value-2]
-      ((case ~schema
-         ~@(mapcat (fn [schema-name]
-                     [schema-name (util/processor-name processor-type schema-name)])
-                   (keys schemas)))
+      (~(util/select-processor processor-type schema schemas)
        ~value-1 ~value-2))))
 
 (defn make-global-differ [options]

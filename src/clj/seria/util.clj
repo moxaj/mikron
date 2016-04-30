@@ -97,3 +97,9 @@
    (var-name processor-type))
   ([processor-type schema-name]
    (var-name (keyword (format "%s-%s" (name processor-type) (name schema-name))))))
+
+(defn select-processor [processor-type schema schemas]
+  `(case ~schema
+     ~@(mapcat (fn [schema-name]
+                 [schema-name (processor-name processor-type schema-name)])
+               (keys schemas))))

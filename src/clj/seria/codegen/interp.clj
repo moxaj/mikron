@@ -128,8 +128,5 @@
   (util/with-gensyms [schema value-1 value-2 time-1 time-2 time]
     `(~(util/processor-name :interp)
       [~schema ~value-1 ~value-2 ~time-1 ~time-2 ~time]
-      ((case ~schema
-         ~@(mapcat (fn [schema-name]
-                     [schema-name (util/processor-name :interp schema-name)])
-                   (keys schemas)))
+      (~(util/select-processor :interp schema schemas)
        ~value-1 ~value-2 ~time-1 ~time-2 ~time))))
