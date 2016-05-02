@@ -8,7 +8,7 @@
 
 (def gen-size `(+ 2 (rand-int 4)))
 
-(defmulti gen util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti gen util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod gen :byte [_]
   `(common/random-integer 1 true))

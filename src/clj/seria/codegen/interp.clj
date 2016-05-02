@@ -6,7 +6,7 @@
 
 (def ^:dynamic *options*)
 
-(defmulti interp util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti interp util/type-of :hierarchy #'type/hierarchy)
 
 (defn interp-equal [schema route value-1 value-2]
   `(if (= ~value-1 ~value-2)

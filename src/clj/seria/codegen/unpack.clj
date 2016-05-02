@@ -7,7 +7,7 @@
 
 (def ^:dynamic *options*)
 
-(defmulti unpack util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti unpack util/type-of :hierarchy #'type/hierarchy)
 
 (defn unpack-diffed [schema]
   (if-not (:diffed? *options*)

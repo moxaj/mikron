@@ -10,7 +10,7 @@
   (or (get-in *options* [:eq-ops schema])
       `=))
 
-(defmulti diff util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti diff util/type-of :hierarchy #'type/hierarchy)
 
 (defn wrap-diffed [schema route value-1 value-2]
   (case (:processor-type *options*)

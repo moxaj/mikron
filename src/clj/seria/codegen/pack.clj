@@ -12,7 +12,7 @@
     `(locking ~lock ~@body)
     `(do ~@body)))
 
-(defmulti pack util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti pack util/type-of :hierarchy #'type/hierarchy)
 
 (defn pack-diffed [schema value]
   (if-not (:diffed? *options*)

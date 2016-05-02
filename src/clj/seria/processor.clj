@@ -33,9 +33,8 @@
 
 (defn make-processors* [options env]
   (let [options    (validate/validate-options (assoc options :cljs-mode? (boolean (:ns env))))
-        processors (type/with-custom-types (:custom-types options)
-                     (concat (make-local-processors* options)
-                             (make-global-processors* options)))]
+        processors (concat (make-local-processors* options)
+                           (make-global-processors* options))]
     `(let [~(util/var-name :buffer) (buffer/allocate ~(:buffer-size options))]
        (letfn [~@processors]
          (hash-map

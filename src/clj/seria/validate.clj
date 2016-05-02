@@ -15,7 +15,7 @@
           (format "Invalid schema: %s. :sorted-by option must be either nil, :default, or a symbol." schema))
   (vec (concat [complex-type options] args)))
 
-(defmulti validate-schema util/type-of :hierarchy #'type/*hierarchy*)
+(defmulti validate-schema util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod validate-schema :simple [schema]
   schema)
@@ -130,11 +130,11 @@
                                      (keys schemas))]
     (assert (empty? invalid-schema-names)
             (format "Invalid :schemas parameter: [%s] shadow built-in types." (string/join invalid-schema-names))))
-  (type/with-custom-types (keys schemas)
-    (binding [*schemas* schemas]
-      (->> (for [[schema-name schema] schemas]
-             [schema-name (validate-schema schema)])
-           (into {})))))
+  (alter-var-root #'type/hierarchy type/add-custom-types (keys schemas))
+  (binding [*schemas* schemas]
+    (->> (for [[schema-name schema] schemas]
+           [schema-name (validate-schema schema)])
+         (into {}))))
 
 (defn validate-eq-ops [eq-ops schemas]
   (assert (map? eq-ops)
