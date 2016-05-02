@@ -6,6 +6,7 @@
             [seria.codegen.unpack :as unpack]
             [seria.codegen.interp :as interp]
             [seria.codegen.gen :as gen]
+            [seria.codegen.validate :as gen.validate]
             [seria.util :as util]
             [seria.type :as type]
             [seria.buffer :as buffer]))
@@ -20,8 +21,8 @@
                   (diff/make-differ schema-name options)
                   (diff/make-undiffer schema-name options)
                   (gen/make-generator schema-name options)
-                  (interp/make-interper schema-name options)]))
-       (doall)))
+                  (interp/make-interper schema-name options)
+                  (gen.validate/make-validator schema-name options)]))))
 
 (defn make-global-processors* [options]
   [(pack/make-global-packer options)
@@ -29,7 +30,8 @@
    (diff/make-global-differ options)
    (diff/make-global-undiffer options)
    (gen/make-global-generator options)
-   (interp/make-global-interper options)])
+   (interp/make-global-interper options)
+   (gen.validate/make-global-validator options)])
 
 (defn make-processors* [options env]
   (let [options    (validate/validate-options (assoc options :cljs-mode? (boolean (:ns env))))

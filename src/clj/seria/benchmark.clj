@@ -103,15 +103,6 @@
 
 (def octet-buffer (octet/allocate 100000 {:type :direct :impl :nio}))
 
-(def keyword-spec
-  (reify
-    octet.spec/ISpecSize
-    (size [kw] 2)
-
-    octet.spec/ISpec
-    (read  [_ buff pos]   (octet.spec/read (octet/int16) buff pos))
-    (write [_ buff pos _] (octet.spec/write (octet/int16) buff pos 0))))
-
 (def octet-spec
   (let [coord    (octet/spec octet/float octet/float)
         fixture  (octet/spec :user-data (octet/spec :color octet/int32)
@@ -119,7 +110,8 @@
         body     (octet/spec :angle     octet/float
                              :position  coord
                              :user-data (octet/spec :id octet/int32)
-                             :body-type keyword-spec
+                             ;; :body-type
+                             ;; - octet does not support keywords or enums
                              :fixtures  (octet/vector* fixture))
         snapshot (octet/spec :time   octet/int64
                              :bodies (octet/vector* body))]
@@ -135,6 +127,8 @@
   (-> data
       (ByteBuffer/wrap)
       (octet/read octet-spec)))
+
+;; benchmarks
 
 (defmulti measure-stat (fn [stat & _] stat))
 
@@ -191,7 +185,7 @@
                     :stats   [:size
                               :serialize-speed
                               :roundtrip-speed]
-                    :data    (repeatedly 1000 #(gen :snapshot))))
+                    :data    (repeatedly 10 #(gen :snapshot))))
   nil)
 
 ;; 1

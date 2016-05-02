@@ -17,7 +17,7 @@
       (derives :complex   [:list :vector :set :map :tuple :record :optional :multi :enum])
       (derives :built-in  [:simple :complex])))
 
-(def hierarchy nil)
+(def hierarchy)
 
 (defn add-custom-types [_ custom-types]
   (derives initial-hierarchy :custom custom-types))

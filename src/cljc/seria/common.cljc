@@ -1,6 +1,7 @@
 (ns seria.common
   "Functions which are embedded into the generated processors."
-  #?(:cljs (:require [cljs.reader :as reader])))
+  #?(:cljs (:require [cljs.reader :as reader]
+                     [goog.string.format])))
 
 ;; cljc
 
@@ -27,6 +28,10 @@
 (defn cljc-round [^double n]
   #?(:clj  (Math/round n)
      :cljs (.round js/Math n)))
+
+(defn cljc-format [s & args]
+  #?(:clj  (apply format s args)
+     :cljs (apply goog.string.format s args)))
 
 ;; gen
 

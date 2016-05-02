@@ -83,8 +83,7 @@
 
 
 (defn test-interp-case [schema]
-  (let [{:keys [interp gen] :as processors}
-        (core/make-test-processors {:schemas {:x schema}})]
+  (let [{:keys [interp gen]} (core/make-test-processors {:schemas {:x schema}})]
     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
       (interp :x value-1 value-2 0 1 0.5))))
 
@@ -103,3 +102,23 @@
                   [:record {:a :int :b :string :c :byte}]
                   [:multi 'clojure.core/number? {true :int false :string}]]]
     (test-interp-case schema)))
+
+(defn test-validate-case [schemas]
+  (let [{:keys [validate gen]} (core/make-test-processors {:schemas schemas})]
+    (doseq [value (repeatedly 20 #(gen :x))]
+      (validate :x value))))
+
+(defn validate-test []
+  (doseq [schemas [{:x [:list :byte]}
+                   {:body     [:record {:user-data [:record {:id :int}]
+                                        :position  :coord
+                                        :angle     :float
+                                        :body-type [:enum [:dynamic :static :kinetic]]
+                                        :fixtures  [:list :fixture]}]
+                    :fixture  [:record {:user-data [:record {:color :int}]
+                                        :coords    [:list :coord]}]
+                    :coord    [:tuple [:float :float]]
+                    :snapshot [:record {:time   :long
+                                        :bodies [:list :body]}]
+                    :x        :snapshot}]]
+    (test-validate-case schemas)))
