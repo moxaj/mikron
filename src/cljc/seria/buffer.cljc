@@ -71,7 +71,7 @@
            (read-byte!    [this] (.readInt8 this))
            (read-short!   [this] (.readInt16 this))
            (read-int!     [this] (.readInt32 this))
-           (read-long!    [this] (.readInt64 this))
+           (read-long!    [this] (.toNumber (.readInt64 this)))
            (read-float!   [this] (.readFloat32 this))
            (read-double!  [this] (.readFloat64 this))
            (read-char!    [this] (.readUint16 this))

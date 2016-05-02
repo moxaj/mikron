@@ -31,8 +31,8 @@
    (gen/make-global-generator options)
    (interp/make-global-interper options)])
 
-(defn make-processors* [options]
-  (let [options    (validate/validate-options options)
+(defn make-processors* [options env]
+  (let [options    (validate/validate-options (assoc options :cljs-mode? (boolean (:ns env))))
         processors (type/with-custom-types (:custom-types options)
                      (concat (make-local-processors* options)
                              (make-global-processors* options)))]
@@ -47,15 +47,14 @@
                              processor-name]))))))))
 
 (defmacro make-processors [options]
-  (make-processors* (assoc options :cljs-mode? (boolean (:ns &env)))))
+  (make-processors* options &env))
 
 (defn make-test-processors [options]
-  (eval (make-processors* options)))
+  (eval (make-processors* options {})))
 
 (defmacro defprocessors [names options]
-  (let [processors (gensym)
-        options    (assoc options :cljs-mode? (boolean (:ns &env)))]
-    `(let [~processors ~(make-processors* options)]
+  (util/with-gensyms [processors]
+    `(let [~processors ~(make-processors* options &env)]
        ~@(map (fn [name]
                 `(def ~name (~(keyword name) ~processors)))
               names))))

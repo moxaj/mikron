@@ -62,7 +62,7 @@
        (first)
        (* 1000)))
 
-(defn measure-methods [& {:keys [methods stats data]}]
+(defn run-benchmarks [& {:keys [methods stats data]}]
   (->> (for [stat stats]
          [stat (->> (for [[method-name fns] methods]
                       (do (println "Measuring " method-name stat)
@@ -86,14 +86,14 @@
 
 (comment
   (visualize-results
-    (measure-methods :methods {:seria [#(pack :snapshot %) unpack]
-                               :java  [java-serialize java-deserialize]
-                               :kryo  [kryo-serialize kryo-deserialize]
-                               :nippy [nippy/freeze nippy/thaw]
-                               :json  [cheshire/generate-string cheshire/parse-string]
-                               :smile [cheshire/generate-smile cheshire/parse-smile]}
-                     :stats   [:size :serialize-speed :roundtrip-speed]
-                     :data    (repeatedly 1000 #(gen :snapshot))))
+    (run-benchmarks :methods {:seria [#(pack :snapshot %) unpack]
+                              :java  [java-serialize java-deserialize]
+                              :kryo  [kryo-serialize kryo-deserialize]
+                              :nippy [nippy/freeze nippy/thaw]
+                              :json  [cheshire/generate-string cheshire/parse-string]
+                              :smile [cheshire/generate-smile cheshire/parse-smile]}
+                    :stats   [:size :serialize-speed :roundtrip-speed]
+                    :data    (repeatedly 1000 #(gen :snapshot))))
   nil)
 
 ;; 1
