@@ -130,7 +130,7 @@
                     {:private true})
         [~value]
         ~(validate (schemas schema-name) value)
-        true))))
+        ~value))))
 
 ;; public api
 
