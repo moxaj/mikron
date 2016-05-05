@@ -1,5 +1,6 @@
 (ns playground
   (:require [criterium.core :as crit]
+            [seria.processor :as p]
             [seria.core :as seria]))
 
 (def box2d-schemas
@@ -12,7 +13,11 @@
                        :coords    [:list :coord]}]
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
-                       :bodies [:list :body]}]})
+                       :bodies [:list :body]}]
+
+   :date     [:wrapped {:pre  (fn [] 1)
+                        :post (fn [] 2)}
+              :long]})
 
 (def box2d-interp-routes
   {:snapshot {:time   true
@@ -59,4 +64,18 @@
                                       :bodies [:list :body]}]
                   :x        :snapshot}})]
   (let [value (gen :x)]))
-    
+
+(defn int->string [n]
+  (str n))
+
+(defn string->int [s]
+  (Integer/parseInt s))
+
+(let [{:keys [pack gen unpack]}
+      (seria/make-test-processors
+        {:schemas {:x [:wrapped {:pre  'playground/string->int
+                                 :post 'playground/int->string}
+                       :int]}})]
+  (->> (gen :x)
+       (pack :x)
+       (unpack)))

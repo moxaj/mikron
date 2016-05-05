@@ -1,37 +1,47 @@
 (ns seria.common
-  "Functions which are embedded into the generated processors."
-  #?(:cljs (:require [cljs.reader :as reader]
-                     [goog.string.format])))
+  "Cross-platform functions which are embedded into the generated processors."
+  #?@(:clj  [(:refer-clojure :exclude [format])
+             (:import [java.util Date])]
+      :cljs [(:require [cljs.reader :as reader]
+                       [goog.string]
+                       [goog.string.format])]))
 
-;; cljc
+;; generic
 
-(defn cljc-pow [base exp]
+(defn pow [base exp]
   #?(:clj  (Math/pow base exp)
      :cljs (.pow js/Math base exp)))
 
-(defn cljc-floor [n]
+(defn floor [n]
   #?(:clj  (Math/floor n)
      :cljs (.floor js/Math n)))
 
-(defn cljc-exception [^String s]
+(defn exception [^String s]
   #?(:clj  (Exception. s)
      :cljs (js/Error. s)))
 
-(defn cljc-read-string [^String s]
+(defn parse-string [^String s]
   #?(:clj  (read-string s)
      :cljs (reader/read-string s)))
 
-(defn cljc-abs [^double n]
+(defn abs [^double n]
   #?(:clj  (Math/abs n)
      :cljs (.abs js/Math n)))
 
-(defn cljc-round [^double n]
+(defn round [^double n]
   #?(:clj  (Math/round n)
      :cljs (.round js/Math n)))
 
-(defn cljc-format [s & args]
+(defn format [s & args]
   #?(:clj  (apply format s args)
      :cljs (apply goog.string.format s args)))
+
+(defn date->long [#?(:clj ^Date date :cljs date)]
+  (.getTime date))
+
+(defn long->date [^long time]
+  #?(:clj  (Date. time)
+     :cljs (js/Date. time)))
 
 ;; gen
 
@@ -42,8 +52,8 @@
                     (range 48 58))))
 
 (defn random-integer [bytes signed?]
-  (let [max-value (cljc-pow 2 (* bytes 8))
-        r         (cljc-floor (* max-value (rand)))]
+  (let [max-value (pow 2 (* bytes 8))
+        r         (floor (* max-value (rand)))]
     (long (if-not signed?
             r
             (- r (/ max-value 2))))))

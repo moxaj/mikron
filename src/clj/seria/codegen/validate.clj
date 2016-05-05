@@ -10,15 +10,15 @@
 
 (defmethod validate :integer [schema value]
   `(assert (integer? ~value)
-           (common/cljc-format "'%s' is not an integer." ~value)))
+           (common/format "'%s' is not an integer." ~value)))
 
 (defmethod validate :floating [_ value]
   `(assert (number? ~value)
-           (common/cljc-format "'%s' is not a number." ~value)))
+           (common/format "'%s' is not a number." ~value)))
 
 (defmethod validate :char [_ value]
   `(assert (char? ~value)
-           (common/cljc-format "'%s' is not a character." ~value)))
+           (common/format "'%s' is not a character." ~value)))
 
 (defmethod validate :boolean [_ value]
   nil)
@@ -28,25 +28,24 @@
 
 (defmethod validate :string [_ value]
   `(assert (string? ~value)
-           (common/cljc-format "'%s' is not a string." ~value)))
+           (common/format "'%s' is not a string." ~value)))
 
 (defmethod validate :nil [_ value]
   `(assert (nil? ~value)
-           (common/cljc-format "'%s' is not nil." ~value)))
+           (common/format "'%s' is not nil." ~value)))
 
 (defmethod validate :keyword [_ value]
   `(assert (keyword? ~value)
-           (common/cljc-format "'%s' is not a keyword." ~value)))
+           (common/format "'%s' is not a keyword." ~value)))
 
 (defmethod validate :symbol [_ value]
   `(assert (symbol? ~value)
-           (common/cljc-format "'%s' is not a symbol." ~value)))
-
+           (common/format "'%s' is not a symbol." ~value)))
 
 (defmethod validate :list [[_ _ inner-schema] value]
   (util/with-gensyms [inner-value]
     `(do (assert (sequential? ~value)
-                 (common/cljc-format "'%s' is not sequential." ~value))
+                 (common/format "'%s' is not sequential." ~value))
          (run! (fn [~inner-value]
                  ~(validate inner-schema inner-value))
                ~value))))
@@ -54,7 +53,7 @@
 (defmethod validate :vector [[_ _ inner-schema] value]
   (util/with-gensyms [inner-value]
     `(do (assert (vector? ~value)
-                 (common/cljc-format "'%s' is not a vector." ~value))
+                 (common/format "'%s' is not a vector." ~value))
          (run! (fn [~inner-value]
                  ~(validate inner-schema inner-value))
                ~value))))
@@ -62,7 +61,7 @@
 (defmethod validate :set [[_ _ inner-schema] value]
   (util/with-gensyms [inner-value]
     `(do (assert (set? ~value)
-                 (common/cljc-format "'%s' is not a set." ~value))
+                 (common/format "'%s' is not a set." ~value))
          (run! (fn [~inner-value]
                  ~(validate inner-schema inner-value))
                ~value))))
@@ -70,7 +69,7 @@
 (defmethod validate :map [[_ _ key-schema val-schema] value]
   (util/with-gensyms [key val]
     `(do (assert (map? ~value)
-                 (common/cljc-format "'%s' is not a map." ~value))
+                 (common/format "'%s' is not a map." ~value))
          (run! (fn [[~key ~val]]
                  ~(validate key-schema key)
                  ~(validate val-schema val))
@@ -79,7 +78,7 @@
 (defmethod validate :tuple [[_ _ inner-schemas] value]
   (util/with-gensyms [inner-value]
     `(do (assert (vector? ~value)
-                 (common/cljc-format "'%s' is not a vector." ~value))
+                 (common/format "'%s' is not a vector." ~value))
          ~@(->> inner-schemas
                 (map-indexed (fn [index inner-schema]
                                `(let [~inner-value (~value ~index)]
@@ -90,7 +89,7 @@
   (let [[_ _ inner-schemas] (util/expand-record schema (:schemas *options*))]
     (util/with-gensyms [inner-value]
       `(do (assert (map? ~value)
-                   (common/cljc-format "'%s' is not a map." ~value))
+                   (common/format "'%s' is not a map." ~value))
            ~@(->> inner-schemas
                   (map (fn [[index inner-schema]]
                          `(let [~inner-value (~index ~value)]
@@ -109,17 +108,26 @@
                   [multi-case (validate inner-schema value)])
                 multi-map)
          (assert (~(set (keys multi-map)) ~value)
-                 (common/cljc-format ~(str "Selected multi dispach value '%s' for value '%s' "
-                                           "is invalid.")
-                                     ~selected-multi-case ~value))))))
+                 (common/format ~(str "Selected multi dispach value '%s' for value '%s' "
+                                      "is invalid.")
+                                ~selected-multi-case ~value))))))
 
 (defmethod validate :enum [[_ _ enum-values] value]
   `(assert (~(set enum-values) ~value)
-           (common/cljc-format "'%s' is not a valid enum value." ~value)))
+           (common/format "'%s' is not a valid enum value." ~value)))
+
+(defmethod validate :wrapped [[_ {:keys [pre post]} inner-schema] value]
+  (util/with-gensyms [inner-value]
+    `(let [~inner-value (~pre ~value)]
+       ~(validate inner-schema inner-value)
+       (~post ~inner-value))))
 
 (defmethod validate :custom [schema value]
   `(~(util/processor-name :validate schema)
     ~value))
+
+(defmethod validate :template [schema value]
+  (validate (type/templates schema) value))
 
 ;; private api
 

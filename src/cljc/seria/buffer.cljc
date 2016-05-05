@@ -149,7 +149,7 @@
     (loop [value 0
            shift 0]
       (if-not (< shift 64)
-        (throw (common/cljc-exception "Malformed varint!"))
+        (throw (common/exception "Malformed varint!"))
         (let [b     (read-byte! buffer)
               value (bit-or value (bit-shift-left (bit-and b 127)
                                                   shift))]

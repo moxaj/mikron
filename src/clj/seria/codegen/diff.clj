@@ -64,7 +64,6 @@
                                 (diff :default nil inner-value-1 inner-value-2)))))
            (vec)))))
 
-
 (defmethod diff :record [schema route value-1 value-2]
   (let [[_ options inner-schemas] (util/expand-record schema (:schemas *options*))
         route                     (util/expand-route route (:diff-routes *options*))]
@@ -97,8 +96,17 @@
                        [multi-case (diff inner-schema route value-1 value-2)])
                      multi-cases))))))
 
+(defmethod diff :wrapped [[_ {:keys [pre post]} inner-schema] route value-1 value-2]
+  (util/with-gensyms [inner-value-1 inner-value-2]
+    `(~post (let [~inner-value-1 (~pre ~value-1)
+                  ~inner-value-2 (~pre ~value-2)]
+              ~(diff inner-schema route inner-value-1 inner-value-2)))))
+
 (defmethod diff :custom [schema _ value-1 value-2]
   `(~(util/processor-name (:processor-type *options*) schema) ~value-1 ~value-2))
+
+(defmethod diff :template [schema route value-1 value-2]
+  (diff (type/templates schema) route value-1 value-2))
 
 (defmethod diff :default [_ _ value-1 value-2]
   value-2)

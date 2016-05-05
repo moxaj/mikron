@@ -105,8 +105,14 @@
 (defmethod gen :enum [[_ _ enum-values]]
   `(rand-nth ~enum-values))
 
+(defmethod gen :wrapped [[_ {:keys [post]} inner-schema]]
+  `(~post ~(gen inner-schema)))
+
 (defmethod gen :custom [schema]
   `(~(util/processor-name :gen schema)))
+
+(defmethod gen :template [schema]
+  (gen (type/templates schema)))
 
 ;; private api
 

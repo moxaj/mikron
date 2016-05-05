@@ -16,6 +16,7 @@
                                   [com.taoensso/nippy "2.11.1"]
                                   [org.clojars.runa/clj-kryo "1.5.0"]
                                   [com.cognitect/transit-clj "0.8.285"]
+                                  [com.damballa/abracad "0.4.13"]
                                   [gloss "0.2.5"]
                                   [potemkin "0.4.3"]
                                   [cheshire "5.6.1"]

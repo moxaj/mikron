@@ -8,6 +8,8 @@
             [cognitect.transit :as transit]
             [gloss.core]
             [gloss.io]
+            [abracad.avro :as avro]
+            [abracad.avro.edn :as aedn]
             [octet.core :as octet]
             [prc])
   (:import [java.io ByteArrayInputStream ByteArrayOutputStream
@@ -53,19 +55,53 @@
         reader (transit/reader bais :json)]
     (transit/read reader)))
 
+;; avro
+(let [schema (avro/parse-schema
+              {:name "example", :type "record",
+               :fields [{:name "left", :type "string"}
+                        {:name "right", :type "long"}]
+               :abracad.reader "vector"})])
+
+(def avro-schema
+  (let [coord   {:name "coord" :type "record" :namespace "seria"
+                 :fields [{:name "x" :type "float"}
+                          {:name "y" :type "float"}]
+                 :abracad.reader "vector"}
+        fixture {:name "fixture" :type "record"
+                 :fields [{:name "user-data"
+                           :type {:name "user-data" :type "record"
+                                  :fields [{:name "color" :type "int"}]}}
+                          {:name "coords"
+                           :type {:type "array"
+                                  :items "seria.coord"}}]}]
+    (avro/parse-schema coord)
+    (avro/parse-schema fixture)))
+
+(avro/parse-schema {:name "x" :type "record"
+                    :fields [{:name "y" :type {:type "record"
+                                               :name "z"
+                                               :fields []}}]})
+
+
+(defn avro-serialize [data]
+  (avro/binary-encoded avro-schema data))
+
+(defn avro-deserialize [^bytes raw]
+  (avro/decode avro-schema raw))
+
 ;; seria
 
 (seria/defprocessors [pack gen unpack]
-  {:schemas  {:body     [:record {:user-data [:record {:id :int}]
+  {:schemas  {:snapshot [:record {:time   :long}
+                         :bodies [:list :body]]
+              :body     [:record {:user-data [:record {:id :int}]
                                   :position  :coord
                                   :angle     :float
                                   :body-type [:enum [:dynamic :static :kinetic]]
                                   :fixtures  [:list :fixture]}]
               :fixture  [:record {:user-data [:record {:color :int}]
                                   :coords    [:list :coord]}]
-              :coord    [:tuple [:float :float]]
-              :snapshot [:record {:time   :long
-                                  :bodies [:list :body]}]}})
+              :coord    [:tuple [:float :float]]}})
 
 (defn seria-serialize [data]
   (pack :snapshot data))
@@ -174,14 +210,15 @@
 (comment
   (visualize-results
     (run-benchmarks :methods {:seria   [seria-serialize seria-deserialize]
-                              :gloss   [gloss-serialize gloss-deserialize]
-                              :octet   [octet-serialize octet-deserialize]
-                              :smile   [cheshire/generate-smile cheshire/parse-smile]
-                              :kryo    [kryo-serialize kryo-deserialize]
-                              :nippy   [nippy/freeze nippy/thaw]
-                              :java    [java-serialize java-deserialize]
-                              :json    [cheshire/generate-string cheshire/parse-string]
-                              :transit [transit-serialize transit-deserialize]}
+                              :avro    [avro-serialize avro-deserialize]}
+                              ;:gloss   [gloss-serialize gloss-deserialize]
+                              ;:octet   [octet-serialize octet-deserialize]
+                              ;:smile   [cheshire/generate-smile cheshire/parse-smile]
+                              ;:kryo    [kryo-serialize kryo-deserialize]
+                              ;:nippy   [nippy/freeze nippy/thaw]
+                              ;:java    [java-serialize java-deserialize]
+                              ;:json    [cheshire/generate-string cheshire/parse-string]
+                              ;:transit [transit-serialize transit-deserialize]}
                     :stats   [:size
                               :serialize-speed
                               :roundtrip-speed]

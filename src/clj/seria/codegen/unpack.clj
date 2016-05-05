@@ -31,7 +31,7 @@
   `(symbol ~(unpack :string)))
 
 (defmethod unpack :any [_]
-  `(common/cljc-read-string ~(unpack :string)))
+  `(common/parse-string ~(unpack :string)))
 
 (defmethod unpack :nil [_]
   nil)
@@ -78,6 +78,12 @@
 
 (defmethod unpack :enum [[_ _ enum-values]]
   `(get ~enum-values ~(unpack :varint)))
+
+(defmethod unpack :wrapped [[_ {:keys [post]} inner-schema]]
+  `(~post ~(unpack inner-schema)))
+
+(defmethod unpack :template [schema]
+  (unpack (type/templates schema)))
 
 (defmethod unpack :custom [schema]
   (let [{:keys [diffed? buffer]} *options*]
