@@ -19,4 +19,5 @@
                                   [gloss "0.2.5"]
                                   [potemkin "0.4.3"]
                                   [cheshire "5.6.1"]
+                                  [com.damballa/abracad "0.4.13"]
                                   [funcool/octet "0.2.0"]]}})

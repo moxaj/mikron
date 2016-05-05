@@ -179,7 +179,7 @@
 
 (defn read-headers! [#?(:clj ^SeriaByteBuffer buffer :cljs buffer)]
   (little-endian! buffer (read-boolean! buffer))
-  {:diffed?   (read-boolean! buffer)
-   :schema-id (read-varint! buffer)
+  {:diffed?        (read-boolean! buffer)
+   :schema-id      (read-varint! buffer)
    :meta-schema-id (when (read-boolean! buffer)
                      (read-varint! buffer))})

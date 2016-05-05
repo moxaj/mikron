@@ -1,5 +1,5 @@
 (ns seria.codegen.validate
-  "Linear interpolator generating functions."
+  "Validator generating functions."
   (:require [seria.type :as type]
             [seria.util :as util]
             [seria.common :as common]))
@@ -20,12 +20,6 @@
   `(assert (char? ~value)
            (common/cljc-format "'%s' is not a character." ~value)))
 
-(defmethod validate :boolean [_ value]
-  nil)
-
-(defmethod validate :any [_ value]
-  nil)
-
 (defmethod validate :string [_ value]
   `(assert (string? ~value)
            (common/cljc-format "'%s' is not a string." ~value)))
@@ -41,7 +35,6 @@
 (defmethod validate :symbol [_ value]
   `(assert (symbol? ~value)
            (common/cljc-format "'%s' is not a symbol." ~value)))
-
 
 (defmethod validate :list [[_ _ inner-schema] value]
   (util/with-gensyms [inner-value]
@@ -120,6 +113,9 @@
 (defmethod validate :custom [schema value]
   `(~(util/processor-name :validate schema)
     ~value))
+
+(defmethod validate :default [_ _]
+  nil)
 
 ;; private api
 

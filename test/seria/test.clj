@@ -1,12 +1,12 @@
 (ns seria.test
   (:require [clojure.test :refer [deftest is]]
-            [seria.core :as core]))
+            [seria.processor :refer [make-test-processors]]))
 
 (defn pack-roundtrip [value {:keys [pack unpack]}]
   (unpack (pack :x value)))
 
 (defn test-pack-case [schemas]
-  (let [{:keys [gen] :as processors} (core/make-test-processors {:schemas schemas})]
+  (let [{:keys [gen] :as processors} (make-test-processors {:schemas schemas})]
     (doseq [value (repeatedly 10 #(gen :x))]
       (is (= {:schema :x :diffed? false :value value}
              (pack-roundtrip value processors))))))
@@ -22,15 +22,15 @@
                   [:vector :int]
                   [:set :short]
                   [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by 'clojure.core/>} :int]
+                  [:set {:sorted-by ''clojure.core/>} :int]
                   [:map :byte :string]
                   [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by 'clojure.core/>} :byte :string]
+                  [:map {:sorted-by ''clojure.core/>} :byte :string]
                   [:optional :byte]
                   [:enum [:cat :dog :measurement :error]]
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
-                  [:multi 'clojure.core/number? {true :int false :string}]]]
+                  [:multi ''clojure.core/number? {true :int false :string}]]]
     (test-pack-case {:x schema})))
 
 (deftest custom-test
@@ -55,7 +55,7 @@
     (test-pack-case schemas)))
 
 (deftest meta-schema-test
-  (let [{:keys [pack unpack gen]} (core/make-processors
+  (let [{:keys [pack unpack gen]} (make-test-processors
                                     {:schemas {:x [:record {:a :int :b :byte :c :string}]}})
         value-1 (gen :x)
         meta-1  (gen :x)
@@ -68,7 +68,7 @@
 
 (defn test-diff-case [schemas]
   (let [{:keys [gen] :as processors}
-        (core/make-test-processors {:schemas schemas})]
+        (make-test-processors {:schemas schemas})]
     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
       (is (= value-2 (diff-roundtrip value-1 value-2 processors))))))
 
@@ -83,7 +83,7 @@
 
 
 (defn test-interp-case [schema]
-  (let [{:keys [interp gen]} (core/make-test-processors {:schemas {:x schema}})]
+  (let [{:keys [interp gen]} (make-test-processors {:schemas {:x schema}})]
     (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
       (interp :x value-1 value-2 0 1 0.5))))
 
@@ -92,19 +92,19 @@
                   [:vector :int]
                   [:set :short]
                   [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by 'clojure.core/>} :int]
+                  [:set {:sorted-by ''clojure.core/>} :int]
                   [:map :byte :string]
                   [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by 'clojure.core/>} :byte :string]
+                  [:map {:sorted-by ''clojure.core/>} :byte :string]
                   [:optional :byte]
                   [:enum [:cat :dog :measurement :error]]
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
-                  [:multi 'clojure.core/number? {true :int false :string}]]]
+                  [:multi ''clojure.core/number? {true :int false :string}]]]
     (test-interp-case schema)))
 
 (defn test-validate-case [schemas]
-  (let [{:keys [validate gen]} (core/make-test-processors {:schemas schemas})]
+  (let [{:keys [validate gen]} (make-test-processors {:schemas schemas})]
     (doseq [value (repeatedly 20 #(gen :x))]
       (validate :x value))))
 

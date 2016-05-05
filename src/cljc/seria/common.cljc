@@ -1,7 +1,7 @@
 (ns seria.common
   "Functions which are embedded into the generated processors."
   #?(:cljs (:require [cljs.reader :as reader]
-                     [goog.string.format])))
+                     [goog.string :as gstring])))
 
 ;; cljc
 
@@ -31,7 +31,7 @@
 
 (defn cljc-format [s & args]
   #?(:clj  (apply format s args)
-     :cljs (apply goog.string.format s args)))
+     :cljs (apply gstring/format s args)))
 
 ;; gen
 

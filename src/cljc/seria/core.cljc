@@ -11,6 +11,3 @@
 
 #?(:clj (defmacro defprocessors [names options]
           `(processor/defprocessors ~names ~options)))
-
-#?(:clj (defn make-test-processors [options]
-          (processor/make-test-processors options)))

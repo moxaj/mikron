@@ -1,12 +1,12 @@
 (ns seria.processor
   "Processor generating functions."
-  (:require [seria.validate :as validate]
+  (:require [seria.validate]
             [seria.codegen.diff :as diff]
             [seria.codegen.pack :as pack]
             [seria.codegen.unpack :as unpack]
             [seria.codegen.interp :as interp]
             [seria.codegen.gen :as gen]
-            [seria.codegen.validate :as gen.validate]
+            [seria.codegen.validate :as validate]
             [seria.util :as util]
             [seria.type :as type]
             [seria.buffer :as buffer]))
@@ -22,7 +22,7 @@
                   (diff/make-undiffer schema-name options)
                   (gen/make-generator schema-name options)
                   (interp/make-interper schema-name options)
-                  (gen.validate/make-validator schema-name options)]))))
+                  (validate/make-validator schema-name options)]))))
 
 (defn make-global-processors* [options]
   [(pack/make-global-packer options)
@@ -31,10 +31,11 @@
    (diff/make-global-undiffer options)
    (gen/make-global-generator options)
    (interp/make-global-interper options)
-   (gen.validate/make-global-validator options)])
+   (validate/make-global-validator options)])
 
 (defn make-processors* [options env]
-  (let [options    (validate/validate-options (assoc options :cljs-mode? (boolean (:ns env))))
+  (let [options    (assoc (seria.validate/validate-options (eval options))
+                          :cljs-mode? (boolean (:ns env)))
         processors (concat (make-local-processors* options)
                            (make-global-processors* options))]
     `(let [~(util/var-name :buffer) (buffer/allocate ~(:buffer-size options))]
@@ -50,12 +51,12 @@
 (defmacro make-processors [options]
   (make-processors* options &env))
 
-(defn make-test-processors [options]
-  (eval (make-processors* options {})))
-
 (defmacro defprocessors [names options]
   (util/with-gensyms [processors]
     `(let [~processors ~(make-processors* options &env)]
        ~@(map (fn [name]
                 `(def ~name (~(keyword name) ~processors)))
               names))))
+
+(defn make-test-processors [options]
+  (eval (make-processors* options {})))
