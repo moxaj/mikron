@@ -11,7 +11,11 @@
                        :coords    [:list :coord]}]
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
-                       :bodies [:list :body]}]})
+                       :bodies [:list :body]}]
+
+   :date     [:wrapped {:pre  (fn [] 1)
+                        :post (fn [] 2)}
+              :long]})
 
 (def box2d-interp-routes
   {:snapshot {:time   true

@@ -14,8 +14,14 @@
 (deftest simple-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
                   :float :double :char :boolean :varint
-                  :string :keyword :symbol :any :nil]]
+                  :string :keyword :symbol :any :nil :date]]
     (test-pack-case {:x schema})))
+
+(defn int->string [n]
+  (str n))
+
+(defn string->int [s]
+  (Integer/parseInt s))
 
 (deftest complex-test
   (doseq [schema [[:list :byte]
@@ -30,7 +36,10 @@
                   [:enum [:cat :dog :measurement :error]]
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
-                  [:multi ''clojure.core/number? {true :int false :string}]]]
+                  [:multi ''clojure.core/number? {true :int false :string}]
+                  [:wrapped {:pre  ''seria.test/string->int
+                             :post ''seria.test/int->string}
+                   :int]]]
     (test-pack-case {:x schema})))
 
 (deftest custom-test

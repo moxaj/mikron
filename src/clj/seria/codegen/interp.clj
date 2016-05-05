@@ -14,7 +14,7 @@
      ~(interp schema route value-1 value-2)))
 
 (defmethod interp :integer [_ _ value-1 value-2]
-  `(common/cljc-round ~(interp :floating nil value-1 value-2)))
+  `(common/round ~(interp :floating nil value-1 value-2)))
 
 (defmethod interp :floating [_ _ value-1 value-2]
   `(common/interp-numbers ~value-1 ~value-2 ~(:time-factor *options*)))
@@ -94,6 +94,12 @@
                        [multi-case (interp inner-schema route value-1 value-2)])
                      multi-map))))))
 
+(defmethod interp :wrapped [[_ {:keys [pre post]} inner-schema] route value-1 value-2]
+  (util/with-gensyms [inner-value-1 inner-value-2]
+    `(~post (let [~inner-value-1 (~pre ~value-1)
+                  ~inner-value-2 (~pre ~value-2)]
+              ~(interp inner-schema route inner-value-1 inner-value-2)))))
+
 (defmethod interp :custom [schema _ value-1 value-2]
   `(~(util/processor-name :interp schema)
     ~value-1
@@ -101,6 +107,9 @@
     ~(:time-1 *options*)
     ~(:time-2 *options*)
     ~(:time *options*)))
+
+(defmethod interp :template [schema route value-1 value-2]
+  (interp (type/templates schema) route value-1 value-2))
 
 (defmethod interp :default [_ _ value-1 value-2]
   `(if ~(:prefer-first? *options*) ~value-1 ~value-2))
@@ -117,8 +126,8 @@
       `(~(with-meta (util/processor-name :interp schema-name)
                     {:private true})
         [~value-1 ~value-2 ~time-1 ~time-2 ~time]
-        (let [~prefer-first? (< (common/cljc-abs (- ~time ~time-1))
-                                (common/cljc-abs (- ~time ~time-2)))
+        (let [~prefer-first? (< (common/abs (- ~time ~time-1))
+                                (common/abs (- ~time ~time-2)))
               ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
           ~(interp-equal (schemas schema-name) (interp-routes schema-name) value-1 value-2))))))
 

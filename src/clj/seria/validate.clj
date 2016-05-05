@@ -100,7 +100,8 @@
 (defmethod validate-schema :multi [schema]
   (let [[_ _ selector multi-map :as schema] (util/with-options schema)]
     (assert (= 4 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:multi selector {:k1 :x1 ... :kn :xn}]." schema))
+            (format "Invalid schema: %s. Correct signature: [:multi <options> selector {:k1 :x1 ... :kn :xn}]."
+                    schema))
     (assert (symbol? selector)
             (format "Invalid schema: %s. The selector must be a symbol." schema))
     (assert (map? multi-map)
@@ -108,6 +109,21 @@
     (let [multi-cases   (keys multi-map)
           inner-schemas (vals multi-map)]
       [:multi {} selector (zipmap multi-cases (map validate-schema inner-schemas))])))
+
+(defmethod validate-schema :wrapped [schema]
+  (let [[_ {:keys [pre post]
+            :or   {pre 'clojure.core/identity post 'clojure.core/identity}}
+         inner-schema :as schema] (util/with-options schema)]
+    (assert (= 3 (count schema))
+            (format "Invalid schema: %s. Correct signature: [:wrapped <options> :x}]."
+                    schema))
+    (assert (symbol? pre)
+            (format "Invalid schema %s. :pre options must be a symbol."
+                    schema))
+    (assert (symbol? post)
+            (format "Invalid schema %s. :post options must be a symbol."
+                    schema))
+    [:wrapped {:pre pre :post post} (validate-schema inner-schema)]))
 
 (defmethod validate-schema :custom [schema]
   (assert (contains? *schemas* schema)

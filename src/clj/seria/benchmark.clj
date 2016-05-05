@@ -54,6 +54,40 @@
         reader (transit/reader bais :json)]
     (transit/read reader)))
 
+;; avro
+(let [schema (avro/parse-schema
+              {:name "example", :type "record",
+               :fields [{:name "left", :type "string"}
+                        {:name "right", :type "long"}]
+               :abracad.reader "vector"})])
+
+(def avro-schema
+  (let [coord   {:name "coord" :type "record" :namespace "seria"
+                 :fields [{:name "x" :type "float"}
+                          {:name "y" :type "float"}]
+                 :abracad.reader "vector"}
+        fixture {:name "fixture" :type "record"
+                 :fields [{:name "user-data"
+                           :type {:name "user-data" :type "record"
+                                  :fields [{:name "color" :type "int"}]}}
+                          {:name "coords"
+                           :type {:type "array"
+                                  :items "seria.coord"}}]}]
+    (avro/parse-schema coord)
+    (avro/parse-schema fixture)))
+
+(avro/parse-schema {:name "x" :type "record"
+                    :fields [{:name "y" :type {:type "record"
+                                               :name "z"
+                                               :fields []}}]})
+
+
+(defn avro-serialize [data]
+  (avro/binary-encoded avro-schema data))
+
+(defn avro-deserialize [^bytes raw]
+  (avro/decode avro-schema raw))
+
 ;; seria
 
 (seria/defprocessors [pack gen unpack]
@@ -110,6 +144,15 @@
 
 (defn avro-deserialize [schema ^bytes raw]
   (avro/decode schema raw))
+=======
+              :coord    [:tuple [:float :float]]}})
+
+(defn seria-serialize [data]
+  (pack :snapshot data))
+
+(defn seria-deserialize [^bytes raw]
+  (unpack raw))
+>>>>>>> 70e9244d178737971e2e17a2b9b541e332331d0b
 
 ;; gloss
 

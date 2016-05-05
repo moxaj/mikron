@@ -110,6 +110,14 @@
                                [enum-value (util/index-of enum-value enum-values)])
                              enum-values))))
 
+(defmethod pack :wrapped [[_ {:keys [pre]} inner-schema] value]
+  (util/with-gensyms [inner-value]
+    `(let [~inner-value (~pre ~value)]
+       ~(pack inner-schema inner-value))))
+
+(defmethod pack :template [schema value]
+  (pack (type/templates schema) value))
+
 (defmethod pack :custom [schema value]
   (let [{:keys [diffed? buffer]} *options*]
     `(~(util/processor-name (if diffed? :pack-diffed :pack)
