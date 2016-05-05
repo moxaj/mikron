@@ -13,7 +13,7 @@
 
 (deftest simple-test
   (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
-                  :float :double :char :boolean :varint
+                  :varint :float :double :boolean :char
                   :string :keyword :symbol :any :nil :date]]
     (test-pack-case {:x schema})))
 

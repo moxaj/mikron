@@ -31,20 +31,20 @@
 (defmethod gen :long [_]
   `(common/random-integer 8 true))
 
+(defmethod gen :varint [_]
+  (gen :long))
+
 (defmethod gen :float [_]
   `(float (rand)))
 
 (defmethod gen :double [_]
   `(double (rand)))
 
-(defmethod gen :char [_]
-  `(char ~(gen :ushort)))
-
 (defmethod gen :boolean [_]
   `(zero? (rand-int 2)))
 
-(defmethod gen :varint [_]
-  (gen :long))
+(defmethod gen :char [_]
+  `(char ~(gen :ushort)))
 
 (defmethod gen :string [_]
   `(->> (fn [] ~(gen :char))
@@ -64,7 +64,7 @@
         (symbol)))
 
 (defmethod gen :any [_]
-  "TODO")
+  nil)
 
 (defmethod gen :nil [_]
   nil)
@@ -108,11 +108,11 @@
 (defmethod gen :wrapped [[_ {:keys [post]} inner-schema]]
   `(~post ~(gen inner-schema)))
 
-(defmethod gen :custom [schema]
-  `(~(util/processor-name :gen schema)))
-
 (defmethod gen :template [schema]
   (gen (type/templates schema)))
+
+(defmethod gen :custom [schema]
+  `(~(util/processor-name :gen schema)))
 
 ;; private api
 

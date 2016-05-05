@@ -100,13 +100,13 @@
   (util/with-gensyms [inner-value-1 inner-value-2]
     `(~post (let [~inner-value-1 (~pre ~value-1)
                   ~inner-value-2 (~pre ~value-2)]
-              ~(diff inner-schema route inner-value-1 inner-value-2)))))
-
-(defmethod diff :custom [schema _ value-1 value-2]
-  `(~(util/processor-name (:processor-type *options*) schema) ~value-1 ~value-2))
+              ~(wrap-diffed inner-schema route inner-value-1 inner-value-2)))))
 
 (defmethod diff :template [schema route value-1 value-2]
   (diff (type/templates schema) route value-1 value-2))
+
+(defmethod diff :custom [schema _ value-1 value-2]
+  `(~(util/processor-name (:processor-type *options*) schema) ~value-1 ~value-2))
 
 (defmethod diff :default [_ _ value-1 value-2]
   value-2)

@@ -51,22 +51,6 @@
      (validate-schema key-schema)
      (validate-schema val-schema)]))
 
-(defmethod validate-schema :optional [schema]
-  (let [[_ options inner-schema :as schema] (util/with-options schema)]
-    (assert (= 3 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:optional <options> :x]." schema))
-    [:optional {} (validate-schema inner-schema)]))
-
-(defmethod validate-schema :enum [schema]
-  (let [[_ _ values :as schema] (util/with-options schema)]
-    (assert (= 3 (count schema))
-            (format "Invalid schema: %s. Correct signature: [:enum <options> [:v1 ... :vn]]." schema))
-    (assert (vector? values)
-            (format "Invalid schema: %s. :enum values must be listed in a vector." schema))
-    (assert (every? keyword? values)
-            (format "Invalid schema: %s. :enum values must be keywords." schema))
-    [:enum {} values]))
-
 (defmethod validate-schema :tuple [schema]
   (let [[_ _ inner-schemas :as schema] (util/with-options schema)]
     (assert (= 3 (count schema))
@@ -97,6 +81,12 @@
       [:record (select-keys options [:constructor :extends])
        (zipmap fields (map validate-schema inner-schemas))])))
 
+(defmethod validate-schema :optional [schema]
+  (let [[_ options inner-schema :as schema] (util/with-options schema)]
+    (assert (= 3 (count schema))
+            (format "Invalid schema: %s. Correct signature: [:optional <options> :x]." schema))
+    [:optional {} (validate-schema inner-schema)]))
+
 (defmethod validate-schema :multi [schema]
   (let [[_ _ selector multi-map :as schema] (util/with-options schema)]
     (assert (= 4 (count schema))
@@ -109,6 +99,16 @@
     (let [multi-cases   (keys multi-map)
           inner-schemas (vals multi-map)]
       [:multi {} selector (zipmap multi-cases (map validate-schema inner-schemas))])))
+
+(defmethod validate-schema :enum [schema]
+  (let [[_ _ values :as schema] (util/with-options schema)]
+    (assert (= 3 (count schema))
+            (format "Invalid schema: %s. Correct signature: [:enum <options> [:v1 ... :vn]]." schema))
+    (assert (vector? values)
+            (format "Invalid schema: %s. :enum values must be listed in a vector." schema))
+    (assert (every? keyword? values)
+            (format "Invalid schema: %s. :enum values must be keywords." schema))
+    [:enum {} values]))
 
 (defmethod validate-schema :wrapped [schema]
   (let [[_ {:keys [pre post]

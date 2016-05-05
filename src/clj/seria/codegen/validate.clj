@@ -116,12 +116,12 @@
        ~(validate inner-schema inner-value)
        (~post ~inner-value))))
 
+(defmethod validate :template [schema value]
+  (validate (type/templates schema) value))
+
 (defmethod validate :custom [schema value]
   `(~(util/processor-name :validate schema)
     ~value))
-
-(defmethod validate :template [schema value]
-  (validate (type/templates schema) value))
 
 (defmethod validate :default [_ _]
   nil)

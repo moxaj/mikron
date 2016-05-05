@@ -98,7 +98,10 @@
   (util/with-gensyms [inner-value-1 inner-value-2]
     `(~post (let [~inner-value-1 (~pre ~value-1)
                   ~inner-value-2 (~pre ~value-2)]
-              ~(interp inner-schema route inner-value-1 inner-value-2)))))
+              ~(interp-equal inner-schema route inner-value-1 inner-value-2)))))
+
+(defmethod interp :template [schema route value-1 value-2]
+  (interp (type/templates schema) route value-1 value-2))
 
 (defmethod interp :custom [schema _ value-1 value-2]
   `(~(util/processor-name :interp schema)
@@ -107,9 +110,6 @@
     ~(:time-1 *options*)
     ~(:time-2 *options*)
     ~(:time *options*)))
-
-(defmethod interp :template [schema route value-1 value-2]
-  (interp (type/templates schema) route value-1 value-2))
 
 (defmethod interp :default [_ _ value-1 value-2]
   `(if ~(:prefer-first? *options*) ~value-1 ~value-2))
