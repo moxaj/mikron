@@ -1,12 +1,12 @@
-(ns seria.codegen.gen
+(ns mikron.codegen.gen
   "Generator generating functions."
-  (:require [seria.type :as type]
-            [seria.util :as util]
-            [seria.common :as common]))
+  (:require [mikron.type :as type]
+            [mikron.util :as util]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
-(def gen-size `(+ 2 (rand-int 4)))
+(def gen-size `(+ 3 (rand-int 3)))
 
 (defmulti gen util/type-of :hierarchy #'type/hierarchy)
 
@@ -116,7 +116,7 @@
 
 ;; private api
 
-(defn make-generator [schema-name {:keys [schemas] :as options}]
+(defn generator [schema-name {:keys [schemas] :as options}]
   (binding [*options* options]
     `(~(with-meta (util/processor-name :gen schema-name)
                   {:private true})
@@ -125,7 +125,7 @@
 
 ;; public api
 
-(defn make-global-generator [{:keys [schemas]}]
+(defn global-generator [{:keys [schemas]}]
   (util/with-gensyms [schema]
     `(~(util/processor-name :gen)
       [~schema]

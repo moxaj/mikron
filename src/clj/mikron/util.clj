@@ -1,6 +1,7 @@
-(ns seria.util
+(ns mikron.util
   "Utility functions."
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [clojure.walk :as walk]))
 
 ;; coll
 

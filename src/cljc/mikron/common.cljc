@@ -1,4 +1,4 @@
-(ns seria.common
+(ns mikron.common
   "Cross-platform functions which are embedded into the generated processors."
   #?@(:clj  [(:refer-clojure :exclude [format])
              (:import [java.util Date])]
@@ -34,7 +34,7 @@
 
 (defn format [s & args]
   #?(:clj  (apply format s args)
-     :cljs (apply gstring/format s args)))
+     :cljs (apply goog.string.format s args)))
 
 (defn date->long [#?(:clj ^Date date :cljs date)]
   (.getTime date))

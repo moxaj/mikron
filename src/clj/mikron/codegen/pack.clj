@@ -1,9 +1,9 @@
-(ns seria.codegen.pack
+(ns mikron.codegen.pack
   "Packer generating functions."
-  (:require [seria.buffer :as buffer]
-            [seria.util :as util]
-            [seria.type :as type]
-            [seria.common :as common]))
+  (:require [mikron.buffer :as buffer]
+            [mikron.util :as util]
+            [mikron.type :as type]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
@@ -18,13 +18,13 @@
   (if-not (:diffed? *options*)
     (pack schema value)
     (util/with-gensyms [value-dnil?]
-      `(let [~value-dnil? (= :seria/dnil ~value)]
+      `(let [~value-dnil? (= :mikron/dnil ~value)]
          ~(pack :boolean value-dnil?)
          (when-not ~value-dnil?
            ~(pack schema value))))))
 
 (defmethod pack :primitive [schema value]
-  `(~(symbol (format "seria.buffer/write-%s!" (name schema)))
+  `(~(symbol (format "mikron.buffer/write-%s!" (name schema)))
     ~(:buffer *options*)
     ~value))
 
@@ -126,7 +126,7 @@
 
 ;; private api
 
-(defn make-packer [schema-name {:keys [schemas diffed?] :as options}]
+(defn packer [schema-name {:keys [schemas diffed?] :as options}]
   (util/with-gensyms [value buffer]
     (binding [*options* (assoc options :buffer buffer)]
       `(~(with-meta (util/processor-name (if diffed? :pack-diffed :pack)
@@ -138,7 +138,7 @@
 
 ;; public api
 
-(defn make-global-packer [{:keys [schemas processor-types] :as options}]
+(defn global-packer [{:keys [schemas processor-types] :as options}]
   (util/with-gensyms [schema value diffed? meta-schema meta-value meta-schema-id]
     (binding [*options* options]
       (let [buffer         (util/var-name :buffer)

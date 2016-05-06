@@ -1,8 +1,8 @@
-(ns seria.validate
+(ns mikron.validate
   "Static options validation."
   (:require [clojure.string :as string]
-            [seria.type :as type]
-            [seria.util :as util]))
+            [mikron.type :as type]
+            [mikron.util :as util]))
 
 ;; Schema validation
 

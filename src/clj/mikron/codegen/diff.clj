@@ -1,8 +1,8 @@
-(ns seria.codegen.diff
+(ns mikron.codegen.diff
   "Differ and undiffer generating functions."
-  (:require [seria.type :as type]
-            [seria.util :as util]
-            [seria.common :as common]))
+  (:require [mikron.type :as type]
+            [mikron.util :as util]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
@@ -15,9 +15,9 @@
 (defn wrap-diffed [schema route value-1 value-2]
   (case (:processor-type *options*)
     :diff   `(if (~(equality-operator schema) ~value-1 ~value-2)
-               :seria/dnil
+               :mikron/dnil
                ~(diff schema route value-1 value-2))
-    :undiff `(if (= :seria/dnil ~value-2)
+    :undiff `(if (= :mikron/dnil ~value-2)
                ~value-1
                ~(diff schema route value-1 value-2))))
 
@@ -113,7 +113,7 @@
 
 ;; private api
 
-(defn make-differ [schema-name {:keys [schemas diff-routes] :as options}]
+(defn differ [schema-name {:keys [schemas diff-routes] :as options}]
   (binding [*options* (assoc options :processor-type :diff)]
     (util/with-gensyms [value-1 value-2]
       `(~(with-meta (util/processor-name :diff schema-name)
@@ -122,7 +122,7 @@
         (common/wrap-diffed
           ~(wrap-diffed (schemas schema-name) (diff-routes schema-name) value-1 value-2))))))
 
-(defn make-undiffer [schema-name {:keys [schemas diff-routes] :as options}]
+(defn undiffer [schema-name {:keys [schemas diff-routes] :as options}]
   (binding [*options* (assoc options :processor-type :undiff)]
     (util/with-gensyms [value-1 value-2]
       `(~(with-meta (util/processor-name :undiff schema-name)
@@ -133,15 +133,15 @@
 
 ;; public api
 
-(defn make-global-common [{:keys [schemas processor-type]}]
+(defn global-common [{:keys [schemas processor-type]}]
   (util/with-gensyms [schema value-1 value-2]
     `(~(util/processor-name processor-type)
       [~schema ~value-1 ~value-2]
       (~(util/select-processor processor-type schema schemas)
        ~value-1 ~value-2))))
 
-(defn make-global-differ [options]
-  (make-global-common (assoc options :processor-type :diff)))
+(defn global-differ [options]
+  (global-common (assoc options :processor-type :diff)))
 
-(defn make-global-undiffer [options]
-  (make-global-common (assoc options :processor-type :undiff)))
+(defn global-undiffer [options]
+  (global-common (assoc options :processor-type :undiff)))

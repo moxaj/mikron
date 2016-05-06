@@ -1,8 +1,8 @@
-(ns seria.codegen.interp
+(ns mikron.codegen.interp
   "Linear interpolator generating functions."
-  (:require [seria.type :as type]
-            [seria.util :as util]
-            [seria.common :as common]))
+  (:require [mikron.type :as type]
+            [mikron.util :as util]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
@@ -116,7 +116,7 @@
 
 ;; private api
 
-(defn make-interper [schema-name {:keys [schemas interp-routes] :as options}]
+(defn interper [schema-name {:keys [schemas interp-routes] :as options}]
   (util/with-gensyms [value-1 value-2 time-1 time-2 time prefer-first? time-factor]
     (binding [*options* (assoc options :prefer-first? prefer-first?
                                        :time-factor   time-factor
@@ -133,7 +133,7 @@
 
 ;; public api
 
-(defn make-global-interper [{:keys [schemas]}]
+(defn global-interper [{:keys [schemas]}]
   (util/with-gensyms [schema value-1 value-2 time-1 time-2 time]
     `(~(util/processor-name :interp)
       [~schema ~value-1 ~value-2 ~time-1 ~time-2 ~time]

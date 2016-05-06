@@ -1,9 +1,9 @@
-(ns seria.codegen.unpack
+(ns mikron.codegen.unpack
   "Unpacker generating functions."
-  (:require [seria.buffer :as buffer]
-            [seria.util :as util]
-            [seria.type :as type]
-            [seria.common :as common]))
+  (:require [mikron.buffer :as buffer]
+            [mikron.util :as util]
+            [mikron.type :as type]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
@@ -13,11 +13,11 @@
   (if-not (:diffed? *options*)
     (unpack schema)
     `(if ~(unpack :boolean)
-       :seria/dnil
+       :mikron/dnil
        ~(unpack schema))))
 
 (defmethod unpack :primitive [schema]
-  `(~(symbol (format "seria.buffer/read-%s!" (name schema)))
+  `(~(symbol (format "mikron.buffer/read-%s!" (name schema)))
     ~(:buffer *options*)))
 
 (defmethod unpack :string [_]
@@ -93,7 +93,7 @@
 
 ;; private api
 
-(defn make-unpacker [schema-name {:keys [schemas diffed?] :as options}]
+(defn unpacker [schema-name {:keys [schemas diffed?] :as options}]
   (util/with-gensyms [buffer]
     (binding [*options* (assoc options :buffer buffer)]
       `(~(with-meta (util/processor-name (if diffed? :unpack-diffed :unpack)
@@ -104,7 +104,7 @@
 
 ;; public api
 
-(defn make-global-unpacker [{:keys [schemas processor-types]}]
+(defn global-unpacker [{:keys [schemas processor-types]}]
   (util/with-gensyms [raw buffer headers diffed? schema meta-schema meta-schema-id]
     (let [schema-ids (-> schemas (keys) (sort) (vec))]
       `(~(util/processor-name :unpack) [~raw]
@@ -117,7 +117,7 @@
           (if (or (not ~schema)
                   (and ~meta-schema-id
                        (not ~meta-schema)))
-            :seria/invalid
+            :mikron/invalid
             (cond-> {:schema  ~schema
                      :diffed? ~diffed?
                      :value   (cond-> ((if ~diffed?

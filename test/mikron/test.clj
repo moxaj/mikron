@@ -1,6 +1,6 @@
-(ns seria.test
+(ns mikron.test
   (:require [clojure.test :refer [deftest is]]
-            [seria.processor :refer [make-test-processors]]))
+            [mikron.processor :refer [make-test-processors]]))
 
 (defn pack-roundtrip [value {:keys [pack unpack]}]
   (unpack (pack :x value)))
@@ -37,8 +37,8 @@
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
                   [:multi ''clojure.core/number? {true :int false :string}]
-                  [:wrapped {:pre  ''seria.test/string->int
-                             :post ''seria.test/int->string}
+                  [:wrapped {:pre  ''mikron.test/string->int
+                             :post ''mikron.test/int->string}
                    :int]]]
     (test-pack-case {:x schema})))
 

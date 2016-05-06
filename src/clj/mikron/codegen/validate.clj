@@ -1,8 +1,8 @@
-(ns seria.codegen.validate
+(ns mikron.codegen.validate
   "Validator generating functions."
-  (:require [seria.type :as type]
-            [seria.util :as util]
-            [seria.common :as common]))
+  (:require [mikron.type :as type]
+            [mikron.util :as util]
+            [mikron.common :as common]))
 
 (def ^:dynamic *options*)
 
@@ -128,7 +128,7 @@
 
 ;; private api
 
-(defn make-validator [schema-name {:keys [schemas] :as options}]
+(defn validator [schema-name {:keys [schemas] :as options}]
   (util/with-gensyms [value]
     (binding [*options* options]
       `(~(with-meta (util/processor-name :validate schema-name)
@@ -139,7 +139,7 @@
 
 ;; public api
 
-(defn make-global-validator [{:keys [schemas]}]
+(defn global-validator [{:keys [schemas]}]
   (util/with-gensyms [schema value]
     `(~(util/processor-name :validate)
       [~schema ~value]

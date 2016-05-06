@@ -36,3 +36,24 @@
 
   Improvements
      performance, extensibility, forward/backward compatibility, memory sharing)
+
+(comment
+  Pseudo structure
+    Coord
+      float x, y
+
+    Fixture
+      int id
+      Coord[] coords
+
+    Body
+      Coord position
+      float angle
+      string body-type
+      Fixture[] fixtures
+
+    Snapshot
+      long time
+      Body[] bodies
+
+  nil)

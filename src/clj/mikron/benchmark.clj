@@ -1,7 +1,7 @@
-(ns seria.benchmark
-  "Benchmarks comparing other methods."
+(ns mikron.benchmark
+  "Benchmarks comparing other libraries."
   (:require [criterium.core :as crit]
-            [seria.core :as seria]
+            [mikron.core :as mikron]
             [taoensso.nippy :as nippy]
             [clj-kryo.core :as kryo]
             [cheshire.core :as cheshire]
@@ -56,7 +56,7 @@
 
 ;; seria
 
-(seria/defprocessors [pack gen unpack]
+(mikron/defprocessors [pack gen unpack]
   {:schemas  {:body     [:record {:user-data [:record {:id :int}]
                                   :position  :coord
                                   :angle     :float
@@ -74,32 +74,32 @@
 (def avro-doubles-schema)
 
 (def avro-snapshot-schema
-  (let [coord    {:name "coord" :type "record" :namespace "seria"
+  (let [coord    {:name "coord" :type "record" :namespace "mikron"
                   :fields [{:name "x" :type "float"}
                            {:name "y" :type "float"}]
                   :abracad.reader "vector"}
-        fixture  {:name "fixture" :type "record" :namespace "seria"
+        fixture  {:name "fixture" :type "record" :namespace "mikron"
                   :fields [{:name "user-data"
                             :type {:name "user-data" :type "record"
                                    :fields [{:name "color" :type "int"}]}}
                            {:name "coords" :type {:type "array"
-                                                  :items "seria.coord"}}]}
-        body     {:name "body" :type "record" :namespace "seria"
+                                                  :items "mikron.coord"}}]}
+        body     {:name "body" :type "record" :namespace "mikron"
                   :fields [{:name "angle" :type "float"}
-                           {:name "position" :type "seria.coord"}
+                           {:name "position" :type "mikron.coord"}
                            {:name "body-type"
                             :type {:type "enum"
                                    :name "body-type"
                                    :symbols ["static" "kinetic" "dynamic"]}}
                            {:name "fixtures" :type {:type "array"
-                                                    :items "seria.fixture"}}
+                                                    :items "mikron.fixture"}}
                            {:name "user-data"
                             :type {:name "user-data2" :type "record"
                                    :fields [{:name "id" :type "int"}]}}]}
-        snapshot {:name "snapshot" :type "record" :namespace "seria"
+        snapshot {:name "snapshot" :type "record" :namespace "mikron"
                   :fields [{:name "time" :type "long"}
                            {:name "bodies" :type {:type "array"
-                                                  :items "seria.body"}}]}]
+                                                  :items "mikron.body"}}]}]
     (avro/parse-schema coord fixture body snapshot)))
 
 (def avro-doubles-schema
@@ -111,12 +111,12 @@
 (defn avro-deserialize [schema ^bytes raw]
   (avro/decode schema raw))
 
-;; seria
+;; mikron
 
-(defn seria-serialize [data]
+(defn mikron-serialize [data]
   (pack :snapshot data))
 
-(defn seria-deserialize [^bytes raw]
+(defn mikron-deserialize [^bytes raw]
   (unpack raw))
 
 ;; gloss
@@ -232,7 +232,7 @@
         avro-schema (case schema
                       :snapshot avro-snapshot-schema
                       :doubles  avro-doubles-schema)]
-    {:seria   [#(pack schema %) unpack]
+    {:mikron  [#(pack schema %) unpack]
      :gloss   [#(gloss-serialize gloss-codec %) #(gloss-deserialize gloss-codec %)]
      :octet   [#(octet-serialize octet-spec %) #(octet-deserialize octet-spec %)]
      :avro    [#(avro-serialize avro-schema %) #(avro-deserialize avro-schema %)]
@@ -245,7 +245,7 @@
 
 (comment
   (diagram
-    (benchmark :methods (methods-for :snapshot)
+    (benchmark :methods (methods-for :doubles)
                :stats   [:size]
-               :data    (repeatedly 10 #(gen :snapshot))))
+               :data    (repeatedly 10 #(gen :doubles))))
   nil)

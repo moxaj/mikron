@@ -1,5 +1,6 @@
 (ns playground
-  (:require [criterium.core :as crit]))
+  (:require [criterium.core :as crit]
+            [mikron.core :as mikron]))
 
 (def box2d-schemas
   {:body     [:record {:user-data [:record {:id :int}]
@@ -11,11 +12,7 @@
                        :coords    [:list :coord]}]
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
-                       :bodies [:list :body]}]
-
-   :date     [:wrapped {:pre  (fn [] 1)
-                        :post (fn [] 2)}
-              :long]})
+                       :bodies [:list :body]}]})
 
 (def box2d-interp-routes
   {:snapshot {:time   true
@@ -33,3 +30,16 @@
               :fixtures  {:all true}}
    :fixture  {:user-data {:color true}
               :coords    true}})
+
+
+(mikron/defprocessors [pack gen unpack]
+  {:schemas {:body     [:record {:user-data [:record {:id :int}]
+                                 :position  :coord
+                                 :angle     :float
+                                 :body-type [:enum [:dynamic :static :kinetic]]
+                                 :fixtures  [:list :fixture]}]
+             :fixture  [:record {:user-data [:record {:color :int}]
+                                 :coords    [:list :coord]}]
+             :coord    [:tuple [:float :float]]
+             :snapshot [:record {:time   :long
+                                 :bodies [:list :body]}]}})

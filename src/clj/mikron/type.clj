@@ -1,6 +1,6 @@
-(ns seria.type
+(ns mikron.type
   "Type hierarchy."
-  (:require [seria.common :as common]))
+  (:require [mikron.common :as common]))
 
 (defn derives [hierarchy parent children]
   (reduce (fn [h child]
@@ -28,12 +28,3 @@
   {:date [:wrapped {:pre  `common/date->long
                     :post `common/long->date}
           :long]})
-
-;;;;; ORDER
-[:byte :ubyte :short :ushort :int :uint :long :varint :integer
- :float :double :floating :number
- :boolean :char :primitive
- :string :keyword :symbol :any :nil :date :simple
- :list :vector :set :map :tuple :record :optional :multi :enum :wrapped :complex :built-in
- :template
- :custom]
