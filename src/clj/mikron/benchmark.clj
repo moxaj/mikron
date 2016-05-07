@@ -245,7 +245,7 @@
 
 (comment
   (diagram
-    (benchmark :methods (methods-for :doubles)
+    (benchmark :methods (methods-for :snapshot)
                :stats   [:size]
-               :data    (repeatedly 10 #(gen :doubles))))
+               :data    (repeatedly 10 #(gen :snapshot))))
   nil)

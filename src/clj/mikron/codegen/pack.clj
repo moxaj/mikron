@@ -166,4 +166,4 @@
                        ~meta-schema
                        (~(util/select-processor :pack meta-schema schemas)
                         ~meta-value))
-                     (buffer/compress))))))))))
+                     (buffer/compact))))))))))

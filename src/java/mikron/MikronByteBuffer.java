@@ -35,7 +35,7 @@ public class MikronByteBuffer {
     return this;
   }
 
-  public byte[] compress() {
+  public byte[] compact() {
     if (bitPosition != -1) {
       byteBuffer.put(bitPosition, bitBuffer);
     }

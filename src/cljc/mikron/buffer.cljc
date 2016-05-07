@@ -5,35 +5,35 @@
             #?(:cljs [cljsjs.bytebuffer])))
 
 (defprotocol Buffer
-  (read-byte!    [this])
-  (read-short!   [this])
-  (read-int!     [this])
-  (read-long!    [this])
-  (read-float!   [this])
-  (read-double!  [this])
-  (read-char!    [this])
-  (read-boolean! [this])
-  (read-ubyte!   [this])
-  (read-ushort!  [this])
-  (read-uint!    [this])
+  (read-byte!    [this] "Reads a signed 8-bit integer.")
+  (read-short!   [this] "Reads a signed 16-bit integer.")
+  (read-int!     [this] "Reads a signed 32-bit integer.")
+  (read-long!    [this] "Reads a signed 64-bit integer.")
+  (read-float!   [this] "Reads a 32-bit floating point number.")
+  (read-double!  [this] "Reads a 64-bit floating point number.")
+  (read-char!    [this] "Reads a character.")
+  (read-boolean! [this] "Reads a boolean.")
+  (read-ubyte!   [this] "Reads an unsigned 8-bit integer.")
+  (read-ushort!  [this] "Reads an unsigned 16-bit integer.")
+  (read-uint!    [this] "Reads an unsigned 32-bit integer.")
 
-  (write-byte!    [this value])
-  (write-short!   [this value])
-  (write-int!     [this value])
-  (write-long!    [this value])
-  (write-float!   [this value])
-  (write-double!  [this value])
-  (write-char!    [this value])
-  (write-boolean! [this value])
-  (write-ubyte!   [this value])
-  (write-ushort!  [this value])
-  (write-uint!    [this value])
+  (write-byte!    [this value] "Writes a signed 8-bit integer.")
+  (write-short!   [this value] "Writes a signed 16-bit integer.")
+  (write-int!     [this value] "Writes a signed 32-bit integer.")
+  (write-long!    [this value] "Writes a signed 64-bit integer.")
+  (write-float!   [this value] "Writes a 32-bit floating point number.")
+  (write-double!  [this value] "Writes a 64-bit floating point number.")
+  (write-char!    [this value] "Writes a character.")
+  (write-boolean! [this value] "Writes a boolean.")
+  (write-ubyte!   [this value] "Writes an unsigned 8-bit integer.")
+  (write-ushort!  [this value] "Writes an unsigned 16-bit integer.")
+  (write-uint!    [this value] "Writes an unsigned 32-bit integer.")
 
-  (little-endian? [this])
-  (little-endian! [this little-endian])
+  (little-endian? [this] "True if the buffer is little endian.")
+  (little-endian! [this little-endian] "Sets the endianness.")
 
-  (clear! [this])
-  (compress [this]))
+  (clear! [this] "Resets the buffer.")
+  (compact [this] "Compacts the buffer into a raw format."))
 
 #?(:clj  (extend-type MikronByteBuffer
            Buffer
@@ -65,7 +65,7 @@
            (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
            (clear!   [this] (.clear this))
-           (compress [this] (.compress this)))
+           (compact [this] (.compact this)))
    :cljs (extend-type js/ByteBuffer
            Buffer
            (read-byte!    [this] (.readInt8 this))
@@ -122,10 +122,10 @@
                                   (aset "bitIndex" 0)
                                   (aset "bitPosition" -1)
                                   (aset "bitBuffer" 0)))
-           (compress [this] (do (let [bit-position (aget this "bitPosition")]
-                                  (when (not= bit-position -1)
-                                    (.writeInt8 this (aget this "bitBuffer") bit-position)))
-                                (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
+           (compact [this] (do (let [bit-position (aget this "bitPosition")]
+                                 (when (not= bit-position -1)
+                                   (.writeInt8 this (aget this "bitBuffer") bit-position)))
+                               (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
 
 (defn encode-negative [value]
   (- (inc value)))
