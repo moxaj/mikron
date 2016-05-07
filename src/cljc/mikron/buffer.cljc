@@ -32,7 +32,7 @@
   (little-endian? [this] "True if the buffer is little endian.")
   (little-endian! [this little-endian] "Sets the endianness.")
 
-  (clear! [this] "Resets the buffer.")
+  (clear!  [this] "Resets the buffer.")
   (compact [this] "Compacts the buffer into a raw format."))
 
 #?(:clj  (extend-type MikronByteBuffer
@@ -65,7 +65,7 @@
            (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
            (clear!   [this] (.clear this))
-           (compact [this] (.compact this)))
+           (compact  [this] (.compact this)))
    :cljs (extend-type js/ByteBuffer
            Buffer
            (read-byte!    [this] (.readInt8 this))
@@ -122,10 +122,10 @@
                                   (aset "bitIndex" 0)
                                   (aset "bitPosition" -1)
                                   (aset "bitBuffer" 0)))
-           (compact [this] (do (let [bit-position (aget this "bitPosition")]
-                                 (when (not= bit-position -1)
-                                   (.writeInt8 this (aget this "bitBuffer") bit-position)))
-                               (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
+           (compact  [this] (do (let [bit-position (aget this "bitPosition")]
+                                  (when (not= bit-position -1)
+                                    (.writeInt8 this (aget this "bitBuffer") bit-position)))
+                                (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
 
 (defn encode-negative [value]
   (- (inc value)))
