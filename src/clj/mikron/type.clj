@@ -19,7 +19,7 @@
       (derives :built-in  [:simple :complex])
       (derives :template  [:date])))
 
-(def hierarchy)
+(def hierarchy nil)
 
 (defn add-custom-types [_ custom-types]
   (derives initial-hierarchy :custom custom-types))

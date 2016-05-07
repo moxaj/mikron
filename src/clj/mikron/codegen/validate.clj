@@ -75,7 +75,7 @@
                  (common/format "'%s' is not a vector." ~value))
          ~@(->> inner-schemas
                 (map-indexed (fn [index inner-schema]
-                               `(let [~inner-value (~value ~index)]
+                               `(let [~inner-value (get ~value ~index)]
                                   ~(validate inner-schema inner-value))))
                 (doall)))))
 
@@ -139,9 +139,14 @@
 
 ;; public api
 
-(defn global-validator [{:keys [schemas]}]
-  (util/with-gensyms [schema value]
+(defn global-validator [{:keys [schemas cljs-mode?]}]
+  (util/with-gensyms [schema value e]
     `(~(util/processor-name :validate)
       [~schema ~value]
-      (~(util/select-processor :validate schema schemas)
-       ~value))))
+      (try
+        [:mikron/valid (~(util/select-processor :validate schema schemas) ~value)]
+        (catch ~(if cljs-mode? 'js/Object 'Exception) ~e
+          (.printStackTrace ~e)
+          [:mikron/invalid ~(if cljs-mode?
+                              `(.-message ~e)
+                              `(.getMessage ~e))])))))

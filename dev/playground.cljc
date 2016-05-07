@@ -31,8 +31,7 @@
    :fixture  {:user-data {:color true}
               :coords    true}})
 
-
-(mikron/defprocessors [pack gen unpack]
+(mikron/defprocessors [gen validate]
   {:schemas {:body     [:record {:user-data [:record {:id :int}]
                                  :position  :coord
                                  :angle     :float
