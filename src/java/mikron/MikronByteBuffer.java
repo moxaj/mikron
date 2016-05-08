@@ -55,28 +55,12 @@ public class MikronByteBuffer {
     return this;
   }
 
-  public boolean getBoolean() {
-    if (bitIndex % 8 == 0) {
-      bitBuffer = byteBuffer.get();
-    }
-
-    return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));
-  }
-
   public byte getByte() {
     return byteBuffer.get();
   }
 
-  public char getChar() {
-    return byteBuffer.getChar();
-  }
-
-  public double getDouble() {
-    return byteBuffer.getDouble();
-  }
-
-  public float getFloat() {
-    return byteBuffer.getFloat();
+  public short getShort() {
+    return byteBuffer.getShort();
   }
 
   public int getInt() {
@@ -87,8 +71,73 @@ public class MikronByteBuffer {
     return byteBuffer.getLong();
   }
 
-  public short getShort() {
-    return byteBuffer.getShort();
+  public float getFloat() {
+    return byteBuffer.getFloat();
+  }
+
+  public double getDouble() {
+    return byteBuffer.getDouble();
+  }
+
+  public char getChar() {
+    return byteBuffer.getChar();
+  }
+
+  public boolean getBoolean() {
+    if (bitIndex % 8 == 0) {
+      bitBuffer = byteBuffer.get();
+    }
+
+    return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));
+  }
+
+  public long getVarint() throws Exception {
+    boolean negative = getBoolean();
+    long value = 0;
+    for (int shift = 0; shift < 64; shift += 7) {
+      byte b = getByte();
+      value |= (long) (b & 127) << shift;
+      if ((b & 128) == 0) {
+        return negative ? (-value - 1) : value;
+      }
+    }
+
+    throw new Exception("Malformed varint!");
+  }
+
+  public MikronByteBuffer putByte(byte value) {
+    byteBuffer.put(value);
+    return this;
+  }
+
+  public MikronByteBuffer putShort(short value) {
+    byteBuffer.putShort(value);
+    return this;
+  }
+
+  public MikronByteBuffer putInt(int value) {
+    byteBuffer.putInt(value);
+    return this;
+  }
+
+  public MikronByteBuffer putLong(long value) {
+    byteBuffer.putLong(value);
+    return this;
+  }
+
+  public MikronByteBuffer putFloat(float value) {
+    byteBuffer.putFloat(value);
+    return this;
+  }
+
+  public MikronByteBuffer putDouble(double value) {
+    byteBuffer.putDouble(value);
+    return this;
+  }
+
+  public MikronByteBuffer putChar(char value) {
+    byteBuffer.putChar(value);
+    return this;
   }
 
   public MikronByteBuffer putBoolean(boolean value) {
@@ -107,38 +156,20 @@ public class MikronByteBuffer {
     return this;
   }
 
-  public MikronByteBuffer putByte(byte value) {
-    byteBuffer.put(value);
-    return this;
-  }
+  public MikronByteBuffer putVarint(long value) {
+    boolean negative = value < 0;
+    value = negative ? -(value + 1) : value;
+    putBoolean(negative);
+    while (true) {
+      if ((value & -128) == 0) {
+        putByte((byte) value);
+        break;
+      }
 
-  public MikronByteBuffer putChar(char value) {
-    byteBuffer.putChar(value);
-    return this;
-  }
+      putByte((byte) (((int) value & 127) | 128));
+      value >>>= 7;
+    }
 
-  public MikronByteBuffer putDouble(double value) {
-    byteBuffer.putDouble(value);
-    return this;
-  }
-
-  public MikronByteBuffer putFloat(float value) {
-    byteBuffer.putFloat(value);
-    return this;
-  }
-
-  public MikronByteBuffer putInt(int value) {
-    byteBuffer.putInt(value);
-    return this;
-  }
-
-  public MikronByteBuffer putLong(long value) {
-    byteBuffer.putLong(value);
-    return this;
-  }
-
-  public MikronByteBuffer putShort(short value) {
-    byteBuffer.putShort(value);
     return this;
   }
 }

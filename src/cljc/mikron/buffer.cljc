@@ -134,30 +134,32 @@
   (dec (- value)))
 
 (defn write-varint! [buffer value]
-  (let [neg-value? (neg? value)
-        value      (if-not neg-value? value (encode-negative value))]
-    (write-boolean! buffer neg-value?)
-    (loop [value value]
-      (if (zero? (bit-and value -128))
-        (write-byte! buffer (unchecked-byte value))
-        (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
-                                                        128)))
-            (recur (unsigned-bit-shift-right value 7)))))))
+  #?(:clj  (.putVarint ^MikronByteBuffer buffer value)
+     :cljs (let [neg-value? (neg? value)
+                 value      (if-not neg-value? value (encode-negative value))]
+             (write-boolean! buffer neg-value?)
+             (loop [value value]
+               (if (zero? (bit-and value -128))
+                 (write-byte! buffer (unchecked-byte value))
+                 (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
+                                                                 128)))
+                     (recur (unsigned-bit-shift-right value 7))))))))
 
 (defn read-varint! [buffer]
-  (let [neg-value? (read-boolean! buffer)]
-    (loop [value 0
-           shift 0]
-      (if-not (< shift 64)
-        (throw (common/exception "Malformed varint!"))
-        (let [b     (read-byte! buffer)
-              value (bit-or value (bit-shift-left (bit-and b 127)
-                                                  shift))]
-           (if (zero? (bit-and b 128))
-             (if-not neg-value?
-               value
-               (decode-negative value))
-             (recur value (unchecked-add shift 7))))))))
+  #?(:clj  (.getVarint ^MikronByteBuffer buffer)
+     :cljs (let [neg-value? (read-boolean! buffer)]
+             (loop [value 0
+                    shift 0]
+               (if-not (< shift 64)
+                 (throw (common/exception "Malformed varint!"))
+                 (let [b     (read-byte! buffer)
+                       value (bit-or value (bit-shift-left (bit-and b 127)
+                                                           shift))]
+                    (if (zero? (bit-and b 128))
+                      (if-not neg-value?
+                        value
+                        (decode-negative value))
+                      (recur value (unchecked-add shift 7)))))))))
 
 (defn wrap [raw]
   (clear! #?(:clj  (MikronByteBuffer/wrap ^bytes raw)
