@@ -101,9 +101,10 @@
   (util/with-gensyms [selected-multi-case]
     `(let [~selected-multi-case (~selector ~value)]
        (case ~selected-multi-case
-         ~@(map (fn [[multi-case inner-schema]]
-                  [multi-case (validate inner-schema value)])
-                multi-map)
+         ~@(->> multi-map
+                (mapcat (fn [[multi-case inner-schema]]
+                          [multi-case (validate inner-schema value)]))
+                (doall))
          (assert (~(set (keys multi-map)) ~value)
                  (common/format ~(str "Selected multi dispach value '%s' for value '%s' "
                                       "is invalid.")

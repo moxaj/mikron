@@ -83,16 +83,17 @@
      ~(diff inner-schema route value-1 value-2)
      ~(diff :default nil value-1 value-2)))
 
-(defmethod diff :multi [[_ _ selector multi-cases] route value-1 value-2]
+(defmethod diff :multi [[_ _ selector multi-map] route value-1 value-2]
   (util/with-gensyms [case-1 case-2]
     `(let [~case-1 (~selector ~value-1)
            ~case-2 (~selector ~value-2)]
        (if (not= ~case-1 ~case-2)
          ~(diff :default nil value-1 value-2)
          (condp = ~case-1
-           ~@(mapcat (fn [[multi-case inner-schema]]
-                       [multi-case (diff inner-schema route value-1 value-2)])
-                     multi-cases))))))
+           ~@(->> multi-map
+                  (mapcat (fn [[multi-case inner-schema]]
+                            [multi-case (diff inner-schema route value-1 value-2)]))
+                  (doall)))))))
 
 (defmethod diff :wrapped [[_ {:keys [pre post]} inner-schema] route value-1 value-2]
   (util/with-gensyms [inner-value-1 inner-value-2]

@@ -91,17 +91,19 @@
 
 (defmethod pack :multi [[_ _ selector multi-map] value]
   `(case (~selector ~value)
-     ~@(mapcat (fn [[multi-case inner-schema]]
-                 [multi-case
-                  `(do ~(pack :varint (->> multi-map (keys) (sort) (util/index-of multi-case)))
-                       ~(pack inner-schema value))])
-               multi-map)))
+     ~@(->> multi-map
+            (mapcat (fn [[multi-case inner-schema]]
+                      [multi-case
+                       `(do ~(pack :varint (->> multi-map (keys) (sort) (util/index-of multi-case)))
+                            ~(pack inner-schema value))]))
+            (doall))))
 
 (defmethod pack :enum [[_ _ enum-values] value]
   (pack :varint `(case ~value
-                   ~@(mapcat (fn [enum-value]
-                               [enum-value (util/index-of enum-value enum-values)])
-                             enum-values))))
+                   ~@(->> enum-values
+                          (mapcat (fn [enum-value]
+                                    [enum-value (util/index-of enum-value enum-values)]))
+                          (doall)))))
 
 (defmethod pack :wrapped [[_ {:keys [pre]} inner-schema] value]
   (util/with-gensyms [inner-value]

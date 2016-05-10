@@ -88,9 +88,10 @@
        (if-not (= ~case-1 ~case-2)
          ~(interp :default nil value-1 value-2)
          (case ~case-1
-           ~@(mapcat (fn [[multi-case inner-schema]]
-                       [multi-case (interp inner-schema route value-1 value-2)])
-                     multi-map))))))
+           ~@(->> multi-map
+                  (mapcat (fn [[multi-case inner-schema]]
+                            [multi-case (interp inner-schema route value-1 value-2)]))
+                  (doall)))))))
 
 (defmethod interp :wrapped [[_ {:keys [pre post]} inner-schema] route value-1 value-2]
   (util/with-gensyms [inner-value-1 inner-value-2]

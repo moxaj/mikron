@@ -67,9 +67,10 @@
 
 (defmethod unpack :multi [[_ _ _ multi-map]]
   `(case (get ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint))
-     ~@(mapcat (fn [[multi-case inner-schema]]
-                 [multi-case (unpack inner-schema)])
-               multi-map)))
+     ~@(->> multi-map
+            (mapcat (fn [[multi-case inner-schema]]
+                      [multi-case (unpack inner-schema)]))
+            (doall))))
 
 (defmethod unpack :enum [[_ _ enum-values]]
   `(get ~enum-values ~(unpack :varint)))
