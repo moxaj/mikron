@@ -1,4 +1,5 @@
 (ns mikron.test
+  (:import [java.util Arrays])
   (:require [clojure.test :refer [deftest is]]
             [mikron.processor :refer [make-test-processors]]))
 
@@ -22,6 +23,12 @@
 
 (defn string->int [s]
   (Integer/parseInt s))
+
+(deftest raw-test
+  (let [{:keys [pack unpack gen]} (make-test-processors {:schemas {:x :raw}})]
+    (doseq [value (repeatedly 10 #(gen :x))]
+      (is (Arrays/equals ^bytes value
+                         ^bytes (->> value (pack :x) (unpack) :value))))))
 
 (deftest complex-test
   (doseq [schema [[:list :byte]

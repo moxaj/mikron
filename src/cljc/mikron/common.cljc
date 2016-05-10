@@ -62,6 +62,13 @@
             r
             (- r (/ max-value 2))))))
 
+(defn gen-raw []
+  (let [byte-seq (repeatedly (+ 10 (rand-int 10))
+                             #(random-integer 1 true))]
+    #?(:clj  (byte-array byte-seq)
+       :cljs (aget (js/Int8Array. (apply array byte-seq))
+                   "buffer"))))
+
 ;; diff
 
 (defrecord DiffedValue [value])
