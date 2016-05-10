@@ -24,6 +24,10 @@
   `(assert (string? ~value)
            (common/format "'%s' is not a string." ~value)))
 
+(defmethod validate :raw [_ value]
+  `(assert (common/raw? ~value)
+           (common/format "'%s' is not 'raw'." ~value)))
+
 (defmethod validate :nil [_ value]
   `(assert (nil? ~value)
            (common/format "'%s' is not nil." ~value)))

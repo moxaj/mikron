@@ -44,12 +44,15 @@
   `(zero? (rand-int 2)))
 
 (defmethod gen :char [_]
-  `(char ~(gen :ushort)))
+  `(char (rand-int 50000)))
 
 (defmethod gen :string [_]
   `(->> (fn [] ~(gen :char))
         (repeatedly ~gen-size)
         (apply str)))
+
+(defmethod gen :raw [_]
+  nil) "TODO"
 
 (defmethod gen :keyword [_]
   `(->> (fn [] (rand-nth common/symbol-chars))

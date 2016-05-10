@@ -78,7 +78,7 @@ Testing
  - server - browser
 
 Microbenchmarks
- - ~3.5x faster
+ - ~3.5-4.5x faster
  - ~2x smaller
 
 Publishing

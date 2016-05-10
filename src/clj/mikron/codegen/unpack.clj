@@ -20,10 +20,6 @@
   `(~(symbol (format "mikron.buffer/read-%s!" (name schema)))
     ~(:buffer *options*)))
 
-(defmethod unpack :string [_]
-  `(apply str (repeatedly ~(unpack :varint)
-                          (fn [] ~(unpack :char)))))
-
 (defmethod unpack :keyword [_]
   `(keyword ~(unpack :string)))
 

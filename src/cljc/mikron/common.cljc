@@ -43,6 +43,10 @@
   #?(:clj  (Date. time)
      :cljs (js/Date. time)))
 
+(defn raw? [^bytes value]
+  #?(:clj  (instance? (Class/forName "[B") value)
+     :cljs (instance? js/ArrayBuffer value)))
+
 ;; gen
 
 (def symbol-chars

@@ -2,6 +2,7 @@ package mikron;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
 public class MikronByteBuffer {
   private ByteBuffer byteBuffer;
@@ -55,6 +56,8 @@ public class MikronByteBuffer {
     return this;
   }
 
+  // Get operations
+
   public byte getByte() {
     return byteBuffer.get();
   }
@@ -79,18 +82,6 @@ public class MikronByteBuffer {
     return byteBuffer.getDouble();
   }
 
-  public char getChar() {
-    return byteBuffer.getChar();
-  }
-
-  public boolean getBoolean() {
-    if (bitIndex % 8 == 0) {
-      bitBuffer = byteBuffer.get();
-    }
-
-    return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));
-  }
-
   public long getVarint() throws Exception {
     boolean negative = getBoolean();
     long value = 0;
@@ -104,6 +95,30 @@ public class MikronByteBuffer {
 
     throw new Exception("Malformed varint!");
   }
+
+  public boolean getBoolean() {
+    if (bitIndex % 8 == 0) {
+      bitBuffer = byteBuffer.get();
+    }
+
+    return 0 != (bitBuffer & (1 << (bitIndex++ % 8)));
+  }
+
+  public char getChar() {
+    return byteBuffer.getChar();
+  }
+
+  public String getString() throws Exception {
+    return new String(getRaw(), StandardCharsets.UTF_8);
+  }
+
+  public byte[] getRaw() throws Exception {
+    byte[] value = new byte[(int) getVarint()];
+    byteBuffer.get(value);
+    return value;
+  }
+
+  // Put operations
 
   public MikronByteBuffer putByte(byte value) {
     byteBuffer.put(value);
@@ -135,8 +150,20 @@ public class MikronByteBuffer {
     return this;
   }
 
-  public MikronByteBuffer putChar(char value) {
-    byteBuffer.putChar(value);
+  public MikronByteBuffer putVarint(long value) {
+    boolean negative = value < 0;
+    value = negative ? -(value + 1) : value;
+    putBoolean(negative);
+    while (true) {
+      if ((value & -128) == 0) {
+        putByte((byte) value);
+        break;
+      }
+
+      putByte((byte) (((int) value & 127) | 128));
+      value >>>= 7;
+    }
+
     return this;
   }
 
@@ -152,24 +179,22 @@ public class MikronByteBuffer {
     }
 
     bitBuffer = (byte) (value ? bitBuffer |  (1 << (bitIndex++ % 8))
-                              : bitBuffer & ~(1 << (bitIndex++ % 8)));
+    : bitBuffer & ~(1 << (bitIndex++ % 8)));
     return this;
   }
 
-  public MikronByteBuffer putVarint(long value) {
-    boolean negative = value < 0;
-    value = negative ? -(value + 1) : value;
-    putBoolean(negative);
-    while (true) {
-      if ((value & -128) == 0) {
-        putByte((byte) value);
-        break;
-      }
+  public MikronByteBuffer putChar(char value) {
+    byteBuffer.putChar(value);
+    return this;
+  }
 
-      putByte((byte) (((int) value & 127) | 128));
-      value >>>= 7;
-    }
+  public MikronByteBuffer putString(String value) {
+    return putRaw(value.getBytes(StandardCharsets.UTF_8));
+  }
 
+  public MikronByteBuffer putRaw(byte[] value) {
+    putVarint(value.length);
+    byteBuffer.put(value);
     return this;
   }
 }

@@ -28,12 +28,6 @@
     ~(:buffer *options*)
     ~value))
 
-(defmethod pack :string [_ value]
-  (util/with-gensyms [char]
-    `(do ~(pack :varint `(count ~value))
-         (run! (fn [~char] ~(pack :char char))
-               ~value))))
-
 (defmethod pack :keyword [_ value]
   (util/with-gensyms [keyword-as-str]
     `(let [~keyword-as-str (name ~value)]

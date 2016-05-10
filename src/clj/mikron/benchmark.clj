@@ -241,11 +241,13 @@
      :nippy   [nippy/freeze nippy/thaw]
      :java    [java-serialize java-deserialize]
      :json    [cheshire/generate-string cheshire/parse-string]
-     :transit [transit-serialize transit-deserialize]}))
+     :transit [transit-serialize transit-deserialize]
+     :pr-str  [pr-str read-string]}))
 
 (comment
   (diagram
-    (benchmark :methods (methods-for :snapshot)
-               :stats   [:size]
+    (benchmark :methods (select-keys (methods-for :snapshot)
+                                     [:mikron :smile])
+               :stats   [:roundtrip-speed]
                :data    (repeatedly 10 #(gen :snapshot))))
   nil)
