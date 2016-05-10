@@ -75,15 +75,14 @@
                                   ~(pack-diffed inner-schema inner-value))))
                 (doall)))))
 
-(defmethod pack :record [schema value]
-  (let [[_ _ inner-schemas] (util/expand-record schema (:schemas *options*))]
-    (util/with-gensyms [inner-value]
-      `(do ~@(->> inner-schemas
-                  (into (sorted-map))
-                  (map (fn [[index inner-schema]]
-                         `(let [~inner-value (~index ~value)]
-                            ~(pack-diffed inner-schema inner-value))))
-                  (doall))))))
+(defmethod pack :record [[_ _ inner-schemas] value]
+  (util/with-gensyms [inner-value]
+    `(do ~@(->> inner-schemas
+                (into (sorted-map))
+                (map (fn [[index inner-schema]]
+                       `(let [~inner-value (~index ~value)]
+                          ~(pack-diffed inner-schema inner-value))))
+                (doall)))))
 
 (defmethod pack :optional [[_ _ inner-schema] value]
   `(do ~(pack :boolean value)

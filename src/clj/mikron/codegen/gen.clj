@@ -90,13 +90,12 @@
 (defmethod gen :tuple [[_ _ inner-schemas]]
   (mapv gen inner-schemas))
 
-(defmethod gen :record [schema]
-  (let [[_ {:keys [constructor]} record-map] (util/expand-record schema (:schemas *options*))]
-    (->> record-map
-         (map (fn [[key inner-schema]]
-                [key (gen inner-schema)]))
-         (into {})
-         (util/as-record constructor))))
+(defmethod gen :record [[_ {:keys [constructor]} inner-schemas]]
+  (->> inner-schemas
+       (map (fn [[key inner-schema]]
+              [key (gen inner-schema)]))
+       (into {})
+       (util/as-record constructor)))
 
 (defmethod gen :optional [[_ _ inner-schema]]
   `(when ~(gen :boolean)

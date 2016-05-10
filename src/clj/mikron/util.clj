@@ -35,26 +35,6 @@
     complex
     (vec (concat [a {} b] rest))))
 
-(defn super-records [[_ {:keys [extends]} :as record] schemas]
-  (conj (mapcat (fn [extend]
-                  (super-records (schemas extend) schemas))
-                extends)
-        record))
-
-(defn expand-record [record schemas]
-  (let [records     (super-records record schemas)
-        record-map  (->> records
-                         (map last)
-                         (apply merge))
-        constructor (->> records
-                         (map (comp :constructor second))
-                         (remove nil?)
-                         (last))]
-    [:record {:constructor constructor} record-map]))
-
-(defn expand-route [route routes]
-  route)
-
 (defn as-set [sorted-by body]
   `(into ~(case sorted-by
             nil      `#{}

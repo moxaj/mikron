@@ -64,21 +64,19 @@
                                 (diff :default nil inner-value-1 inner-value-2)))))
            (vec)))))
 
-(defmethod diff :record [schema route value-1 value-2]
-  (let [[_ options inner-schemas] (util/expand-record schema (:schemas *options*))
-        route                     (util/expand-route route (:diff-routes *options*))]
-    (if-not (map? route)
-      (diff :default nil value-1 value-2)
-      (util/with-gensyms [inner-value-1 inner-value-2]
-        (->> inner-schemas
-             (map (fn [[index inner-schema]]
-                    [index `(let [~inner-value-1 (~index ~value-1)
-                                  ~inner-value-2 (~index ~value-2)]
-                              ~(if-let [inner-route (route index)]
-                                 (wrap-diffed inner-schema inner-route inner-value-1 inner-value-2)
-                                 (diff :default nil inner-value-1 inner-value-2)))]))
-             (into {})
-             (util/as-record (:constructor options)))))))
+(defmethod diff :record [[_ {:keys [constructor]} inner-schemas] route value-1 value-2]
+  (if-not (map? route)
+    (diff :default nil value-1 value-2)
+    (util/with-gensyms [inner-value-1 inner-value-2]
+      (->> inner-schemas
+           (map (fn [[index inner-schema]]
+                  [index `(let [~inner-value-1 (~index ~value-1)
+                                ~inner-value-2 (~index ~value-2)]
+                            ~(if-let [inner-route (route index)]
+                               (wrap-diffed inner-schema inner-route inner-value-1 inner-value-2)
+                               (diff :default nil inner-value-1 inner-value-2)))]))
+           (into {})
+           (util/as-record constructor)))))
 
 (defmethod diff :optional [[_ _ inner-schema] route value-1 value-2]
   `(if (and ~value-1 ~value-2)

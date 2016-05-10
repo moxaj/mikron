@@ -54,13 +54,12 @@
                       (unpack-diffed inner-schema))
                     inner-schemas)))
 
-(defmethod unpack :record [schema]
-  (let [[_ {:keys [constructor]} inner-schemas] (util/expand-record schema (:schemas *options*))]
-    (->> inner-schemas
-         (map (fn [[index inner-schema]]
-                [index (unpack-diffed inner-schema)]))
-         (into (sorted-map))
-         (util/as-record constructor))))
+(defmethod unpack :record [[_ {:keys [constructor]} inner-schemas]]
+  (->> inner-schemas
+       (map (fn [[index inner-schema]]
+              [index (unpack-diffed inner-schema)]))
+       (into (sorted-map))
+       (util/as-record constructor)))
 
 (defmethod unpack :optional [[_ _ inner-schema]]
   `(when ~(unpack :boolean)

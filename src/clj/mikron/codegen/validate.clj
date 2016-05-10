@@ -83,16 +83,15 @@
                                   ~(validate inner-schema inner-value))))
                 (doall)))))
 
-(defmethod validate :record [schema value]
-  (let [[_ _ inner-schemas] (util/expand-record schema (:schemas *options*))]
-    (util/with-gensyms [inner-value]
-      `(do (assert (map? ~value)
-                   (common/format "'%s' is not a map." ~value))
-           ~@(->> inner-schemas
-                  (map (fn [[index inner-schema]]
-                         `(let [~inner-value (~index ~value)]
-                            ~(validate inner-schema inner-value))))
-                  (doall))))))
+(defmethod validate :record [[_ _ inner-schemas] value]
+  (util/with-gensyms [inner-value]
+    `(do (assert (map? ~value)
+                 (common/format "'%s' is not a map." ~value))
+         ~@(->> inner-schemas
+                (map (fn [[index inner-schema]]
+                       `(let [~inner-value (~index ~value)]
+                          ~(validate inner-schema inner-value))))
+                (doall)))))
 
 (defmethod validate :optional [[_ _ inner-schema] value]
   `(when ~value
