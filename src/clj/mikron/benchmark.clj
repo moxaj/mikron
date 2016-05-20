@@ -247,7 +247,7 @@
 (comment
   (diagram
     (benchmark :methods (select-keys (methods-for :snapshot)
-                                     [:mikron :smile])
-               :stats   [:roundtrip-speed]
+                                     [:mikron :transit])
+               :stats   [:serialize-speed]
                :data    (repeatedly 10 #(gen :snapshot))))
   nil)

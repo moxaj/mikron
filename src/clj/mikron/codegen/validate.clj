@@ -150,7 +150,6 @@
       (try
         [:mikron/valid (~(util/select-processor :validate schema schemas) ~value)]
         (catch ~(if cljs-mode? 'js/Object 'Exception) ~e
-          (.printStackTrace ~e)
           [:mikron/invalid ~(if cljs-mode?
                               `(.-message ~e)
                               `(.getMessage ~e))])))))
