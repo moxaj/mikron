@@ -82,8 +82,8 @@
            (little-endian? [this] (.isLittleEndian this))
            (little-endian! [this little-endian] (.setLittleEndian this little-endian))
 
-           (clear!   [this] (.clear this))
-           (compact  [this] (.compact this)))
+           (clear!  [this] (.clear this))
+           (compact [this] (.compact this)))
    :cljs (extend-type js/ByteBuffer
            Buffer
            (read-byte!    [this] (.readInt8 this))
@@ -112,7 +112,7 @@
            (read-varint!  [this] (let [neg-value? (read-boolean! this)]
                                    (loop [value 0
                                           shift 0]
-                                      (if-not (< shift 64)
+                                     (if-not (< shift 64)
                                        (throw (common/exception "Malformed varint!"))
                                        (let [b     (read-byte! this)
                                              value (bit-or value (bit-shift-left (bit-and b 127)
@@ -165,7 +165,6 @@
 
            (little-endian? [this] (aget this "littleEndian"))
            (little-endian! [this little-endian] (aset this "littleEndian" little-endian))
-
            (clear!   [this] (doto this
                                   (aset "offset" 0)
                                   (aset "bitIndex" 0)

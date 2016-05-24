@@ -262,9 +262,7 @@
       (crit/quick-bench
         (do (.position buffer 0)
             (dotimes [i 1000]
-              (.putDouble buffer i))))))
-              
-  nil)
+              (.putDouble buffer i)))))))
 
 ;; 34 ns for a double
 ;; 1000 -> 136 us vs 34 us

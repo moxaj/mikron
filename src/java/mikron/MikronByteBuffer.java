@@ -179,7 +179,7 @@ public class MikronByteBuffer {
     }
 
     bitBuffer = (byte) (value ? bitBuffer |  (1 << (bitIndex++ % 8))
-    : bitBuffer & ~(1 << (bitIndex++ % 8)));
+                              : bitBuffer & ~(1 << (bitIndex++ % 8)));
     return this;
   }
 
