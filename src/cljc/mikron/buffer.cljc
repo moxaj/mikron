@@ -4,6 +4,12 @@
   (:require [mikron.common :as common]
             #?(:cljs [cljsjs.bytebuffer])))
 
+(defn encode-negative [value]
+  (- (inc value)))
+
+(defn decode-negative [value]
+  (dec (- value)))
+
 (defprotocol Buffer
   (read-byte!    [this] "Reads a signed 8-bit integer.")
   (read-short!   [this] "Reads a signed 16-bit integer.")
@@ -18,6 +24,7 @@
   (read-ubyte!   [this] "Reads an unsigned 8-bit integer.")
   (read-ushort!  [this] "Reads an unsigned 16-bit integer.")
   (read-uint!    [this] "Reads an unsigned 32-bit integer.")
+  (read-varint!  [this] "Reads a varint.")
 
   (write-byte!    [this value] "Writes a signed 8-bit integer.")
   (write-short!   [this value] "Writes a signed 16-bit integer.")
@@ -32,6 +39,7 @@
   (write-ubyte!   [this value] "Writes an unsigned 8-bit integer.")
   (write-ushort!  [this value] "Writes an unsigned 16-bit integer.")
   (write-uint!    [this value] "Writes an unsigned 32-bit integer.")
+  (write-varint!  [this value] "Writes a varint.")
 
   (little-endian? [this] "True if the buffer is little endian.")
   (little-endian! [this little-endian] "Sets the endianness.")
@@ -54,6 +62,7 @@
            (read-ubyte!   [this] (bit-and (.getByte this) 0xFF))
            (read-ushort!  [this] (bit-and (.getShort this) 0xFFFF))
            (read-uint!    [this] (bit-and (.getInt this) 0xFFFFFFFF))
+           (read-varint!  [this] (.getVarint this))
 
            (write-byte!    [this value] (.putByte this (byte value)))
            (write-short!   [this value] (.putShort this (short value)))
@@ -68,6 +77,7 @@
            (write-ubyte!   [this value] (.putByte this (unchecked-byte (bit-and value 0xFF))))
            (write-ushort!  [this value] (.putShort this (unchecked-short (bit-and value 0xFFFF))))
            (write-uint!    [this value] (.putInt this (unchecked-int (bit-and value 0xFFFFFFFF))))
+           (write-varint!  [this value] (.putVarint this value))
 
            (little-endian? [this] (.isLittleEndian this))
            (little-endian! [this little-endian] (.setLittleEndian this little-endian))
@@ -99,6 +109,19 @@
            (read-ubyte!   [this] (.readUint8 this))
            (read-ushort!  [this] (.readUint16 this))
            (read-uint!    [this] (.readUint32 this))
+           (read-varint!  [this] (let [neg-value? (read-boolean! this)]
+                                   (loop [value 0
+                                          shift 0]
+                                      (if-not (< shift 64)
+                                       (throw (common/exception "Malformed varint!"))
+                                       (let [b     (read-byte! this)
+                                             value (bit-or value (bit-shift-left (bit-and b 127)
+                                                                                 shift))]
+                                          (if (zero? (bit-and b 128))
+                                            (if-not neg-value?
+                                              value
+                                              (decode-negative value))
+                                            (recur value (unchecked-add shift 7))))))))
 
            (write-byte!    [this value] (.writeInt8 this (byte value)))
            (write-short!   [this value] (.writeInt16 this (short value)))
@@ -130,6 +153,15 @@
            (write-ubyte!   [this value] (.writeUint8 this value))
            (write-ushort!  [this value] (.writeUint16 this value))
            (write-uint!    [this value] (.writeUint32 this value))
+           (write-varint!  [this value] (let [neg-value? (neg? value)
+                                              value      (if-not neg-value? value (encode-negative value))]
+                                          (write-boolean! this neg-value?)
+                                          (loop [value value]
+                                            (if (zero? (bit-and value -128))
+                                              (write-byte! this (unchecked-byte value))
+                                              (do (write-byte! this (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
+                                                                                            128)))
+                                                  (recur (unsigned-bit-shift-right value 7)))))))
 
            (little-endian? [this] (aget this "littleEndian"))
            (little-endian! [this little-endian] (aset this "littleEndian" little-endian))
@@ -143,40 +175,6 @@
                                   (when (not= bit-position -1)
                                     (.writeInt8 this (aget this "bitBuffer") bit-position)))
                                 (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
-
-(defn encode-negative [value]
-  (- (inc value)))
-
-(defn decode-negative [value]
-  (dec (- value)))
-
-(defn write-varint! [buffer value]
-  #?(:clj  (.putVarint ^MikronByteBuffer buffer value)
-     :cljs (let [neg-value? (neg? value)
-                 value      (if-not neg-value? value (encode-negative value))]
-             (write-boolean! buffer neg-value?)
-             (loop [value value]
-               (if (zero? (bit-and value -128))
-                 (write-byte! buffer (unchecked-byte value))
-                 (do (write-byte! buffer (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
-                                                                 128)))
-                     (recur (unsigned-bit-shift-right value 7))))))))
-
-(defn read-varint! [buffer]
-  #?(:clj  (.getVarint ^MikronByteBuffer buffer)
-     :cljs (let [neg-value? (read-boolean! buffer)]
-             (loop [value 0
-                    shift 0]
-               (if-not (< shift 64)
-                 (throw (common/exception "Malformed varint!"))
-                 (let [b     (read-byte! buffer)
-                       value (bit-or value (bit-shift-left (bit-and b 127)
-                                                           shift))]
-                    (if (zero? (bit-and b 128))
-                      (if-not neg-value?
-                        value
-                        (decode-negative value))
-                      (recur value (unchecked-add shift 7)))))))))
 
 (defn wrap [raw]
   (clear! #?(:clj  (MikronByteBuffer/wrap ^bytes raw)

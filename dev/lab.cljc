@@ -43,21 +43,10 @@ Goals:
  - easy to use
  - usable by both server / client (clojure / clojurescript)
 
-Serialization:
- - binary / text
- - with / without schema
- - self-describing
- - platforms?
-
 Overview:
  - define schemas
  - generate code
  - data <-> binary
-
-Techs:
- - java, clojure, js, clojurescript
- - java.nio, js/ByteBuffer
- - atom, git, github
 
 Buffers:
  - clj: java.nio.ByteBuffer -> byte[]

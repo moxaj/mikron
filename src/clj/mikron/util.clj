@@ -81,7 +81,6 @@
 
 (defn select-processor [processor-type schema schemas]
   `(case ~schema
-     ~@(->> (keys schemas)
-            (mapcat (fn [schema-name]
-                      [schema-name (processor-name processor-type schema-name)]))
-            (doall))))
+     ~@(mapcat (fn [schema-name]
+                 [schema-name (processor-name processor-type schema-name)])
+               (keys schemas))))

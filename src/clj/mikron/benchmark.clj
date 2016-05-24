@@ -246,8 +246,25 @@
 
 (comment
   (diagram
-    (benchmark :methods (select-keys (methods-for :snapshot)
+    (benchmark :methods (select-keys (methods-for :doubles)
                                      [:mikron :smile])
                :stats   [:roundtrip-speed]
-               :data    (repeatedly 10 #(gen :snapshot))))
+               :data    [(repeatedly 1000 rand)]))
+
+  (let [{:keys [pack]} (mikron/make-processors {:schemas {:x [:list :double]}})
+        data           (repeatedly 1000 rand)]
+    (crit/with-progress-reporting
+      (crit/quick-bench
+        (pack :x data))))
+
+  (let [buffer (java.nio.ByteBuffer/allocateDirect 10000)]
+    (crit/with-progress-reporting
+      (crit/quick-bench
+        (do (.position buffer 0)
+            (dotimes [i 1000]
+              (.putDouble buffer i))))))
+              
   nil)
+
+;; 34 ns for a double
+;; 1000 -> 136 us vs 34 us
