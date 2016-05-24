@@ -117,3 +117,9 @@
     (crit/quick-bench
       (unpack (pack :content content-value))))
   nil)
+
+(def schemas {:x :int})
+(let [{:keys [gen pack unpack]} (mikron/make-processors {:schemas schemas})]
+  (->> (gen :x)
+       (pack :x)
+       (unpack)))

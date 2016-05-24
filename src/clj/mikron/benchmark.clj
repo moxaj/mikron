@@ -246,8 +246,7 @@
 
 (comment
   (diagram
-    (benchmark :methods (select-keys (methods-for :snapshot)
-                                     [:mikron :transit])
-               :stats   [:serialize-speed]
+    (benchmark :methods (methods-for :snapshot)
+               :stats   [:roundtrip-speed :serialize-speed :size]
                :data    (repeatedly 10 #(gen :snapshot))))
   nil)

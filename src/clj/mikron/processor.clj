@@ -34,7 +34,7 @@
    (validate/global-validator options)])
 
 (defn make-processors* [options env]
-  (let [options    (assoc (mikron.validate/validate-options (eval options))
+  (let [options    (assoc (mikron.validate/validate-options options)
                           :cljs-mode? (boolean (:ns env)))
         processors (concat (make-local-processors* options)
                            (make-global-processors* options))]
