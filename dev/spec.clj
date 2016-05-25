@@ -5,9 +5,16 @@
 
 (alter-var-root #'type/hierarchy type/add-custom-types [:body :fixture :coord :snapshot])
 
-(defn opts [& keys]
-  (fn [{:keys [options]}]
-    (select-keys options keys)))
+(defmacro options-spec [& keys]
+  `(spec/? (spec/and (spec/keys :opt-un ~(vec keys))
+                     (spec/conformer (fn [value#]
+                                       (select-keys value# ~(->> keys
+                                                                 (map (comp keyword name))
+                                                                 (vec))))))))
+
+(defmacro composite-spec [& fields]
+  `(spec/and (spec/cat :schema keyword? ~@fields)
+             (spec/conformer (juxt ~@(take-nth 2 fields)))))
 
 (spec/def ::pre
   symbol?)
@@ -36,77 +43,65 @@
   (spec/spec (constantly true)))
 
 (defmethod spec-type :list [_]
-  (spec/and (spec/cat :symbol  #{:list}
-                      :options (spec/? map?)
-                      :schema  ::schema)
-            (spec/conformer (juxt :symbol (opts) :schema))))
+  (composite-spec :options (options-spec)
+                  :schema  ::schema))
 
 (defmethod spec-type :vector [_]
-  (spec/and (spec/cat :symbol  #{:vector}
-                      :options (spec/? map?)
-                      :schema  ::schema)
-            (spec/conformer (juxt :symbol (opts) :schema))))
+  (composite-spec :options (options-spec)
+                  :schema  ::schema))
 
 (defmethod spec-type :set [_]
-  (spec/and (spec/cat :symbol  #{:set}
-                      :options (spec/? (spec/keys :opt-un [::sorted-by]))
-                      :schema  ::schema)
-            (spec/conformer (juxt :symbol (opts :sorted-by) :schema))))
+  (composite-spec :options (options-spec ::sorted-by)
+                  :schema  ::schema))
 
 (defmethod spec-type :map [_]
-  (spec/and (spec/cat :symbol     #{:map}
-                      :options    (spec/? (spec/keys :opt-un [::sorted-by]))
-                      :key-schema ::schema
-                      :val-schema ::schema)
-            (spec/conformer (juxt :symbol (opts :sorted-by) :key-schema :val-schema))))
+  (composite-spec :options    (options-spec ::sorted-by)
+                  :key-schema ::schema
+                  :val-schema ::schema))
 
 (defmethod spec-type :tuple [_]
-  (spec/and (spec/cat :symbol  #{:tuple}
-                      :options (spec/? map?)
-                      :schemas (spec/coll-of ::schema []))
-            (spec/conformer (juxt :symbol (opts) :schema))))
+  (composite-spec :options (options-spec)
+                  :schemas (spec/coll-of ::schema [])))
 
 (defmethod spec-type :record [_]
-  (spec/and (spec/cat :symbol  #{:record}
-                      :options (spec/? (spec/keys :opt-un [::constructor]))
-                      :schemas (spec/map-of keyword? ::schema))
-            (spec/conformer (juxt :symbol (opts :constructors) :schemas))))
+  (composite-spec :options (options-spec ::constructor)
+                  :schemas (spec/map-of keyword? ::schema)))
 
 (defmethod spec-type :optional [_]
-  (spec/and (spec/cat :symbol  #{:optional}
-                      :options (spec/? map?)
-                      :schema  ::schema)
-            (spec/conformer (juxt :symbol (opts) :schemas))))
+  (composite-spec :options (options-spec)
+                  :schema  ::schema))
 
 (defmethod spec-type :enum [_]
-  (spec/and (spec/cat :symbol  #{:enum}
-                      :options (spec/? map?)
-                      :values  (spec/coll-of keyword? []))
-            (spec/conformer (juxt :symbol (opts) :values))))
+  (composite-spec :options (options-spec)
+                  :values  (spec/coll-of keyword? [])))
 
 (defmethod spec-type :multi [_]
-  (spec/and (spec/cat :symbol   #{:multi}
-                      :options  (spec/? map?)
-                      :selector symbol?
-                      :schemas  (spec/map-of (constantly true) ::schema))
-            (spec/conformer (juxt :symbol (opts) :selector :schemas))))
+  (composite-spec :options (options-spec)
+                  :selector symbol?
+                  :schemas  (spec/map-of (constantly true) ::schema)))
 
 (defmethod spec-type :wrapped [_]
-  (spec/and (spec/cat :symbol  #{:wrapped}
-                      :pre     symbol?
-                      :post    symbol?
-                      :schema  ::schema)
-            (spec/conformer (juxt :symbol (opts) :pre :post :schemas))))
+  (composite-spec :options (options-spec)
+                  :pre     symbol?
+                  :post    symbol?
+                  :schema  ::schema))
 
 (defmethod spec-type :clojure.spec/invalid [_]
   nil)
 
-(spec/def ::schema (spec/multi-spec spec-type util/type-of))
+(spec/def ::schema
+  (spec/multi-spec spec-type util/type-of))
 
-(spec/def ::schemas (spec/and (spec/map-of keyword? ::schema)
-                              (fn [schemas]
-                                 (not-any? #(isa? type/hierarchy % :built-in)
-                                           (keys schemas)))))
+(spec/def ::schemas
+  (spec/and (spec/map-of keyword? ::schema)
+            (fn [schemas]
+               (not-any? #(isa? type/hierarchy % :built-in)
+                         (keys schemas)))))
+
+(spec/def ::options
+  (spec/keys :opt-un [::schemas]))
+
+;; PLAYGROUND
 
 (spec/conform ::schemas
   {:body     [:record {:user-data [:record {:id :int}]
@@ -120,27 +115,5 @@
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
 
-;; PLAYGROUND
-
-(spec/conform ::schema
-              [:record {:user-data [:record {:id :int}]
-                        :position  :coord
-                        :angle     :float
-                        :body-type [:enum [:dynamic :static :kinetic]]
-                        :fixtures  [:list :fixture]}])
-
-(spec/conform (spec/map-of keyword? ::schema)
-              {:body [:set [:list :int]]})
-
-(spec/conform (spec/and (spec/coll-of ::schema [])
-                        (spec/conformer identity))
-              [[:set [:list :int]]])
-
-(spec/conform ::schema [:set {:sorted-by 'adf} :int])
-
-(spec/conform (spec/cat :u (spec/and integer?
-                                     (spec/conformer (constantly nil))))
-              [1])
-
-(spec/conform (spec/and integer? (spec/conformer (constantly nil)))
-              10)
+;; ISSUES
+;; conform does not flow into coll-of / map-of
