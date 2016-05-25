@@ -28,7 +28,8 @@
 (defn type-of [schema & _]
   (cond
     (keyword? schema) schema
-    (vector? schema)  (first schema)))
+    (vector? schema)  (first schema)
+    :else             nil))
 
 (defn with-options [[a b & rest :as complex]]
   (if (and (map? b) (seq rest))

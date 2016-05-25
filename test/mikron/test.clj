@@ -35,17 +35,17 @@
                   [:vector :int]
                   [:set :short]
                   [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by ''clojure.core/>} :int]
+                  [:set {:sorted-by 'clojure.core/>} :int]
                   [:map :byte :string]
                   [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by ''clojure.core/>} :byte :string]
+                  [:map {:sorted-by 'clojure.core/>} :byte :string]
                   [:optional :byte]
                   [:enum [:cat :dog :measurement :error]]
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
-                  [:multi ''clojure.core/number? {true :int false :string}]
-                  [:wrapped {:pre  ''mikron.test/string->int
-                             :post ''mikron.test/int->string}
+                  [:multi 'clojure.core/number? {true :int false :string}]
+                  [:wrapped {:pre  'mikron.test/string->int
+                             :post 'mikron.test/int->string}
                    :int]]]
     (test-pack-case {:x schema})))
 
@@ -108,15 +108,15 @@
                   [:vector :int]
                   [:set :short]
                   [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by ''clojure.core/>} :int]
+                  [:set {:sorted-by 'clojure.core/>} :int]
                   [:map :byte :string]
                   [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by ''clojure.core/>} :byte :string]
+                  [:map {:sorted-by 'clojure.core/>} :byte :string]
                   [:optional :byte]
                   [:enum [:cat :dog :measurement :error]]
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
-                  [:multi ''clojure.core/number? {true :int false :string}]]]
+                  [:multi 'clojure.core/number? {true :int false :string}]]]
     (test-interp-case schema)))
 
 (defn test-validate-case [schemas]
