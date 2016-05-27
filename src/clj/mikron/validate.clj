@@ -178,9 +178,8 @@
         interp-routes (validate-routes interp)
         diff-routes   (validate-routes diff)]
     {:schemas       schemas
-     :eq-ops        eq-ops
+     :buffer-size   buffer-size
      :interp-routes interp-routes
      :diff-routes   diff-routes
-     :buffer-size   buffer-size
-     :custom-types  (keys schemas)
+     :eq-ops        eq-ops
      :cljs-mode?    cljs-mode?}))

@@ -15,7 +15,8 @@
       (derives :number    [:integer :floating])
       (derives :primitive [:number :boolean :char :string :raw])
       (derives :simple    [:primitive :keyword :symbol :nil :any :date])
-      (derives :complex   [:list :vector :set :map :tuple :record :optional :multi :enum :wrapped])
+      (derives :coll      [:list :vector :set])
+      (derives :complex   [:coll :map :tuple :record :optional :multi :enum :wrapped])
       (derives :built-in  [:simple :complex])
       (derives :template  [:date])))
 

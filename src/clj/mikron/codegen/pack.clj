@@ -46,18 +46,12 @@
 (defmethod pack :nil [_ _]
   nil)
 
-(defmethod pack :list [[_ _ inner-schema] value]
+(defmethod pack :coll [[_ _ inner-schema] value]
   (util/with-gensyms [inner-value]
     `(do ~(pack :varint `(count ~value))
          (run! (fn [~inner-value]
                  ~(pack-diffed inner-schema inner-value))
                ~value))))
-
-(defmethod pack :vector [[_ _ inner-schema] value]
-  (pack [:list {} inner-schema] value))
-
-(defmethod pack :set [[_ _ inner-schema] value]
-  (pack [:list {} inner-schema] value))
 
 (defmethod pack :map [[_ _ key-schema val-schema] value]
   (util/with-gensyms [key val]
