@@ -8,9 +8,10 @@
 (defmacro options-spec [& keys]
   `(spec/? (spec/and (spec/keys :opt-un ~(vec keys))
                      (spec/conformer (fn [value#]
-                                       (select-keys value# ~(->> keys
-                                                                 (map (comp keyword name))
-                                                                 (vec))))))))
+                                       (select-keys value#
+                                                    ~(->> keys
+                                                          (map (comp keyword name))
+                                                          (vec))))))))
 
 (defmacro composite-spec [& fields]
   `(spec/and (spec/cat :schema keyword? ~@fields)
@@ -76,7 +77,7 @@
                   :values  (spec/coll-of keyword? [])))
 
 (defmethod spec-type :multi [_]
-  (composite-spec :options (options-spec)
+  (composite-spec :options  (options-spec)
                   :selector symbol?
                   :schemas  (spec/map-of (constantly true) ::schema)))
 
@@ -117,3 +118,28 @@
 
 ;; ISSUES
 ;; conform does not flow into coll-of / map-of
+
+
+(require '[clojure.spec :as s])
+
+(s/def ::height number?)
+(s/def ::weight number?)
+(s/def ::person (s/and (s/keys :req-un [::height ::weight])
+                       (fn [{:keys [height weight]}]
+                         (< weight (/ height 2)))))
+
+(s/conform ::person {:weight 10 :height 21})
+
+(defn shout [s]
+  (println (format "THIS IS %s!" s)))
+
+
+(1 2 3 4 5)
+[:a :b :c]
+#{"e" "f" "g"}
+{:h ['j 'k]}
+
+(+ 1 2)
+[3 4 :a :b "c" "d"]
+{:e f}
+#{:cat :dog :snake}

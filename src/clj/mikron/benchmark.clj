@@ -266,3 +266,8 @@
 
 ;; 34 ns for a double
 ;; 1000 -> 136 us vs 34 us
+
+{:pet    [:enum [:cat :dog]]
+ :person [:record {:name :string
+                   :age  :ubyte
+                   :pet  :pet}]}
