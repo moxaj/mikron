@@ -95,7 +95,7 @@
                             [multi-case (diff inner-schema route value-1 value-2)]))
                   (doall)))))))
 
-(defmethod diff :wrapped [[_ {:keys [pre post]} inner-schema] route value-1 value-2]
+(defmethod diff :wrapped [[_ _ pre post inner-schema] route value-1 value-2]
   (util/with-gensyms [inner-value-1 inner-value-2]
     `(~post (let [~inner-value-1 (~pre ~value-1)
                   ~inner-value-2 (~pre ~value-2)]

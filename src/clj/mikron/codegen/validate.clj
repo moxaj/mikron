@@ -114,7 +114,7 @@
   `(assert (~(set enum-values) ~value)
            (common/format "'%s' is not a valid enum value." ~value)))
 
-(defmethod validate :wrapped [[_ {:keys [pre post]} inner-schema] value]
+(defmethod validate :wrapped [[_ _ pre post inner-schema] value]
   (util/with-gensyms [inner-value]
     `(let [~inner-value (~pre ~value)]
        ~(validate inner-schema inner-value)

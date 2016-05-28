@@ -99,7 +99,7 @@
                                     [enum-value (util/index-of enum-value enum-values)]))
                           (doall)))))
 
-(defmethod pack :wrapped [[_ {:keys [pre]} inner-schema] value]
+(defmethod pack :wrapped [[_ _ pre _ inner-schema] value]
   (util/with-gensyms [inner-value]
     `(let [~inner-value (~pre ~value)]
        ~(pack inner-schema inner-value))))

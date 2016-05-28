@@ -75,7 +75,7 @@
 (defmethod unpack :enum [[_ _ enum-values]]
   `(get ~enum-values ~(unpack :varint)))
 
-(defmethod unpack :wrapped [[_ {:keys [post]} inner-schema]]
+(defmethod unpack :wrapped [[_ _ _ post inner-schema]]
   `(~post ~(unpack inner-schema)))
 
 (defmethod unpack :template [schema]

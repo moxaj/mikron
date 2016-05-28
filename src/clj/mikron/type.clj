@@ -26,6 +26,5 @@
   (derives initial-hierarchy :custom custom-types))
 
 (def templates
-  {:date [:wrapped {:pre  `common/date->long
-                    :post `common/long->date}
+  {:date [:wrapped {} `common/date->long `common/long->date
           :long]})

@@ -111,10 +111,10 @@
     [:enum {} values]))
 
 (defmethod validate-schema :wrapped [schema]
-  (let [[_ {:keys [pre post]
-            :or   {pre 'clojure.core/identity post 'clojure.core/identity}}
-         inner-schema :as schema] (util/with-options schema)]
-    (assert (= 3 (count schema))
+  (let [[_ _ pre post inner-schema :as schema] (util/with-options schema)
+        pre  (or pre 'clojure.cire/identity)
+        post (or post 'clojure.cire/identity)]
+    (assert (= 5 (count schema))
             (format "Invalid schema: %s. Correct signature: [:wrapped <options> :x}]."
                     schema))
     (assert (symbol? pre)
@@ -123,7 +123,7 @@
     (assert (symbol? post)
             (format "Invalid schema %s. :post options must be a symbol."
                     schema))
-    [:wrapped {:pre pre :post post} (validate-schema inner-schema)]))
+    [:wrapped {} pre post (validate-schema inner-schema)]))
 
 (defmethod validate-schema :custom [schema]
   (assert (contains? *schemas* schema)

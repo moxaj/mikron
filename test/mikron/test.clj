@@ -44,8 +44,7 @@
                   [:tuple [:int :float :double]]
                   [:record {:a :int :b :string :c :byte}]
                   [:multi 'clojure.core/number? {true :int false :string}]
-                  [:wrapped {:pre  'mikron.test/string->int
-                             :post 'mikron.test/int->string}
+                  [:wrapped 'mikron.test/string->int 'mikron.test/int->string
                    :int]]]
     (test-pack-case {:x schema})))
 

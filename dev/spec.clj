@@ -73,13 +73,8 @@
 
 (defmethod spec-type :multi [_]
   (composite-spec :options  (options-spec)
-<<<<<<< HEAD
-                  :selector symbol?
-                  :schemas  (spec/map-of (constantly true) ::schema)))
-=======
                   :selector symbol-or-keyword?
                   :schemas  (spec/map-of any? ::schema)))
->>>>>>> 3290a0b89ba82e0cd51f333b1cd406ecb05241db
 
 (defmethod spec-type :wrapped [_]
   (composite-spec :options (options-spec)
@@ -129,9 +124,6 @@
 ;; TODO  routes validation
 ;; ISSUE conform does not flow into coll-of and map-of!
 
-;; PLAYGROUND
-
-<<<<<<< HEAD
 (spec/conform ::schemas
   {:body     [:record {:user-data [:record {:id :int}]
                        :position  :coord
@@ -143,44 +135,3 @@
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
-
-;; ISSUES
-;; conform does not flow into coll-of / map-of
-
-
-(require '[clojure.spec :as s])
-
-(s/def ::height number?)
-(s/def ::weight number?)
-(s/def ::person (s/and (s/keys :req-un [::height ::weight])
-                       (fn [{:keys [height weight]}]
-                         (< weight (/ height 2)))))
-
-(s/conform ::person {:weight 10 :height 21})
-
-(defn shout [s]
-  (println (format "THIS IS %s!" s)))
-
-
-(1 2 3 4 5)
-[:a :b :c]
-#{"e" "f" "g"}
-{:h ['j 'k]}
-
-(+ 1 2)
-[3 4 :a :b "c" "d"]
-{:e f}
-#{:cat :dog :snake}
-=======
-(spec/conform ::options
-  {:schemas {:body     [:record {:user-data [:record {:id :int}]
-                                 :position  :coord
-                                 :angle     :float
-                                 :body-type [:enum [:dynamic :static :kinetic]]
-                                 :fixtures  [:list :fixture]}]
-             :fixture  [:record {:user-data [:record {:color :int}]
-                                 :coords    [:list :coord]}]
-             :coord    [:tuple [:float :float]]
-             :snapshot [:record {:time   :long
-                                 :bodies [:list :body]}]}})
->>>>>>> 3290a0b89ba82e0cd51f333b1cd406ecb05241db

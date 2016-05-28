@@ -107,7 +107,7 @@
 (defmethod gen :enum [[_ _ enum-values]]
   `(rand-nth ~enum-values))
 
-(defmethod gen :wrapped [[_ {:keys [post]} inner-schema]]
+(defmethod gen :wrapped [[_ _ _ post inner-schema]]
   `(~post ~(gen inner-schema)))
 
 (defmethod gen :template [schema]
