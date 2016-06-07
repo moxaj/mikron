@@ -33,8 +33,7 @@
                      :symbol symbol?)
             (spec/conformer second)))
 
-(defmulti spec-type util/type-of :hierarchy #'type/hierarchy
-                                 :default   :clojure.spec/invalid)
+(defmulti spec-type util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod spec-type :simple [_]
   any?)
@@ -82,9 +81,6 @@
                   :post    symbol-or-keyword?
                   :schema  ::schema))
 
-(defmethod spec-type :clojure.spec/invalid [_]
-  nil)
-
 (spec/def ::schema
   (spec/multi-spec spec-type util/type-of))
 
@@ -97,7 +93,7 @@
             (spec/map-of keyword? ::schema)))
 
 (spec/def ::schema-name
-  (spec/and ::schema keyword?))
+  (spec/and keyword? ::schema))
 
 (spec/def ::buffer-size
   (spec/and integer? pos?))
@@ -109,7 +105,7 @@
   any?)
 
 (spec/def ::eq-ops
-  (spec/map-of ::schema-name symbol-or-keyword?))
+  (spec/map-of symbol-or-keyword? ::schema-name))
 
 (spec/def ::options
   (spec/and (spec/keys :req-un [::schemas]
@@ -119,6 +115,20 @@
                                 ::eq-ops])
             (spec/conformer (fn [{:keys [buffer-size] :or {buffer-size 10000} :as options}]
                               (assoc options :buffer-size buffer-size)))))
+
+(methods spec-type)
+
+#(let [^clojure.lang.MultiFn mm @mmvar
+       dispatch-value-1 ((.dispatchFn mm) %)
+       hierarchy @(.hierarchy mm)]
+   (c/and (some (fn [dispatch-value-2]
+                  (isa? hierarchy dispatch-value-1 dispatch-value-2))
+                (keys (methods mm)))
+          (mm %)))
+
+
+
+
 
 ;; TODO  replace mikron.validate
 ;; TODO  routes validation
@@ -135,3 +145,5 @@
    :coord    [:tuple [:float :float]]
    :snapshot [:record {:time   :long
                        :bodies [:list :body]}]})
+
+(defmulti foo identity)

@@ -3,7 +3,7 @@
   :url "https://github.com/moxaj/mikron"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha1"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha3"]
                  [cljsjs/bytebuffer "5.0.1-0"]]
   :target-path "target/%s"
   :source-paths ["src/cljc" "src/clj"]
