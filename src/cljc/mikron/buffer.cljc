@@ -1,201 +1,375 @@
 (ns mikron.buffer
-  "Buffer protocol and implementations."
-  #?(:clj (:import [mikron MikronByteBuffer]))
+  "Buffer interface and implementations."
   (:require [mikron.common :as common]
-            #?(:cljs [cljsjs.bytebuffer])))
+            #?(:cljs [cljsjs.bytebuffer]))
+  #?(:clj  (:import [java.nio ByteBuffer ByteOrder]
+                    [java.util Arrays])
+     :cljs (:require-macros
+            [mikron.buffer :refer
+             [definterface+
+              ?bit-pos !bit-pos ?bit-index !bit-index ?bit-value !bit-value
+              ?byte !byte ?short !short ?int !int ?long !long
+              ?float !float ?double !double ?char !char ?binary-n !binary-n
+              ?pos !pos ?le !le ?binary-all ?byte-buffer ?bit-buffer]])))
 
-(defn encode-negative [value]
-  (- (inc value)))
+#?(:clj ;; definterface+
+   (defmacro definterface+ [name & ops]
+     (let [no-meta    #(with-meta % nil)
+           cljs?      (boolean (:ns &env))
+           ops        (map (fn [[op-name args args' doc-string]]
+                             (list op-name
+                                   args
+                                   (vec (cons 'this (map no-meta args)))
+                                   (if doc-string [doc-string] [])))
+                           ops)
+           inner-form `(~(if cljs? `defprotocol `definterface)
+                        ~name
+                        ~@(map (fn [[op-name args args' doc-string]]
+                                 (if cljs?
+                                   `(~(no-meta op-name)
+                                     ~args'
+                                     ~@doc-string)
+                                   `(~(with-meta (munge op-name) (meta op-name))
+                                     ~args
+                                     ~@doc-string)))
+                               ops))]
+       (if cljs?
+         inner-form
+         `(do ~inner-form
+              ~@(map (fn [[op-name args args' doc-string]]
+                       `(defn ~(no-meta op-name)
+                          {:inline (fn ~args'
+                                     `(~'~(symbol (str "." (munge op-name)))
+                                       ~~@args'))}
+                          ~(with-meta (vec (cons (with-meta 'this {:tag name})
+                                                 args))
+                                      (meta op-name))
+                          (~(symbol (str "." (munge op-name)))
+                           ~@args')))
+                     ops))))))
 
-(defn decode-negative [value]
-  (dec (- value)))
+(definterface+ BitBufferOps
+  (^long   ?bit-pos* [])
+  (^Object !bit-pos* [^long value])
 
-(defprotocol Buffer
-  (read-byte!    [this] "Reads a signed 8-bit integer.")
-  (read-short!   [this] "Reads a signed 16-bit integer.")
-  (read-int!     [this] "Reads a signed 32-bit integer.")
-  (read-long!    [this] "Reads a signed 64-bit integer.")
-  (read-float!   [this] "Reads a 32-bit floating point number.")
-  (read-double!  [this] "Reads a 64-bit floating point number.")
-  (read-boolean! [this] "Reads a boolean.")
-  (read-char!    [this] "Reads a character.")
-  (read-string!  [this] "Reads an UTF-8 string.")
-  (read-raw!     [this] "Reads a raw chunk of data.")
-  (read-ubyte!   [this] "Reads an unsigned 8-bit integer.")
-  (read-ushort!  [this] "Reads an unsigned 16-bit integer.")
-  (read-uint!    [this] "Reads an unsigned 32-bit integer.")
-  (read-varint!  [this] "Reads a varint.")
+  (^long   ?bit-index* [])
+  (^Object !bit-index* [^long value])
 
-  (write-byte!    [this value] "Writes a signed 8-bit integer.")
-  (write-short!   [this value] "Writes a signed 16-bit integer.")
-  (write-int!     [this value] "Writes a signed 32-bit integer.")
-  (write-long!    [this value] "Writes a signed 64-bit integer.")
-  (write-float!   [this value] "Writes a 32-bit floating point number.")
-  (write-double!  [this value] "Writes a 64-bit floating point number.")
-  (write-boolean! [this value] "Writes a boolean.")
-  (write-char!    [this value] "Writes a character.")
-  (write-string!  [this value] "Writes a string.")
-  (write-raw!     [this value] "Writes a raw chunk of data.")
-  (write-ubyte!   [this value] "Writes an unsigned 8-bit integer.")
-  (write-ushort!  [this value] "Writes an unsigned 16-bit integer.")
-  (write-uint!    [this value] "Writes an unsigned 32-bit integer.")
-  (write-varint!  [this value] "Writes a varint.")
+  (^long   ?bit-value* [])
+  (^Object !bit-value* [^long value]))
 
-  (little-endian? [this] "True if the buffer is little endian.")
-  (little-endian! [this little-endian] "Sets the endianness.")
+(deftype BitBufferImpl [^{:tag long :unsynchronized-mutable true} value'
+                        ^{:tag long :unsynchronized-mutable true} index
+                        ^{:tag long :unsynchronized-mutable true} pos]
+  BitBufferOps
+  (?bit-pos* [_]       pos)
+  (!bit-pos* [_ value] (set! pos #?(:clj value :cljs (long value))))
 
-  (clear!  [this] "Resets the buffer.")
-  (compact [this] "Compacts the buffer into a raw format."))
+  (?bit-index* [_]       index)
+  (!bit-index* [_ value] (set! index #?(:clj value :cljs (long value))))
 
-#?(:clj  (extend-type MikronByteBuffer
-           Buffer
-           (read-byte!    [this] (.getByte this))
-           (read-short!   [this] (.getShort this))
-           (read-int!     [this] (.getInt this))
-           (read-long!    [this] (.getLong this))
-           (read-float!   [this] (.getFloat this))
-           (read-double!  [this] (.getDouble this))
-           (read-boolean! [this] (.getBoolean this))
-           (read-char!    [this] (.getChar this))
-           (read-string!  [this] (.getString this))
-           (read-raw!     [this] (.getRaw this))
-           (read-ubyte!   [this] (bit-and (.getByte this) 0xFF))
-           (read-ushort!  [this] (bit-and (.getShort this) 0xFFFF))
-           (read-uint!    [this] (bit-and (.getInt this) 0xFFFFFFFF))
-           (read-varint!  [this] (.getVarint this))
+  (?bit-value* [_]       value')
+  (!bit-value* [_ value] (set! value' #?(:clj value :cljs (long value)))))
 
-           (write-byte!    [this value] (.putByte this (byte value)))
-           (write-short!   [this value] (.putShort this (short value)))
-           (write-int!     [this value] (.putInt this (int value)))
-           (write-long!    [this value] (.putLong this (long value)))
-           (write-float!   [this value] (.putFloat this (float value)))
-           (write-double!  [this value] (.putDouble this (double value)))
-           (write-boolean! [this value] (.putBoolean this (boolean value)))
-           (write-char!    [this value] (.putChar this (char value)))
-           (write-string!  [this value] (.putString this value))
-           (write-raw!     [this value] (.putRaw this value))
-           (write-ubyte!   [this value] (.putByte this (unchecked-byte (bit-and value 0xFF))))
-           (write-ushort!  [this value] (.putShort this (unchecked-short (bit-and value 0xFFFF))))
-           (write-uint!    [this value] (.putInt this (unchecked-int (bit-and value 0xFFFFFFFF))))
-           (write-varint!  [this value] (.putVarint this value))
+(definterface+ ByteBufferOps
+  (^long   ?byte*     [])
+  (^long   ?short*    [])
+  (^long   ?int*      [])
+  (^long   ?long*     [])
+  (^double ?float*    [])
+  (^double ?double*   [])
+  (^Object ?char*     [])
+  (^bytes  ?binary-n* [^long n])
 
-           (little-endian? [this] (.isLittleEndian this))
-           (little-endian! [this little-endian] (.setLittleEndian this little-endian))
+  (^Object !byte*     [^long   value])
+  (^Object !short*    [^long   value])
+  (^Object !int*      [^long   value])
+  (^Object !long*     [^long   value])
+  (^Object !float*    [^double value])
+  (^Object !double*   [^double value])
+  (^Object !char*     [^Object value])
+  (^Object !binary-n* [^bytes  value])
 
-           (clear!  [this] (.clear this))
-           (compact [this] (.compact this)))
-   :cljs (extend-type js/ByteBuffer
-           Buffer
-           (read-byte!    [this] (.readInt8 this))
-           (read-short!   [this] (.readInt16 this))
-           (read-int!     [this] (.readInt32 this))
-           (read-long!    [this] (.toNumber (.readInt64 this)))
-           (read-float!   [this] (.readFloat32 this))
-           (read-double!  [this] (.readFloat64 this))
-           (read-boolean! [this] (let [bit-index (aget this "bitIndex")]
-                                   (when (zero? (mod bit-index 8))
-                                     (aset this "bitBuffer" (.readInt8 this)))
-                                   (aset this "bitIndex" (inc bit-index))
-                                   (not (zero? (bit-and (aget this "bitBuffer")
-                                                        (bit-shift-left 1 (mod bit-index 8)))))))
-           (read-char!    [this] (.readUint16 this))
-           (read-string!  [this] (.readString this))
-           (read-raw!     [this] (let [limit (aget this "limit")]
-                                    (aset this "limit" (+ (aget this "offset")
-                                                          (read-varint! this)))
-                                    (let [value (.toBuffer this true)]
-                                      (aset this "limit" limit)
-                                      value)))
-           (read-ubyte!   [this] (.readUint8 this))
-           (read-ushort!  [this] (.readUint16 this))
-           (read-uint!    [this] (.readUint32 this))
-           (read-varint!  [this] (let [neg-value? (read-boolean! this)]
-                                   (loop [value 0
-                                          shift 0]
-                                     (if-not (< shift 64)
-                                       (throw (common/exception "Malformed varint!"))
-                                       (let [b     (read-byte! this)
-                                             value (bit-or value (bit-shift-left (bit-and b 127)
-                                                                                 shift))]
-                                          (if (zero? (bit-and b 128))
-                                            (if-not neg-value?
-                                              value
-                                              (decode-negative value))
-                                            (recur value (unchecked-add shift 7))))))))
+  (^long   ?pos* [])
+  (^Object !pos* [^long pos])
+  (^Object ?le*  [])
+  (^Object !le*  [^Object value])
 
-           (write-byte!    [this value] (.writeInt8 this (byte value)))
-           (write-short!   [this value] (.writeInt16 this (short value)))
-           (write-int!     [this value] (.writeInt32 this (int value)))
-           (write-long!    [this value] (.writeInt64 this (long value)))
-           (write-float!   [this value] (.writeFloat32 this (float value)))
-           (write-double!  [this value] (.writeFloat64 this (double value)))
-           (write-boolean! [this value] (let [bit-index (aget this "bitIndex")]
-                                          (when (zero? (mod bit-index 8))
-                                            (when (pos? bit-index)
-                                              (.writeInt8 this (aget this "bitBuffer")
-                                                               (aget this "bitPosition")))
-                                            (aset this "bitBuffer" 0)
-                                            (let [offset (aget this "offset")]
-                                              (aset this "bitPosition" offset)
-                                              (aset this "offset" (inc offset))))
-                                          (aset this "bitIndex" (inc bit-index))
-                                          (aset this "bitBuffer"
-                                                (if value
-                                                  (bit-or (aget this "bitBuffer")
-                                                          (bit-shift-left 1 (mod bit-index 8)))
-                                                  (bit-and (aget this "bitBuffer")
-                                                           (bit-not (bit-shift-left 1 (mod bit-index 8))))))
-                                          this))
-           (write-char!    [this value] (.writeUint16 this (char value)))
-           (write-string!  [this value] (.writeString this value))
-           (write-raw!     [this value] (do (write-varint! this (aget value "byteLength"))
-                                            (.append this value)))
-           (write-ubyte!   [this value] (.writeUint8 this value))
-           (write-ushort!  [this value] (.writeUint16 this value))
-           (write-uint!    [this value] (.writeUint32 this value))
-           (write-varint!  [this value] (let [neg-value? (neg? value)
-                                              value      (if-not neg-value? value (encode-negative value))]
-                                          (write-boolean! this neg-value?)
-                                          (loop [value value]
-                                            (if (zero? (bit-and value -128))
-                                              (write-byte! this (unchecked-byte value))
-                                              (do (write-byte! this (unchecked-byte (bit-or (bit-and (unchecked-int value) 127)
-                                                                                            128)))
-                                                  (recur (unsigned-bit-shift-right value 7)))))))
+  (^bytes ?binary-all* []))
 
-           (little-endian? [this] (aget this "littleEndian"))
-           (little-endian! [this little-endian] (aset this "littleEndian" little-endian))
-           (clear!   [this] (doto this
-                                  (aset "offset" 0)
-                                  (aset "bitIndex" 0)
-                                  (aset "bitPosition" -1)
-                                  (aset "bitBuffer" 0)))
-           (compact  [this] (do (let [bit-position (aget this "bitPosition")]
-                                  (when (not= bit-position -1)
-                                    (.writeInt8 this (aget this "bitBuffer") bit-position)))
-                                (.toArrayBuffer (.slice this 0 (aget this "offset")))))))
+#?(:clj  ;; impl: ByteBuffer
+   (deftype ByteBufferImplNio [^ByteBuffer buffer]
+     ByteBufferOps
+     (?byte*     [_]   (long (.get buffer)))
+     (?short*    [_]   (long (.getShort buffer)))
+     (?int*      [_]   (.getInt buffer))
+     (?long*     [_]   (.getLong buffer))
+     (?float*    [_]   (.getFloat buffer))
+     (?double*   [_]   (.getDouble buffer))
+     (?char*     [_]   (.getChar buffer))
+     (?binary-n* [_ n] (let [value (byte-array n)]
+                         (.get buffer value)
+                         value))
 
-(defn wrap [raw]
-  (clear! #?(:clj  (MikronByteBuffer/wrap ^bytes raw)
-             :cljs (.wrap js/ByteBuffer raw))))
+     (!byte*     [_ value] (.put buffer (byte value)))
+     (!short*    [_ value] (.putShort buffer value))
+     (!int*      [_ value] (.putInt buffer value))
+     (!long*     [_ value] (.putLong buffer value))
+     (!float*    [_ value] (.putFloat buffer value))
+     (!double*   [_ value] (.putDouble buffer value))
+     (!char*     [_ value] (.putChar buffer value))
+     (!binary-n* [_ value] (.put buffer value))
 
-(defn allocate [size]
-  (clear! #?(:clj  (MikronByteBuffer/allocate size)
-             :cljs (.allocate js/ByteBuffer size))))
+     (?pos* [_]       (.position buffer))
+     (!pos* [_ value] (.position buffer value))
+     (?le*  [_]       (identical? ByteOrder/LITTLE_ENDIAN (.order buffer)))
+     (!le*  [_ value] (.order buffer (if value
+                                       ByteOrder/LITTLE_ENDIAN
+                                       ByteOrder/BIG_ENDIAN)))
 
-(defn write-headers! [#?(:clj ^MikronByteBuffer buffer :cljs buffer) schema-id meta-schema-id diffed?]
-  (-> buffer
-      (clear!)
-      (write-boolean! (little-endian? buffer))
-      (write-boolean! diffed?)
-      (write-varint! schema-id)
-      (write-boolean! meta-schema-id)
-      (cond->
-         meta-schema-id (write-varint! meta-schema-id))))
+     (?binary-all* [_] (let [bytes (byte-array (.position buffer))]
+                         (.position buffer 0)
+                         (.get buffer bytes)
+                         bytes))))
 
-(defn read-headers! [#?(:clj ^MikronByteBuffer buffer :cljs buffer)]
-  (little-endian! buffer (read-boolean! buffer))
-  {:diffed?        (read-boolean! buffer)
-   :schema-id      (read-varint! buffer)
-   :meta-schema-id (when (read-boolean! buffer)
-                     (read-varint! buffer))})
+#?(:cljs ;; impl: ByteBuffer.js
+   (deftype ByteBufferImplJs [^ByteBuffer buffer]
+     ByteBufferOps
+     (?byte*     [_]   (.readInt8 buffer))
+     (?short*    [_]   (.readInt16 buffer))
+     (?int*      [_]   (.readInt32 buffer))
+     (?long*     [_]   (.toNumber (.readInt64 buffer)))
+     (?float*    [_]   (.readFloat32 buffer))
+     (?double*   [_]   (.readFloat64 buffer))
+     (?char*     [_]   (char (.readUint16 buffer)))
+     (?binary-n* [_ n] (let [offset  (.-offset buffer)
+                             offset' (+ offset n)
+                             binary  (.toArrayBuffer (.copy buffer offset (+ offset n)))]
+                         (set! (.-offset buffer) offset')
+                         binary))
+
+     (!byte*     [_ value] (.writeInt8 buffer value))
+     (!short*    [_ value] (.writeInt16 buffer value))
+     (!int*      [_ value] (.writeInt32 buffer value))
+     (!long*     [_ value] (.writeInt64 buffer value))
+     (!float*    [_ value] (.writeFloat32 buffer value))
+     (!double*   [_ value] (.writeFloat64 buffer value))
+     (!char*     [_ value] (.writeUint16 buffer value))
+     (!binary-n* [_ value] (.append buffer value))
+
+     (?pos* [_]       (.-offset buffer))
+     (!pos* [_ value] (set! (.-offset buffer) value))
+     (?le*  [_]       (= true (.-littleEndian buffer)))
+     (!le*  [_ value] (set! (.-littleEndian buffer) value))
+
+     (?binary-all* [_] (.toArrayBuffer (.copy buffer 0 (.-offset buffer))))))
+
+(deftype Buffer [^{:tag #?(:clj `BitBufferOps :cljs nil)}  bit-buffer
+                 ^{:tag #?(:clj `ByteBufferOps :cljs nil)} byte-buffer])
+
+#?(:clj  ;; Delegated ops
+   (do (defmacro ?byte-buffer [buffer]
+         (vary-meta `(.-byte-buffer ~(with-meta buffer {:tag `Buffer}))
+                    assoc :tag `ByteBufferOps))
+
+       (defmacro ?bit-buffer [buffer]
+         (vary-meta `(.-bit-buffer ~(with-meta buffer {:tag `Buffer}))
+                    assoc :tag `BitBufferOps))
+
+       (defmacro ?bit-pos [buffer]
+         `(?bit-pos* (?bit-buffer ~buffer)))
+
+       (defmacro !bit-pos [buffer value]
+         `(!bit-pos* (?bit-buffer ~buffer) ~value))
+
+       (defmacro ?bit-index [buffer]
+         `(?bit-index* (?bit-buffer ~buffer)))
+
+       (defmacro !bit-index [buffer value]
+         `(!bit-index* (?bit-buffer ~buffer) ~value))
+
+       (defmacro ?bit-value [buffer]
+         `(?bit-value* (?bit-buffer ~buffer)))
+
+       (defmacro !bit-value [buffer value]
+         `(!bit-value* (?bit-buffer ~buffer) ~value))
+
+       (defmacro ?byte [buffer]
+         `(?byte* (?byte-buffer ~buffer)))
+
+       (defmacro ?short [buffer]
+         `(?short* (?byte-buffer ~buffer)))
+
+       (defmacro ?int [buffer]
+         `(?int* (?byte-buffer ~buffer)))
+
+       (defmacro ?long [buffer]
+         `(?long* (?byte-buffer ~buffer)))
+
+       (defmacro ?float [buffer]
+         `(?float* (?byte-buffer ~buffer)))
+
+       (defmacro ?double [buffer]
+         `(?double* (?byte-buffer ~buffer)))
+
+       (defmacro ?char [buffer]
+         `(?char* (?byte-buffer ~buffer)))
+
+       (defmacro ?binary-n [buffer n]
+         `(?binary-n* (?byte-buffer ~buffer) ~n))
+
+       (defmacro !byte [buffer value]
+         `(!byte* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !short [buffer value]
+         `(!short* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !int [buffer value]
+         `(!int* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !long [buffer value]
+         `(!long* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !float [buffer value]
+         `(!float* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !double [buffer value]
+         `(!double* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !char [buffer value]
+         `(!char* (?byte-buffer ~buffer) ~value))
+
+       (defmacro !binary-n [buffer value]
+         `(!binary-n* (?byte-buffer ~buffer) ~value))
+
+       (defmacro ?pos [buffer]
+         `(?pos* (?byte-buffer ~buffer)))
+
+       (defmacro !pos [buffer pos]
+         `(!pos* (?byte-buffer ~buffer) ~pos))
+
+       (defmacro ?le [buffer]
+         `(?le* (?byte-buffer ~buffer)))
+
+       (defmacro !le [buffer value]
+         `(!le* (?byte-buffer ~buffer) ~value))
+
+       (defmacro ?binary-all [buffer]
+         `(?binary-all* (?byte-buffer ~buffer)))))
+
+(defn ?ubyte [^Buffer buffer]
+   (bit-and (?byte buffer) 0xFF))
+
+(defn !ubyte [^Buffer buffer ^long value]
+  (!byte buffer (unchecked-byte (bit-and (long value) 0xFF))))
+
+(defn ?ushort [^Buffer buffer]
+  (bit-and (?short buffer) 0xFFFF))
+
+(defn !ushort [^Buffer buffer ^long  value]
+  (!short buffer (unchecked-short (bit-and (long value) 0xFFFF))))
+
+(defn ?uint [^Buffer buffer]
+  (bit-and (?int buffer) 0xFFFFFFFF))
+
+(defn !uint [^Buffer buffer ^long  value]
+  (!int buffer (unchecked-int (bit-and (long value) 0xFFFFFFFF))))
+
+(defn !byte-at [^Buffer buffer ^long pos ^long value]
+  (let [pos' (?pos buffer)]
+    (!pos buffer pos)
+    (!byte buffer value)
+    (!pos buffer pos')))
+
+(defn ?boolean [^Buffer buffer]
+  (when (zero? (rem (?bit-index buffer) 8))
+    (!bit-value buffer (?byte buffer)))
+  (let [index (?bit-index buffer)]
+    (!bit-index buffer (inc index))
+    (not= 0 (bit-and (?bit-value buffer)
+                     (bit-shift-left 1 (rem index 8))))))
+
+(defn !boolean [^Buffer buffer value]
+  (when (zero? (rem (?bit-index buffer) 8))
+    (when (pos? (?bit-index buffer))
+      (!byte-at buffer (?bit-pos buffer) (?bit-value buffer)))
+    (!bit-pos buffer (?pos buffer))
+    (!bit-value buffer 0)
+    (!pos buffer (inc (?bit-pos buffer))))
+  (let [index (?bit-index buffer)
+        mask  (bit-shift-left 1 (rem index 8))]
+    (!bit-index buffer (inc index))
+    (!bit-value buffer
+                (unchecked-byte (if value
+                                  (bit-or (?bit-value buffer) mask)
+                                  (bit-and (?bit-value buffer) (bit-not mask)))))))
+
+(defn ?varint ^long [^Buffer buffer]
+  (let [negative? (?boolean buffer)]
+    (loop [value 0, shift 0]
+      (if (>= shift 64)
+        (throw (common/exception "Malformed varint!"))
+        (let [b      (?byte buffer)
+              value' (-> (bit-and b 127)
+                         (bit-shift-left shift)
+                         (unchecked-long)
+                         (bit-or value))]
+          (if (zero? (bit-and b 128))
+            (if negative?
+              (dec (- value'))
+              value')
+            (recur value' (unchecked-add shift 7))))))))
+
+(defn !varint [^Buffer buffer ^long value]
+  (let [negative? (neg? value)]
+    (!boolean buffer negative?)
+    (loop [value (if negative? (- (inc value)) value)]
+      (if (zero? (bit-and value -128))
+        (!byte buffer value)
+        (do (!byte buffer (-> (unchecked-int value)
+                              (bit-and 127)
+                              (bit-or 128)
+                              (unchecked-byte)))
+            (recur (unsigned-bit-shift-right value 7)))))))
+
+(defn ?binary ^bytes [^Buffer buffer]
+  (?binary-n buffer (?varint buffer)))
+
+(defn !binary [^Buffer buffer ^bytes value]
+  (do (!varint buffer (count value))
+      (!binary-n buffer value)))
+
+(defn !reset [^Buffer buffer]
+  (!pos buffer 0)
+  (!bit-pos buffer -1)
+  (!bit-value buffer 0)
+  (!bit-index buffer 0))
+
+(defn !finalize [^Buffer buffer]
+  (let [bit-pos (?bit-pos buffer)]
+    (when (not= -1 bit-pos)
+      (!byte-at buffer bit-pos (?bit-value buffer)))))
+
+;; Higher order
+(defn wrap ^Buffer [^bytes binary]
+  (Buffer. (BitBufferImpl. 0 0 -1)
+           #?(:clj  (ByteBufferImplNio. (ByteBuffer/wrap binary))
+              :cljs (ByteBufferImplJs. (.wrap js/ByteBuffer binary)))))
+
+(defn allocate ^Buffer [^long size]
+  (Buffer. (BitBufferImpl. 0 0 -1)
+           #?(:clj  (ByteBufferImplNio. (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder)))
+              :cljs (ByteBufferImplJs. (.allocate js/ByteBuffer size)))))
+
+(defn !headers [^Buffer buffer ^long schema-id diffed?]
+  (!reset buffer)
+  (!boolean buffer (?le buffer))
+  (!boolean buffer diffed?)
+  (!varint buffer schema-id))
+
+(defn ?headers [^Buffer buffer]
+  (!le buffer (?boolean buffer))
+  {:diffed?   (?boolean buffer)
+   :schema-id (?varint buffer)})
+
+(defonce ^{:dynamic true :tag Buffer} *buffer* (allocate 10000))

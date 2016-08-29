@@ -1,13 +1,18 @@
 (ns mikron.core
   "Public API facade."
-  (:require #?@(:clj  [[mikron.processor :as processor]]
-                :cljs [[mikron.buffer]
-                       [mikron.common]]))
+  (:require [mikron.buffer :as buffer]
+            [mikron.common :as common]
+            #?(:clj [mikron.processor :as processor]))
   #?(:cljs (:require-macros [mikron.processor :as processor]
                             [mikron.core])))
 
-#?(:clj (defmacro make-processors [options]
-          `(processor/make-processors ~options)))
+#?(:clj
+   (do (defmacro defprocessors [names options]
+         `(processor/defprocessors ~names ~options))
 
-#?(:clj (defmacro defprocessors [names options]
-          `(processor/defprocessors ~names ~options)))
+       (defmacro allocate-buffer [size]
+         `(buffer/allocate ~size))
+
+       (defmacro with-buffer [buffer & body]
+         `(binding [buffer/*buffer* ~buffer]
+            ~@body))))

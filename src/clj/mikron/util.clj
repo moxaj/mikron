@@ -1,21 +1,8 @@
 (ns mikron.util
-  "Utility functions."
-  (:require [clojure.string :as string]
-            [clojure.walk :as walk]))
+  "Compile time utility functions."
+  (:require [clojure.string :as string]))
 
 ;; coll
-
-(defn find-by [pred form]
-  (cond-> []
-    (pred form)
-    (conj form)
-
-    (or (sequential? form)
-        (map? form))
-    (concat (mapcat (partial find-by pred) form))))
-
-(defn find-unique-by [pred form]
-  (distinct (find-by pred form)))
 
 (defn index-of [item coll]
   (->> coll
@@ -31,24 +18,21 @@
     (vector? schema)  (first schema)
     :else             nil))
 
-(defn with-options [[a b & rest :as complex]]
-  (if (and (map? b) (seq rest))
-    complex
-    (vec (concat [a {} b] rest))))
-
 (defn as-set [sorted-by body]
-  `(into ~(case sorted-by
-            nil      `#{}
-            :default `(sorted-set)
-            `(sorted-set-by ~sorted-by))
-         ~body))
+  (if (nil? sorted-by)
+    body
+    `(into ~(if (= :default sorted-by)
+              `(sorted-set)
+              `(sorted-set-by ~sorted-by))
+           ~body)))
 
 (defn as-map [sorted-by body]
-  `(into ~(case sorted-by
-            nil      `{}
-            :default `(sorted-map)
-            `(sorted-map-by ~sorted-by))
-         ~body))
+  (if (nil? sorted-by)
+    body
+    `(into ~(if (= :default sorted-by)
+              `(sorted-map)
+              `(sorted-map-by ~sorted-by))
+           ~body)))
 
 (defn as-record [constructor body]
   (if constructor
@@ -57,7 +41,7 @@
 
 ;; symbol
 
-(defn raw-gensym [sym]
+(defn gensym-base [sym]
   (let [sym-name (name sym)]
     (if-let [index (string/last-index-of sym-name "_")]
       (symbol (subs sym-name 0 index))
@@ -65,7 +49,8 @@
 
 (defmacro with-gensyms [binding-form & body]
   `(let [~@(mapcat (fn [sym]
-                     [sym `(gensym ~(str sym "_"))])
+                     [sym `(with-meta (gensym ~(str sym "_"))
+                                      ~(meta sym))])
                    binding-form)]
      ~@body))
 
@@ -78,10 +63,25 @@
   ([processor-type]
    (var-name processor-type))
   ([processor-type schema-name]
-   (var-name (keyword (format "%s-%s" (name processor-type) (name schema-name))))))
+   (-> (format "%s-%s" (name processor-type) (name schema-name))
+       (keyword)
+       (var-name)))
+  ([processor-type schema-name schema-names]
+   `(case ~schema-name
+      ~@(mapcat (fn [schema-name']
+                  [schema-name' (processor-name processor-type schema-name')])
+                schema-names))))
 
-(defn select-processor [processor-type schema schemas]
-  `(case ~schema
-     ~@(mapcat (fn [schema-name]
-                 [schema-name (processor-name processor-type schema-name)])
-               (keys schemas))))
+;; multi
+
+(defmulti global-processor* (fn [processor-type options] processor-type))
+
+(defn global-processor [processor-type options]
+  `(~(processor-name processor-type)
+    ~@(global-processor* processor-type options)))
+
+(defmulti local-processor* (fn [processor-type schema-name options] processor-type))
+
+(defn local-processor [processor-type schema-name options]
+  `(~(vary-meta (processor-name processor-type schema-name) assoc :private true)
+    ~@(local-processor* processor-type schema-name options)))

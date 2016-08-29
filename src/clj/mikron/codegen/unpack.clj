@@ -3,125 +3,104 @@
   (:require [mikron.buffer :as buffer]
             [mikron.util :as util]
             [mikron.type :as type]
-            [mikron.common :as common]))
-
-(def ^:dynamic *options*)
+            [mikron.common :as common])
+  (:import [mikron.buffer Buffer]))
 
 (defmulti unpack util/type-of :hierarchy #'type/hierarchy)
 
-(defn unpack-diffed [schema]
-  (if-not (:diffed? *options*)
-    (unpack schema)
-    `(if ~(unpack :boolean)
+(defn unpack* [schema {:keys [diffed?] :as options}]
+  (if-not diffed?
+    (unpack schema options)
+    `(if ~(unpack :boolean options)
        :mikron/dnil
-       ~(unpack schema))))
+       ~(unpack schema options))))
 
-(defmethod unpack :primitive [schema]
-  `(~(symbol (format "mikron.buffer/read-%s!" (name schema)))
-    ~(:buffer *options*)))
+(defmethod unpack :primitive [schema {:keys [buffer]}]
+  `(~(symbol (format "mikron.buffer/?%s" (name schema)))
+    ~buffer))
 
-(defmethod unpack :keyword [_]
-  `(keyword ~(unpack :string)))
-
-(defmethod unpack :symbol [_]
-  `(symbol ~(unpack :string)))
-
-(defmethod unpack :any [_]
-  `(common/parse-string ~(unpack :string)))
-
-(defmethod unpack :nil [_]
+(defmethod unpack :nil [_ _]
   nil)
 
-(defmethod unpack :list [[_ _ inner-schema]]
-  `(doall (repeatedly ~(unpack :varint)
-                      (fn [] ~(unpack-diffed inner-schema)))))
+(defmethod unpack :coll [[_ _ schema'] options]
+  `(common/repeatedly! []
+                       ~(unpack :varint options)
+                       (fn [] ~(unpack* schema' options))))
 
-(defmethod unpack :vector [[_ _ inner-schema]]
-  `(vec ~(unpack [:list {} inner-schema])))
-
-(defmethod unpack :set [[_ {:keys [sorted-by]} inner-schema]]
-  (->> (unpack [:list {} inner-schema])
+(defmethod unpack :set [[_ {:keys [sorted-by]} schema'] options]
+  (->> `(common/repeatedly! #{}
+                            ~(unpack :varint options)
+                            (fn [] ~(unpack* schema' options)))
        (util/as-set sorted-by)))
 
-(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
-  (->> `(repeatedly ~(unpack :varint)
-                    (fn [] [~(unpack key-schema)
-                            ~(unpack-diffed val-schema)]))
+(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
+  (->> `(common/repeatedly! {}
+                            ~(unpack :varint options)
+                            (fn [] ~(unpack* key-schema options))
+                            (fn [] ~(unpack* val-schema options)))
        (util/as-map sorted-by)))
 
-(defmethod unpack :tuple [[_ _ inner-schemas]]
-  (vec (map-indexed (fn [index inner-schema]
-                      (unpack-diffed inner-schema))
-                    inner-schemas)))
+(defmethod unpack :tuple [[_ _ schemas] options]
+  (->> schemas
+       (map-indexed (fn [index schema']
+                      (unpack* schema' options)))
+       (vec)))
 
-(defmethod unpack :record [[_ {:keys [constructor]} inner-schemas]]
-  (->> inner-schemas
-       (map (fn [[index inner-schema]]
-              [index (unpack-diffed inner-schema)]))
+(defmethod unpack :record [[_ {:keys [constructor]} schemas] options]
+  (->> schemas
+       (map (fn [[index schema']]
+              [index (unpack* schema' options)]))
        (into (sorted-map))
        (util/as-record constructor)))
 
-(defmethod unpack :optional [[_ _ inner-schema]]
-  `(when ~(unpack :boolean)
-     ~(unpack inner-schema)))
+(defmethod unpack :optional [[_ _ schema'] options]
+  `(when ~(unpack :boolean options)
+     ~(unpack schema' options)))
 
-(defmethod unpack :multi [[_ _ _ multi-map]]
-  `(case (get ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint))
-     ~@(->> multi-map
-            (mapcat (fn [[multi-case inner-schema]]
-                      [multi-case (unpack inner-schema)]))
-            (doall))))
+(defmethod unpack :multi [[_ _ _ multi-map] options]
+  `(case (get ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint options))
+     ~@(mapcat (fn [[multi-case schema']]
+                 [multi-case (unpack schema' options)])
+               multi-map)))
 
-(defmethod unpack :enum [[_ _ enum-values]]
-  `(get ~enum-values ~(unpack :varint)))
+(defmethod unpack :enum [[_ _ enum-values] options]
+  `(~enum-values ~(unpack :varint options)))
 
-(defmethod unpack :wrapped [[_ _ _ post inner-schema]]
-  `(~post ~(unpack inner-schema)))
+(defmethod unpack :wrapped [[_ _ _ post schema'] options]
+  `(~post ~(unpack schema' options)))
 
-(defmethod unpack :template [schema]
-  (unpack (type/templates schema)))
+(defmethod unpack :aliased [schema options]
+  (unpack (type/aliases schema) options))
 
-(defmethod unpack :custom [schema]
-  (let [{:keys [diffed? buffer]} *options*]
-    `(~(util/processor-name (if diffed? :unpack-diffed :unpack)
-                            schema)
-      ~buffer)))
+(defmethod unpack :custom [schema {:keys [diffed? buffer]}]
+  `(~(util/processor-name (if diffed? :unpack-diffed :unpack)
+                          schema)
+    ~buffer))
 
-;; private api
+(defmethod util/local-processor* :unpack [_ schema-name {:keys [schemas diffed?]
+                                                         :or {diffed? false}
+                                                         :as options}]
+  (util/with-gensyms [^Buffer buffer]
+    `([~buffer]
+      ~(unpack* (schemas schema-name) (assoc options :buffer buffer)))))
 
-(defn unpacker [schema-name {:keys [schemas diffed?] :as options}]
-  (util/with-gensyms [buffer]
-    (binding [*options* (assoc options :buffer buffer)]
-      `(~(with-meta (util/processor-name (if diffed? :unpack-diffed :unpack)
-                                         schema-name)
-                    {:private true})
-        [~buffer]
-        ~(unpack-diffed (schemas schema-name))))))
+(defmethod util/local-processor* :unpack-diffed [_ schema-name options]
+  (util/local-processor* :unpack schema-name (assoc options :diffed? true)))
 
-;; public api
-
-(defn global-unpacker [{:keys [schemas processor-types]}]
-  (util/with-gensyms [raw buffer headers diffed? schema meta-schema meta-schema-id]
-    (let [schema-ids (-> schemas (keys) (sort) (vec))]
-      `(~(util/processor-name :unpack) [~raw]
-        (let [~buffer         (buffer/wrap ~raw)
-              ~headers        (buffer/read-headers! ~buffer)
-              ~schema         (get ~schema-ids (:schema-id ~headers))
-              ~meta-schema-id (:meta-schema-id ~headers)
-              ~meta-schema    (get ~schema-ids ~meta-schema-id)
-              ~diffed?        (:diffed? ~headers)]
-          (if (or (not ~schema)
-                  (and ~meta-schema-id
-                       (not ~meta-schema)))
-            :mikron/invalid
-            (cond-> {:schema  ~schema
-                     :diffed? ~diffed?
-                     :value   (cond-> ((if ~diffed?
-                                         ~(util/select-processor :unpack-diffed schema schemas)
-                                         ~(util/select-processor :unpack schema schemas))
-                                       ~buffer)
-                                ~diffed? (common/wrap-diffed))}
-              ~meta-schema
-              (assoc :meta-schema ~meta-schema
-                     :meta-value  (~(util/select-processor :unpack meta-schema schemas)
-                                   ~buffer)))))))))
+(defmethod util/global-processor* :unpack [_ {:keys [schemas]}]
+  (util/with-gensyms [^bytes binary ^Buffer buffer headers diffed? schema]
+    `([~binary]
+      (let [~buffer  (buffer/wrap ~binary)
+            ~headers (buffer/?headers ~buffer)
+            ~schema  (get ~(-> schemas (keys) (sort) (vec))
+                          (:schema-id ~headers))
+            ~diffed? (:diffed? ~headers)]
+        (if-not ~schema
+          :mikron/invalid
+          {:schema  ~schema
+           :diffed? ~diffed?
+           :value   (cond-> ((if ~diffed?
+                               ~(util/processor-name :unpack-diffed schema (keys schemas))
+                               ~(util/processor-name :unpack schema (keys schemas)))
+                             ~buffer)
+                      ~diffed? (common/diffed))})))))

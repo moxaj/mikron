@@ -8,23 +8,26 @@
           hierarchy
           children))
 
-(def initial-hierarchy
+(def default-hierarchy
   (-> (make-hierarchy)
       (derives :integer   [:byte :ubyte :short :ushort :int :uint :long :varint])
       (derives :floating  [:float :double])
       (derives :number    [:integer :floating])
-      (derives :primitive [:number :boolean :char :string :raw])
-      (derives :simple    [:primitive :keyword :symbol :nil :any :date])
+      (derives :primitive [:number :boolean :char :binary :nil])
+      (derives :aliased   [:string :keyword :symbol :any :date])
+      (derives :simple    [:primitive :aliased])
       (derives :coll      [:list :vector :set])
       (derives :complex   [:coll :map :tuple :record :optional :multi :enum :wrapped])
-      (derives :built-in  [:simple :complex])
-      (derives :template  [:date])))
+      (derives :built-in  [:simple :complex])))
 
 (def hierarchy nil)
 
 (defn add-custom-types [_ custom-types]
-  (derives initial-hierarchy :custom custom-types))
+  (derives default-hierarchy :custom custom-types))
 
-(def templates
-  {:date [:wrapped {} `common/date->long `common/long->date
-          :long]})
+(def aliases
+  {:string  [:wrapped {} `common/string->binary `common/binary->string :binary]
+   :keyword [:wrapped {} `common/keyword->string `keyword :string]
+   :symbol  [:wrapped {} `str `symbol :string]
+   :any     [:wrapped {} `pr-str `common/read-string+ :string]
+   :date    [:wrapped {} `common/date->long `common/long->date :long]})

@@ -1,139 +1,114 @@
 (ns mikron.test
-  (:import [java.util Arrays])
-  (:require [clojure.test :refer [deftest is]]
-            [mikron.processor :refer [make-test-processors]]))
+  (:require [clojure.test :refer [deftest is testing are]]
+            [mikron.processor :as mikron]
+            [mikron.util :as util])
+  (:import [java.util Arrays]))
 
-(defn pack-roundtrip [value {:keys [pack unpack]}]
-  (unpack (pack :x value)))
+(defn equals? [a b]
+  (if (= (Class/forName "[B") (class a))
+    (Arrays/equals ^bytes a ^bytes b)
+    (= a b)))
 
-(defn test-pack-case [schemas]
-  (let [{:keys [gen] :as processors} (make-test-processors {:schemas schemas})]
-    (doseq [value (repeatedly 10 #(gen :x))]
-      (is (= {:schema :x :diffed? false :value value}
-             (pack-roundtrip value processors))))))
+(defmulti test-mikron (fn [method processors dataset] method))
 
-(deftest simple-test
-  (doseq [schema [:byte :ubyte :short :ushort :int :uint :long
-                  :varint :float :double :boolean :char
-                  :string :keyword :symbol :any :nil :date]]
-    (test-pack-case {:x schema})))
+(defmethod test-mikron :pack [_ {:keys [pack unpack gen]} dataset]
+  (doseq [value dataset]
+    (let [{value' :value :keys [schema diffed?]} (unpack (pack :x value))]
+      (are [x y] (equals? x y)
+        schema  :x
+        diffed? false
+        value   value'))))
 
-(defn int->string [n]
-  (str n))
+(defmethod test-mikron :diff [_ {:keys [diff undiff gen]} dataset]
+  (doseq [[value-1 value-2] (partition 2 dataset)]
+    (is (= value-2 (undiff :x value-1 (diff :x value-1 value-2))))))
 
-(defn string->int [s]
-  (Integer/parseInt s))
+(defmethod test-mikron :validate [_ {:keys [validate gen]} dataset]
+  (doseq [value dataset]
+    (is (not= :mikron/invalid (validate :x value))
+        (= :mikron/invalid (validate :x (Object.))))))
 
-(deftest raw-test
-  (let [{:keys [pack unpack gen]} (make-test-processors {:schemas {:x :raw}})]
-    (doseq [value (repeatedly 10 #(gen :x))]
-      (is (Arrays/equals ^bytes value
-                         ^bytes (->> value (pack :x) (unpack) :value))))))
+(defmethod test-mikron :interp [_ {:keys [interp gen]} dataset]
+  (doseq [[value-1 value-2] (partition 2 dataset)]
+    (interp :x value-1 value-2 0 1 0.5)))
 
-(deftest complex-test
-  (doseq [schema [[:list :byte]
-                  [:vector :int]
-                  [:set :short]
-                  [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by 'clojure.core/>} :int]
-                  [:map :byte :string]
-                  [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by 'clojure.core/>} :byte :string]
-                  [:optional :byte]
-                  [:enum [:cat :dog :measurement :error]]
-                  [:tuple [:int :float :double]]
-                  [:record {:a :int :b :string :c :byte}]
-                  [:multi 'clojure.core/number? {true :int false :string}]
-                  [:wrapped 'mikron.test/string->int 'mikron.test/int->string
-                   :int]]]
-    (test-pack-case {:x schema})))
+(defmacro def-mikron-tests [test-cases]
+  (util/with-gensyms [processors dataset]
+    `(do ~@(map (fn [[test-name schema]]
+                  (let [schemas (if (map? schema) schema {:x schema})]
+                    `(let [~processors (eval (mikron/processors* {:schemas ~schemas}))
+                           ~dataset    (repeatedly 100 #((:gen ~processors) :x))]
+                       ~@(map (fn [method]
+                                `(deftest ~(symbol (str (name method) "-" test-name))
+                                   (test-mikron ~method ~processors ~dataset)))
+                              [:pack :diff :validate :interp]))))
+                test-cases))))
 
-(deftest custom-test
-  (doseq [schemas [{:x [:list :y]
-                    :y [:tuple [:int :int]]}
-                   {:x [:list :y]
-                    :y [:record {:a :int
-                                 :b :string
-                                 :c [:tuple [:float :float :float]]
-                                 :d [:list :int]}]}
-                   {:body     [:record {:user-data [:record {:id :int}]
-                                        :position  :coord
-                                        :angle     :float
-                                        :body-type [:enum [:dynamic :static :kinetic]]
-                                        :fixtures  [:list :fixture]}]
-                    :fixture  [:record {:user-data [:record {:color :int}]
-                                        :coords    [:list :coord]}]
-                    :coord    [:tuple [:float :float]]
-                    :snapshot [:record {:time   :long
-                                        :bodies [:list :body]}]
-                    :x        :snapshot}]]
-    (test-pack-case schemas)))
+(defn pre-inc ^long [^long x]
+  (inc x))
 
-(deftest meta-schema-test
-  (let [{:keys [pack unpack gen]} (make-test-processors
-                                    {:schemas {:x [:record {:a :int :b :byte :c :string}]}})
-        value-1 (gen :x)
-        meta-1  (gen :x)
-        {:keys [schema value meta-schema meta-value]} (unpack (pack :x value-1 :x meta-1))]
-    (is (= [:x value-1 :x meta-1]
-           [schema value meta-schema meta-value]))))
+(defn post-dec ^long [^long x]
+  (dec x))
 
-(defn diff-roundtrip [value-1 value-2 {:keys [diff undiff]}]
-  (undiff :x value-1 (diff :x value-1 value-2)))
-
-(defn test-diff-case [schemas]
-  (let [{:keys [gen] :as processors}
-        (make-test-processors {:schemas schemas})]
-    (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
-      (is (= value-2 (diff-roundtrip value-1 value-2 processors))))))
-
-(deftest diff-test
-  (doseq [schemas [{:x [:record {:a :int
-                                 :b [:tuple [:y :y :y :y]]}]
-                    :y [:enum [:a :b :c :d]]}
-                   {:x [:record {:a :byte
-                                 :b [:tuple [:byte :byte]]
-                                 :c [:vector [:enum [:cat :dog]]]}]}]]
-      (test-diff-case schemas)))
-
-
-(defn test-interp-case [schema]
-  (let [{:keys [interp gen]} (make-test-processors {:schemas {:x schema}})]
-    (doseq [[value-1 value-2] (partition 2 (repeatedly 20 #(gen :x)))]
-      (interp :x value-1 value-2 0 1 0.5))))
-
-(deftest interp-test
-  (doseq [schema [[:list :byte]
-                  [:vector :int]
-                  [:set :short]
-                  [:set {:sorted-by :default} :short]
-                  [:set {:sorted-by 'clojure.core/>} :int]
-                  [:map :byte :string]
-                  [:map {:sorted-by :default} :byte :string]
-                  [:map {:sorted-by 'clojure.core/>} :byte :string]
-                  [:optional :byte]
-                  [:enum [:cat :dog :measurement :error]]
-                  [:tuple [:int :float :double]]
-                  [:record {:a :int :b :string :c :byte}]
-                  [:multi 'clojure.core/number? {true :int false :string}]]]
-    (test-interp-case schema)))
-
-(defn test-validate-case [schemas]
-  (let [{:keys [validate gen]} (make-test-processors {:schemas schemas})]
-    (doseq [value (repeatedly 20 #(gen :x))]
-      (validate :x value))))
-
-(defn validate-test []
-  (doseq [schemas [{:x [:list :byte]}
-                   {:body     [:record {:user-data [:record {:id :int}]
-                                        :position  :coord
-                                        :angle     :float
-                                        :body-type [:enum [:dynamic :static :kinetic]]
-                                        :fixtures  [:list :fixture]}]
-                    :fixture  [:record {:user-data [:record {:color :int}]
-                                        :coords    [:list :coord]}]
-                    :coord    [:tuple [:float :float]]
-                    :snapshot [:record {:time   :long
-                                        :bodies [:list :body]}]
-                    :x        :snapshot}]]
-    (test-validate-case schemas)))
+(def-mikron-tests
+  {byte         :byte
+   short        :short
+   int          :int
+   long         :long
+   float        :float
+   double       :double
+   boolean      :boolean
+   char         :char
+   ubyte        :ubyte
+   ushort       :ushort
+   uint         :uint
+   varint       :varint
+   string       :string
+   keyword      :keyword
+   symbol       :symbol
+   nil'         :nil
+   date         :date
+   binary       :binary
+   any          :any
+   list         [:list :byte]
+   vector       [:vector :int]
+   set          [:set :short]
+   sorted-set   [:set {:sorted-by :default} :short]
+   >-sorted-set [:set {:sorted-by `>} :int]
+   map          [:map :byte :string]
+   sorted-map   [:map {:sorted-by :default} :byte :string]
+   <-sorted-map [:map {:sorted-by `<} :byte :string]
+   optional     [:optional :byte]
+   enum         [:enum [:cat :dog :measurement :error]]
+   tuple        [:tuple [:int :float :double]]
+   record       [:record {:a :int :b :string :c :byte}]
+   multi        [:multi `number? {true :int false :string}]
+   wrapped      [:wrapped `pre-inc `post-dec :int]
+   box2d        {:body    [:record {:user-data [:record {:id :int}]
+                                    :position  :coord
+                                    :angle     :float
+                                    :body-type [:enum [:dynamic :static :kinetic]]
+                                    :fixtures  [:list :fixture]}]
+                 :fixture [:record {:user-data [:record {:color :int}]
+                                    :coords    [:list :coord]}]
+                 :coord   [:tuple [:float :float]]
+                 :x       [:record {:time   :long
+                                    :bodies [:list :body]}]}
+   media        {:image   [:record  {:uri    :string
+                                     :title  [:optional :string]
+                                     :width  :varint
+                                     :height :varint
+                                     :size   [:enum [:small :large]]}]
+                 :media   [:record {:uri       :string
+                                    :title     [:optional :string]
+                                    :width     :varint
+                                    :height    :varint
+                                    :format    :string
+                                    :duration  :long
+                                    :size      :long
+                                    :bitrate   :int
+                                    :persons   [:list :string]
+                                    :player    [:enum [:java :flash]]
+                                    :copyright [:optional :string]}]
+                 :x       [:record {:images [:list :image]
+                                    :media  :media}]}})
