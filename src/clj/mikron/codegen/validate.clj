@@ -2,7 +2,8 @@
   "Validator generating functions."
   (:require [mikron.type :as type]
             [mikron.util :as util]
-            [mikron.common :as common]))
+            [mikron.common :as common]
+            [mikron.codegen.common :as codegen-common]))
 
 (defmulti validate util/type-of :hierarchy #'type/hierarchy)
 
@@ -140,12 +141,12 @@
 (defmethod validate :default [_ _ _]
   nil)
 
-(defmethod util/local-processor* :validate [_ schema-name {:keys [schemas] :as options}]
+(defmethod codegen-common/local-processor* :validate [_ schema-name {:keys [schemas] :as options}]
   (util/with-gensyms [value]
     `([~value]
       ~(validate (schemas schema-name) value options))))
 
-(defmethod util/global-processor* :validate [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :validate [_ {:keys [schemas]}]
   (util/with-gensyms [schema value]
     `([~schema ~value]
       (if (= :mikron/invalid (~(util/processor-name :validate schema (keys schemas))

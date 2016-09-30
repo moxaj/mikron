@@ -2,7 +2,8 @@
   "Linear interpolator generating functions."
   (:require [mikron.type :as type]
             [mikron.util :as util]
-            [mikron.common :as common]))
+            [mikron.common :as common]
+            [mikron.codegen.common :as codegen-common]))
 
 (defmulti interp util/type-of :hierarchy #'type/hierarchy)
 
@@ -108,7 +109,7 @@
 (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))
 
-(defmethod util/local-processor* :interp [_ schema-name {:keys [schemas interp-routes] :as options}]
+(defmethod codegen-common/local-processor* :interp [_ schema-name {:keys [schemas interp-routes] :as options}]
   (util/with-gensyms [value-1 value-2 time-1 time-2 time prefer-first? time-factor]
     `([~value-1 ~value-2 ~time-1 ~time-2 ~time]
       (let [~time          (double ~time)
@@ -127,7 +128,7 @@
                                  :time-2        time-2
                                  :time          time))))))
 
-(defmethod util/global-processor* :interp [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :interp [_ {:keys [schemas]}]
   (util/with-gensyms [schema value-1 value-2 time-1 time-2 time]
     `([~schema ~value-1 ~value-2 ~time-1 ~time-2 ~time]
       (~(util/processor-name :interp schema (keys schemas))

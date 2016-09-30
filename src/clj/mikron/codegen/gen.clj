@@ -2,7 +2,8 @@
   "Generator generating functions."
   (:require [mikron.type :as type]
             [mikron.util :as util]
-            [mikron.common :as common]))
+            [mikron.common :as common]
+            [mikron.codegen.common :as codegen-common]))
 
 (def gen-size `(+ 3 (long (rand-int 3))))
 
@@ -111,11 +112,11 @@
 (defmethod gen :custom [schema options]
   `(~(util/processor-name :gen schema)))
 
-(defmethod util/local-processor* :gen [_ schema-name {:keys [schemas] :as options}]
+(defmethod codegen-common/local-processor* :gen [_ schema-name {:keys [schemas] :as options}]
   `([]
     ~(gen (schemas schema-name) options)))
 
-(defmethod util/global-processor* :gen [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :gen [_ {:keys [schemas]}]
   (util/with-gensyms [schema]
     `([~schema]
       (~(util/processor-name :gen schema (keys schemas))))))

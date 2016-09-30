@@ -3,7 +3,8 @@
   (:require [mikron.buffer :as buffer]
             [mikron.util :as util]
             [mikron.type :as type]
-            [mikron.common :as common])
+            [mikron.common :as common]
+            [mikron.codegen.common :as codegen-common])
   (:import [mikron.buffer Buffer]))
 
 (defmulti unpack util/type-of :hierarchy #'type/hierarchy)
@@ -77,17 +78,17 @@
                           schema)
     ~buffer))
 
-(defmethod util/local-processor* :unpack [_ schema-name {:keys [schemas diffed?]
-                                                         :or {diffed? false}
-                                                         :as options}]
+(defmethod codegen-common/local-processor* :unpack [_ schema-name {:keys [schemas diffed?]
+                                                                   :or {diffed? false}
+                                                                   :as options}]
   (util/with-gensyms [^Buffer buffer]
     `([~buffer]
       ~(unpack* (schemas schema-name) (assoc options :buffer buffer)))))
 
-(defmethod util/local-processor* :unpack-diffed [_ schema-name options]
-  (util/local-processor* :unpack schema-name (assoc options :diffed? true)))
+(defmethod codegen-common/local-processor* :unpack-diffed [_ schema-name options]
+  (codegen-common/local-processor* :unpack schema-name (assoc options :diffed? true)))
 
-(defmethod util/global-processor* :unpack [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :unpack [_ {:keys [schemas]}]
   (util/with-gensyms [^bytes binary ^Buffer buffer headers diffed? schema unpacker]
     `([~binary]
       (let [~buffer   (buffer/wrap ~binary)

@@ -2,7 +2,8 @@
   "Differ and undiffer generating functions."
   (:require [mikron.type :as type]
             [mikron.util :as util]
-            [mikron.common :as common]))
+            [mikron.common :as common]
+            [mikron.codegen.common :as codegen-common]))
 
 (defmulti diff util/type-of :hierarchy #'type/hierarchy)
 
@@ -105,7 +106,7 @@
 (defmethod diff :default [_ _ _ value-2 _]
   value-2)
 
-(defmethod util/local-processor* :diff [_ schema-name {:keys [schemas diff-routes] :as options}]
+(defmethod codegen-common/local-processor* :diff [_ schema-name {:keys [schemas diff-routes] :as options}]
   (util/with-gensyms [value-1 value-2]
     `([~value-1 ~value-2]
       (common/diffed
@@ -115,7 +116,7 @@
                 value-2
                 (assoc options :processor-type :diff))))))
 
-(defmethod util/local-processor* :undiff [_ schema-name {:keys [schemas diff-routes] :as options}]
+(defmethod codegen-common/local-processor* :undiff [_ schema-name {:keys [schemas diff-routes] :as options}]
   (util/with-gensyms [value-1 value-2]
     `([~value-1 ~value-2]
       (let [~value-2 (common/undiffed ~value-2)]
@@ -125,13 +126,13 @@
                 value-2
                 (assoc options :processor-type :undiff))))))
 
-(defmethod util/global-processor* :diff [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :diff [_ {:keys [schemas]}]
   (util/with-gensyms [schema value-1 value-2]
     `([~schema ~value-1 ~value-2]
       (~(util/processor-name :diff schema (keys schemas))
        ~value-1 ~value-2))))
 
-(defmethod util/global-processor* :undiff [_ {:keys [schemas]}]
+(defmethod codegen-common/global-processor* :undiff [_ {:keys [schemas]}]
   (util/with-gensyms [schema value-1 value-2]
     `([~schema ~value-1 ~value-2]
       (~(util/processor-name :undiff schema (keys schemas))

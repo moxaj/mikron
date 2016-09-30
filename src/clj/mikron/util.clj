@@ -71,17 +71,3 @@
       ~@(mapcat (fn [schema-name']
                   [schema-name' (processor-name processor-type schema-name')])
                 schema-names))))
-
-;; multi
-
-(defmulti global-processor* (fn [processor-type options] processor-type))
-
-(defn global-processor [processor-type options]
-  `(~(processor-name processor-type)
-    ~@(global-processor* processor-type options)))
-
-(defmulti local-processor* (fn [processor-type schema-name options] processor-type))
-
-(defn local-processor [processor-type schema-name options]
-  `(~(vary-meta (processor-name processor-type schema-name) assoc :private true)
-    ~@(local-processor* processor-type schema-name options)))
