@@ -1,6 +1,5 @@
 (ns mikron.codegen.validate
   "Validator generating functions."
-  (:import [java.lang Exception])
   (:require [mikron.type :as type]
             [mikron.util :as util]
             [mikron.common :as common]))

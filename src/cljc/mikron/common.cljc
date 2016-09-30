@@ -1,8 +1,7 @@
 (ns mikron.common
   "Runtime cross-platform utility functions."
   (:require [clojure.tools.reader.edn :as edn]
-            #?@(:cljs [[goog.string]
-                       [goog.string.format]]))
+            #?@(:cljs [goog.string goog.string.format]))
   #?(:clj (:import [java.util Date]
                    [java.nio.charset StandardCharsets])))
 
@@ -38,29 +37,28 @@
 (defn keyword->string ^String [kw]
   (.substring (str kw) 1))
 
-(defn date->long ^long [^{:tag #?(:clj `Date :cljs nil)} date]
+(defn char->int ^long [c]
+  #?(:clj  (int c)
+     :cljs (.charCodeAt c 0)))
+
+(defn int->char [^long i]
+  #?(:clj  (char i)
+     :cljs (.fromCharCode js/String i)))
+
+(defn date->long ^long [^{:tag #?(:clj Date :cljs nil)} date]
   (.getTime date))
 
-(defn long->date ^{:tag #?(:clj `Date :cljs nil)} [^long time]
+(defn long->date ^{:tag #?(:clj Date :cljs nil)} [^long time]
   #?(:clj  (Date. time)
      :cljs (js/Date. time)))
 
 (defn string->binary ^bytes [^String s]
   #?(:clj  (.getBytes s StandardCharsets/UTF_8)
-     :cljs (let [s      (.unescape js/window (.encodeURIComponent js/window s))
-                 length (.-length s)
-                 array  (js/Uint8Array. length)]
-             (dotimes [i length]
-               (aset array i (.charCodeAt s i)))
-             (.-buffer array))))
+     :cljs (.-buffer (.encode (js/TextEncoder.) s))))
 
 (defn binary->string ^String [^bytes binary]
   #?(:clj  (String. binary StandardCharsets/UTF_8)
-     :cljs (->> binary
-                (js/Uint8Array.)
-                (.apply String.fromCharCode nil)
-                (.escape js/window)
-                (.decodeURIComponent js/window))))
+     :cljs (.decode (js/TextDecoder.) binary)))
 
 (defn binary? [value]
   #?(:clj  (bytes? value)
@@ -97,7 +95,7 @@
 
 (defn gen-date []
   #?(:clj  (Date.)
-     :cljs (.now js/Date)))
+     :cljs (js/Date.)))
 
 ;; diff
 

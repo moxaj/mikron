@@ -13,8 +13,8 @@
       (derives :integer   [:byte :ubyte :short :ushort :int :uint :long :varint])
       (derives :floating  [:float :double])
       (derives :number    [:integer :floating])
-      (derives :primitive [:number :boolean :char :binary :nil])
-      (derives :aliased   [:string :keyword :symbol :any :date])
+      (derives :primitive [:number :boolean :binary :nil])
+      (derives :aliased   [:char :string :keyword :symbol :any :date])
       (derives :simple    [:primitive :aliased])
       (derives :coll      [:list :vector :set])
       (derives :complex   [:coll :map :tuple :record :optional :multi :enum :wrapped])
@@ -26,7 +26,8 @@
   (derives default-hierarchy :custom custom-types))
 
 (def aliases
-  {:string  [:wrapped {} `common/string->binary `common/binary->string :binary]
+  {:char    [:wrapped {} `common/char->int `common/int->char :int]
+   :string  [:wrapped {} `common/string->binary `common/binary->string :binary]
    :keyword [:wrapped {} `common/keyword->string `keyword :string]
    :symbol  [:wrapped {} `str `symbol :string]
    :any     [:wrapped {} `pr-str `common/read-string+ :string]

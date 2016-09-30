@@ -11,7 +11,7 @@
 
 (defmulti test-mikron (fn [method processors dataset] method))
 
-(defmethod test-mikron :pack [_ {:keys [pack unpack gen]} dataset]
+(defmethod test-mikron :pack [_ {:keys [pack unpack]} dataset]
   (doseq [value dataset]
     (let [{value' :value :keys [schema diffed?]} (unpack (pack :x value))]
       (are [x y] (equals? x y)
@@ -19,11 +19,11 @@
         diffed? false
         value   value'))))
 
-(defmethod test-mikron :diff [_ {:keys [diff undiff gen]} dataset]
+(defmethod test-mikron :diff [_ {:keys [diff undiff]} dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (is (= value-2 (undiff :x value-1 (diff :x value-1 value-2))))))
 
-(defmethod test-mikron :validate [_ {:keys [validate gen]} dataset]
+(defmethod test-mikron :validate [_ {:keys [validate]} dataset]
   (doseq [value dataset]
     (is (not= :mikron/invalid (validate :x value))
         (= :mikron/invalid (validate :x (Object.))))))

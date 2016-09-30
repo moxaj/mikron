@@ -100,7 +100,7 @@
   (util/local-processor* :pack schema-name (assoc options :diffed? true)))
 
 (defmethod util/global-processor* :pack [_ {:keys [schemas]}]
-  (util/with-gensyms [schema ^Buffer buffer value diffed?]
+  (util/with-gensyms [schema ^Buffer buffer value diffed? packer]
     (let [schema-ids (->> (keys schemas)
                           (sort)
                           (map-indexed #(vector %2 %1))
@@ -108,12 +108,12 @@
       `([~schema ~value]
         (let [~buffer  buffer/*buffer*
               ~diffed? (common/diffed? ~value)
-              ~value   (cond-> ~value ~diffed? (common/undiffed))]
-          (do (buffer/!headers ~buffer (case ~schema ~@schema-ids) ~diffed?)
-              ((if ~diffed?
-                 ~(util/processor-name :pack-diffed schema (keys schemas))
-                 ~(util/processor-name :pack schema (keys schemas)))
-               ~buffer
-               ~value)
-              (buffer/!finalize ~buffer)
-              (buffer/?binary-all ~buffer)))))))
+              ~value   (cond-> ~value ~diffed? (common/undiffed))
+              ~packer  (if ~diffed?
+                         ~(util/processor-name :pack-diffed schema (keys schemas))
+                         ~(util/processor-name :pack schema (keys schemas)))]
+          (doto ~buffer
+                (buffer/!headers (case ~schema ~@schema-ids) ~diffed?)
+                (~packer ~value)
+                (buffer/!finalize))
+          (buffer/?binary-all ~buffer))))))

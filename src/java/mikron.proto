@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_package = "mikron";
+
+message Doubles {
+  repeated double doubles = 1;
+}
+
+message Coord {
+  float x = 1;
+  float y = 2;
+}
+
+message FixtureUserData {
+  int32 color = 1;
+}
+
+message Fixture {
+  FixtureUserData userData = 1;
+  repeated Coord coords = 2;
+}
+
+message BodyUserData {
+  int32 id = 1;
+}
+
+message Body {
+  BodyUserData userData = 1;
+  Coord position = 2;
+  float angle = 3;
+  enum BodyType {
+    DYNAMIC = 0;
+    STATIC = 1;
+    KINETIC = 2;
+  }
+  BodyType bodyType = 4;
+  repeated Fixture fixtures = 5;
+}
+
+message Snapshot {
+  int64 time = 1;
+  repeated Body bodies = 2;
+}

@@ -11,6 +11,9 @@
      ~value-1
      ~(interp schema route value-1 value-2 options)))
 
+(defmethod interp :char [_ _ value-1 value-2 options]
+  (interp :default nil value-1 value-2 char))
+
 (defmethod interp :integer [_ _ value-1 value-2 options]
   `(common/round ~(interp :floating nil value-1 value-2 options)))
 

@@ -10,9 +10,9 @@
    (do (defmacro defprocessors [names options]
          `(processor/defprocessors ~names ~options))
 
-       (defmacro allocate-buffer [size]
-         `(buffer/allocate ~size))
-
        (defmacro with-buffer [buffer & body]
          `(binding [buffer/*buffer* ~buffer]
             ~@body))))
+
+(defn allocate-buffer [size]
+  (buffer/allocate size))

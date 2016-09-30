@@ -1,9 +1,8 @@
 (ns mikron.buffer
-  "Buffer interface and implementations."
+  "Buffer interfaces, implementations and derived operations."
   (:require [mikron.common :as common]
-            #?(:cljs [cljsjs.bytebuffer]))
-  #?(:clj  (:import [java.nio ByteBuffer ByteOrder]
-                    [java.util Arrays])
+            #?(:cljs cljsjs.bytebuffer))
+  #?(:clj  (:import [java.nio ByteBuffer ByteOrder])
      :cljs (:require-macros
             [mikron.buffer :refer
              [definterface+
@@ -16,7 +15,7 @@
    (defmacro definterface+ [name & ops]
      (let [no-meta    #(with-meta % nil)
            cljs?      (boolean (:ns &env))
-           ops        (map (fn [[op-name args args' doc-string]]
+           ops        (map (fn [[op-name args doc-string]]
                              (list op-name
                                    args
                                    (vec (cons 'this (map no-meta args)))
@@ -58,27 +57,26 @@
   (^long   ?bit-value* [])
   (^Object !bit-value* [^long value]))
 
-(deftype BitBufferImpl [^{:tag long :unsynchronized-mutable true} value'
+(deftype BitBufferImpl [^{:tag long :unsynchronized-mutable true} value
                         ^{:tag long :unsynchronized-mutable true} index
                         ^{:tag long :unsynchronized-mutable true} pos]
   BitBufferOps
-  (?bit-pos* [_]       pos)
-  (!bit-pos* [_ value] (set! pos #?(:clj value :cljs (long value))))
+  (?bit-pos* [_]        pos)
+  (!bit-pos* [_ value'] (set! pos #?(:clj value' :cljs (long value'))))
 
-  (?bit-index* [_]       index)
-  (!bit-index* [_ value] (set! index #?(:clj value :cljs (long value))))
+  (?bit-index* [_]        index)
+  (!bit-index* [_ value'] (set! index #?(:clj value' :cljs (long value'))))
 
-  (?bit-value* [_]       value')
-  (!bit-value* [_ value] (set! value' #?(:clj value :cljs (long value)))))
+  (?bit-value* [_]        value)
+  (!bit-value* [_ value'] (set! value #?(:clj value' :cljs (long value')))))
 
 (definterface+ ByteBufferOps
   (^long   ?byte*     [])
   (^long   ?short*    [])
   (^long   ?int*      [])
   (^long   ?long*     [])
-  (^double ?float*    [])
+  (^Object ?float*    [])
   (^double ?double*   [])
-  (^Object ?char*     [])
   (^bytes  ?binary-n* [^long n])
 
   (^Object !byte*     [^long   value])
@@ -87,7 +85,6 @@
   (^Object !long*     [^long   value])
   (^Object !float*    [^double value])
   (^Object !double*   [^double value])
-  (^Object !char*     [^Object value])
   (^Object !binary-n* [^bytes  value])
 
   (^long   ?pos* [])
@@ -97,7 +94,7 @@
 
   (^bytes ?binary-all* []))
 
-#?(:clj  ;; impl: ByteBuffer
+#?(:clj  ;; impl: java.nio.ByteBuffer
    (deftype ByteBufferImplNio [^ByteBuffer buffer]
      ByteBufferOps
      (?byte*     [_]   (long (.get buffer)))
@@ -106,7 +103,6 @@
      (?long*     [_]   (.getLong buffer))
      (?float*    [_]   (.getFloat buffer))
      (?double*   [_]   (.getDouble buffer))
-     (?char*     [_]   (.getChar buffer))
      (?binary-n* [_ n] (let [value (byte-array n)]
                          (.get buffer value)
                          value))
@@ -117,7 +113,6 @@
      (!long*     [_ value] (.putLong buffer value))
      (!float*    [_ value] (.putFloat buffer value))
      (!double*   [_ value] (.putDouble buffer value))
-     (!char*     [_ value] (.putChar buffer value))
      (!binary-n* [_ value] (.put buffer value))
 
      (?pos* [_]       (.position buffer))
@@ -141,7 +136,6 @@
      (?long*     [_]   (.toNumber (.readInt64 buffer)))
      (?float*    [_]   (.readFloat32 buffer))
      (?double*   [_]   (.readFloat64 buffer))
-     (?char*     [_]   (char (.readUint16 buffer)))
      (?binary-n* [_ n] (let [offset  (.-offset buffer)
                              offset' (+ offset n)
                              binary  (.toArrayBuffer (.copy buffer offset (+ offset n)))]
@@ -154,7 +148,6 @@
      (!long*     [_ value] (.writeInt64 buffer value))
      (!float*    [_ value] (.writeFloat32 buffer value))
      (!double*   [_ value] (.writeFloat64 buffer value))
-     (!char*     [_ value] (.writeUint16 buffer value))
      (!binary-n* [_ value] (.append buffer value))
 
      (?pos* [_]       (.-offset buffer))
@@ -164,7 +157,7 @@
 
      (?binary-all* [_] (.toArrayBuffer (.copy buffer 0 (.-offset buffer))))))
 
-(deftype Buffer [^{:tag #?(:clj `BitBufferOps :cljs nil)}  bit-buffer
+(deftype Buffer [^{:tag #?(:clj `BitBufferOps  :cljs nil)} bit-buffer
                  ^{:tag #?(:clj `ByteBufferOps :cljs nil)} byte-buffer])
 
 #?(:clj  ;; Delegated ops
@@ -277,9 +270,10 @@
 
 (defn !byte-at [^Buffer buffer ^long pos ^long value]
   (let [pos' (?pos buffer)]
-    (!pos buffer pos)
-    (!byte buffer value)
-    (!pos buffer pos')))
+    (doto buffer
+          (!pos pos)
+          (!byte value)
+          (!pos pos'))))
 
 (defn ?boolean [^Buffer buffer]
   (when (zero? (rem (?bit-index buffer) 8))
@@ -336,21 +330,23 @@
   (?binary-n buffer (?varint buffer)))
 
 (defn !binary [^Buffer buffer ^bytes value]
-  (do (!varint buffer (count value))
-      (!binary-n buffer value)))
+  (doto buffer
+        (!varint #?(:clj  (count value)
+                    :cljs (.-byteLength value)))
+        (!binary-n value)))
 
 (defn !reset [^Buffer buffer]
-  (!pos buffer 0)
-  (!bit-pos buffer -1)
-  (!bit-value buffer 0)
-  (!bit-index buffer 0))
+  (doto buffer
+        (!pos 0)
+        (!bit-pos -1)
+        (!bit-value 0)
+        (!bit-index 0)))
 
 (defn !finalize [^Buffer buffer]
   (let [bit-pos (?bit-pos buffer)]
     (when (not= -1 bit-pos)
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
-;; Higher order
 (defn wrap ^Buffer [^bytes binary]
   (Buffer. (BitBufferImpl. 0 0 -1)
            #?(:clj  (ByteBufferImplNio. (ByteBuffer/wrap binary))
@@ -362,10 +358,11 @@
               :cljs (ByteBufferImplJs. (.allocate js/ByteBuffer size)))))
 
 (defn !headers [^Buffer buffer ^long schema-id diffed?]
-  (!reset buffer)
-  (!boolean buffer (?le buffer))
-  (!boolean buffer diffed?)
-  (!varint buffer schema-id))
+  (doto buffer
+        (!reset)
+        (!boolean (?le buffer))
+        (!boolean diffed?)
+        (!varint schema-id)))
 
 (defn ?headers [^Buffer buffer]
   (!le buffer (?boolean buffer))

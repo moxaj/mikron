@@ -2,7 +2,8 @@
   (:require [clojure.pprint :as p]
             [criterium.core :as c]
             [mikron.buffer :as b]
-            [mikron.core :as m]))
+            [mikron.core :as m])
+  (:import [mikron Mikron$Doubles]))
 
 (defmacro c! [form]
   `(c/with-progress-reporting (c/quick-bench ~form)))
@@ -24,11 +25,3 @@
                :coord   [:tuple [:float :float]]
                :x       [:record {:time   :long
                                   :bodies [:list :body]}]}})
-
-(comment
-  (p! (m/defprocessors {} {:schemas     {:x [:multi number? {true [:tuple [:int :int]] false :string}]}
-                           :diff-routes {:x {true true}}}))
-
-  (def ^:dynamic *x* (long 20))
-
-  nil)

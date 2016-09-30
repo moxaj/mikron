@@ -88,19 +88,19 @@
   (util/local-processor* :unpack schema-name (assoc options :diffed? true)))
 
 (defmethod util/global-processor* :unpack [_ {:keys [schemas]}]
-  (util/with-gensyms [^bytes binary ^Buffer buffer headers diffed? schema]
+  (util/with-gensyms [^bytes binary ^Buffer buffer headers diffed? schema unpacker]
     `([~binary]
-      (let [~buffer  (buffer/wrap ~binary)
-            ~headers (buffer/?headers ~buffer)
-            ~schema  (get ~(-> schemas (keys) (sort) (vec))
-                          (:schema-id ~headers))
-            ~diffed? (:diffed? ~headers)]
+      (let [~buffer   (buffer/wrap ~binary)
+            ~headers  (buffer/?headers ~buffer)
+            ~schema   (get ~(-> schemas (keys) (sort) (vec))
+                           (:schema-id ~headers))
+            ~diffed?  (:diffed? ~headers)
+            ~unpacker (if ~diffed?
+                        ~(util/processor-name :unpack-diffed schema (keys schemas))
+                        ~(util/processor-name :unpack schema (keys schemas)))]
         (if-not ~schema
           :mikron/invalid
           {:schema  ~schema
            :diffed? ~diffed?
-           :value   (cond-> ((if ~diffed?
-                               ~(util/processor-name :unpack-diffed schema (keys schemas))
-                               ~(util/processor-name :unpack schema (keys schemas)))
-                             ~buffer)
+           :value   (cond-> (~unpacker ~buffer)
                       ~diffed? (common/diffed))})))))

@@ -3,14 +3,17 @@
   :url "https://github.com/moxaj/mikron"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha11"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha13"]
                  [cljsjs/bytebuffer "5.0.1-0"]]
   :target-path "target/%s"
   :source-paths ["src/cljc" "src/clj"]
   :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
   :profiles {:dev {:source-paths ["dev"]
                    :plugins [[lein-ancient "0.6.10"]]
+                   :global-vars {*warn-on-reflection* true}
+                   :java-source-paths ["src/java"]
                    :dependencies [[org.clojure/tools.namespace "0.3.0-alpha3"]
+                                  [com.google.protobuf/protobuf-java "3.0.2"]
                                   [org.clojure/java.classpath "0.2.3"]
                                   [proto-repl-charts "0.2.0"]
                                   [criterium "0.4.4"]
