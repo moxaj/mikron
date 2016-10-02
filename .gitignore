@@ -1,6 +1,7 @@
 /target
 /classes
 /checkouts
+/src/java/protoc.exe
 pom.xml
 pom.xml.asc
 *.jar

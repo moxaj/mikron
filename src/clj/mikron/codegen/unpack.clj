@@ -24,21 +24,18 @@
   nil)
 
 (defmethod unpack :coll [[_ _ schema'] options]
-  `(common/repeatedly! []
-                       ~(unpack :varint options)
-                       (fn [] ~(unpack* schema' options))))
+  `(common/into! [] ~(unpack :varint options)
+                    (fn [] ~(unpack* schema' options))))
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] options]
-  (->> `(common/repeatedly! #{}
-                            ~(unpack :varint options)
-                            (fn [] ~(unpack* schema' options)))
+  (->> `(common/into! #{} ~(unpack :varint options)
+                          (fn [] ~(unpack* schema' options)))
        (util/as-set sorted-by)))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
-  (->> `(common/repeatedly! {}
-                            ~(unpack :varint options)
-                            (fn [] ~(unpack* key-schema options))
-                            (fn [] ~(unpack* val-schema options)))
+  (->> `(common/into! {} ~(unpack :varint options)
+                         (fn [] ~(unpack* key-schema options))
+                         (fn [] ~(unpack* val-schema options)))
        (util/as-map sorted-by)))
 
 (defmethod unpack :tuple [[_ _ schemas] options]

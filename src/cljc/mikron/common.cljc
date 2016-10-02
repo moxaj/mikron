@@ -1,7 +1,5 @@
 (ns mikron.common
   "Runtime cross-platform utility functions."
-  (:require [clojure.tools.reader.edn :as edn]
-            #?@(:cljs [goog.string goog.string.format]))
   #?(:clj (:import [java.util Date]
                    [java.nio.charset StandardCharsets])))
 
@@ -27,13 +25,6 @@
   #?(:clj  (Exception. s)
      :cljs (js/Error. s)))
 
-(defn read-string+ [^String s]
-  (edn/read-string s))
-
-(defn format+ ^String [^String s & args]
-  #?(:clj  (apply format s args)
-     :cljs (apply goog.string.format s args)))
-
 (defn keyword->string ^String [kw]
   (.substring (str kw) 1))
 
@@ -45,10 +36,10 @@
   #?(:clj  (char i)
      :cljs (.fromCharCode js/String i)))
 
-(defn date->long ^long [^{:tag #?(:clj Date :cljs nil)} date]
+(defn date->long ^long [^Date date]
   (.getTime date))
 
-(defn long->date ^{:tag #?(:clj Date :cljs nil)} [^long time]
+(defn long->date ^Date [^long time]
   #?(:clj  (Date. time)
      :cljs (js/Date. time)))
 
@@ -64,7 +55,7 @@
   #?(:clj  (bytes? value)
      :cljs (instance? js/ArrayBuffer value)))
 
-(defn repeatedly!
+(defn into!
   ([coll ^long n f]
    (loop [i 0 coll' (transient coll)]
      (if (== i n)
@@ -86,9 +77,9 @@
             (- r (/ max-value 2))))))
 
 (defn gen-binary []
-  (let [byte-seq (repeatedly! []
-                              (+ 2 ^long (rand-int 30))
-                              #(gen-integer 1 true))]
+  (let [byte-seq (into! []
+                        (+ 2 ^long (rand-int 30))
+                        #(gen-integer 1 true))]
     #?(:clj  (byte-array byte-seq)
        :cljs (aget (js/Int8Array. (apply array byte-seq))
                    "buffer"))))

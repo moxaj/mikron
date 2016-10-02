@@ -1,6 +1,7 @@
 (ns mikron.type
   "Type hierarchy."
-  (:require [mikron.common :as common]))
+  (:require [mikron.common :as common]
+            [clojure.tools.reader.edn :as edn]))
 
 (defn derives [hierarchy parent children]
   (reduce (fn [h child]
@@ -30,5 +31,5 @@
    :string  [:wrapped {} `common/string->binary `common/binary->string :binary]
    :keyword [:wrapped {} `common/keyword->string `keyword :string]
    :symbol  [:wrapped {} `str `symbol :string]
-   :any     [:wrapped {} `pr-str `common/read-string+ :string]
+   :any     [:wrapped {} `pr-str `edn/read-string :string]
    :date    [:wrapped {} `common/date->long `common/long->date :long]})

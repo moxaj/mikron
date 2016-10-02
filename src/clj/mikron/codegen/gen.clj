@@ -47,7 +47,7 @@
 
 (defmethod gen :string [_ options]
   `(->> (fn [] ~(gen :char options))
-        (common/repeatedly! [] ~gen-size)
+        (common/into! [] ~gen-size)
         (apply str)))
 
 (defmethod gen :binary [_ _]
@@ -63,19 +63,17 @@
   `(common/gen-date))
 
 (defmethod gen :coll [[_ _ schema'] options]
-  `(common/repeatedly! [] ~gen-size (fn [] ~(gen schema' options))))
+  `(common/into! [] ~gen-size (fn [] ~(gen schema' options))))
 
 (defmethod gen :set [[_ {:keys [sorted-by]} schema'] options]
-  (->> `(common/repeatedly! #{}
-                            ~gen-size
-                            (fn [] ~(gen schema' options)))
+  (->> `(common/into! #{} ~gen-size
+                          (fn [] ~(gen schema' options)))
        (util/as-set sorted-by)))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
-  (->> `(common/repeatedly! {}
-                            ~gen-size
-                            (fn [] ~(gen key-schema options))
-                            (fn [] ~(gen val-schema options)))
+  (->> `(common/into! {} ~gen-size
+                         (fn [] ~(gen key-schema options))
+                         (fn [] ~(gen val-schema options)))
        (util/as-map sorted-by)))
 
 (defmethod gen :tuple [[_ _ schemas] options]
