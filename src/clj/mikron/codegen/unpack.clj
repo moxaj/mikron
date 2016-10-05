@@ -1,5 +1,5 @@
 (ns mikron.codegen.unpack
-  "Unpacker generating functions."
+  "unpack generating functions."
   (:require [mikron.buffer :as buffer]
             [mikron.util :as util]
             [mikron.type :as type]
@@ -71,34 +71,27 @@
   (unpack (type/aliases schema) options))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
-  `(~(util/processor-name (if diffed? :unpack-diffed :unpack)
-                          schema)
+  `(~(if diffed?
+       (util/processor-name :unpack-diffed schema)
+       (util/processor-name :unpack schema))
     ~buffer))
 
-(defmethod codegen-common/local-processor* :unpack [_ schema-name {:keys [schemas diffed?]
-                                                                   :or {diffed? false}
-                                                                   :as options}]
-  (util/with-gensyms [^Buffer buffer]
-    `([~buffer]
-      ~(unpack* (schemas schema-name) (assoc options :buffer buffer)))))
+(defmethod codegen-common/fast-processors :unpack [_ schema-name {:keys [schemas] :as options}]
+  (util/with-gensyms [value buffer]
+    (let [schema  (schemas schema-name)
+          options (assoc options :buffer buffer)]
+      [`(~(util/processor-name :unpack schema-name)
+         [~buffer]
+         ~(unpack* schema (assoc options :diffed? false)))
+       `(~(util/processor-name :unpack-diffed schema-name)
+         [~buffer]
+         ~(unpack* schema (assoc options :diffed? true)))])))
 
-(defmethod codegen-common/local-processor* :unpack-diffed [_ schema-name options]
-  (codegen-common/local-processor* :unpack schema-name (assoc options :diffed? true)))
-
-(defmethod codegen-common/global-processor* :unpack [_ {:keys [schemas]}]
-  (util/with-gensyms [^bytes binary ^Buffer buffer headers diffed? schema unpacker]
-    `([~binary]
-      (let [~buffer   (buffer/wrap ~binary)
-            ~headers  (buffer/?headers ~buffer)
-            ~schema   (get ~(-> schemas (keys) (sort) (vec))
-                           (:schema-id ~headers))
-            ~diffed?  (:diffed? ~headers)
-            ~unpacker (if ~diffed?
-                        ~(util/processor-name :unpack-diffed schema (keys schemas))
-                        ~(util/processor-name :unpack schema (keys schemas)))]
-        (if-not ~schema
-          :mikron/invalid
-          {:schema  ~schema
-           :diffed? ~diffed?
-           :value   (cond-> (~unpacker ~buffer)
-                      ~diffed? (common/diffed))})))))
+(defmethod codegen-common/processors :unpack [_ schema-name options]
+  (util/with-gensyms [_ value buffer]
+    [`(defmethod common/process [:unpack ~schema-name] [~_ ~_ ~buffer]
+        (~(util/processor-name :unpack schema-name)
+         ~buffer))
+     `(defmethod common/process [:unpack-diffed ~schema-name] [~_ ~_ ~buffer]
+        (~(util/processor-name :unpack-diffed schema-name)
+         ~buffer))]))

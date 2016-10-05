@@ -2,6 +2,7 @@
   "Benchmarks."
   (:require [mikron.benchmark.data :as benchmark-data]
             [mikron.benchmark.schema :as benchmark-schema]
+            [mikron.core :as mikron]
             [criterium.core :as crit]
             [mikron.common :as common]
             [taoensso.nippy :as nippy]
@@ -68,7 +69,7 @@
     (.toByteArray baos)))
 
 (defmethod pack :mikron ^bytes [_ schema data]
-  (benchmark-schema/mikron-pack schema data))
+  (mikron/pack schema data))
 
 (defmethod pack :avro ^bytes [_ schema data]
   (avro/binary-encoded schema data))
@@ -120,7 +121,7 @@
      (rec-realize (transit/read reader))))
 
 (defmethod unpack :mikron [_ _ ^bytes binary]
-  (benchmark-schema/mikron-unpack binary))
+  (mikron/unpack binary))
 
 (defmethod unpack :avro [_ schema ^bytes binary]
   (avro/decode schema binary))
@@ -188,7 +189,7 @@
 
   ;; Run benchmarks
   (diagram (benchmark :stats   [:pack-time :unpack-time]
-                      ;:methods [:mikron :protobuf]
+                      :methods [:mikron :smile]
                       :schema  :snapshot
                       :data    (get-in benchmark-data/data [:snapshot :a])))
 

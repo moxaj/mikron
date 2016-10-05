@@ -1,5 +1,5 @@
 (ns mikron.codegen.pack
-  "Packer generating functions."
+  "pack generating functions."
   (:require [mikron.buffer :as buffer]
             [mikron.util :as util]
             [mikron.type :as type]
@@ -72,10 +72,10 @@
 
 (defmethod pack :enum [[_ _ enum-values] value options]
   (pack :varint `(case ~value
-                   ~@(mapcat (fn [enum-value]
-                               [enum-value (util/index-of enum-value enum-values)])
-                             enum-values))
-                options))
+                     ~@(mapcat (fn [enum-value]
+                                 [enum-value (util/index-of enum-value enum-values)])
+                               enum-values))
+                 options))
 
 (defmethod pack :wrapped [[_ _ pre _ schema'] value options]
   (util/with-gensyms [value']
@@ -86,35 +86,29 @@
   (pack (type/aliases schema) value options))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
-  `(~(util/processor-name (if diffed? :pack-diffed :pack)
-                          schema)
-    ~buffer ~value))
+  `(~(if diffed?
+       (util/processor-name :pack-diffed schema)
+       (util/processor-name :pack schema))
+    ~value ~buffer))
 
-(defmethod codegen-common/local-processor* :pack [_ schema-name {:keys [schemas diffed?]
-                                                                 :or {diffed? false}
-                                                                 :as options}]
-  (util/with-gensyms [^Buffer buffer value]
-    `([~buffer ~value]
-      ~(pack* (schemas schema-name) value (assoc options :buffer buffer)))))
+(defmethod codegen-common/fast-processors :pack [_ schema-name {:keys [schemas] :as options}]
+  (util/with-gensyms [value buffer]
+    (let [schema  (schemas schema-name)
+          options (assoc options :buffer buffer)]
+      [`(~(util/processor-name :pack schema-name)
+         [~value ~buffer]
+         ~(pack* schema value (assoc options :diffed? false)))
+       `(~(util/processor-name :pack-diffed schema-name)
+         [~value ~buffer]
+         ~(pack* schema value (assoc options :diffed? true)))])))
 
-(defmethod codegen-common/local-processor* :pack-diffed [_ schema-name options]
-  (codegen-common/local-processor* :pack schema-name (assoc options :diffed? true)))
-
-(defmethod codegen-common/global-processor* :pack [_ {:keys [schemas]}]
-  (util/with-gensyms [schema ^Buffer buffer value diffed? packer]
-    (let [schema-ids (->> (keys schemas)
-                          (sort)
-                          (map-indexed #(vector %2 %1))
-                          (apply concat))]
-      `([~schema ~value]
-        (let [~buffer  buffer/*buffer*
-              ~diffed? (common/diffed? ~value)
-              ~value   (cond-> ~value ~diffed? (common/undiffed))
-              ~packer  (if ~diffed?
-                         ~(util/processor-name :pack-diffed schema (keys schemas))
-                         ~(util/processor-name :pack schema (keys schemas)))]
-          (doto ~buffer
-                (buffer/!headers (case ~schema ~@schema-ids) ~diffed?)
-                (~packer ~value)
-                (buffer/!finalize))
-          (buffer/?binary-all ~buffer))))))
+(defmethod codegen-common/processors :pack [_ schema-name options]
+  (util/with-gensyms [_ value buffer]
+    [`(defmethod common/process [:pack ~schema-name] [~_ ~_ ~value ~buffer]
+        (~(util/processor-name :pack schema-name)
+         ~value
+         ~buffer))
+     `(defmethod common/process [:pack-diffed ~schema-name] [~_ ~_ ~value ~buffer]
+        (~(util/processor-name :pack-diffed schema-name)
+         ~value
+         ~buffer))]))

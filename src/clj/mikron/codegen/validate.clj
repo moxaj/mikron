@@ -1,5 +1,5 @@
 (ns mikron.codegen.validate
-  "Validator generating functions."
+  "validate generating functions."
   (:require [mikron.type :as type]
             [mikron.util :as util]
             [mikron.common :as common]
@@ -141,15 +141,14 @@
 (defmethod validate :default [_ _ _]
   nil)
 
-(defmethod codegen-common/local-processor* :validate [_ schema-name {:keys [schemas] :as options}]
+(defmethod codegen-common/fast-processors :validate [_ schema-name {:keys [schemas] :as options}]
   (util/with-gensyms [value]
-    `([~value]
-      ~(validate (schemas schema-name) value options))))
+    [`(~(util/processor-name :validate schema-name)
+       [~value]
+       ~(validate (schemas schema-name) value options))]))
 
-(defmethod codegen-common/global-processor* :validate [_ {:keys [schemas]}]
-  (util/with-gensyms [schema value]
-    `([~schema ~value]
-      (if (= :mikron/invalid (~(util/processor-name :validate schema (keys schemas))
-                              ~value))
-        :mikron/invalid
-        ~value))))
+(defmethod codegen-common/processors :validate [_ schema-name options]
+  (util/with-gensyms [_ value]
+    [`(defmethod common/process [:validate ~schema-name] [~_ ~_ ~value]
+        (~(util/processor-name :validate schema-name)
+         ~value))]))

@@ -110,11 +110,12 @@
 (defmethod gen :custom [schema options]
   `(~(util/processor-name :gen schema)))
 
-(defmethod codegen-common/local-processor* :gen [_ schema-name {:keys [schemas] :as options}]
-  `([]
-    ~(gen (schemas schema-name) options)))
+(defmethod codegen-common/fast-processors :gen [_ schema-name {:keys [schemas] :as options}]
+  [`(~(util/processor-name :gen schema-name)
+     []
+     ~(gen (schemas schema-name) options))])
 
-(defmethod codegen-common/global-processor* :gen [_ {:keys [schemas]}]
-  (util/with-gensyms [schema]
-    `([~schema]
-      (~(util/processor-name :gen schema (keys schemas))))))
+(defmethod codegen-common/processors :gen [_ schema-name options]
+  (util/with-gensyms [_]
+    [`(defmethod common/process [:gen ~schema-name] [~_ ~_]
+        (~(util/processor-name :gen schema-name)))]))

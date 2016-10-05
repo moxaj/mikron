@@ -1,6 +1,6 @@
 (ns mikron.test
   (:require [clojure.test :refer [deftest is testing are]]
-            [mikron.processor :as mikron]
+            [mikron.core :as mikron]
             [mikron.util :as util])
   (:import [java.util Arrays]))
 
@@ -9,39 +9,39 @@
     (Arrays/equals ^bytes a ^bytes b)
     (= a b)))
 
-(defmulti test-mikron (fn [method processors dataset] method))
+(defmulti test-mikron (fn [method dataset] method))
 
-(defmethod test-mikron :pack [_ {:keys [pack unpack]} dataset]
+(defmethod test-mikron :pack [_ dataset]
   (doseq [value dataset]
-    (let [{value' :value :keys [schema diffed?]} (unpack (pack :x value))]
+    (let [{value' :value :keys [schema diffed?]} (mikron/unpack (mikron/pack :x value))]
       (are [x y] (equals? x y)
         schema  :x
         diffed? false
         value   value'))))
 
-(defmethod test-mikron :diff [_ {:keys [diff undiff]} dataset]
+(defmethod test-mikron :diff [_ dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
-    (is (= value-2 (undiff :x value-1 (diff :x value-1 value-2))))))
+    (is (= value-2 (mikron/undiff :x value-1 (mikron/diff :x value-1 value-2))))))
 
-(defmethod test-mikron :validate [_ {:keys [validate]} dataset]
+(defmethod test-mikron :validate [_ dataset]
   (doseq [value dataset]
-    (is (not= :mikron/invalid (validate :x value))
-        (= :mikron/invalid (validate :x (Object.))))))
+    (is (not= :mikron/invalid (mikron/validate :x value))
+        (= :mikron/invalid (mikron/validate :x (Object.))))))
 
-(defmethod test-mikron :interp [_ {:keys [interp gen]} dataset]
+(defmethod test-mikron :interp [_ dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
-    (interp :x value-1 value-2 0 1 0.5)))
+    (mikron/interp :x value-1 value-2 0 1 0.5)))
 
 (defmacro def-mikron-tests [test-cases]
-  (util/with-gensyms [processors dataset]
+  (util/with-gensyms [dataset]
     `(do ~@(map (fn [[test-name schema]]
                   (let [schemas (if (map? schema) schema {:x schema})]
-                    `(let [~processors (eval (mikron/processors* {:schemas ~schemas}))
-                           ~dataset    (repeatedly 100 #((:gen ~processors) :x))]
-                       ~@(map (fn [method]
-                                `(deftest ~(symbol (str (name method) "-" test-name))
-                                   (test-mikron ~method ~processors ~dataset)))
-                              [:pack :diff :validate :interp]))))
+                    `(do (eval (mikron/defschemas {:schemas ~schemas}))
+                       (let [~dataset (repeatedly 100 #(mikron/gen :x))]
+                         ~@(map (fn [method]
+                                  `(deftest ~(symbol (str (name method) "-" test-name))
+                                     (test-mikron ~method ~dataset)))
+                                [:pack :diff :validate :interp])))))
                 test-cases))))
 
 (defn pre-inc ^long [^long x]
@@ -74,16 +74,16 @@
    vector       [:vector :int]
    set          [:set :short]
    sorted-set   [:set {:sorted-by :default} :short]
-   >-sorted-set [:set {:sorted-by `>} :int]
+   >-sorted-set [:set {:sorted-by >} :int]
    map          [:map :byte :string]
    sorted-map   [:map {:sorted-by :default} :byte :string]
-   <-sorted-map [:map {:sorted-by `<} :byte :string]
+   <-sorted-map [:map {:sorted-by <} :byte :string]
    optional     [:optional :byte]
    enum         [:enum [:cat :dog :measurement :error]]
    tuple        [:tuple [:int :float :double]]
    record       [:record {:a :int :b :string :c :byte}]
-   multi        [:multi `number? {true :int false :string}]
-   wrapped      [:wrapped `pre-inc `post-dec :int]
+   multi        [:multi number? {true :int false :string}]
+   wrapped      [:wrapped pre-inc post-dec :int]
    box2d        {:body    [:record {:user-data [:record {:id :int}]
                                     :position  :coord
                                     :angle     :float

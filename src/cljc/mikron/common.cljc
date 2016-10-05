@@ -67,6 +67,16 @@
        (persistent! map')
        (recur (inc i) (assoc! map' (kf) (vf)))))))
 
+(defonce vars (atom {}))
+
+;; multimethods
+
+(defmulti process (fn [processor-type schema & _]
+                    [processor-type schema]))
+
+(defmethod process :default [_ schema & _]
+  (throw (exception (str "No such schema: " schema "!"))))
+
 ;; gen
 
 (defn gen-integer [^long bytes signed?]

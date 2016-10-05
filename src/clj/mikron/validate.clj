@@ -7,9 +7,13 @@
 (defmacro options-spec [& keys]
   `(s/? (s/keys :opt-un ~(vec keys))))
 
-(defmacro complex-spec [& fields]
-  `(s/and (s/cat :schema keyword? ~@fields)
-          (s/conformer (juxt ~@(take-nth 2 fields)))))
+(defmacro complex-spec [& {:as fields}]
+  (let [field-syms (->> (dissoc fields :options)
+                        (keys)
+                        (map (comp symbol name)))]
+    `(s/and (s/cat :type keyword? ~@(mapcat identity fields))
+            (s/conformer (fn [{:keys [~'type ~'options ~@field-syms]}]
+                           [~'type (or ~'options {}) ~@field-syms])))))
 
 (s/def ::sorted-by
   (s/and (s/or :default #{:default}
@@ -45,7 +49,7 @@
 
 (defmethod schema-spec :tuple [_]
   (complex-spec :options (options-spec)
-                :schemas (s/coll-of ::schema :kind [])))
+                :schemas (s/coll-of ::schema :kind vector?)))
 
 (defmethod schema-spec :record [_]
   (complex-spec :options (options-spec ::constructor)
@@ -57,7 +61,7 @@
 
 (defmethod schema-spec :enum [_]
   (complex-spec :options (options-spec)
-                :values  (s/coll-of keyword? :kind [])))
+                :values  (s/coll-of keyword? :kind vector?)))
 
 (defmethod schema-spec :multi [_]
   (complex-spec :options  (options-spec)
@@ -119,7 +123,7 @@
   (s/fdef mikron.processor/defprocessors
     :args (s/cat :names ::names :options ::options))
 
-  (s/explain ::schemas
+  (s/conform ::schemas
     {:body     [:record {:user-data [:record {:id :int}]
                          :position  :coord
                          :angle     :float

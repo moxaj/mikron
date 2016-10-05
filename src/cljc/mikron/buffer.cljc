@@ -358,15 +358,14 @@
               :cljs (ByteBufferImplJs. (.allocate js/ByteBuffer size)))))
 
 (defn !headers [^Buffer buffer ^long schema-id diffed?]
-  (doto buffer
-        (!reset)
-        (!boolean (?le buffer))
-        (!boolean diffed?)
-        (!varint schema-id)))
+  (!reset buffer)
+  (!boolean buffer (?le buffer))
+  (!boolean buffer diffed?)
+  (!varint buffer schema-id))
 
 (defn ?headers [^Buffer buffer]
   (!le buffer (?boolean buffer))
   {:diffed?   (?boolean buffer)
    :schema-id (?varint buffer)})
 
-(defonce ^{:dynamic true :tag Buffer} *buffer* (allocate 10000))
+(defonce ^Buffer default-buffer (allocate 10000))

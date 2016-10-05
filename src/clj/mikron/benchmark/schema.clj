@@ -5,17 +5,22 @@
             [gloss.core :as gloss]
             [octet.core :as octet]))
 
-(mikron/defprocessors {:pack mikron-pack :gen mikron-gen :unpack mikron-unpack}
-  {:schemas  {:doubles  [:list :double]
-              
+(mikron/defschemas
+  {:schemas  {;; doubles
+              :doubles  [:list :double]
+              ;; quartet
+              :person   [:record {:name :string
+                                  :age  :ubyte}]
+              :quartet  [:tuple [:person :person :person :person]]
+              ;; snapshot
+              :coord    [:tuple [:float :float]]
+              :fixture  [:record {:user-data [:record {:color :int}]
+                                  :coords    [:list :coord]}]
               :body     [:record {:user-data [:record {:id :int}]
                                   :position  :coord
                                   :angle     :float
                                   :body-type [:enum [:dynamic :static :kinetic]]
                                   :fixtures  [:list :fixture]}]
-              :fixture  [:record {:user-data [:record {:color :int}]
-                                  :coords    [:list :coord]}]
-              :coord    [:tuple [:float :float]]
               :snapshot [:record {:time   :long
                                   :bodies [:list :body]}]}})
 

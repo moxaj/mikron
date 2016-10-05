@@ -103,33 +103,27 @@
 (defmethod interp :aliased [schema route value-1 value-2 options]
   (interp (type/aliases schema) route value-1 value-2 options))
 
-(defmethod interp :custom [schema _ value-1 value-2 {:keys [time time-1 time-2]}]
-  `(~(util/processor-name :interp schema) ~value-1 ~value-2 ~time-1 ~time-2 ~time))
+(defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor]}]
+  `(~(util/processor-name :interp schema) ~value-1 ~value-2 ~prefer-first? time-factor))
 
 (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))
 
-(defmethod codegen-common/local-processor* :interp [_ schema-name {:keys [schemas interp-routes] :as options}]
-  (util/with-gensyms [value-1 value-2 time-1 time-2 time prefer-first? time-factor]
-    `([~value-1 ~value-2 ~time-1 ~time-2 ~time]
-      (let [~time          (double ~time)
-            ~time-1        (double ~time-1)
-            ~time-2        (double ~time-2)
-            ~prefer-first? (< (common/abs (- ~time ~time-1))
-                              (common/abs (- ~time ~time-2)))
-            ~time-factor   (/ (- ~time ~time-1) (- ~time-2 ~time-1))]
-        ~(interp* (schemas schema-name)
-                  (interp-routes schema-name)
-                  value-1
-                  value-2
-                  (assoc options :prefer-first? prefer-first?
-                                 :time-factor   time-factor
-                                 :time-1        time-1
-                                 :time-2        time-2
-                                 :time          time))))))
+(defmethod codegen-common/fast-processors :interp [_ schema-name {:keys [schemas interp-routes] :as options}]
+  (util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]
+    [`(~(util/processor-name :interp schema-name)
+       [~value-1 ~value-2 ~prefer-first? ~time-factor]
+       ~(interp (schemas schema-name)
+                (interp-routes schema-name)
+                value-1
+                value-2
+                (assoc options :prefer-first? prefer-first? :time-factor time-factor)))]))
 
-(defmethod codegen-common/global-processor* :interp [_ {:keys [schemas]}]
-  (util/with-gensyms [schema value-1 value-2 time-1 time-2 time]
-    `([~schema ~value-1 ~value-2 ~time-1 ~time-2 ~time]
-      (~(util/processor-name :interp schema (keys schemas))
-       ~value-1 ~value-2 ~time-1 ~time-2 ~time))))
+(defmethod codegen-common/processors :interp [_ schema-name options]
+  (util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]
+    [`(defmethod common/process [:interp ~schema-name] [~_ ~_ ~value-1 ~value-2 ~prefer-first? ~time-factor]
+        (~(util/processor-name :interp schema-name)
+         ~value-1
+         ~value-2
+         ~prefer-first?
+         ~time-factor))]))

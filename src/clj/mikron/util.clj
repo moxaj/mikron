@@ -39,13 +39,16 @@
     `(~constructor ~body)
     body))
 
-;; symbol
+(defn schema-ids [schemas]
+  (let [m (->> (keys schemas)
+               (sort)
+               (map-indexed #(vector %2 %1))
+               (into {}))]
+    (merge m (->> m
+                  (map (comp vec reverse))
+                  (into {})))))
 
-(defn gensym-base [sym]
-  (let [sym-name (name sym)]
-    (if-let [index (string/last-index-of sym-name "_")]
-      (symbol (subs sym-name 0 index))
-      sym)))
+;; symbol
 
 (defmacro with-gensyms [binding-form & body]
   `(let [~@(mapcat (fn [sym]
@@ -54,20 +57,7 @@
                    binding-form)]
      ~@body))
 
-(def var-name
+(def processor-name
   (memoize
-    (fn [key]
-      (gensym (format "%s_" (name key))))))
-
-(defn processor-name
-  ([processor-type]
-   (var-name processor-type))
-  ([processor-type schema-name]
-   (-> (format "%s-%s" (name processor-type) (name schema-name))
-       (keyword)
-       (var-name)))
-  ([processor-type schema-name schema-names]
-   `(case ~schema-name
-      ~@(mapcat (fn [schema-name']
-                  [schema-name' (processor-name processor-type schema-name')])
-                schema-names))))
+    (fn [processor-type schema-name]
+      (gensym (str (name processor-type) "-" (name schema-name))))))

@@ -101,39 +101,29 @@
   (diff (type/aliases schema) route value-1 value-2 options))
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type]}]
-  `(~(util/processor-name processor-type schema ~value-1 ~value-2)))
+  `(~(util/processor-name processor-type schema) ~value-1 ~value-2))
 
 (defmethod diff :default [_ _ _ value-2 _]
   value-2)
 
-(defmethod codegen-common/local-processor* :diff [_ schema-name {:keys [schemas diff-routes] :as options}]
-  (util/with-gensyms [value-1 value-2]
-    `([~value-1 ~value-2]
-      (common/diffed
-        ~(diff* (schemas schema-name)
-                (diff-routes schema-name)
-                value-1
-                value-2
-                (assoc options :processor-type :diff))))))
+(defmethod codegen-common/fast-processors :diff [_ schema-name {:keys [schemas diff-routes] :as options}]
+  (util/with-gensyms [_ value-1 value-2]
+    (let [schema (schemas schema-name)
+          route  (diff-routes schema-name)]
+      [`(~(util/processor-name :diff schema-name)
+         [~value-1 ~value-2]
+         ~(diff* schema route value-1 value-2 (assoc options :processor-type :diff)))
+       `(~(util/processor-name :undiff schema-name)
+         [~value-1 ~value-2]
+         ~(diff* schema route value-1 value-2 (assoc options :processor-type :undiff)))])))
 
-(defmethod codegen-common/local-processor* :undiff [_ schema-name {:keys [schemas diff-routes] :as options}]
-  (util/with-gensyms [value-1 value-2]
-    `([~value-1 ~value-2]
-      (let [~value-2 (common/undiffed ~value-2)]
-        ~(diff* (schemas schema-name)
-                (diff-routes schema-name)
-                value-1
-                value-2
-                (assoc options :processor-type :undiff))))))
-
-(defmethod codegen-common/global-processor* :diff [_ {:keys [schemas]}]
-  (util/with-gensyms [schema value-1 value-2]
-    `([~schema ~value-1 ~value-2]
-      (~(util/processor-name :diff schema (keys schemas))
-       ~value-1 ~value-2))))
-
-(defmethod codegen-common/global-processor* :undiff [_ {:keys [schemas]}]
-  (util/with-gensyms [schema value-1 value-2]
-    `([~schema ~value-1 ~value-2]
-      (~(util/processor-name :undiff schema (keys schemas))
-       ~value-1 ~value-2))))
+(defmethod codegen-common/processors :diff [_ schema-name options]
+  (util/with-gensyms [_ value-1 value-2]
+    [`(defmethod common/process [:diff ~schema-name] [~_ ~_ ~value-1 ~value-2]
+        (~(util/processor-name :diff schema-name)
+         ~value-1
+         ~value-2))
+     `(defmethod common/process [:undiff ~schema-name] [~_ ~_ ~value-1 ~value-2]
+        (~(util/processor-name :undiff schema-name)
+         ~value-1
+         ~value-2))]))
