@@ -1,7 +1,6 @@
 (ns mikron.type
   "Type hierarchy."
-  (:require [mikron.common :as common]
-            [clojure.tools.reader.edn :as edn]))
+  (:require [mikron.util.type :as util.type]))
 
 (defn derives [hierarchy parent children]
   (reduce (fn [h child]
@@ -27,9 +26,21 @@
   (derives default-hierarchy :custom custom-types))
 
 (def aliases
-  {:char    [:wrapped {} `common/char->int `common/int->char :int]
-   :string  [:wrapped {} `common/string->binary `common/binary->string :binary]
-   :keyword [:wrapped {} `common/keyword->string `keyword :string]
-   :symbol  [:wrapped {} `str `symbol :string]
-   :any     [:wrapped {} `pr-str `edn/read-string :string]
-   :date    [:wrapped {} `common/date->long `common/long->date :long]})
+  {:char    [:wrapped {} `util.type/char->int
+                         `util.type/int->char
+                         :int]
+   :string  [:wrapped {} `util.type/string->binary
+                         `util.type/binary->string
+                         :binary]
+   :keyword [:wrapped {} `util.type/keyword->string
+                         `util.type/string->keyword
+                         :string]
+   :symbol  [:wrapped {} `str
+                         `symbol
+                         :string]
+   :any     [:wrapped {} `util.type/any->string
+                         `util.type/string->any
+                         :string]
+   :date    [:wrapped {} `util.type/date->long
+                         `util.type/long->date
+                         :long]})

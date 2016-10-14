@@ -1,13 +1,13 @@
 (ns mikron.codegen.unpack
   "unpack generating functions."
   (:require [mikron.buffer :as buffer]
-            [mikron.util :as util]
             [mikron.type :as type]
-            [mikron.common :as common]
-            [mikron.codegen.common :as codegen-common])
+            [mikron.codegen.common :as codegen.common]
+            [mikron.compile-util :as compile-util]
+            [mikron.util :as util])
   (:import [mikron.buffer Buffer]))
 
-(defmulti unpack util/type-of :hierarchy #'type/hierarchy)
+(defmulti unpack compile-util/type-of :hierarchy #'type/hierarchy)
 
 (defn unpack* [schema {:keys [diffed?] :as options}]
   (if-not diffed?
@@ -24,19 +24,19 @@
   nil)
 
 (defmethod unpack :coll [[_ _ schema'] options]
-  `(common/into! [] ~(unpack :varint options)
-                    (fn [] ~(unpack* schema' options))))
+  `(util/into! [] ~(unpack :varint options)
+                  (fn [] ~(unpack* schema' options))))
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] options]
-  (->> `(common/into! #{} ~(unpack :varint options)
-                          (fn [] ~(unpack* schema' options)))
-       (util/as-set sorted-by)))
+  (->> `(util/into! #{} ~(unpack :varint options)
+                        (fn [] ~(unpack* schema' options)))
+       (compile-util/as-set sorted-by)))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
-  (->> `(common/into! {} ~(unpack :varint options)
-                         (fn [] ~(unpack* key-schema options))
-                         (fn [] ~(unpack* val-schema options)))
-       (util/as-map sorted-by)))
+  (->> `(util/into! {} ~(unpack :varint options)
+                       (fn [] ~(unpack* key-schema options))
+                       (fn [] ~(unpack* val-schema options)))
+       (compile-util/as-map sorted-by)))
 
 (defmethod unpack :tuple [[_ _ schemas] options]
   (->> schemas
@@ -44,12 +44,12 @@
                       (unpack* schema' options)))
        (vec)))
 
-(defmethod unpack :record [[_ {:keys [constructor]} schemas] options]
-  (->> schemas
-       (map (fn [[index schema']]
-              [index (unpack* schema' options)]))
-       (into (sorted-map))
-       (util/as-record constructor)))
+(defmethod unpack :record [[_ {:keys [type]} schemas] options]
+  (let [fields (compile-util/record->fields schemas)]
+    `(let [~@(mapcat (fn [[index field]]
+                       [field (unpack* (schemas index) options)])
+                     fields)]
+       ~(compile-util/fields->record fields type))))
 
 (defmethod unpack :optional [[_ _ schema'] options]
   `(when ~(unpack :boolean options)
@@ -72,26 +72,26 @@
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
   `(~(if diffed?
-       (util/processor-name :unpack-diffed schema)
-       (util/processor-name :unpack schema))
+       (compile-util/processor-name :unpack-diffed schema)
+       (compile-util/processor-name :unpack schema))
     ~buffer))
 
-(defmethod codegen-common/fast-processors :unpack [_ schema-name {:keys [schemas] :as options}]
-  (util/with-gensyms [value buffer]
+(defmethod codegen.common/fast-processors :unpack [_ schema-name {:keys [schemas] :as options}]
+  (compile-util/with-gensyms [value buffer]
     (let [schema  (schemas schema-name)
           options (assoc options :buffer buffer)]
-      [`(~(util/processor-name :unpack schema-name)
+      [`(~(compile-util/processor-name :unpack schema-name)
          [~buffer]
          ~(unpack* schema (assoc options :diffed? false)))
-       `(~(util/processor-name :unpack-diffed schema-name)
+       `(~(compile-util/processor-name :unpack-diffed schema-name)
          [~buffer]
          ~(unpack* schema (assoc options :diffed? true)))])))
 
-(defmethod codegen-common/processors :unpack [_ schema-name options]
-  (util/with-gensyms [_ value buffer]
-    [`(defmethod common/process [:unpack ~schema-name] [~_ ~_ ~buffer]
-        (~(util/processor-name :unpack schema-name)
+(defmethod codegen.common/processors :unpack [_ schema-name options]
+  (compile-util/with-gensyms [_ value buffer]
+    [`(defmethod util/process [:unpack ~schema-name] [~_ ~_ ~buffer]
+        (~(compile-util/processor-name :unpack schema-name)
          ~buffer))
-     `(defmethod common/process [:unpack-diffed ~schema-name] [~_ ~_ ~buffer]
-        (~(util/processor-name :unpack-diffed schema-name)
+     `(defmethod util/process [:unpack-diffed ~schema-name] [~_ ~_ ~buffer]
+        (~(compile-util/processor-name :unpack-diffed schema-name)
          ~buffer))]))

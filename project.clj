@@ -1,27 +1,49 @@
-(defproject moxaj/mikron "0.3.0"
-  :description "mikron is a schema-based serialization library for Clojure / ClojureScript."
+(defproject moxaj/mikron "0.4.0"
+  :description  "mikron is a schema-based serialization library for Clojure / ClojureScript."
   :url "https://github.com/moxaj/mikron"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0-alpha13"]
-                 [cljsjs/bytebuffer "5.0.1-0"]]
-  :target-path "target/%s"
-  :source-paths ["src/cljc" "src/clj"]
-  :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-  :profiles {:dev {:source-paths ["dev"]
-                   :plugins [[lein-ancient "0.6.10"]]
-                   :global-vars {*warn-on-reflection* true}
-                   :java-source-paths ["src/java"]
-                   :dependencies [[org.clojure/tools.namespace "0.3.0-alpha3"]
-                                  [com.google.protobuf/protobuf-java "3.0.2"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha13"]]
+  :source-paths ["src/clj" "src/cljc"]
+  :test-paths ["test/clj" "test/cljc"]
+  :profiles {:dev {:source-paths ["dev" "benchmark/clj"]
+                   :java-source-paths ["benchmark/java"]
+                   :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
+                   :plugins [[lein-ancient "0.6.10"]
+                             [lein-cljsbuild "1.1.4"]]
+                   :dependencies [[org.clojure/clojurescript "1.9.229"]
+                                  [org.clojure/tools.namespace "0.3.0-alpha3"]
                                   [org.clojure/java.classpath "0.2.3"]
-                                  [proto-repl-charts "0.2.0"]
+                                  [org.clojure/test.check "0.9.0"]
                                   [criterium "0.4.4"]
-                                  [com.taoensso/nippy "2.12.1"]
-                                  [org.clojars.runa/clj-kryo "1.5.0"]
-                                  [com.cognitect/transit-clj "0.8.288"]
+                                  [com.google.protobuf/protobuf-java "3.1.0"]
+                                  [com.taoensso/nippy "2.12.2"]
+                                  [com.cognitect/transit-clj "0.8.290"]
                                   [com.damballa/abracad "0.4.13"]
                                   [gloss "0.2.6"]
                                   [cheshire "5.6.3"]
-                                  [funcool/octet "0.4.0"]
-                                  [org.clojure/test.check "0.9.0"]]}})
+                                  [funcool/octet "1.0.0"]
+                                  [proto-repl-charts "0.3.2"]]}}
+  :cljsbuild {:builds [{:id "browser"
+                        :source-paths ["src/cljc" "test/cljc" "test/cljs/browser"]
+                        :compiler {:asset-path "js/out"
+                                   :output-to "resources/public/js/app.js"
+                                   :output-dir "resources/public/js/out"
+                                   :optimizations :none
+                                   :cache-analysis true
+                                   :source-map true
+                                   :parallel-build true
+                                   :main "mikron.repl-client"}}
+                       {:id "node"
+                        :source-paths ["src/cljc" "test/cljc" "test/cljs/node"]
+                        :compiler {:output-to "node/app.js"
+                                   :output-dir "node"
+                                   :target :nodejs
+                                   :optimizations :none
+                                   :cache-analysis true
+                                   :source-map true
+                                   :parallel-build false
+                                   :main "mikron.node"}}]}
+  :clean-targets ^{:protect false} ["resources/public/js"
+                                    "node"
+                                    :target-path])

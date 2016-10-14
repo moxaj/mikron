@@ -556,14 +556,14 @@ public final class Mikron {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional float x = 1;</code>
+     * <code>optional double x = 1;</code>
      */
-    float getX();
+    double getX();
 
     /**
-     * <code>optional float y = 2;</code>
+     * <code>optional double y = 2;</code>
      */
-    float getY();
+    double getY();
   }
   /**
    * Protobuf type {@code Coord}
@@ -577,8 +577,8 @@ public final class Mikron {
       super(builder);
     }
     private Coord() {
-      x_ = 0F;
-      y_ = 0F;
+      x_ = 0D;
+      y_ = 0D;
     }
 
     @java.lang.Override
@@ -606,14 +606,14 @@ public final class Mikron {
               }
               break;
             }
-            case 13: {
+            case 9: {
 
-              x_ = input.readFloat();
+              x_ = input.readDouble();
               break;
             }
-            case 21: {
+            case 17: {
 
-              y_ = input.readFloat();
+              y_ = input.readDouble();
               break;
             }
           }
@@ -640,20 +640,20 @@ public final class Mikron {
     }
 
     public static final int X_FIELD_NUMBER = 1;
-    private float x_;
+    private double x_;
     /**
-     * <code>optional float x = 1;</code>
+     * <code>optional double x = 1;</code>
      */
-    public float getX() {
+    public double getX() {
       return x_;
     }
 
     public static final int Y_FIELD_NUMBER = 2;
-    private float y_;
+    private double y_;
     /**
-     * <code>optional float y = 2;</code>
+     * <code>optional double y = 2;</code>
      */
-    public float getY() {
+    public double getY() {
       return y_;
     }
 
@@ -669,11 +669,11 @@ public final class Mikron {
 
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (x_ != 0F) {
-        output.writeFloat(1, x_);
+      if (x_ != 0D) {
+        output.writeDouble(1, x_);
       }
-      if (y_ != 0F) {
-        output.writeFloat(2, y_);
+      if (y_ != 0D) {
+        output.writeDouble(2, y_);
       }
     }
 
@@ -682,13 +682,13 @@ public final class Mikron {
       if (size != -1) return size;
 
       size = 0;
-      if (x_ != 0F) {
+      if (x_ != 0D) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFloatSize(1, x_);
+          .computeDoubleSize(1, x_);
       }
-      if (y_ != 0F) {
+      if (y_ != 0D) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFloatSize(2, y_);
+          .computeDoubleSize(2, y_);
       }
       memoizedSize = size;
       return size;
@@ -707,12 +707,12 @@ public final class Mikron {
 
       boolean result = true;
       result = result && (
-          java.lang.Float.floatToIntBits(getX())
-          == java.lang.Float.floatToIntBits(
+          java.lang.Double.doubleToLongBits(getX())
+          == java.lang.Double.doubleToLongBits(
               other.getX()));
       result = result && (
-          java.lang.Float.floatToIntBits(getY())
-          == java.lang.Float.floatToIntBits(
+          java.lang.Double.doubleToLongBits(getY())
+          == java.lang.Double.doubleToLongBits(
               other.getY()));
       return result;
     }
@@ -725,11 +725,11 @@ public final class Mikron {
       int hash = 41;
       hash = (19 * hash) + getDescriptorForType().hashCode();
       hash = (37 * hash) + X_FIELD_NUMBER;
-      hash = (53 * hash) + java.lang.Float.floatToIntBits(
-          getX());
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          java.lang.Double.doubleToLongBits(getX()));
       hash = (37 * hash) + Y_FIELD_NUMBER;
-      hash = (53 * hash) + java.lang.Float.floatToIntBits(
-          getY());
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          java.lang.Double.doubleToLongBits(getY()));
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -848,9 +848,9 @@ public final class Mikron {
       }
       public Builder clear() {
         super.clear();
-        x_ = 0F;
+        x_ = 0D;
 
-        y_ = 0F;
+        y_ = 0D;
 
         return this;
       }
@@ -917,10 +917,10 @@ public final class Mikron {
 
       public Builder mergeFrom(mikron.Mikron.Coord other) {
         if (other == mikron.Mikron.Coord.getDefaultInstance()) return this;
-        if (other.getX() != 0F) {
+        if (other.getX() != 0D) {
           setX(other.getX());
         }
-        if (other.getY() != 0F) {
+        if (other.getY() != 0D) {
           setY(other.getY());
         }
         onChanged();
@@ -949,54 +949,54 @@ public final class Mikron {
         return this;
       }
 
-      private float x_ ;
+      private double x_ ;
       /**
-       * <code>optional float x = 1;</code>
+       * <code>optional double x = 1;</code>
        */
-      public float getX() {
+      public double getX() {
         return x_;
       }
       /**
-       * <code>optional float x = 1;</code>
+       * <code>optional double x = 1;</code>
        */
-      public Builder setX(float value) {
+      public Builder setX(double value) {
         
         x_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional float x = 1;</code>
+       * <code>optional double x = 1;</code>
        */
       public Builder clearX() {
         
-        x_ = 0F;
+        x_ = 0D;
         onChanged();
         return this;
       }
 
-      private float y_ ;
+      private double y_ ;
       /**
-       * <code>optional float y = 2;</code>
+       * <code>optional double y = 2;</code>
        */
-      public float getY() {
+      public double getY() {
         return y_;
       }
       /**
-       * <code>optional float y = 2;</code>
+       * <code>optional double y = 2;</code>
        */
-      public Builder setY(float value) {
+      public Builder setY(double value) {
         
         y_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional float y = 2;</code>
+       * <code>optional double y = 2;</code>
        */
       public Builder clearY() {
         
-        y_ = 0F;
+        y_ = 0D;
         onChanged();
         return this;
       }
@@ -5077,7 +5077,7 @@ public final class Mikron {
   static {
     java.lang.String[] descriptorData = {
       "\n\014mikron.proto\"\032\n\007Doubles\022\017\n\007doubles\030\001 \003" +
-      "(\001\"\035\n\005Coord\022\t\n\001x\030\001 \001(\002\022\t\n\001y\030\002 \001(\002\" \n\017Fix" +
+      "(\001\"\035\n\005Coord\022\t\n\001x\030\001 \001(\001\022\t\n\001y\030\002 \001(\001\" \n\017Fix" +
       "tureUserData\022\r\n\005color\030\001 \001(\005\"E\n\007Fixture\022\"" +
       "\n\010userData\030\001 \001(\0132\020.FixtureUserData\022\026\n\006co" +
       "ords\030\002 \003(\0132\006.Coord\"\032\n\014BodyUserData\022\n\n\002id" +

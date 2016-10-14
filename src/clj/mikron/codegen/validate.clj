@@ -1,11 +1,12 @@
 (ns mikron.codegen.validate
   "validate generating functions."
   (:require [mikron.type :as type]
+            [mikron.codegen.common :as codegen.common]
+            [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.common :as common]
-            [mikron.codegen.common :as codegen-common]))
+            [mikron.util.type :as util.type]))
 
-(defmulti validate util/type-of :hierarchy #'type/hierarchy)
+(defmulti validate compile-util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod validate :integer [schema value options]
   `(when-not (integer? ~value)
@@ -24,7 +25,7 @@
      :mikron/invalid))
 
 (defmethod validate :binary [_ value options]
-  `(when-not (common/binary? ~value)
+  `(when-not (util.type/binary? ~value)
      :mikron/invalid))
 
 (defmethod validate :nil [_ value options]
@@ -40,7 +41,7 @@
      :mikron/invalid))
 
 (defmethod validate :list [[_ _ schema'] value options]
-  (util/with-gensyms [value']
+  (compile-util/with-gensyms [value']
     `(when (or (not (sequential? ~value))
                (->> ~value
                     (map (fn [~value']
@@ -49,7 +50,7 @@
        :mikron/invalid)))
 
 (defmethod validate :vector [[_ _ schema'] value options]
-  (util/with-gensyms [value']
+  (compile-util/with-gensyms [value']
     `(when (or (not (vector? ~value))
                (->> ~value
                     (map (fn [~value']
@@ -58,7 +59,7 @@
        :mikron/invalid)))
 
 (defmethod validate :set [[_ _ schema'] value options]
-  (util/with-gensyms [value']
+  (compile-util/with-gensyms [value']
     `(when (or (not (set? ~value))
                (->> ~value
                     (map (fn [~value']
@@ -67,7 +68,7 @@
        :mikron/invalid)))
 
 (defmethod validate :map [[_ _ key-schema val-schema] value options]
-  (util/with-gensyms [key val]
+  (compile-util/with-gensyms [key val]
     `(when (or (not (map? ~value))
                (->> ~value
                     (mapcat (fn [[~key ~val]]
@@ -77,7 +78,7 @@
        :mikron/invalid)))
 
 (defmethod validate :tuple [[_ _ schemas] value options]
-  (util/with-gensyms [value']
+  (compile-util/with-gensyms [value']
     `(when (or (not (vector? ~value))
                ~@(map-indexed (fn [index schema']
                                 `(let [~value' (get ~value ~index)]
@@ -85,11 +86,12 @@
                               schemas))
        :mikron/invalid)))
 
-(defmethod validate :record [[_ _ schemas] value options]
-  (util/with-gensyms [value']
+(defmethod validate :record [[_ {:keys [type]} schemas] value options]
+  (compile-util/with-gensyms [value']
     `(when (or (not (map? ~value))
+               ~@(when type [`(not (instance? ~(first type) ~value))])
                ~@(map (fn [[index schema']]
-                        `(let [~value' (get ~value ~index)]
+                        `(let [~value' ~(compile-util/record-lookup value index type)]
                            (= :mikron/invalid ~(validate schema' value' options))))
                       schemas))
        :mikron/invalid)))
@@ -100,7 +102,7 @@
      :mikron/invalid))
 
 (defmethod validate :multi [[_ _ selector multi-map] value {:keys [cljs-mode?] :as options}]
-  (util/with-gensyms [multi-case value' e]
+  (compile-util/with-gensyms [multi-case value' e]
     `(let [~multi-case (try
                          (~selector ~value)
                          (catch ~(if cljs-mode? `js/Object `Exception) ~e
@@ -115,12 +117,16 @@
                      multi-map)
            :else :mikron/invalid)))))
 
-(defmethod validate :enum [[_ _ enum-values] value options]
+(defmethod validate :enum [[_ _ enum-values] value _]
   `(when-not (~(set enum-values) ~value)
      :mikron/invalid))
 
+(defmethod validate :date [_ value _]
+  `(when-not (util.type/date? ~value)
+     :mikron/invalid))
+
 (defmethod validate :wrapped [[_ _ pre post schema'] value {:keys [cljs-mode?] :as options}]
-  (util/with-gensyms [value' value'* e]
+  (compile-util/with-gensyms [value' value'* e]
     `(let [~value' (try
                      (let [~value'* (~pre ~value)]
                        (~post ~value'*)
@@ -135,20 +141,20 @@
   (validate (type/aliases schema) value options))
 
 (defmethod validate :custom [schema value _]
-  `(~(util/processor-name :validate schema)
+  `(~(compile-util/processor-name :validate schema)
     ~value))
 
 (defmethod validate :default [_ _ _]
   nil)
 
-(defmethod codegen-common/fast-processors :validate [_ schema-name {:keys [schemas] :as options}]
-  (util/with-gensyms [value]
-    [`(~(util/processor-name :validate schema-name)
+(defmethod codegen.common/fast-processors :validate [_ schema-name {:keys [schemas] :as options}]
+  (compile-util/with-gensyms [value]
+    [`(~(compile-util/processor-name :validate schema-name)
        [~value]
        ~(validate (schemas schema-name) value options))]))
 
-(defmethod codegen-common/processors :validate [_ schema-name options]
-  (util/with-gensyms [_ value]
-    [`(defmethod common/process [:validate ~schema-name] [~_ ~_ ~value]
-        (~(util/processor-name :validate schema-name)
+(defmethod codegen.common/processors :validate [_ schema-name options]
+  (compile-util/with-gensyms [_ value]
+    [`(defmethod util/process [:validate ~schema-name] [~_ ~_ ~value]
+        (~(compile-util/processor-name :validate schema-name)
          ~value))]))

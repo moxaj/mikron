@@ -1,6 +1,11 @@
 /target
 /classes
 /checkouts
+/resources
+/node
+/node_modules
+phantomjs.exe
+/.repl*
 /src/java/protoc.exe
 pom.xml
 pom.xml.asc

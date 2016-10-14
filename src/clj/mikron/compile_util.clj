@@ -1,6 +1,5 @@
-(ns mikron.util
-  "Compile time utility functions."
-  (:require [clojure.string :as string]))
+(ns mikron.compile-util
+  "Compile time utility functions.")
 
 ;; coll
 
@@ -34,19 +33,25 @@
               `(sorted-map-by ~sorted-by))
            ~body)))
 
-(defn as-record [constructor body]
-  (if constructor
-    `(~constructor ~body)
-    body))
+(defn record-lookup [record index [class]]
+  (if-not class
+    `(~index ~record)
+    `(~(symbol (str "." (name index)))
+      ~(with-meta record {:tag class}))))
 
-(defn schema-ids [schemas]
-  (let [m (->> (keys schemas)
-               (sort)
-               (map-indexed #(vector %2 %1))
-               (into {}))]
-    (merge m (->> m
-                  (map (comp vec reverse))
-                  (into {})))))
+(defn record->fields [schemas]
+  (->> (keys schemas)
+       (map (fn [index]
+              [index (gensym (str (name index) "_"))]))
+       (into (sorted-map))))
+
+(defn fields->record [fields [class & members]]
+  (if-not class
+    fields
+    `(~(symbol (str "->" class))
+      ~@(map (fn [member]
+               (or (fields (keyword member)) 0))
+             members))))
 
 ;; symbol
 

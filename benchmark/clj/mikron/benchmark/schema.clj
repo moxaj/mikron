@@ -5,35 +5,50 @@
             [gloss.core :as gloss]
             [octet.core :as octet]))
 
-(mikron/defschemas
-  {:schemas  {;; doubles
-              :doubles  [:list :double]
-              ;; quartet
-              :person   [:record {:name :string
-                                  :age  :ubyte}]
-              :quartet  [:tuple [:person :person :person :person]]
-              ;; snapshot
-              :coord    [:tuple [:float :float]]
-              :fixture  [:record {:user-data [:record {:color :int}]
-                                  :coords    [:list :coord]}]
-              :body     [:record {:user-data [:record {:id :int}]
-                                  :position  :coord
-                                  :angle     :float
-                                  :body-type [:enum [:dynamic :static :kinetic]]
-                                  :fixtures  [:list :fixture]}]
-              :snapshot [:record {:time   :long
-                                  :bodies [:list :body]}]}})
+(defrecord Coord [^double x ^double y])
+
+(defrecord FixtureUserData [^long color])
+
+(defrecord Fixture [^FixtureUserData user-data coords])
+
+(defrecord BodyUserData [^long id])
+
+(defrecord Body [^BodyUserData user-data ^Coord position ^double angle body-type fixtures])
+
+(defrecord Snapshot [^long time bodies])
+
+(mikron/defprocessors
+  {:schemas
+   {;; doubles
+    ::doubles  [:list :double]
+    ;; snapshot
+    ::coord    [:record {:type [Coord x y]}
+                        {:x :double
+                         :y :double}]
+    ::fixture  [:record {:type [Fixture user-data coords]}
+                        {:user-data [:record {:type [FixtureUserData color]}
+                                             {:color :int}]
+                         :coords    [:list ::coord]}]
+    ::body     [:record {:type [Body user-data position angle body-type fixtures]}
+                        {:user-data [:record {:type [BodyUserData id]}
+                                             {:id :int}]
+                         :position  ::coord
+                         :angle     :double
+                         :body-type [:enum [:dynamic :static :kinetic]]
+                         :fixtures  [:list ::fixture]}]
+    ::snapshot [:record {:type [Snapshot time bodies]}
+                        {:time   :long
+                         :bodies [:list ::body]}]}})
 
 (defmulti get-schema* (fn [method schema] [method schema]))
 
-(defmethod get-schema* [:avro :doubles] [_ _]
+(defmethod get-schema* [:avro ::doubles] [_ _]
   (avro/parse-schema {:type "array" :items "double"}))
 
-(defmethod get-schema* [:avro :snapshot] [_ _]
+(defmethod get-schema* [:avro ::snapshot] [_ _]
   (let [coord    {:name "coord" :type "record" :namespace "mikron"
-                  :fields [{:name "x" :type "float"}
-                           {:name "y" :type "float"}]
-                  :abracad.reader "vector"}
+                  :fields [{:name "x" :type "double"}
+                           {:name "y" :type "double"}]}
         fixture  {:name "fixture" :type "record" :namespace "mikron"
                   :fields [{:name "user-data"
                             :type {:name "user-data" :type "record"
@@ -41,7 +56,7 @@
                            {:name "coords" :type {:type "array"
                                                   :items "mikron.coord"}}]}
         body     {:name "body" :type "record" :namespace "mikron"
-                  :fields [{:name "angle" :type "float"}
+                  :fields [{:name "angle" :type "double"}
                            {:name "position" :type "mikron.coord"}
                            {:name "body-type"
                             :type {:type "enum"
@@ -58,14 +73,15 @@
                                                   :items "mikron.body"}}]}]
     (avro/parse-schema coord fixture body snapshot)))
 
-(defmethod get-schema* [:gloss :doubles] [_ _]
+(defmethod get-schema* [:gloss ::doubles] [_ _]
   (gloss/compile-frame (gloss/repeated :float64)))
 
-(defmethod get-schema* [:gloss :snapshot] [_ _]
-  (let [coord    [:float32 :float32]
+(defmethod get-schema* [:gloss ::snapshot] [_ _]
+  (let [coord    {:x :float64
+                  :y :float64}
         fixture  {:user-data {:color :int32}
                   :coords    (gloss/repeated coord)}
-        body     {:angle     :float32
+        body     {:angle     :float64
                   :position  coord
                   :user-data {:id :int32}
                   :body-type (gloss/enum :byte :dynamic :static :kinetic)
@@ -74,14 +90,15 @@
                   :bodies (gloss/repeated body)}]
     (gloss/compile-frame snapshot)))
 
-(defmethod get-schema* [:octet :doubles] [_ _]
+(defmethod get-schema* [:octet ::doubles] [_ _]
   (octet/vector* octet/double))
 
-(defmethod get-schema* [:octet :snapshot] [_ _]
-  (let [coord    (octet/spec octet/float octet/float)
+(defmethod get-schema* [:octet ::snapshot] [_ _]
+  (let [coord    (octet/spec :x octet/double
+                             :y octet/double)
         fixture  (octet/spec :user-data (octet/spec :color octet/int32)
                              :coords    (octet/vector* coord))
-        body     (octet/spec :angle     octet/float
+        body     (octet/spec :angle     octet/double
                              :position  coord
                              :user-data (octet/spec :id octet/int32)
                              ; :body-type
