@@ -15,18 +15,6 @@
        (p/pprint)
        (p/with-pprint-dispatch p/code-dispatch)))
 
-(defmacro inspect! [processor-types defprocessors-form]
- `(->> (quote ~defprocessors-form)
-       (macroexpand)
-       (nnext)
-       (first)
-       (second)
-       (filterv (fn [[processor-type#]]
-                  (some #(.startsWith (str processor-type#) (name %))
-                        ~processor-types)))
-       (p/pprint)
-       (p/with-pprint-dispatch p/code-dispatch)))
-
 (comment
  ;; quartet
  :person   [:record {:name :string
@@ -34,7 +22,8 @@
  :quartet  [:tuple [:person :person :person :person]])
 
 (comment
-  (let [schema   :mikron.benchmark.schema/snapshot
-        snapshot (-> data/data schema :a)]
-    (seq (pack schema snapshot)))
+  (let [b (buffer/allocate 100)]
+    (c!
+      (buffer/!reset b)
+      (buffer/!varint b 10)))
   nil)
