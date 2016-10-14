@@ -153,16 +153,8 @@
   (chart/bar-chart "Benchmarks" data {:labels (map description stats)}))
 
 (comment
-  ;; Run benchmarks
   (diagram (benchmark :stats   [:pack-time]
                       :methods [:mikron]
                       :schema  ::benchmark.schema/snapshot
                       :data    :a))
   nil)
-
-(defn -main []
-  (println
-    (benchmark :stats   [:pack-time]
-               :methods [:mikron]
-               :schema  ::benchmark.schema/snapshot
-               :data    :a)))

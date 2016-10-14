@@ -488,10 +488,11 @@
                                                  0 true))))))
 
 (defn !headers [^Buffer buffer ^long schema-id diffed?]
-  (!reset buffer)
-  (!boolean buffer (?le buffer))
-  (!boolean buffer diffed?)
-  (!varint buffer schema-id))
+  (doto buffer
+        (!reset)
+        (!boolean (?le buffer))
+        (!boolean diffed?)
+        (!varint  schema-id)))
 
 (defn ?headers [^Buffer buffer]
   (!le buffer (?boolean buffer))

@@ -17,10 +17,7 @@
                            [~'type (or ~'options {}) ~@field-syms])))))
 
 (s/def ::sorted-by
-  (s/and (s/or :default #{:default}
-               :nil     nil?
-               :fn      ident?)
-         (s/conformer second)))
+  ident?)
 
 (s/def ::type
   (s/and (s/cat :class   symbol?
@@ -116,11 +113,5 @@
                         {:schemas       schemas
                          :diff-routes   diff-routes
                          :interp-routes interp-routes}))))
-
-(s/def ::names
-  (s/and (s/map-of keyword? symbol?)
-         (fn [names]
-           (every? #{:pack :unpack :diff :undiff :gen :validate :interp}
-                   (keys names)))))
 
 ;; todo: validate routes + schemas

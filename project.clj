@@ -31,7 +31,6 @@
                                    :output-dir "resources/public/js/out"
                                    :optimizations :none
                                    :cache-analysis true
-                                   :source-map true
                                    :parallel-build true
                                    :main "mikron.repl-client"}}
                        {:id "node"
@@ -41,7 +40,6 @@
                                    :target :nodejs
                                    :optimizations :none
                                    :cache-analysis true
-                                   :source-map true
                                    :parallel-build false
                                    :main "mikron.node"}}]}
   :clean-targets ^{:protect false} ["resources/public/js"
