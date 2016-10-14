@@ -7,7 +7,6 @@
 - great performance
 - compact serialization format
 - supports Clojure, ClojureScript(browser) and ClojureScript(Node.js)
-- wide range of built in types
 - flexible and extensible schema system
 - extras goodies beyond serialization: data validation, delta compression, random data generation, linear interpolation
 
