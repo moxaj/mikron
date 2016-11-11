@@ -2,9 +2,10 @@
   "Runtime type related functions."
   (:require [clojure.tools.reader.edn :as edn]
             [mikron.util :as util]
-            [mikron.util.math :as math])
-  #?(:clj (:import [java.util Date]
-                   [java.nio.charset StandardCharsets])))
+            [mikron.util.math :as util.math]
+            [mikron.util.coll :as util.coll])
+  #?(:cljs (:require-macros [mikron.util.type :refer [gen-integer valid-integer?]]))
+  #?(:clj (:import [java.nio.charset StandardCharsets])))
 
 ;; converters
 
@@ -21,19 +22,12 @@
   (keyword s))
 
 (defn char->int ^long [c]
-  #?(:clj  (int c)
+  #?(:clj  (unchecked-int c)
      :cljs (.charCodeAt c 0)))
 
 (defn int->char [^long n]
   #?(:clj  (char n)
      :cljs (.fromCharCode js/String n)))
-
-(defn date->long ^long [^Date x]
-  (.getTime x))
-
-(defn long->date ^Date [^long n]
-  #?(:clj  (Date. n)
-     :cljs (js/Date. n)))
 
 (defn string->binary ^bytes [^String s]
   #?(:clj  (.getBytes s StandardCharsets/UTF_8)
@@ -50,7 +44,7 @@
                (js/decodeURIComponent))))
 
 (defn double->float [^double x]
-  #?(:clj  (float x)
+  #?(:clj  (unchecked-float x)
      :cljs (.fround js/Math x)))
 
 ;; predicates
@@ -59,28 +53,40 @@
   #?(:clj  (bytes? x)
      :cljs (instance? js/ArrayBuffer x)))
 
-(defn date? [x]
-  (instance? #?(:clj Date :cljs js/Date) x))
+;; helper
+
+#?(:clj
+   (defn min-bound [^long bytes signed?]
+     (if signed?
+       (- (util.math/pow 2 (dec (* bytes 8))))
+       0)))
+
+#?(:clj
+   (defn max-bound [^long bytes signed?]
+     (let [m (util.math/pow 2 (* bytes 8))]
+       (if signed? (/ m 2) m))))
 
 ;; generators
 
-(defn gen-integer [^long bytes signed?]
-  (let [bytes #?(:clj  bytes
-                 :cljs (long (min bytes 6)))
-        max-v (math/pow 2 (* bytes 8))
-        r     (math/floor (* max-v ^double (rand)))]
-    (long (if-not signed?
-            r
-            (- r (/ max-v 2))))))
+#?(:clj
+   (defmacro gen-integer [bytes signed?]
+     `(let [r# (util.math/rand)]
+        (-> (* r# ~(max-bound bytes signed?))
+            (+ (* (- 1 r#) ~(min-bound bytes signed?)))
+            (util.math/floor)
+            (unchecked-long)))))
 
 (defn gen-binary []
-  (let [byte-seq (util/into! []
-                             (+ 2 ^long (rand-int 30))
-                             #(gen-integer 1 true))]
+  (let [byte-seq (util.coll/into! [] true
+                                  (unchecked-add 2 (util.math/rand-long 30))
+                                  (fn [] (gen-integer 1 true)))]
     #?(:clj  (byte-array byte-seq)
-       :cljs (aget (js/Int8Array. (apply array byte-seq))
-                   "buffer"))))
+       :cljs (.-buffer (js/Int8Array. (apply array byte-seq))))))
 
-(defn gen-date []
-  #?(:clj  (Date.)
-     :cljs (js/Date.)))
+;; validators
+
+#?(:clj
+   (defmacro valid-integer? [value bytes signed?]
+     `(and (integer? ~value)
+           (>= (unchecked-long ~value) ~(min-bound bytes signed?))
+           (<  (unchecked-long ~value) ~(max-bound bytes signed?)))))

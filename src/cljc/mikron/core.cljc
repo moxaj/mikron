@@ -1,74 +1,97 @@
 (ns mikron.core
-  "Public API facade."
+  "Core namespace."
   (:require [mikron.buffer :as buffer]
             [mikron.util :as util]
-            [mikron.util.math :as math]
+            [mikron.util.math :as util.math]
+            [mikron.util.coll]
             [mikron.util.type]
             #?@(:clj [[clojure.spec :as spec]
                       [mikron.spec :as mikron-spec]
-                      [mikron.codegen [common :as codegen.common] pack unpack diff gen validate interp]]))
-  #?(:clj  (:import [mikron.buffer Buffer])
-     :cljs (:require-macros [mikron.core])))
+                      [mikron.compile-util :as compile-util]
+                      [mikron.codegen pack unpack validate gen diff interp]]))
+  #?(:cljs (:require-macros [mikron.core]))
+  #?(:clj (:import [mikron.buffer Buffer])))
 
 #?(:clj
-   (defmacro defprocessors [options]
-     (let [options' (spec/conform :mikron.spec/options options)]
-       (if (= :clojure.spec/invalid options')
-         (spec/explain :mikron.spec/options options)
-         (let [schemas         (:schemas options')
-               processor-types (keys (methods codegen.common/processors))
-               schema-names    (keys schemas)
-               fast-processors (->> (for [processor-type processor-types
-                                          schema-name    schema-names]
-                                      (codegen.common/fast-processors processor-type schema-name options'))
-                                    (apply concat))
-               processors      (->> (for [processor-type processor-types
-                                          schema-name    schema-names]
-                                      (codegen.common/processors processor-type schema-name options'))
-                                    (apply concat))]
-           `(do (util/register-schemas ~(vec schema-names))
-                (letfn [~@fast-processors]
-                  ~@processors)))))))
+   (defn processors [env]
+     (for [processor-type (keys (methods compile-util/processor))]
+       {:processor-type processor-type
+        :processor-fn   `(fn ~(compile-util/processor processor-type env))})))
 
-(defn pack
-  ([schema value]
-   (pack schema value :buffer buffer/default-buffer))
-  ([schema value & {:keys [^Buffer buffer diffed?]
-                    :or   {buffer  buffer/default-buffer
-                           diffed? false}}]
-   (buffer/!headers buffer (@util/schema-ids schema) diffed?)
-   (util/process (if diffed? :pack-diffed :pack) schema value buffer)
-   (buffer/!finalize buffer)
-   (buffer/?binary-all buffer)))
+#?(:clj
+   (defn dependencies [processors]
+     (->> processors
+          (map :processor-fn)
+          (compile-util/find-by (comp :schema-name meta))
+          (into (sorted-set)))))
 
-(defn unpack [^bytes binary]
-  (let [buffer  (buffer/wrap binary)
-        headers (buffer/?headers buffer)
-        schema  (@util/schema-ids (:schema-id headers))
-        diffed? (:diffed? headers)]
-    (if-not schema
-      :mikron/invalid
-      {:schema  schema
-       :diffed? diffed?
-       :value   (util/process (if diffed? :unpack-diffed :unpack) schema buffer)})))
+#?(:clj
+   (defmacro schema [& args]
+     (let [env (spec/conform ::mikron-spec/schema-args args)]
+       (if (= ::spec/invalid env)
+         (spec/explain ::mikron-spec/schema-args)
+         (let [processors   (processors env)
+               dependencies (dependencies processors)]
+           `(let [~@(mapcat (fn [dependency]
+                              (let [{:keys [processor-type schema-name]} (meta dependency)]
+                                [dependency `(~schema-name ~processor-type)]))
+                            dependencies)]
+              ~(->> processors
+                    (map (juxt :processor-type :processor-fn))
+                    (into {}))))))))
+
+#?(:clj
+   (defmacro defschema [& args]
+     (let [env (spec/conform ::mikron-spec/defschema-args args)]
+       (if (= ::spec/invalid env)
+         (spec/explain ::mikron-spec/defschema-args)
+         (let [{:keys [schema-name docstring schema ext]} env]
+           `(def ~schema-name ~@(when docstring [docstring])
+              (mikron.core/schema ~schema ~@(when ext [ext]))))))))
+
+(defonce ^:dynamic *buffer* (buffer/allocate 10000))
+
+(defn allocate-buffer [size]
+  (buffer/allocate size))
+
+#?(:clj
+   (defmacro with-buffer [buffer & body]
+     `(binding [*buffer* buffer]
+        ~@body)))
+
+(defn pack [schema value]
+  (let [buffer  *buffer*
+        diffed? false]
+    (buffer/!headers buffer diffed?)
+    ((schema (if diffed? :pack-diffed :pack)) value buffer)
+    (buffer/!finalize buffer)
+    (buffer/?binary-all buffer)))
+
+(defn unpack [schema binary]
+  (util/safe :mikron/invalid
+    (let [buffer  (buffer/wrap binary)
+          headers (buffer/?headers buffer)
+          diffed? (headers :diffed?)]
+      {:diffed? diffed?
+       :value   ((schema (if diffed? :unpack-diffed :unpack)) buffer)})))
 
 (defn gen [schema]
-  (util/process :gen schema))
+  ((schema :gen)))
 
 (defn valid? [schema value]
-  (not= :mikron/invalid (util/process :validate schema value)))
+  ((schema :valid?) value))
 
 (defn diff [schema value-1 value-2]
-  (util/process :diff schema value-1 value-2))
+  ((schema :diff) value-1 value-2))
 
 (defn undiff [schema value-1 value-2]
-  (util/process :undiff schema value-1 value-2))
+  ((schema :undiff) value-1 value-2))
 
 (defn interp [schema value-1 value-2 time-1 time-2 time]
   (let [time          (double time)
         time-1        (double time-1)
         time-2        (double time-2)
-        prefer-first? (< (math/abs (- time time-1))
-                         (math/abs (- time time-2)))
+        prefer-first? (< (util.math/abs (- time time-1))
+                         (util.math/abs (- time time-2)))
         time-factor   (/ (- time time-1) (- time-2 time))]
-    (util/process :interp schema value-1 value-2 prefer-first? time-factor)))
+    ((schema :interp) value-1 value-2 prefer-first? time-factor)))

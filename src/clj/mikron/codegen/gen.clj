@@ -1,12 +1,13 @@
 (ns mikron.codegen.gen
   "Generator generating functions."
   (:require [mikron.type :as type]
-            [mikron.codegen.common :as codegen.common]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.util.type :as util.type]))
+            [mikron.util.type :as util.type]
+            [mikron.util.math :as util.math]
+            [mikron.util.coll :as util.coll]))
 
-(def gen-size `(+ 3 (long (rand-int 3))))
+(def ^:const gen-length 4)
 
 (defmulti gen compile-util/type-of :hierarchy #'type/hierarchy)
 
@@ -31,25 +32,23 @@
 (defmethod gen :long [_ _]
   `(util.type/gen-integer 8 true))
 
-(defmethod gen :varint [_ options]
-  (gen :long options))
+(defmethod gen :varint [_ env]
+  (gen :long env))
 
 (defmethod gen :float [_ _]
-  `(util.type/double->float (rand)))
+  `(util.type/double->float (util.math/rand)))
 
 (defmethod gen :double [_ _]
-  `(double (rand)))
+  `(util.math/rand))
 
 (defmethod gen :boolean [_ _]
-  `(zero? (long (rand-int 2))))
+  `(< 0.5 (util.math/rand)))
 
 (defmethod gen :char [_ _]
-  `(char (rand-int 50000)))
+  `(char (util.math/rand-long 500)))
 
-(defmethod gen :string [_ options]
-  `(->> (fn [] ~(gen :char options))
-        (util/into! [] ~gen-size)
-        (apply str)))
+(defmethod gen :string [_ env]
+  `(apply str (util.coll/into! [] true ~gen-length (fn [] ~(gen :char env)))))
 
 (defmethod gen :binary [_ _]
   `(util.type/gen-binary))
@@ -60,63 +59,57 @@
 (defmethod gen :nil [_ _]
   nil)
 
-(defmethod gen :date [_ _]
-  `(util.type/gen-date))
+(defmethod gen :coll [[_ _ schema'] env]
+  `(util.coll/into! [] true ~gen-length (fn [] ~(gen schema' env))))
 
-(defmethod gen :coll [[_ _ schema'] options]
-  `(util/into! [] ~gen-size (fn [] ~(gen schema' options))))
+(defmethod gen :set [[_ {:keys [sorted-by]} schema'] env]
+  `(util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
+                    ~(nil? sorted-by)
+                    ~gen-length
+                    (fn [] ~(gen schema' env))))
 
-(defmethod gen :set [[_ {:keys [sorted-by]} schema'] options]
-  (->> `(util/into! #{} ~gen-size
-                        (fn [] ~(gen schema' options)))
-       (compile-util/as-set sorted-by)))
+(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] env]
+  `(util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
+                       ~(nil? sorted-by)
+                       ~gen-length
+                       (fn [] ~(gen key-schema env))
+                       (fn [] ~(gen val-schema env))))
 
-(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
-  (->> `(util/into! {} ~gen-size
-                       (fn [] ~(gen key-schema options))
-                       (fn [] ~(gen val-schema options)))
-       (compile-util/as-map sorted-by)))
-
-(defmethod gen :tuple [[_ _ schemas] options]
+(defmethod gen :tuple [[_ _ schemas] env]
   (mapv (fn [schema']
-          (gen schema' options))
+          (gen schema' env))
         schemas))
 
-(defmethod gen :record [[_ {:keys [type]} schemas] options]
+(defmethod gen :record [[_ {:keys [type]} schemas] env]
   (let [fields (compile-util/record->fields schemas)]
     `(let [~@(mapcat (fn [[index field]]
-                       [field (gen (schemas index) options)])
+                       [field (gen (schemas index) env)])
                      fields)]
        ~(compile-util/fields->record fields type))))
 
-(defmethod gen :optional [[_ _ schema'] options]
-  `(when ~(gen :boolean options)
-     ~(gen schema' options)))
+(defmethod gen :optional [[_ _ schema'] env]
+  `(when ~(gen :boolean env)
+     ~(gen schema' env)))
 
-(defmethod gen :multi [[_ _ _ multi-map] options]
-  `(case (rand-nth ~(-> multi-map (keys) (vec)))
-     ~@(mapcat (fn [[multi-case schema']]
-                [multi-case (gen schema' options)])
-               multi-map)))
+(defmethod gen :multi [[_ _ _ multi-map] env]
+  `(case (util.math/rand-long ~(count multi-map))
+     ~@(->> multi-map
+            (map-indexed (fn [index [_ schema']]
+                           [index (gen schema' env)]))
+            (apply concat))))
 
-(defmethod gen :enum [[_ _ enum-values] options]
-  `(rand-nth ~enum-values))
+(defmethod gen :enum [[_ _ enum-values] env]
+  `(util.coll/rand-nth ~enum-values))
 
-(defmethod gen :wrapped [[_ _ _ post schema'] options]
-  `(~post ~(gen schema' options)))
+(defmethod gen :wrapped [[_ _ _ post schema'] env]
+  `(~post ~(gen schema' env)))
 
-(defmethod gen :aliased [schema options]
-  (gen (type/aliases schema) options))
+(defmethod gen :aliased [schema env]
+  (gen (type/aliases schema) env))
 
-(defmethod gen :custom [schema options]
+(defmethod gen :custom [schema env]
   `(~(compile-util/processor-name :gen schema)))
 
-(defmethod codegen.common/fast-processors :gen [_ schema-name {:keys [schemas] :as options}]
-  [`(~(compile-util/processor-name :gen schema-name)
-     []
-     ~(gen (schemas schema-name) options))])
-
-(defmethod codegen.common/processors :gen [_ schema-name options]
-  (compile-util/with-gensyms [_]
-    [`(defmethod util/process [:gen ~schema-name] [~_ ~_]
-        (~(compile-util/processor-name :gen schema-name)))]))
+(defmethod compile-util/processor :gen [_ {:keys [schema] :as env}]
+  `([]
+    ~(gen schema env)))

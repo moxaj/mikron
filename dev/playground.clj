@@ -2,9 +2,18 @@
   (:require [clojure.pprint :as p]
             [criterium.core :as c]
             [mikron.buffer :as buffer]
-            [mikron.core :refer [defprocessors pack unpack gen valid? diff undiff interp]]
-            [mikron.benchmark.data :as data])
-  (:import [java.io File]))
+            [mikron.benchmark.data :as benchmark.data]
+            [mikron.benchmark.schema :as benchmark.schema]
+            [mikron.core :refer [defschema pack unpack gen valid? diff undiff interp]]
+            [mikron.util :as util]
+            [mikron.util.coll :as util.coll]
+            [mikron.util.math :as util.math]
+            [mikron.compile-util :as compile-util]
+            [no.disassemble :refer [disassemble]])
+  (:import [mikron.buffer Buffer ByteBufferImplNio] ;ByteBufferImplUnsafe]
+           [java.nio ByteBuffer ByteOrder]
+           [clojure.lang Indexed Counted PersistentVector ISeq]
+           [java.nio.charset Charset StandardCharsets]))
 
 (defmacro c! [& form]
   `(c/with-progress-reporting (c/quick-bench (do ~@form))))
@@ -12,18 +21,16 @@
 (defmacro p! [form]
  `(->> (quote ~form)
        (macroexpand)
-       (p/pprint)
-       (p/with-pprint-dispatch p/code-dispatch)))
+       (p/pprint)))
+       ;(p/with-pprint-dispatch p/code-dispatch)))
+       ;(binding [p/*print-suppress-namespaces* true])))
+
+(defmacro d! [form]
+  `(println (disassemble ~form)))
 
 (comment
- ;; quartet
- :person   [:record {:name :string
-                     :age  :ubyte}]
- :quartet  [:tuple [:person :person :person :person]])
 
-(comment
-  (let [b (buffer/allocate 100)]
-    (c!
-      (buffer/!reset b)
-      (buffer/!varint b 10)))
   nil)
+
+(defmacro if-not-let [binding-form & [then else]]
+  `(if-let ~binding-form ~else ~then))

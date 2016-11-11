@@ -1,10 +1,14 @@
 (ns mikron.util.math
-  "Runtime numeric functions."
-  (:refer-clojure :exclude [and or not zero?])
-  (:require [clojure.core :as core])
+  "Numeric utility functions."
+  (:refer-clojure :exclude [and or not zero? rand rand-int])
   #?(:cljs (:import goog.math.Long)))
 
 ;; double
+
+(defn rand ^double []
+  (unchecked-double
+    #?(:clj  (Math/random)
+       :cljs (.random js/Math))))
 
 (defn pow ^double [^double x ^double y]
   #?(:clj  (Math/pow x y)
@@ -29,6 +33,9 @@
 
 ;; long
 
+(defn rand-long ^long [^long n]
+  (->> (rand) (* n) (unchecked-long)))
+
 (defn from
   (^long [^long x]
    #?(:clj  x
@@ -51,7 +58,7 @@
      :cljs (.toNumber x)))
 
 (defn zero? [^long x]
-  #?(:clj  (core/zero? x)
+  #?(:clj  (== 0 x)
      :cljs (.isZero x)))
 
 (defn and ^long [^long x ^long y]

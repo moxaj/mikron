@@ -1,160 +1,139 @@
 (ns mikron.codegen.validate
-  "validate generating functions."
+  "Validator generating functions."
   (:require [mikron.type :as type]
-            [mikron.codegen.common :as codegen.common]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.util.type :as util.type]))
+            [mikron.util.type :as util.type]
+            [mikron.util.coll :as util.coll]))
 
-(defmulti validate compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti valid? compile-util/type-of :hierarchy #'type/hierarchy)
 
-(defmethod validate :integer [schema value options]
-  `(when-not (integer? ~value)
-     :mikron/invalid))
+(defmethod valid? :byte [_ value _]
+  `(util.type/valid-integer? ~value 1 true))
 
-(defmethod validate :floating [_ value options]
-  `(when-not (number? ~value)
-     :mikron/invalid))
+(defmethod valid? :ubyte [_ value _]
+  `(util.type/valid-integer? ~value 1 false))
 
-(defmethod validate :char [_ value options]
-  `(when-not (char? ~value)
-     :mikron/invalid))
+(defmethod valid? :short [_ value _]
+  `(util.type/valid-integer? ~value 2 true))
 
-(defmethod validate :string [_ value options]
-  `(when-not (string? ~value)
-     :mikron/invalid))
+(defmethod valid? :ushort [_ value _]
+  `(util.type/valid-integer? ~value 2 false))
 
-(defmethod validate :binary [_ value options]
-  `(when-not (util.type/binary? ~value)
-     :mikron/invalid))
+(defmethod valid? :int [_ value _]
+  `(util.type/valid-integer? ~value 4 true))
 
-(defmethod validate :nil [_ value options]
-  `(when-not (nil? ~value)
-     :mikron/invalid))
+(defmethod valid? :uint [_ value _]
+  `(util.type/valid-integer? ~value 4 false))
 
-(defmethod validate :keyword [_ value options]
-  `(when-not (keyword? ~value)
-     :mikron/invalid))
+(defmethod valid? :long [_ value _]
+  `(util.type/valid-integer? ~value 8 true))
 
-(defmethod validate :symbol [_ value options]
-  `(when-not (symbol? ~value)
-     :mikron/invalid))
+(defmethod valid? :varint [schema value env]
+  (valid? :long value env))
 
-(defmethod validate :list [[_ _ schema'] value options]
+(defmethod valid? :floating [_ value _]
+  `(number? ~value))
+
+(defmethod valid? :boolean [_ value _]
+  `(any? ~value))
+
+(defmethod valid? :char [_ value _]
+  `(char? ~value))
+
+(defmethod valid? :string [_ value _]
+  `(string? ~value))
+
+(defmethod valid? :binary [_ value _]
+  `(util.type/binary? ~value))
+
+(defmethod valid? :nil [_ value _]
+  `(nil? ~value))
+
+(defmethod valid? :keyword [_ value _]
+  `(keyword? ~value))
+
+(defmethod valid? :symbol [_ value _]
+  `(symbol? ~value))
+
+(defmethod valid? :list [[_ _ schema'] value env]
   (compile-util/with-gensyms [value']
-    `(when (or (not (sequential? ~value))
-               (->> ~value
-                    (map (fn [~value']
-                           ~(validate schema' value' options)))
-                    (some #{:mikron/invalid})))
-       :mikron/invalid)))
+    `(and (sequential? ~value)
+          (every? (fn [~value']
+                    ~(valid? schema' value' env))
+                  ~value))))
 
-(defmethod validate :vector [[_ _ schema'] value options]
+(defmethod valid? :vector [[_ _ schema'] value env]
   (compile-util/with-gensyms [value']
-    `(when (or (not (vector? ~value))
-               (->> ~value
-                    (map (fn [~value']
-                           ~(validate schema' value' options)))
-                    (some #{:mikron/invalid})))
-       :mikron/invalid)))
+    `(and (vector? ~value)
+          (util.coll/every? (fn [~value']
+                              ~(valid? schema' value' env))
+                            ~value))))
 
-(defmethod validate :set [[_ _ schema'] value options]
+(defmethod valid? :set [[_ _ schema'] value env]
   (compile-util/with-gensyms [value']
-    `(when (or (not (set? ~value))
-               (->> ~value
-                    (map (fn [~value']
-                           ~(validate schema' value' options)))
-                    (some #{:mikron/invalid})))
-       :mikron/invalid)))
+    `(and (set? ~value)
+          (every? (fn [~value']
+                    ~(valid? schema' value' env))
+                  ~value))))
 
-(defmethod validate :map [[_ _ key-schema val-schema] value options]
-  (compile-util/with-gensyms [key val]
-    `(when (or (not (map? ~value))
-               (->> ~value
-                    (mapcat (fn [[~key ~val]]
-                              [~(validate key-schema key options)
-                               ~(validate val-schema val options)]))
-                    (some #{:mikron/invalid})))
-       :mikron/invalid)))
+(defmethod valid? :map [[_ _ key-schema val-schema] value env]
+  (compile-util/with-gensyms [entry k v]
+    `(and (map? ~value)
+          (every? (fn [~entry]
+                    (let [~k (key ~entry)
+                          ~v (val ~entry)]
+                      (and ~(valid? key-schema k env)
+                           ~(valid? val-schema v env))))
+                  ~value))))
 
-(defmethod validate :tuple [[_ _ schemas] value options]
+(defmethod valid? :tuple [[_ _ schemas] value env]
   (compile-util/with-gensyms [value']
-    `(when (or (not (vector? ~value))
-               ~@(map-indexed (fn [index schema']
-                                `(let [~value' (get ~value ~index)]
-                                   (= :mikron/invalid ~(validate schema' value' options))))
-                              schemas))
-       :mikron/invalid)))
+    `(and (vector? ~value)
+          (== (util.coll/count ~value) ~(count schemas))
+          ~@(map-indexed (fn [index schema']
+                           `(let [~value' (util.coll/nth ~value ~index)]
+                              ~(valid? schema' value' env)))
+                         schemas))))
 
-(defmethod validate :record [[_ {:keys [type]} schemas] value options]
+(defmethod valid? :record [[_ {:keys [type]} schemas] value env]
   (compile-util/with-gensyms [value']
-    `(when (or (not (map? ~value))
-               ~@(when type [`(not (instance? ~(first type) ~value))])
-               ~@(map (fn [[index schema']]
-                        `(let [~value' ~(compile-util/record-lookup value index type)]
-                           (= :mikron/invalid ~(validate schema' value' options))))
-                      schemas))
-       :mikron/invalid)))
+    `(and ~(if type
+             `(instance? ~(first type) ~value)
+             `(map? ~value))
+          ~@(map (fn [[index schema']]
+                   `(let [~value' ~(compile-util/record-lookup value index type)]
+                      ~(valid? schema' value' env)))
+                 schemas))))
 
-(defmethod validate :optional [[_ _ schema'] value options]
-  `(when (and ~value
-              (= :mikron/invalid ~(validate schema' value options)))
-     :mikron/invalid))
+(defmethod valid? :optional [[_ _ schema'] value env]
+  `(or (nil? ~value)
+       ~(valid? schema' value env)))
 
-(defmethod validate :multi [[_ _ selector multi-map] value {:keys [cljs-mode?] :as options}]
-  (compile-util/with-gensyms [multi-case value' e]
-    `(let [~multi-case (try
-                         (~selector ~value)
-                         (catch ~(if cljs-mode? `js/Object `Exception) ~e
-                           :mikron/invalid))]
-       (if (= :mikron/invalid ~multi-case)
-         :mikron/invalid
-         (case ~multi-case
-           ~@(mapcat (fn [[multi-case' schema']]
-                       [multi-case' `(let [~value' ~(validate schema' value options)]
-                                       (when (= :mikron/invalid ~value')
-                                         :mikron/invalid))])
-                     multi-map)
-           :else :mikron/invalid)))))
+(defmethod valid? :multi [[_ _ selector multi-map] value env]
+  (compile-util/with-gensyms [value']
+    `(case (util/safe false (~selector ~value))
+       ~@(mapcat (fn [[multi-case schema']]
+                   [multi-case (valid? schema' value env)])
+                 multi-map)
+       :else false)))
 
-(defmethod validate :enum [[_ _ enum-values] value _]
-  `(when-not (~(set enum-values) ~value)
-     :mikron/invalid))
+(defmethod valid? :enum [[_ _ enum-values] value _]
+  `(~(set enum-values) ~value))
 
-(defmethod validate :date [_ value _]
-  `(when-not (util.type/date? ~value)
-     :mikron/invalid))
+(defmethod valid? :wrapped [[_ _ pre _ schema'] value env]
+  (compile-util/with-gensyms [value']
+    `(let [~value' (util/safe :mikron/invalid (~pre ~value))]
+       (and (not= :mikron/invalid ~value')
+            ~(valid? schema' value' env)))))
 
-(defmethod validate :wrapped [[_ _ pre post schema'] value {:keys [cljs-mode?] :as options}]
-  (compile-util/with-gensyms [value' value'* e]
-    `(let [~value' (try
-                     (let [~value'* (~pre ~value)]
-                       (~post ~value'*)
-                       ~value'*)
-                     (catch ~(if cljs-mode? `js/Object `Exception) ~e
-                       :mikron/invalid))]
-       (when (or (= :mikron/invalid ~value')
-                 (= :mikron/invalid ~(validate schema' value' options)))
-         :mikron/invalid))))
+(defmethod valid? :aliased [schema value env]
+  (valid? (type/aliases schema) value env))
 
-(defmethod validate :aliased [schema value options]
-  (validate (type/aliases schema) value options))
+(defmethod valid? :custom [schema value _]
+  `(~(compile-util/processor-name :valid? schema) ~value))
 
-(defmethod validate :custom [schema value _]
-  `(~(compile-util/processor-name :validate schema)
-    ~value))
-
-(defmethod validate :default [_ _ _]
-  nil)
-
-(defmethod codegen.common/fast-processors :validate [_ schema-name {:keys [schemas] :as options}]
+(defmethod compile-util/processor :valid? [_ {:keys [schema] :as env}]
   (compile-util/with-gensyms [value]
-    [`(~(compile-util/processor-name :validate schema-name)
-       [~value]
-       ~(validate (schemas schema-name) value options))]))
-
-(defmethod codegen.common/processors :validate [_ schema-name options]
-  (compile-util/with-gensyms [_ value]
-    [`(defmethod util/process [:validate ~schema-name] [~_ ~_ ~value]
-        (~(compile-util/processor-name :validate schema-name)
-         ~value))]))
+    `([~value]
+      ~(valid? schema value env))))

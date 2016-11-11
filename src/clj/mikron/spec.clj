@@ -17,7 +17,7 @@
                            [~'type (or ~'options {}) ~@field-syms])))))
 
 (s/def ::sorted-by
-  ident?)
+  some?)
 
 (s/def ::type
   (s/and (s/cat :class   symbol?
@@ -28,9 +28,6 @@
 (defmulti schema-spec compile-util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod schema-spec :simple [_]
-  any?)
-
-(defmethod schema-spec :custom [_]
   any?)
 
 (defmethod schema-spec :coll [_]
@@ -73,18 +70,15 @@
                 :post    ident?
                 :schema  ::schema))
 
+(defmethod schema-spec :custom [_]
+  any?)
+
 (defmethod schema-spec :default [_]
-  (complement any?))
+  (constantly false))
 
 (s/def ::schema
-  (s/and (fn [schema]
-           (empty? (descendants type/hierarchy (compile-util/type-of schema))))
+  (s/and #(empty? (descendants type/hierarchy %))
          (s/multi-spec schema-spec compile-util/type-of)))
-
-(s/def ::schemas
-  (s/and (fn [schemas]
-           (alter-var-root #'type/hierarchy type/add-custom-types (keys schemas)))
-         (s/map-of qualified-keyword? ::schema)))
 
 (s/def ::route
   (s/and (s/or :tuple           (s/map-of int? ::route)
@@ -93,25 +87,18 @@
                :true            true?)
          (s/conformer second)))
 
-(s/def :route/all
-  ::route)
+(s/def :route/all ::route)
 
-(s/def ::routes
-  (s/map-of keyword? ::route))
+(s/def ::diff ::route)
 
-(s/def ::diff-routes
-  ::routes)
+(s/def ::interp ::route)
 
-(s/def ::interp-routes
-  ::routes)
+(s/def ::schema-args
+  (s/cat :schema ::schema
+         :ext    (s/keys* :opt-un [::diff ::interp])))
 
-(s/def ::options
-  (s/and (s/keys :req-un [::schemas]
-                 :opt-un [::diff-routes ::interp-routes])
-         (s/conformer (fn [{:keys [schemas diff-routes interp-routes]
-                            :or   {diff-routes {} interp-routes {}}}]
-                        {:schemas       schemas
-                         :diff-routes   diff-routes
-                         :interp-routes interp-routes}))))
-
-;; todo: validate routes + schemas
+(s/def ::defschema-args
+  (s/cat :schema-name symbol?
+         :docstring   (s/? string?)
+         :schema      ::schema
+         :ext         (s/keys* :opt-un [::diff ::interp])))

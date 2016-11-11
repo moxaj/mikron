@@ -551,6 +551,1788 @@ public final class Mikron {
 
   }
 
+  public interface PersonOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:Person)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string firstName = 1;</code>
+     */
+    java.lang.String getFirstName();
+    /**
+     * <code>optional string firstName = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getFirstNameBytes();
+
+    /**
+     * <code>optional string lastName = 2;</code>
+     */
+    java.lang.String getLastName();
+    /**
+     * <code>optional string lastName = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getLastNameBytes();
+  }
+  /**
+   * Protobuf type {@code Person}
+   */
+  public  static final class Person extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:Person)
+      PersonOrBuilder {
+    // Use Person.newBuilder() to construct.
+    private Person(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private Person() {
+      firstName_ = "";
+      lastName_ = "";
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+    }
+    private Person(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!input.skipField(tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              firstName_ = s;
+              break;
+            }
+            case 18: {
+              java.lang.String s = input.readStringRequireUtf8();
+
+              lastName_ = s;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return mikron.Mikron.internal_static_Person_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return mikron.Mikron.internal_static_Person_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              mikron.Mikron.Person.class, mikron.Mikron.Person.Builder.class);
+    }
+
+    public static final int FIRSTNAME_FIELD_NUMBER = 1;
+    private volatile java.lang.Object firstName_;
+    /**
+     * <code>optional string firstName = 1;</code>
+     */
+    public java.lang.String getFirstName() {
+      java.lang.Object ref = firstName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        firstName_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string firstName = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getFirstNameBytes() {
+      java.lang.Object ref = firstName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        firstName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int LASTNAME_FIELD_NUMBER = 2;
+    private volatile java.lang.Object lastName_;
+    /**
+     * <code>optional string lastName = 2;</code>
+     */
+    public java.lang.String getLastName() {
+      java.lang.Object ref = lastName_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        lastName_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string lastName = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getLastNameBytes() {
+      java.lang.Object ref = lastName_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        lastName_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!getFirstNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 1, firstName_);
+      }
+      if (!getLastNameBytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, lastName_);
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!getFirstNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, firstName_);
+      }
+      if (!getLastNameBytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, lastName_);
+      }
+      memoizedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof mikron.Mikron.Person)) {
+        return super.equals(obj);
+      }
+      mikron.Mikron.Person other = (mikron.Mikron.Person) obj;
+
+      boolean result = true;
+      result = result && getFirstName()
+          .equals(other.getFirstName());
+      result = result && getLastName()
+          .equals(other.getLastName());
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (37 * hash) + FIRSTNAME_FIELD_NUMBER;
+      hash = (53 * hash) + getFirstName().hashCode();
+      hash = (37 * hash) + LASTNAME_FIELD_NUMBER;
+      hash = (53 * hash) + getLastName().hashCode();
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static mikron.Mikron.Person parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static mikron.Mikron.Person parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static mikron.Mikron.Person parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static mikron.Mikron.Person parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static mikron.Mikron.Person parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Person parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static mikron.Mikron.Person parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Person parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static mikron.Mikron.Person parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Person parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(mikron.Mikron.Person prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Person}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:Person)
+        mikron.Mikron.PersonOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return mikron.Mikron.internal_static_Person_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return mikron.Mikron.internal_static_Person_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                mikron.Mikron.Person.class, mikron.Mikron.Person.Builder.class);
+      }
+
+      // Construct using mikron.Mikron.Person.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        firstName_ = "";
+
+        lastName_ = "";
+
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return mikron.Mikron.internal_static_Person_descriptor;
+      }
+
+      public mikron.Mikron.Person getDefaultInstanceForType() {
+        return mikron.Mikron.Person.getDefaultInstance();
+      }
+
+      public mikron.Mikron.Person build() {
+        mikron.Mikron.Person result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public mikron.Mikron.Person buildPartial() {
+        mikron.Mikron.Person result = new mikron.Mikron.Person(this);
+        result.firstName_ = firstName_;
+        result.lastName_ = lastName_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof mikron.Mikron.Person) {
+          return mergeFrom((mikron.Mikron.Person)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(mikron.Mikron.Person other) {
+        if (other == mikron.Mikron.Person.getDefaultInstance()) return this;
+        if (!other.getFirstName().isEmpty()) {
+          firstName_ = other.firstName_;
+          onChanged();
+        }
+        if (!other.getLastName().isEmpty()) {
+          lastName_ = other.lastName_;
+          onChanged();
+        }
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        mikron.Mikron.Person parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (mikron.Mikron.Person) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private java.lang.Object firstName_ = "";
+      /**
+       * <code>optional string firstName = 1;</code>
+       */
+      public java.lang.String getFirstName() {
+        java.lang.Object ref = firstName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          firstName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string firstName = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getFirstNameBytes() {
+        java.lang.Object ref = firstName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          firstName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string firstName = 1;</code>
+       */
+      public Builder setFirstName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        firstName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string firstName = 1;</code>
+       */
+      public Builder clearFirstName() {
+        
+        firstName_ = getDefaultInstance().getFirstName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string firstName = 1;</code>
+       */
+      public Builder setFirstNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        firstName_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object lastName_ = "";
+      /**
+       * <code>optional string lastName = 2;</code>
+       */
+      public java.lang.String getLastName() {
+        java.lang.Object ref = lastName_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          lastName_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string lastName = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getLastNameBytes() {
+        java.lang.Object ref = lastName_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          lastName_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string lastName = 2;</code>
+       */
+      public Builder setLastName(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  
+        lastName_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string lastName = 2;</code>
+       */
+      public Builder clearLastName() {
+        
+        lastName_ = getDefaultInstance().getLastName();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string lastName = 2;</code>
+       */
+      public Builder setLastNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        
+        lastName_ = value;
+        onChanged();
+        return this;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:Person)
+    }
+
+    // @@protoc_insertion_point(class_scope:Person)
+    private static final mikron.Mikron.Person DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new mikron.Mikron.Person();
+    }
+
+    public static mikron.Mikron.Person getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Person>
+        PARSER = new com.google.protobuf.AbstractParser<Person>() {
+      public Person parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new Person(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<Person> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Person> getParserForType() {
+      return PARSER;
+    }
+
+    public mikron.Mikron.Person getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface QuartetOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:Quartet)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    boolean hasP1();
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    mikron.Mikron.Person getP1();
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    mikron.Mikron.PersonOrBuilder getP1OrBuilder();
+
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    boolean hasP2();
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    mikron.Mikron.Person getP2();
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    mikron.Mikron.PersonOrBuilder getP2OrBuilder();
+
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    boolean hasP3();
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    mikron.Mikron.Person getP3();
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    mikron.Mikron.PersonOrBuilder getP3OrBuilder();
+
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    boolean hasP4();
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    mikron.Mikron.Person getP4();
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    mikron.Mikron.PersonOrBuilder getP4OrBuilder();
+  }
+  /**
+   * Protobuf type {@code Quartet}
+   */
+  public  static final class Quartet extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:Quartet)
+      QuartetOrBuilder {
+    // Use Quartet.newBuilder() to construct.
+    private Quartet(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private Quartet() {
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return com.google.protobuf.UnknownFieldSet.getDefaultInstance();
+    }
+    private Quartet(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      int mutable_bitField0_ = 0;
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!input.skipField(tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              mikron.Mikron.Person.Builder subBuilder = null;
+              if (p1_ != null) {
+                subBuilder = p1_.toBuilder();
+              }
+              p1_ = input.readMessage(mikron.Mikron.Person.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(p1_);
+                p1_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 18: {
+              mikron.Mikron.Person.Builder subBuilder = null;
+              if (p2_ != null) {
+                subBuilder = p2_.toBuilder();
+              }
+              p2_ = input.readMessage(mikron.Mikron.Person.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(p2_);
+                p2_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 26: {
+              mikron.Mikron.Person.Builder subBuilder = null;
+              if (p3_ != null) {
+                subBuilder = p3_.toBuilder();
+              }
+              p3_ = input.readMessage(mikron.Mikron.Person.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(p3_);
+                p3_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+            case 34: {
+              mikron.Mikron.Person.Builder subBuilder = null;
+              if (p4_ != null) {
+                subBuilder = p4_.toBuilder();
+              }
+              p4_ = input.readMessage(mikron.Mikron.Person.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(p4_);
+                p4_ = subBuilder.buildPartial();
+              }
+
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return mikron.Mikron.internal_static_Quartet_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return mikron.Mikron.internal_static_Quartet_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              mikron.Mikron.Quartet.class, mikron.Mikron.Quartet.Builder.class);
+    }
+
+    public static final int P1_FIELD_NUMBER = 1;
+    private mikron.Mikron.Person p1_;
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    public boolean hasP1() {
+      return p1_ != null;
+    }
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    public mikron.Mikron.Person getP1() {
+      return p1_ == null ? mikron.Mikron.Person.getDefaultInstance() : p1_;
+    }
+    /**
+     * <code>optional .Person p1 = 1;</code>
+     */
+    public mikron.Mikron.PersonOrBuilder getP1OrBuilder() {
+      return getP1();
+    }
+
+    public static final int P2_FIELD_NUMBER = 2;
+    private mikron.Mikron.Person p2_;
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    public boolean hasP2() {
+      return p2_ != null;
+    }
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    public mikron.Mikron.Person getP2() {
+      return p2_ == null ? mikron.Mikron.Person.getDefaultInstance() : p2_;
+    }
+    /**
+     * <code>optional .Person p2 = 2;</code>
+     */
+    public mikron.Mikron.PersonOrBuilder getP2OrBuilder() {
+      return getP2();
+    }
+
+    public static final int P3_FIELD_NUMBER = 3;
+    private mikron.Mikron.Person p3_;
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    public boolean hasP3() {
+      return p3_ != null;
+    }
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    public mikron.Mikron.Person getP3() {
+      return p3_ == null ? mikron.Mikron.Person.getDefaultInstance() : p3_;
+    }
+    /**
+     * <code>optional .Person p3 = 3;</code>
+     */
+    public mikron.Mikron.PersonOrBuilder getP3OrBuilder() {
+      return getP3();
+    }
+
+    public static final int P4_FIELD_NUMBER = 4;
+    private mikron.Mikron.Person p4_;
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    public boolean hasP4() {
+      return p4_ != null;
+    }
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    public mikron.Mikron.Person getP4() {
+      return p4_ == null ? mikron.Mikron.Person.getDefaultInstance() : p4_;
+    }
+    /**
+     * <code>optional .Person p4 = 4;</code>
+     */
+    public mikron.Mikron.PersonOrBuilder getP4OrBuilder() {
+      return getP4();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (p1_ != null) {
+        output.writeMessage(1, getP1());
+      }
+      if (p2_ != null) {
+        output.writeMessage(2, getP2());
+      }
+      if (p3_ != null) {
+        output.writeMessage(3, getP3());
+      }
+      if (p4_ != null) {
+        output.writeMessage(4, getP4());
+      }
+    }
+
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (p1_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getP1());
+      }
+      if (p2_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getP2());
+      }
+      if (p3_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getP3());
+      }
+      if (p4_ != null) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getP4());
+      }
+      memoizedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof mikron.Mikron.Quartet)) {
+        return super.equals(obj);
+      }
+      mikron.Mikron.Quartet other = (mikron.Mikron.Quartet) obj;
+
+      boolean result = true;
+      result = result && (hasP1() == other.hasP1());
+      if (hasP1()) {
+        result = result && getP1()
+            .equals(other.getP1());
+      }
+      result = result && (hasP2() == other.hasP2());
+      if (hasP2()) {
+        result = result && getP2()
+            .equals(other.getP2());
+      }
+      result = result && (hasP3() == other.hasP3());
+      if (hasP3()) {
+        result = result && getP3()
+            .equals(other.getP3());
+      }
+      result = result && (hasP4() == other.hasP4());
+      if (hasP4()) {
+        result = result && getP4()
+            .equals(other.getP4());
+      }
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      if (hasP1()) {
+        hash = (37 * hash) + P1_FIELD_NUMBER;
+        hash = (53 * hash) + getP1().hashCode();
+      }
+      if (hasP2()) {
+        hash = (37 * hash) + P2_FIELD_NUMBER;
+        hash = (53 * hash) + getP2().hashCode();
+      }
+      if (hasP3()) {
+        hash = (37 * hash) + P3_FIELD_NUMBER;
+        hash = (53 * hash) + getP3().hashCode();
+      }
+      if (hasP4()) {
+        hash = (37 * hash) + P4_FIELD_NUMBER;
+        hash = (53 * hash) + getP4().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static mikron.Mikron.Quartet parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static mikron.Mikron.Quartet parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static mikron.Mikron.Quartet parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static mikron.Mikron.Quartet parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static mikron.Mikron.Quartet parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Quartet parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static mikron.Mikron.Quartet parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Quartet parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static mikron.Mikron.Quartet parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static mikron.Mikron.Quartet parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(mikron.Mikron.Quartet prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code Quartet}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:Quartet)
+        mikron.Mikron.QuartetOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return mikron.Mikron.internal_static_Quartet_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return mikron.Mikron.internal_static_Quartet_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                mikron.Mikron.Quartet.class, mikron.Mikron.Quartet.Builder.class);
+      }
+
+      // Construct using mikron.Mikron.Quartet.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+        }
+      }
+      public Builder clear() {
+        super.clear();
+        if (p1Builder_ == null) {
+          p1_ = null;
+        } else {
+          p1_ = null;
+          p1Builder_ = null;
+        }
+        if (p2Builder_ == null) {
+          p2_ = null;
+        } else {
+          p2_ = null;
+          p2Builder_ = null;
+        }
+        if (p3Builder_ == null) {
+          p3_ = null;
+        } else {
+          p3_ = null;
+          p3Builder_ = null;
+        }
+        if (p4Builder_ == null) {
+          p4_ = null;
+        } else {
+          p4_ = null;
+          p4Builder_ = null;
+        }
+        return this;
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return mikron.Mikron.internal_static_Quartet_descriptor;
+      }
+
+      public mikron.Mikron.Quartet getDefaultInstanceForType() {
+        return mikron.Mikron.Quartet.getDefaultInstance();
+      }
+
+      public mikron.Mikron.Quartet build() {
+        mikron.Mikron.Quartet result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public mikron.Mikron.Quartet buildPartial() {
+        mikron.Mikron.Quartet result = new mikron.Mikron.Quartet(this);
+        if (p1Builder_ == null) {
+          result.p1_ = p1_;
+        } else {
+          result.p1_ = p1Builder_.build();
+        }
+        if (p2Builder_ == null) {
+          result.p2_ = p2_;
+        } else {
+          result.p2_ = p2Builder_.build();
+        }
+        if (p3Builder_ == null) {
+          result.p3_ = p3_;
+        } else {
+          result.p3_ = p3Builder_.build();
+        }
+        if (p4Builder_ == null) {
+          result.p4_ = p4_;
+        } else {
+          result.p4_ = p4Builder_.build();
+        }
+        onBuilt();
+        return result;
+      }
+
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof mikron.Mikron.Quartet) {
+          return mergeFrom((mikron.Mikron.Quartet)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(mikron.Mikron.Quartet other) {
+        if (other == mikron.Mikron.Quartet.getDefaultInstance()) return this;
+        if (other.hasP1()) {
+          mergeP1(other.getP1());
+        }
+        if (other.hasP2()) {
+          mergeP2(other.getP2());
+        }
+        if (other.hasP3()) {
+          mergeP3(other.getP3());
+        }
+        if (other.hasP4()) {
+          mergeP4(other.getP4());
+        }
+        onChanged();
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        mikron.Mikron.Quartet parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (mikron.Mikron.Quartet) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      private mikron.Mikron.Person p1_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> p1Builder_;
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public boolean hasP1() {
+        return p1Builder_ != null || p1_ != null;
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public mikron.Mikron.Person getP1() {
+        if (p1Builder_ == null) {
+          return p1_ == null ? mikron.Mikron.Person.getDefaultInstance() : p1_;
+        } else {
+          return p1Builder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public Builder setP1(mikron.Mikron.Person value) {
+        if (p1Builder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          p1_ = value;
+          onChanged();
+        } else {
+          p1Builder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public Builder setP1(
+          mikron.Mikron.Person.Builder builderForValue) {
+        if (p1Builder_ == null) {
+          p1_ = builderForValue.build();
+          onChanged();
+        } else {
+          p1Builder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public Builder mergeP1(mikron.Mikron.Person value) {
+        if (p1Builder_ == null) {
+          if (p1_ != null) {
+            p1_ =
+              mikron.Mikron.Person.newBuilder(p1_).mergeFrom(value).buildPartial();
+          } else {
+            p1_ = value;
+          }
+          onChanged();
+        } else {
+          p1Builder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public Builder clearP1() {
+        if (p1Builder_ == null) {
+          p1_ = null;
+          onChanged();
+        } else {
+          p1_ = null;
+          p1Builder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public mikron.Mikron.Person.Builder getP1Builder() {
+        
+        onChanged();
+        return getP1FieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      public mikron.Mikron.PersonOrBuilder getP1OrBuilder() {
+        if (p1Builder_ != null) {
+          return p1Builder_.getMessageOrBuilder();
+        } else {
+          return p1_ == null ?
+              mikron.Mikron.Person.getDefaultInstance() : p1_;
+        }
+      }
+      /**
+       * <code>optional .Person p1 = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> 
+          getP1FieldBuilder() {
+        if (p1Builder_ == null) {
+          p1Builder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder>(
+                  getP1(),
+                  getParentForChildren(),
+                  isClean());
+          p1_ = null;
+        }
+        return p1Builder_;
+      }
+
+      private mikron.Mikron.Person p2_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> p2Builder_;
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public boolean hasP2() {
+        return p2Builder_ != null || p2_ != null;
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public mikron.Mikron.Person getP2() {
+        if (p2Builder_ == null) {
+          return p2_ == null ? mikron.Mikron.Person.getDefaultInstance() : p2_;
+        } else {
+          return p2Builder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public Builder setP2(mikron.Mikron.Person value) {
+        if (p2Builder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          p2_ = value;
+          onChanged();
+        } else {
+          p2Builder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public Builder setP2(
+          mikron.Mikron.Person.Builder builderForValue) {
+        if (p2Builder_ == null) {
+          p2_ = builderForValue.build();
+          onChanged();
+        } else {
+          p2Builder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public Builder mergeP2(mikron.Mikron.Person value) {
+        if (p2Builder_ == null) {
+          if (p2_ != null) {
+            p2_ =
+              mikron.Mikron.Person.newBuilder(p2_).mergeFrom(value).buildPartial();
+          } else {
+            p2_ = value;
+          }
+          onChanged();
+        } else {
+          p2Builder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public Builder clearP2() {
+        if (p2Builder_ == null) {
+          p2_ = null;
+          onChanged();
+        } else {
+          p2_ = null;
+          p2Builder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public mikron.Mikron.Person.Builder getP2Builder() {
+        
+        onChanged();
+        return getP2FieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      public mikron.Mikron.PersonOrBuilder getP2OrBuilder() {
+        if (p2Builder_ != null) {
+          return p2Builder_.getMessageOrBuilder();
+        } else {
+          return p2_ == null ?
+              mikron.Mikron.Person.getDefaultInstance() : p2_;
+        }
+      }
+      /**
+       * <code>optional .Person p2 = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> 
+          getP2FieldBuilder() {
+        if (p2Builder_ == null) {
+          p2Builder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder>(
+                  getP2(),
+                  getParentForChildren(),
+                  isClean());
+          p2_ = null;
+        }
+        return p2Builder_;
+      }
+
+      private mikron.Mikron.Person p3_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> p3Builder_;
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public boolean hasP3() {
+        return p3Builder_ != null || p3_ != null;
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public mikron.Mikron.Person getP3() {
+        if (p3Builder_ == null) {
+          return p3_ == null ? mikron.Mikron.Person.getDefaultInstance() : p3_;
+        } else {
+          return p3Builder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public Builder setP3(mikron.Mikron.Person value) {
+        if (p3Builder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          p3_ = value;
+          onChanged();
+        } else {
+          p3Builder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public Builder setP3(
+          mikron.Mikron.Person.Builder builderForValue) {
+        if (p3Builder_ == null) {
+          p3_ = builderForValue.build();
+          onChanged();
+        } else {
+          p3Builder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public Builder mergeP3(mikron.Mikron.Person value) {
+        if (p3Builder_ == null) {
+          if (p3_ != null) {
+            p3_ =
+              mikron.Mikron.Person.newBuilder(p3_).mergeFrom(value).buildPartial();
+          } else {
+            p3_ = value;
+          }
+          onChanged();
+        } else {
+          p3Builder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public Builder clearP3() {
+        if (p3Builder_ == null) {
+          p3_ = null;
+          onChanged();
+        } else {
+          p3_ = null;
+          p3Builder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public mikron.Mikron.Person.Builder getP3Builder() {
+        
+        onChanged();
+        return getP3FieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      public mikron.Mikron.PersonOrBuilder getP3OrBuilder() {
+        if (p3Builder_ != null) {
+          return p3Builder_.getMessageOrBuilder();
+        } else {
+          return p3_ == null ?
+              mikron.Mikron.Person.getDefaultInstance() : p3_;
+        }
+      }
+      /**
+       * <code>optional .Person p3 = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> 
+          getP3FieldBuilder() {
+        if (p3Builder_ == null) {
+          p3Builder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder>(
+                  getP3(),
+                  getParentForChildren(),
+                  isClean());
+          p3_ = null;
+        }
+        return p3Builder_;
+      }
+
+      private mikron.Mikron.Person p4_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> p4Builder_;
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public boolean hasP4() {
+        return p4Builder_ != null || p4_ != null;
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public mikron.Mikron.Person getP4() {
+        if (p4Builder_ == null) {
+          return p4_ == null ? mikron.Mikron.Person.getDefaultInstance() : p4_;
+        } else {
+          return p4Builder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public Builder setP4(mikron.Mikron.Person value) {
+        if (p4Builder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          p4_ = value;
+          onChanged();
+        } else {
+          p4Builder_.setMessage(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public Builder setP4(
+          mikron.Mikron.Person.Builder builderForValue) {
+        if (p4Builder_ == null) {
+          p4_ = builderForValue.build();
+          onChanged();
+        } else {
+          p4Builder_.setMessage(builderForValue.build());
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public Builder mergeP4(mikron.Mikron.Person value) {
+        if (p4Builder_ == null) {
+          if (p4_ != null) {
+            p4_ =
+              mikron.Mikron.Person.newBuilder(p4_).mergeFrom(value).buildPartial();
+          } else {
+            p4_ = value;
+          }
+          onChanged();
+        } else {
+          p4Builder_.mergeFrom(value);
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public Builder clearP4() {
+        if (p4Builder_ == null) {
+          p4_ = null;
+          onChanged();
+        } else {
+          p4_ = null;
+          p4Builder_ = null;
+        }
+
+        return this;
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public mikron.Mikron.Person.Builder getP4Builder() {
+        
+        onChanged();
+        return getP4FieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      public mikron.Mikron.PersonOrBuilder getP4OrBuilder() {
+        if (p4Builder_ != null) {
+          return p4Builder_.getMessageOrBuilder();
+        } else {
+          return p4_ == null ?
+              mikron.Mikron.Person.getDefaultInstance() : p4_;
+        }
+      }
+      /**
+       * <code>optional .Person p4 = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder> 
+          getP4FieldBuilder() {
+        if (p4Builder_ == null) {
+          p4Builder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              mikron.Mikron.Person, mikron.Mikron.Person.Builder, mikron.Mikron.PersonOrBuilder>(
+                  getP4(),
+                  getParentForChildren(),
+                  isClean());
+          p4_ = null;
+        }
+        return p4Builder_;
+      }
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return this;
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:Quartet)
+    }
+
+    // @@protoc_insertion_point(class_scope:Quartet)
+    private static final mikron.Mikron.Quartet DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new mikron.Mikron.Quartet();
+    }
+
+    public static mikron.Mikron.Quartet getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Quartet>
+        PARSER = new com.google.protobuf.AbstractParser<Quartet>() {
+      public Quartet parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+          return new Quartet(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<Quartet> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Quartet> getParserForType() {
+      return PARSER;
+    }
+
+    public mikron.Mikron.Quartet getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface CoordOrBuilder extends
       // @@protoc_insertion_point(interface_extends:Coord)
       com.google.protobuf.MessageOrBuilder {
@@ -5038,6 +6820,16 @@ public final class Mikron {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_Doubles_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Person_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Person_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_Quartet_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_Quartet_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_Coord_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -5077,17 +6869,21 @@ public final class Mikron {
   static {
     java.lang.String[] descriptorData = {
       "\n\014mikron.proto\"\032\n\007Doubles\022\017\n\007doubles\030\001 \003" +
-      "(\001\"\035\n\005Coord\022\t\n\001x\030\001 \001(\001\022\t\n\001y\030\002 \001(\001\" \n\017Fix" +
-      "tureUserData\022\r\n\005color\030\001 \001(\005\"E\n\007Fixture\022\"" +
-      "\n\010userData\030\001 \001(\0132\020.FixtureUserData\022\026\n\006co" +
-      "ords\030\002 \003(\0132\006.Coord\"\032\n\014BodyUserData\022\n\n\002id" +
-      "\030\001 \001(\005\"\300\001\n\004Body\022\037\n\010userData\030\001 \001(\0132\r.Body" +
-      "UserData\022\030\n\010position\030\002 \001(\0132\006.Coord\022\r\n\005an" +
-      "gle\030\003 \001(\002\022 \n\010bodyType\030\004 \001(\0162\016.Body.BodyT" +
-      "ype\022\032\n\010fixtures\030\005 \003(\0132\010.Fixture\"0\n\010BodyT" +
-      "ype\022\013\n\007DYNAMIC\020\000\022\n\n\006STATIC\020\001\022\013\n\007KINETIC\020",
-      "\002\"/\n\010Snapshot\022\014\n\004time\030\001 \001(\003\022\025\n\006bodies\030\002 " +
-      "\003(\0132\005.BodyB\010\n\006mikronb\006proto3"
+      "(\001\"-\n\006Person\022\021\n\tfirstName\030\001 \001(\t\022\020\n\010lastN" +
+      "ame\030\002 \001(\t\"]\n\007Quartet\022\023\n\002p1\030\001 \001(\0132\007.Perso" +
+      "n\022\023\n\002p2\030\002 \001(\0132\007.Person\022\023\n\002p3\030\003 \001(\0132\007.Per" +
+      "son\022\023\n\002p4\030\004 \001(\0132\007.Person\"\035\n\005Coord\022\t\n\001x\030\001" +
+      " \001(\001\022\t\n\001y\030\002 \001(\001\" \n\017FixtureUserData\022\r\n\005co" +
+      "lor\030\001 \001(\005\"E\n\007Fixture\022\"\n\010userData\030\001 \001(\0132\020" +
+      ".FixtureUserData\022\026\n\006coords\030\002 \003(\0132\006.Coord" +
+      "\"\032\n\014BodyUserData\022\n\n\002id\030\001 \001(\005\"\300\001\n\004Body\022\037\n" +
+      "\010userData\030\001 \001(\0132\r.BodyUserData\022\030\n\010positi",
+      "on\030\002 \001(\0132\006.Coord\022\r\n\005angle\030\003 \001(\002\022 \n\010bodyT" +
+      "ype\030\004 \001(\0162\016.Body.BodyType\022\032\n\010fixtures\030\005 " +
+      "\003(\0132\010.Fixture\"0\n\010BodyType\022\013\n\007DYNAMIC\020\000\022\n" +
+      "\n\006STATIC\020\001\022\013\n\007KINETIC\020\002\"/\n\010Snapshot\022\014\n\004t" +
+      "ime\030\001 \001(\003\022\025\n\006bodies\030\002 \003(\0132\005.BodyB\010\n\006mikr" +
+      "onb\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -5107,38 +6903,50 @@ public final class Mikron {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Doubles_descriptor,
         new java.lang.String[] { "Doubles", });
-    internal_static_Coord_descriptor =
+    internal_static_Person_descriptor =
       getDescriptor().getMessageTypes().get(1);
+    internal_static_Person_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Person_descriptor,
+        new java.lang.String[] { "FirstName", "LastName", });
+    internal_static_Quartet_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_Quartet_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_Quartet_descriptor,
+        new java.lang.String[] { "P1", "P2", "P3", "P4", });
+    internal_static_Coord_descriptor =
+      getDescriptor().getMessageTypes().get(3);
     internal_static_Coord_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Coord_descriptor,
         new java.lang.String[] { "X", "Y", });
     internal_static_FixtureUserData_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_FixtureUserData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_FixtureUserData_descriptor,
         new java.lang.String[] { "Color", });
     internal_static_Fixture_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_Fixture_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Fixture_descriptor,
         new java.lang.String[] { "UserData", "Coords", });
     internal_static_BodyUserData_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_BodyUserData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_BodyUserData_descriptor,
         new java.lang.String[] { "Id", });
     internal_static_Body_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_Body_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Body_descriptor,
         new java.lang.String[] { "UserData", "Position", "Angle", "BodyType", "Fixtures", });
     internal_static_Snapshot_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_Snapshot_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_Snapshot_descriptor,

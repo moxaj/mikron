@@ -1,7 +1,47 @@
 (ns mikron.compile-util
-  "Compile time utility functions.")
+  "Compile time utility functions."
+  (:require [clojure.set :as set]))
+
+(defmacro cljs? []
+  `(boolean (:ns ~'&env)))
+
+;; macro helper
+
+(defmacro with-gensyms [binding-form & body]
+  `(let [~@(mapcat (fn [sym]
+                     [sym `(with-meta (gensym ~(str sym "_"))
+                                      ~(meta sym))])
+                   binding-form)]
+     ~@body))
+
+(defmacro evaluated [syms & body]
+  (let [m (into {} (map (juxt identity gensym) syms))]
+    `(let [~@(mapcat (fn [temp-sym] [temp-sym `(gensym)])
+                     (vals m))]
+       `(let [~~@(mapcat reverse m)]
+          ~(let [~@(mapcat identity m)]
+             ~@body)))))
+
+;; symbol
+
+(def processor-name
+  (memoize
+    (fn [processor-type schema-name]
+      (-> (str (name processor-type) "-" (name schema-name))
+          (gensym)
+          (with-meta {:processor-type processor-type
+                      :schema-name    schema-name})))))
 
 ;; coll
+
+(defn find-by* [f form]
+  (cond-> (if (seqable? form)
+            (mapcat (partial find-by* f) form)
+            [])
+    (f form) (conj form)))
+
+(defn find-by [f form]
+  (set (find-by* f form)))
 
 (defn index-of [item coll]
   (->> coll
@@ -15,28 +55,13 @@
   (cond
     (keyword? schema) schema
     (vector? schema)  (first schema)
+    (symbol? schema)  :custom
     :else             nil))
-
-(defn as-set [sorted-by body]
-  (if (nil? sorted-by)
-    body
-    `(into ~(if (= :default sorted-by)
-              `(sorted-set)
-              `(sorted-set-by ~sorted-by))
-           ~body)))
-
-(defn as-map [sorted-by body]
-  (if (nil? sorted-by)
-    body
-    `(into ~(if (= :default sorted-by)
-              `(sorted-map)
-              `(sorted-map-by ~sorted-by))
-           ~body)))
 
 (defn record-lookup [record index [class]]
   (if-not class
-    `(~index ~record)
-    `(~(symbol (str "." (name index)))
+    `(~record ~index)
+    `(~(symbol (str ".-" (name index)))
       ~(with-meta record {:tag class}))))
 
 (defn record->fields [schemas]
@@ -53,16 +78,4 @@
                (or (fields (keyword member)) 0))
              members))))
 
-;; symbol
-
-(defmacro with-gensyms [binding-form & body]
-  `(let [~@(mapcat (fn [sym]
-                     [sym `(with-meta (gensym ~(str sym "_"))
-                                      ~(meta sym))])
-                   binding-form)]
-     ~@body))
-
-(def processor-name
-  (memoize
-    (fn [processor-type schema-name]
-      (gensym (str (name processor-type) "-" (name schema-name))))))
+(defmulti processor (fn [processor-type env] processor-type))

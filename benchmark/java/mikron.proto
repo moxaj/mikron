@@ -6,6 +6,18 @@ message Doubles {
   repeated double doubles = 1;
 }
 
+message Person {
+  string firstName = 1;
+  string lastName = 2;
+}
+
+message Quartet {
+  Person p1 = 1;
+  Person p2 = 2;
+  Person p3 = 3;
+  Person p4 = 4;
+}
+
 message Coord {
   double x = 1;
   double y = 2;

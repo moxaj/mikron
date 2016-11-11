@@ -14,40 +14,35 @@
        :cljs (= (seq (.from js/Array (js/Int8Array. x)))
                 (seq (.from js/Array (js/Int8Array. y)))))))
 
-(defmulti test-mikron (fn [method schema-name dataset] method))
+(defmulti test-mikron (fn [method schema dataset] method))
 
-(defmethod test-mikron :pack [_ schema-name dataset]
+(defmethod test-mikron :pack [_ schema dataset]
   (doseq [value dataset]
-    (let [{value' :value :keys [schema diffed?]} (mikron/unpack (mikron/pack schema-name value))]
-      (are [x y] (equal? x y)
-        schema  schema-name
-        diffed? false
-        value   value'))))
+    (is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema) :value)))))
 
-(defmethod test-mikron :diff [_ schema-name dataset]
+(defmethod test-mikron :diff [_ schema dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
-    (is (= value-2 (mikron/undiff schema-name value-1 (mikron/diff schema-name value-1 value-2))))))
+    (is (= value-2 (->> value-2 (mikron/diff schema value-1) (mikron/undiff schema value-1))))))
 
-(defmethod test-mikron :validate [_ schema-name dataset]
+(defmethod test-mikron :valid? [_ schema dataset]
   (doseq [value dataset]
-    (is (mikron/valid? schema-name value))))
+    (is (mikron/valid? schema value))))
 
-(defmethod test-mikron :interp [_ schema-name dataset]
+(defmethod test-mikron :interp [_ schema dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
-    (mikron/interp schema-name value-1 value-2 0 1 0.5)))
+    (mikron/interp schema value-1 value-2 0 1 0.5)))
 
 #?(:clj
    (defmacro def-mikron-tests [test-cases]
      (compile-util/with-gensyms [dataset]
-       `(do ~@(map (fn [[test-name schema]]
-                     (let [schema-name (keyword (str (gensym)) (str (gensym)))]
-                       `(do (mikron/defprocessors {:schemas {~schema-name ~schema}})
-                            (let [~dataset (repeatedly 100 #(mikron/gen ~schema-name))]
-                              ~@(map (fn [method]
-                                       `(deftest ~(symbol (str (name method) "-" test-name))
-                                          (test-mikron ~method ~schema-name ~dataset)))
-                                     [:pack :diff :validate :interp])))))
-                   test-cases)))))
+       `(do ~@(map-indexed (fn [index [schema-name schema]]
+                             `(let [~schema-name (mikron/schema ~schema)
+                                    ~dataset     (repeatedly 100 #(mikron/gen ~schema-name))]
+                                ~@(map (fn [method]
+                                         `(deftest ~(symbol (str (name method) "-" (name schema-name)))
+                                            (test-mikron ~method ~schema-name ~dataset)))
+                                       (keys (methods test-mikron)))))
+                           test-cases)))))
 
 (defn pre-inc ^long [^long x]
   (inc x))
@@ -56,36 +51,35 @@
   (dec x))
 
 (def-mikron-tests
-  {byte         :byte
-   short        :short
-   int          :int
-   long         :long
-   #?@(:clj [float :float]) ;; js, meh
-   double       :double
-   boolean      :boolean
-   char         :char
-   ubyte        :ubyte
-   ushort       :ushort
-   uint         :uint
-   varint       :varint
-   string       :string
-   keyword      :keyword
-   symbol       :symbol
-   nil'         :nil
-   date         :date
-   binary       :binary
-   any          :any
-   list         [:list :byte]
-   vector       [:vector :int]
-   set          [:set :short]
-   <-sorted-set [:set {:sorted-by <} :short]
-   >-sorted-set [:set {:sorted-by >} :int]
-   map          [:map :byte :string]
-   <-sorted-map [:map {:sorted-by <} :byte :string]
-   >-sorted-map [:map {:sorted-by >} :byte :string]
-   optional     [:optional :byte]
-   enum         [:enum [:cat :dog :measurement :error]]
-   tuple        [:tuple [:int :string :double]]
-   record       [:record {:a :int :b :string :c :byte}]
-   multi        [:multi number? {true :int false :string}]
-   wrapped      [:wrapped pre-inc post-dec :int]})
+  {t-byte         :byte
+   t-short        :short
+   t-int          :int
+   t-long         :long
+   #?@(:clj [t-float :float]) ;; js, meh
+   t-double       :double
+   t-boolean      :boolean
+   t-char         :char
+   t-ubyte        :ubyte
+   t-ushort       :ushort
+   t-uint         :uint
+   t-varint       :varint
+   t-string       :string
+   t-keyword      :keyword
+   t-symbol       :symbol
+   t-nil          :nil
+   t-binary       :binary
+   t-any          :any
+   t-list         [:list :byte]
+   t-vector       [:vector :int]
+   t-set          [:set :short]
+   t-<-sorted-set [:set {:sorted-by <} :short]
+   t->-sorted-set [:set {:sorted-by >} :int]
+   t-map          [:map :byte :string]
+   t-<-sorted-map [:map {:sorted-by <} :byte :string]
+   t->-sorted-map [:map {:sorted-by >} :byte :string]
+   t-optional     [:optional :byte]
+   t-enum         [:enum [:cat :dog :measurement :error]]
+   t-tuple        [:tuple [:int :string :double]]
+   t-record       [:record {:a :int :b :string :c :byte}]
+   t-multi        [:multi number? {true :int false :string}]
+   t-wrapped      [:wrapped pre-inc post-dec :int]})

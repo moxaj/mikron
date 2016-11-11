@@ -17,3 +17,6 @@
 (defn reset []
   (stop)
   (repl/refresh :after 'user/go))
+
+(set! *warn-on-reflection* true)
+(set! *unchecked-math* :warn-on-boxed)

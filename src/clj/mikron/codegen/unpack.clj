@@ -2,19 +2,19 @@
   "unpack generating functions."
   (:require [mikron.buffer :as buffer]
             [mikron.type :as type]
-            [mikron.codegen.common :as codegen.common]
             [mikron.compile-util :as compile-util]
-            [mikron.util :as util])
+            [mikron.util :as util]
+            [mikron.util.coll :as util.coll])
   (:import [mikron.buffer Buffer]))
 
 (defmulti unpack compile-util/type-of :hierarchy #'type/hierarchy)
 
-(defn unpack* [schema {:keys [diffed?] :as options}]
+(defn unpack* [schema {:keys [diffed?] :as env}]
   (if-not diffed?
-    (unpack schema options)
-    `(if ~(unpack :boolean options)
+    (unpack schema env)
+    `(if ~(unpack :boolean env)
        :mikron/dnil
-       ~(unpack schema options))))
+       ~(unpack schema env))))
 
 (defmethod unpack :primitive [schema {:keys [buffer]}]
   `(~(symbol (format "mikron.buffer/?%s" (name schema)))
@@ -23,75 +23,65 @@
 (defmethod unpack :nil [_ _]
   nil)
 
-(defmethod unpack :coll [[_ _ schema'] options]
-  `(util/into! [] ~(unpack :varint options)
-                  (fn [] ~(unpack* schema' options))))
+(defmethod unpack :coll [[_ _ schema'] env]
+  `(util.coll/into! [] true ~(unpack :varint env) (fn [] ~(unpack* schema' env))))
 
-(defmethod unpack :set [[_ {:keys [sorted-by]} schema'] options]
-  (->> `(util/into! #{} ~(unpack :varint options)
-                        (fn [] ~(unpack* schema' options)))
-       (compile-util/as-set sorted-by)))
+(defmethod unpack :set [[_ {:keys [sorted-by]} schema'] env]
+  `(util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
+                    ~(nil? sorted-by)
+                    ~(unpack :varint env)
+                    (fn [] ~(unpack* schema' env))))
 
-(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] options]
-  (->> `(util/into! {} ~(unpack :varint options)
-                       (fn [] ~(unpack* key-schema options))
-                       (fn [] ~(unpack* val-schema options)))
-       (compile-util/as-map sorted-by)))
+(defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] env]
+  `(util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
+                       ~(nil? sorted-by)
+                       ~(unpack :varint env)
+                       (fn [] ~(unpack key-schema env))
+                       (fn [] ~(unpack* val-schema env))))
 
-(defmethod unpack :tuple [[_ _ schemas] options]
+(defmethod unpack :tuple [[_ _ schemas] env]
   (->> schemas
        (map-indexed (fn [index schema']
-                      (unpack* schema' options)))
+                      (unpack* schema' env)))
        (vec)))
 
-(defmethod unpack :record [[_ {:keys [type]} schemas] options]
+(defmethod unpack :record [[_ {:keys [type]} schemas] env]
   (let [fields (compile-util/record->fields schemas)]
     `(let [~@(mapcat (fn [[index field]]
-                       [field (unpack* (schemas index) options)])
+                       [field (unpack* (schemas index) env)])
                      fields)]
        ~(compile-util/fields->record fields type))))
 
-(defmethod unpack :optional [[_ _ schema'] options]
-  `(when ~(unpack :boolean options)
-     ~(unpack schema' options)))
+(defmethod unpack :optional [[_ _ schema'] env]
+  `(when ~(unpack :boolean env)
+     ~(unpack schema' env)))
 
-(defmethod unpack :multi [[_ _ _ multi-map] options]
-  `(case (get ~(-> multi-map (keys) (sort) (vec)) ~(unpack :varint options))
-     ~@(mapcat (fn [[multi-case schema']]
-                 [multi-case (unpack schema' options)])
-               multi-map)))
+(defmethod unpack :multi [[_ _ _ multi-map] env]
+  (let [multi-cases (sort (keys multi-map))]
+    `(case ~(unpack :varint env)
+       ~@(mapcat (fn [[multi-case schema']]
+                   [(compile-util/index-of multi-case multi-cases)
+                    (unpack schema' env)])
+                 multi-map))))
 
-(defmethod unpack :enum [[_ _ enum-values] options]
-  `(~enum-values ~(unpack :varint options)))
+(defmethod unpack :enum [[_ _ enum-values] env]
+  `(util.coll/nth ~enum-values ~(unpack :varint env)))
 
-(defmethod unpack :wrapped [[_ _ _ post schema'] options]
-  `(~post ~(unpack schema' options)))
+(defmethod unpack :wrapped [[_ _ _ post schema'] env]
+  `(~post ~(unpack schema' env)))
 
-(defmethod unpack :aliased [schema options]
-  (unpack (type/aliases schema) options))
+(defmethod unpack :aliased [schema env]
+  (unpack (type/aliases schema) env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
-  `(~(if diffed?
-       (compile-util/processor-name :unpack-diffed schema)
-       (compile-util/processor-name :unpack schema))
-    ~buffer))
+  `(~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema) ~buffer))
 
-(defmethod codegen.common/fast-processors :unpack [_ schema-name {:keys [schemas] :as options}]
-  (compile-util/with-gensyms [value buffer]
-    (let [schema  (schemas schema-name)
-          options (assoc options :buffer buffer)]
-      [`(~(compile-util/processor-name :unpack schema-name)
-         [~buffer]
-         ~(unpack* schema (assoc options :diffed? false)))
-       `(~(compile-util/processor-name :unpack-diffed schema-name)
-         [~buffer]
-         ~(unpack* schema (assoc options :diffed? true)))])))
+(defmethod compile-util/processor :unpack [_ {:keys [schema] :as env}]
+  (compile-util/with-gensyms [buffer]
+    `([~buffer]
+      ~(unpack* schema (assoc env :diffed? false :buffer buffer)))))
 
-(defmethod codegen.common/processors :unpack [_ schema-name options]
-  (compile-util/with-gensyms [_ value buffer]
-    [`(defmethod util/process [:unpack ~schema-name] [~_ ~_ ~buffer]
-        (~(compile-util/processor-name :unpack schema-name)
-         ~buffer))
-     `(defmethod util/process [:unpack-diffed ~schema-name] [~_ ~_ ~buffer]
-        (~(compile-util/processor-name :unpack-diffed schema-name)
-         ~buffer))]))
+(defmethod compile-util/processor :unpack-diffed [_ {:keys [schema] :as env}]
+  (compile-util/with-gensyms [buffer]
+    `([~buffer]
+      ~(unpack* schema (assoc env :diffed? true :buffer buffer)))))
