@@ -1,6 +1,5 @@
 (ns mikron.compile-util
-  "Compile time utility functions."
-  (:require [clojure.set :as set]))
+  "Compile time utility functions.")
 
 (defmacro cljs? []
   `(boolean (:ns ~'&env)))

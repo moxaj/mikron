@@ -27,9 +27,9 @@
 
 #?(:clj
    (defmacro schema [& args]
-     (let [env (spec/conform ::mikron-spec/schema-args args)]
-       (if (= ::spec/invalid env)
-         (spec/explain ::mikron-spec/schema-args)
+     (let [env (spec/conform :mikron.spec/schema-args args)]
+       (if (= :clojure.spec/invalid env)
+         (spec/explain :mikron.spec/schema-args)
          (let [processors   (processors env)
                dependencies (dependencies processors)]
            `(let [~@(mapcat (fn [dependency]
@@ -42,9 +42,9 @@
 
 #?(:clj
    (defmacro defschema [& args]
-     (let [env (spec/conform ::mikron-spec/defschema-args args)]
-       (if (= ::spec/invalid env)
-         (spec/explain ::mikron-spec/defschema-args)
+     (let [env (spec/conform ::mikron.spec/defschema-args args)]
+       (if (= :clojure.spec/invalid env)
+         (spec/explain :mikron.spec/defschema-args)
          (let [{:keys [schema-name docstring schema ext]} env]
            `(def ~schema-name ~@(when docstring [docstring])
               (mikron.core/schema ~schema ~@(when ext [ext]))))))))
