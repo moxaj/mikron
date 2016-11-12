@@ -24,8 +24,8 @@
 ;; Packers
 
 (def #?(:clj ^ByteBuffer octet-buffer :cljs octet-buffer)
-   (octet/allocate 100000 #?(:clj  {:type :direct :impl :nio
-                                    :cljs {:type :heap   :impl :es6}})))
+   (octet/allocate 100000 #?(:clj  {:type :direct :impl :nio}
+                             :cljs {:type :heap   :impl :es6})))
 
 (defmulti pack (fn [method _ _] method))
 
@@ -195,7 +195,7 @@
      :cljs [[stats data]]))
 
 (comment
-  (diagram (benchmark :stats   [:size]
-                      ;:methods [:mikron]
-                      :schema  ::benchmark.schema/quartet))
+  (diagram (benchmark :stats   [:pack-time]
+                      :methods [:octet]
+                      :schema  ::benchmark.schema/snapshot))
   nil)

@@ -1,1 +1,0 @@
-call protoc -I=. --java_out=. mikron.proto
