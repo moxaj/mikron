@@ -58,14 +58,14 @@
 
 (defmethod unpack :multi [[_ _ _ multi-map] env]
   (let [multi-cases (sort (keys multi-map))]
-    `(case ~(unpack :varint env)
+    `(case ~(unpack (compile-util/integer-type (count multi-map)) env)
        ~@(mapcat (fn [[multi-case schema']]
                    [(compile-util/index-of multi-case multi-cases)
                     (unpack schema' env)])
                  multi-map))))
 
 (defmethod unpack :enum [[_ _ enum-values] env]
-  `(util.coll/nth ~enum-values ~(unpack :varint env)))
+  `(util.coll/nth ~enum-values ~(unpack (compile-util/integer-type (count enum-values)) env)))
 
 (defmethod unpack :wrapped [[_ _ _ post schema'] env]
   `(~post ~(unpack schema' env)))

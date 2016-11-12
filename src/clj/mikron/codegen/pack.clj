@@ -76,16 +76,18 @@
     `(case (~selector ~value)
        ~@(mapcat (fn [[multi-case schema']]
                    [multi-case
-                    `(do ~(pack :varint (compile-util/index-of multi-case multi-cases) env)
+                    `(do ~(pack (compile-util/integer-type (count multi-map))
+                                (compile-util/index-of multi-case multi-cases) env)
                          ~(pack schema' value env))])
                  multi-map))))
 
 (defmethod pack :enum [[_ _ enum-values] value env]
-  (pack :varint `(case ~value
-                     ~@(mapcat (fn [enum-value]
-                                 [enum-value (compile-util/index-of enum-value enum-values)])
-                               enum-values))
-                 env))
+  (pack (compile-util/integer-type (count enum-values))
+        `(case ~value
+           ~@(mapcat (fn [enum-value]
+                       [enum-value (compile-util/index-of enum-value enum-values)])
+                     enum-values))
+        env))
 
 (defmethod pack :wrapped [[_ _ pre _ schema'] value env]
   (compile-util/with-gensyms [value']

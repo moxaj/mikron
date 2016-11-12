@@ -78,4 +78,11 @@
                (or (fields (keyword member)) 0))
              members))))
 
+(defn integer-type [^long size]
+  (condp > size
+    256        :byte
+    65536      :short
+    2147483648 :int
+    :long))
+
 (defmulti processor (fn [processor-type env] processor-type))
