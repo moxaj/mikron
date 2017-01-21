@@ -48,7 +48,7 @@ Since we know the schema ahead of time, **mikron** can generate _very_ efficient
             :age  :ubyte
             :tags [:vector [:enum [:a :b :c :d :e]]]}])
 
-;; As you can see, the DSL syntax is heavily inspired by the Hiccup syntax
+;; As you can see, the DSL syntax is heavily inspired by Hiccup
 
 ;; We also need a schema for a list of people
 (defschema person-list-schema
