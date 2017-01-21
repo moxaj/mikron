@@ -4,7 +4,8 @@
             [mikron.benchmark.schema :as benchmark.schema])
   #?(:clj (:import [mikron Mikron$Doubles Mikron$Coord Mikron$FixtureUserData Mikron$Fixture
                            Mikron$BodyUserData Mikron$Body Mikron$Snapshot Mikron$Body$BodyType
-                           Mikron$Person Mikron$Quartet])))
+                           Mikron$Person Mikron$Quartet]
+                   [mikron.colf Coord FixtureUserData Fixture BodyUserData Body Snapshot Person Quartet])))
 
 (def data
   {::benchmark.schema/doubles   (vec (repeatedly 200 #(double (rand))))
@@ -67,8 +68,49 @@
        (.build snapshot'))))
 
 #?(:clj ;; protobuf snapshot2
-   (defmethod get-data* [:protobuf ::benchmark.schema/snapshot2] [method schema data]
+   (defmethod get-data* [:protobuf ::benchmark.schema/snapshot2] [_ _ data]
      (get-data* :protobuf ::benchmark.schema/snapshot data)))
+
+#?(:clj ;; colfer quartet
+   (defmethod get-data* [:colfer ::benchmark.schema/quartet] [_ _ quartet]
+     (let [f (fn [person]
+               (doto (Person.)
+                 (.setFirstName (:first-name person))
+                 (.setLastName (:last-name person))))]
+       (doto (Quartet.)
+         (.setP1 (f (nth quartet 0)))
+         (.setP2 (f (nth quartet 1)))
+         (.setP3 (f (nth quartet 2)))
+         (.setP4 (f (nth quartet 3)))))))
+
+#?(:clj ;; colfer snapshot
+   (defmethod get-data* [:colfer ::benchmark.schema/snapshot] [_ _ {:keys [time bodies]}]
+     (doto (Snapshot.)
+       (.setTime time)
+       (.setBodies
+         (into-array Body
+           (map (fn [{:keys [user-data position angle body-type fixtures]}]
+                  (doto (Body.)
+                    (.setUserData (doto (BodyUserData.) (.setId (:id user-data))))
+                    (.setPosition (doto (Coord.) (.setX (:x position)) (.setY (:y position))))
+                    (.setAngle angle)
+                    (.setBodyType (case body-type :static 0 :dynamic 1 :kinetic 2))
+                    (.setFixtures
+                      (into-array Fixture
+                        (map (fn [{:keys [user-data coords]}]
+                               (doto (Fixture.)
+                                 (.setUserData (doto (FixtureUserData.) (.setColor (:color user-data))))
+                                 (.setCoords
+                                   (into-array Coord
+                                     (map (fn [{:keys [x y]}]
+                                            (doto (Coord.) (.setX x) (.setY y)))
+                                          coords)))))
+                             fixtures)))))
+                bodies))))))
+
+#?(:clj ;; colfer snapshot2
+   (defmethod get-data* [:colfer ::benchmark.schema/snapshot2] [_ _ data]
+     (get-data* :colfer ::benchmark.schema/snapshot data)))
 
 (defmethod get-data* :default [_ _ data]
   data)

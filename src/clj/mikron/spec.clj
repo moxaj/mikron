@@ -4,18 +4,6 @@
             [mikron.type :as type]
             [mikron.compile-util :as compile-util]))
 
-(defmacro options-spec [& keys]
-  `(s/? (s/keys :opt-un ~(vec keys))))
-
-(defmacro complex-spec [& fields]
-  (let [field-syms (->> fields
-                        (take-nth 2)
-                        (next)
-                        (map (comp symbol name)))]
-    `(s/and (s/cat :type keyword? ~@fields)
-            (s/conformer (fn [{:keys [~'type ~'options ~@field-syms]}]
-                           [~'type (or ~'options {}) ~@field-syms])))))
-
 (s/def ::sorted-by
   some?)
 
@@ -25,55 +13,57 @@
          (s/conformer (fn [{:keys [class members]}]
                         (vec (cons class members))))))
 
+(defmacro schema-spec*
+  "Helper macro for shorthand schema spec definition."
+  [options & fields]
+  `(s/and (s/or ~@(when (empty? fields)
+                    [:simple `(s/and keyword? (s/conformer vector))])
+                :complex (s/and (s/cat :type    keyword?
+                                       :options (s/? (s/nilable (s/keys :opt-un ~options)))
+                                       ~@fields)
+                                (s/conformer (juxt :type :options ~@(take-nth 2 fields)))))
+          (s/conformer second)))
+
 (defmulti schema-spec compile-util/type-of :hierarchy #'type/hierarchy)
 
 (defmethod schema-spec :simple [_]
-  any?)
+  (schema-spec* []))
 
 (defmethod schema-spec :coll [_]
-  (complex-spec :options (options-spec)
-                :schema  ::schema))
+  (schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :set [_]
-  (complex-spec :options (options-spec ::sorted-by)
-                :schema  ::schema))
+  (schema-spec* [::sorted-by] :schema ::schema))
 
 (defmethod schema-spec :map [_]
-  (complex-spec :options    (options-spec ::sorted-by)
-                :key-schema ::schema
-                :val-schema ::schema))
+  (schema-spec* [::sorted-by] :key-schema ::schema
+                              :val-schema ::schema))
 
 (defmethod schema-spec :tuple [_]
-  (complex-spec :options (options-spec)
-                :schemas (s/coll-of ::schema :kind vector?)))
+  (schema-spec* [] :schemas (s/coll-of ::schema :kind vector?)))
 
 (defmethod schema-spec :record [_]
-  (complex-spec :options (options-spec ::type)
-                :schemas (s/map-of keyword? ::schema)))
+  (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
 (defmethod schema-spec :optional [_]
-  (complex-spec :options (options-spec)
-                :schema  ::schema))
+  (schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :enum [_]
-  (complex-spec :options (options-spec)
-                :values  (s/coll-of keyword? :kind vector?)))
+  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
 
 (defmethod schema-spec :multi [_]
-  (complex-spec :options  (options-spec)
-                :selector ident?
-                :schemas  (s/map-of any? ::schema)))
+  (schema-spec* [] :selector some?
+                   :schemas  (s/map-of any? ::schema)))
 
 (defmethod schema-spec :wrapped [_]
-  (complex-spec :options (options-spec)
-                :pre     ident?
-                :post    ident?
-                :schema  ::schema))
+  (schema-spec* [] :pre    some?
+                   :post   some?
+                   :schema ::schema))
 
 (defmethod schema-spec :custom [_]
-  any?)
+  some?)
 
-(defmethod schema-spec :default [_]
+(defmethod schema-spec nil [_]
   (constantly false))
 
 (s/def ::schema
@@ -98,7 +88,23 @@
          :ext    (s/keys* :opt-un [::diff ::interp])))
 
 (s/def ::defschema-args
-  (s/cat :schema-name symbol?
-         :docstring   (s/? string?)
+  (s/cat :schema-name simple-symbol?
+         :doc-string  (s/? string?)
          :schema      ::schema
          :ext         (s/keys* :opt-un [::diff ::interp])))
+
+(s/def ::definterface+-args
+  (s/cat :interface-name simple-symbol?
+         :doc-string     (s/? string?)
+         :ops            (s/* (s/and (s/cat :op-name    simple-symbol?
+                                            :args       (s/coll-of simple-symbol? :kind vector?)
+                                            :doc-string (s/? string?))
+                                     (s/conformer (juxt :op-name :args :doc-string))))))
+
+(defn enforce
+  "Conforms `value` to `spec`. Throws an exception if it fails."
+  [spec value]
+  (let [value' (s/conform spec value)]
+    (if (s/invalid? value')
+      (throw (ex-info "Invalid schema definition" (s/explain-data spec value)))
+      value')))

@@ -1,29 +1,10 @@
 (ns mikron.compile-util
   "Compile time utility functions.")
 
-(defmacro cljs? []
-  `(boolean (:ns ~'&env)))
-
-;; macro helper
-
-(defmacro with-gensyms [binding-form & body]
-  `(let [~@(mapcat (fn [sym]
-                     [sym `(with-meta (gensym ~(str sym "_"))
-                                      ~(meta sym))])
-                   binding-form)]
-     ~@body))
-
-(defmacro evaluated [syms & body]
-  (let [m (into {} (map (juxt identity gensym) syms))]
-    `(let [~@(mapcat (fn [temp-sym] [temp-sym `(gensym)])
-                     (vals m))]
-       `(let [~~@(mapcat reverse m)]
-          ~(let [~@(mapcat identity m)]
-             ~@body)))))
-
 ;; symbol
 
 (def processor-name
+  "Returns a memoized processor name."
   (memoize
     (fn [processor-type schema-name]
       (-> (str (name processor-type) "-" (name schema-name))
@@ -31,45 +12,91 @@
           (with-meta {:processor-type processor-type
                       :schema-name    schema-name})))))
 
+;; macro helper
+
+(defmacro cljs?
+  "Returns `true` if compiled for cljs, `false` otherwise."
+  []
+  `(boolean (:ns ~'&env)))
+
+(defmacro with-gensyms
+  "Executes each expression of `body` in the context of each symbol in `syms`
+  bound to a generated symbol."
+  [syms & body]
+  `(let [~@(mapcat (fn [sym]
+                     [sym `(with-meta (gensym ~(str sym)) ~(meta sym))])
+                   syms)]
+     ~@body))
+
+(defmacro with-evaluated
+  "Executes each expression of `body` in the context of each symbol in `syms`
+  bound to an evaluated value. Can be used to prevent accidental multiple evaluation
+  in macros."
+  [syms & body]
+  (let [m (into {} (map (juxt identity gensym) syms))]
+    `(let [~@(mapcat (fn [[sym temp-sym]]
+                       [temp-sym `(gensym '~sym)])
+                     m)]
+       `(let [~~@(mapcat reverse m)]
+          ~(let [~@(mapcat identity m)]
+             ~@body)))))
+
 ;; coll
 
-(defn find-by* [f form]
+(defn find-by*
+  "Walks `form` and collects all values for which the predicate `f` returns `true`.
+  Does not filter duplicates."
+  [f form]
   (cond-> (if (seqable? form)
             (mapcat (partial find-by* f) form)
             [])
     (f form) (conj form)))
 
-(defn find-by [f form]
+(defn find-by
+  "Walks `form` and collects all values for which the predicate `f` returns true.
+  Filter duplicates."
+  [f form]
   (set (find-by* f form)))
-
-(defn index-of [item coll]
-  (->> coll
-       (map-indexed vector)
-       (filter (comp (partial = item) second))
-       (ffirst)))
 
 ;; schema
 
-(defn type-of [schema & _]
+(defn type-of
+  "Returns the type of `schema` (a keyword, or `nil` if the schema is invalid)."
+  [schema & _]
   (cond
     (keyword? schema) schema
     (vector? schema)  (first schema)
     (symbol? schema)  :custom
     :else             nil))
 
-(defn record-lookup [record index [class]]
+(defn integer-type
+  "Returns an integer type into which `size` can fit."
+  [^long size]
+  (condp > size
+    256        [:byte]
+    65536      [:short]
+    2147483648 [:int]
+    [:long]))
+
+(defn record-lookup
+  "Generates code for record value lookup."
+  [record key [class]]
   (if-not class
-    `(~record ~index)
-    `(~(symbol (str ".-" (name index)))
+    `(~record ~key)
+    `(~(symbol (str ".-" (name key)))
       ~(with-meta record {:tag class}))))
 
-(defn record->fields [schemas]
+(defn record->fields
+  "Returns a map from record keys to generated symbols."
+  [schemas]
   (->> (keys schemas)
-       (map (fn [index]
-              [index (gensym (str (name index) "_"))]))
+       (map (fn [key]
+              [key (gensym key)]))
        (into (sorted-map))))
 
-(defn fields->record [fields [class & members]]
+(defn fields->record
+  "Generates code which reconstructs a record from its fields."
+  [fields [class & members]]
   (if-not class
     fields
     `(~(symbol (str "->" class))
@@ -77,11 +104,24 @@
                (or (fields (keyword member)) 0))
              members))))
 
-(defn integer-type [^long size]
-  (condp > size
-    256        :byte
-    65536      :short
-    2147483648 :int
-    :long))
+(defn tuple-lookup
+  "Generates code for tuple value lookup."
+  [tuple index]
+  `(mikron.util.coll/nth ~tuple ~index))
 
-(defmulti processor (fn [processor-type env] processor-type))
+(defn tuple->fields
+  "Returns a map from tuple indices to generated symbols."
+  [schemas]
+  (->> schemas
+       (map-indexed (fn [index _]
+                      [index (gensym (str "value'-" index))]))
+       (into (sorted-map))))
+
+(defn fields->tuple
+  "Generates code which reconstructs a tuple from its fields."
+  [fields]
+  (vec (vals fields)))
+
+(defmulti processor
+  "Generates processor code."
+  (fn [processor-type env] processor-type))

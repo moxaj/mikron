@@ -12,57 +12,59 @@
 (defn unpack* [schema {:keys [diffed?] :as env}]
   (if-not diffed?
     (unpack schema env)
-    `(if ~(unpack :boolean env)
+    `(if ~(unpack [:boolean] env)
        :mikron/dnil
        ~(unpack schema env))))
 
-(defmethod unpack :primitive [schema {:keys [buffer]}]
-  `(~(symbol (format "mikron.buffer/?%s" (name schema)))
+(defmethod unpack :primitive [[schema'] {:keys [buffer]}]
+  `(~(symbol "mikron.buffer" (str "?" (name schema')))
     ~buffer))
 
 (defmethod unpack :nil [_ _]
   nil)
 
 (defmethod unpack :coll [[_ _ schema'] env]
-  `(util.coll/into! [] true ~(unpack :varint env) (fn [] ~(unpack* schema' env))))
+  `(util.coll/into! [] true ~(unpack [:varint] env) ~(unpack* schema' env)))
 
 (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] env]
   `(util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
                     ~(nil? sorted-by)
-                    ~(unpack :varint env)
-                    (fn [] ~(unpack* schema' env))))
+                    ~(unpack [:varint] env)
+                    ~(unpack* schema' env)))
 
 (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] env]
   `(util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
                        ~(nil? sorted-by)
-                       ~(unpack :varint env)
-                       (fn [] ~(unpack key-schema env))
-                       (fn [] ~(unpack* val-schema env))))
+                       ~(unpack [:varint] env)
+                       ~(unpack key-schema env)
+                       ~(unpack* val-schema env)))
 
 (defmethod unpack :tuple [[_ _ schemas] env]
-  (->> schemas
-       (map-indexed (fn [index schema']
-                      (unpack* schema' env)))
-       (vec)))
+  (let [fields (compile-util/tuple->fields schemas)]
+    `(let [~@(mapcat (fn [[key' value']]
+                       [value' (unpack* (schemas key') env)])
+                     fields)]
+       ~(compile-util/fields->tuple fields))))
 
 (defmethod unpack :record [[_ {:keys [type]} schemas] env]
   (let [fields (compile-util/record->fields schemas)]
-    `(let [~@(mapcat (fn [[index field]]
-                       [field (unpack* (schemas index) env)])
+    `(let [~@(mapcat (fn [[key' value']]
+                       [value' (unpack* (schemas key') env)])
                      fields)]
        ~(compile-util/fields->record fields type))))
 
 (defmethod unpack :optional [[_ _ schema'] env]
-  `(when ~(unpack :boolean env)
+  `(when ~(unpack [:boolean] env)
      ~(unpack schema' env)))
 
 (defmethod unpack :multi [[_ _ _ multi-map] env]
-  (let [multi-cases (sort (keys multi-map))]
-    `(case ~(unpack (compile-util/integer-type (count multi-map)) env)
-       ~@(mapcat (fn [[multi-case schema']]
-                   [(compile-util/index-of multi-case multi-cases)
-                    (unpack schema' env)])
-                 multi-map))))
+  `(case ~(unpack (compile-util/integer-type (count multi-map)) env)
+     ~@(->> multi-map
+            (keys)
+            (sort)
+            (map-indexed (fn [index multi-case]
+                           [index (unpack (multi-map multi-case) env)]))
+            (apply concat))))
 
 (defmethod unpack :enum [[_ _ enum-values] env]
   `(util.coll/nth ~enum-values ~(unpack (compile-util/integer-type (count enum-values)) env)))
@@ -70,8 +72,8 @@
 (defmethod unpack :wrapped [[_ _ _ post schema'] env]
   `(~post ~(unpack schema' env)))
 
-(defmethod unpack :aliased [schema env]
-  (unpack (type/aliases schema) env))
+(defmethod unpack :aliased [[schema'] env]
+  (unpack (type/aliases schema') env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
   `(~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema) ~buffer))

@@ -4652,9 +4652,9 @@ public final class Mikron {
     mikron.Mikron.CoordOrBuilder getPositionOrBuilder();
 
     /**
-     * <code>optional float angle = 3;</code>
+     * <code>optional double angle = 3;</code>
      */
-    float getAngle();
+    double getAngle();
 
     /**
      * <code>optional .Body.BodyType bodyType = 4;</code>
@@ -4701,7 +4701,7 @@ public final class Mikron {
       super(builder);
     }
     private Body() {
-      angle_ = 0F;
+      angle_ = 0D;
       bodyType_ = 0;
       fixtures_ = java.util.Collections.emptyList();
     }
@@ -4757,9 +4757,9 @@ public final class Mikron {
 
               break;
             }
-            case 29: {
+            case 25: {
 
-              angle_ = input.readFloat();
+              angle_ = input.readDouble();
               break;
             }
             case 32: {
@@ -4954,11 +4954,11 @@ public final class Mikron {
     }
 
     public static final int ANGLE_FIELD_NUMBER = 3;
-    private float angle_;
+    private double angle_;
     /**
-     * <code>optional float angle = 3;</code>
+     * <code>optional double angle = 3;</code>
      */
-    public float getAngle() {
+    public double getAngle() {
       return angle_;
     }
 
@@ -5031,8 +5031,8 @@ public final class Mikron {
       if (position_ != null) {
         output.writeMessage(2, getPosition());
       }
-      if (angle_ != 0F) {
-        output.writeFloat(3, angle_);
+      if (angle_ != 0D) {
+        output.writeDouble(3, angle_);
       }
       if (bodyType_ != mikron.Mikron.Body.BodyType.DYNAMIC.getNumber()) {
         output.writeEnum(4, bodyType_);
@@ -5055,9 +5055,9 @@ public final class Mikron {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getPosition());
       }
-      if (angle_ != 0F) {
+      if (angle_ != 0D) {
         size += com.google.protobuf.CodedOutputStream
-          .computeFloatSize(3, angle_);
+          .computeDoubleSize(3, angle_);
       }
       if (bodyType_ != mikron.Mikron.Body.BodyType.DYNAMIC.getNumber()) {
         size += com.google.protobuf.CodedOutputStream
@@ -5094,8 +5094,8 @@ public final class Mikron {
             .equals(other.getPosition());
       }
       result = result && (
-          java.lang.Float.floatToIntBits(getAngle())
-          == java.lang.Float.floatToIntBits(
+          java.lang.Double.doubleToLongBits(getAngle())
+          == java.lang.Double.doubleToLongBits(
               other.getAngle()));
       result = result && bodyType_ == other.bodyType_;
       result = result && getFixturesList()
@@ -5119,8 +5119,8 @@ public final class Mikron {
         hash = (53 * hash) + getPosition().hashCode();
       }
       hash = (37 * hash) + ANGLE_FIELD_NUMBER;
-      hash = (53 * hash) + java.lang.Float.floatToIntBits(
-          getAngle());
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          java.lang.Double.doubleToLongBits(getAngle()));
       hash = (37 * hash) + BODYTYPE_FIELD_NUMBER;
       hash = (53 * hash) + bodyType_;
       if (getFixturesCount() > 0) {
@@ -5258,7 +5258,7 @@ public final class Mikron {
           position_ = null;
           positionBuilder_ = null;
         }
-        angle_ = 0F;
+        angle_ = 0D;
 
         bodyType_ = 0;
 
@@ -5361,7 +5361,7 @@ public final class Mikron {
         if (other.hasPosition()) {
           mergePosition(other.getPosition());
         }
-        if (other.getAngle() != 0F) {
+        if (other.getAngle() != 0D) {
           setAngle(other.getAngle());
         }
         if (other.bodyType_ != 0) {
@@ -5654,28 +5654,28 @@ public final class Mikron {
         return positionBuilder_;
       }
 
-      private float angle_ ;
+      private double angle_ ;
       /**
-       * <code>optional float angle = 3;</code>
+       * <code>optional double angle = 3;</code>
        */
-      public float getAngle() {
+      public double getAngle() {
         return angle_;
       }
       /**
-       * <code>optional float angle = 3;</code>
+       * <code>optional double angle = 3;</code>
        */
-      public Builder setAngle(float value) {
+      public Builder setAngle(double value) {
         
         angle_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional float angle = 3;</code>
+       * <code>optional double angle = 3;</code>
        */
       public Builder clearAngle() {
         
-        angle_ = 0F;
+        angle_ = 0D;
         onChanged();
         return this;
       }
@@ -6878,7 +6878,7 @@ public final class Mikron {
       ".FixtureUserData\022\026\n\006coords\030\002 \003(\0132\006.Coord" +
       "\"\032\n\014BodyUserData\022\n\n\002id\030\001 \001(\005\"\300\001\n\004Body\022\037\n" +
       "\010userData\030\001 \001(\0132\r.BodyUserData\022\030\n\010positi",
-      "on\030\002 \001(\0132\006.Coord\022\r\n\005angle\030\003 \001(\002\022 \n\010bodyT" +
+      "on\030\002 \001(\0132\006.Coord\022\r\n\005angle\030\003 \001(\001\022 \n\010bodyT" +
       "ype\030\004 \001(\0162\016.Body.BodyType\022\032\n\010fixtures\030\005 " +
       "\003(\0132\010.Fixture\"0\n\010BodyType\022\013\n\007DYNAMIC\020\000\022\n" +
       "\n\006STATIC\020\001\022\013\n\007KINETIC\020\002\"/\n\010Snapshot\022\014\n\004t" +

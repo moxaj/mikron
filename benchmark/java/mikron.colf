@@ -1,0 +1,44 @@
+package mikron
+
+type Person struct {
+  firstName text
+  lastName  text
+}
+
+type Quartet struct {
+  p1 Person
+  p2 Person
+  p3 Person
+  p4 Person
+}
+
+type Coord struct {
+  x float64
+  y float64
+}
+
+type FixtureUserData struct {
+  color int32
+}
+
+type Fixture struct {
+  userData FixtureUserData
+  coords   []Coord
+}
+
+type BodyUserData struct {
+  id int32
+}
+
+type Body struct {
+  userData BodyUserData
+  position Coord
+  angle    float64
+  bodyType int32
+  fixtures []Fixture
+}
+
+type Snapshot struct {
+  time   int64
+  bodies []Body
+}

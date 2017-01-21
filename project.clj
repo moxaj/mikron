@@ -1,4 +1,4 @@
-(defproject moxaj/mikron "0.5.0"
+(defproject moxaj/mikron "0.6.0"
   :description  "mikron is a schema-based serialization library for Clojure / ClojureScript."
   :url "https://github.com/moxaj/mikron"
   :license {:name "Eclipse Public License"
@@ -11,10 +11,9 @@
   :profiles {:dev {:source-paths ["dev" "benchmark/cljc"]
                    :java-source-paths ["benchmark/java"]
                    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-                   :plugins [[lein-ancient "0.6.10"]
-                             [lein-cljsbuild "1.1.4"]
-                             [lein-figwheel "0.5.8"]
-                             [lein-nodisassemble "0.1.3"]]
+                   :plugins [[lein-cljsbuild "1.1.4"]
+                             [lein-figwheel "0.5.8"]]
+                             ;[lein-nodisassemble "0.1.3"]]
                    :dependencies [[org.clojure/tools.namespace "0.3.0-alpha3"]
                                   [org.clojure/java.classpath "0.2.3"]
                                   [org.clojure/test.check "0.9.0"]
@@ -27,8 +26,7 @@
                                   [gloss "0.2.6"]
                                   [cheshire "5.6.3"]
                                   [funcool/octet "1.0.0"]
-                                  [proto-repl-charts "0.3.2"]
-                                  [com.taoensso/truss "1.3.6"]]}}
+                                  [proto-repl-charts "0.3.2"]]}}
   :cljsbuild {:builds [{:id "browser"
                         :source-paths ["src/cljc" "test/cljc" "test/cljs" "benchmark/cljc" "target/classes"]
                         :figwheel true
@@ -38,7 +36,6 @@
                                    :optimizations :none
                                    :cache-analysis true
                                    :parallel-build true
-                                   :pretty-print false
                                    :static-fns true
                                    :main "mikron.browser"}}
                        {:id "node"
@@ -50,7 +47,6 @@
                                    :optimizations :none
                                    :cache-analysis true
                                    :parallel-build true
-                                   :pretty-print true
                                    :static-fns true
                                    :main "mikron.node"}}]}
   :clean-targets ^{:protect false} ["resources/public/js"

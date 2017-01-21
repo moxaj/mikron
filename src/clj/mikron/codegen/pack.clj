@@ -1,6 +1,6 @@
 (ns mikron.codegen.pack
   "pack generating functions."
-  (:require [mikron.buffer :as buffer]
+  (:require [mikron.buffer]
             [mikron.type :as type]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
@@ -13,80 +13,81 @@
   (if-not diffed?
     (pack schema value env)
     (compile-util/with-gensyms [value-dnil?]
-      `(let [~value-dnil? (= :mikron/dnil ~value)]
-         ~(pack :boolean value-dnil? env)
+      `(let [~value-dnil? (identical? :mikron/dnil ~value)]
+         ~(pack [:boolean] value-dnil? env)
          (when-not ~value-dnil?
            ~(pack schema value env))))))
 
 (defmethod pack :nil [_ _ _]
   nil)
 
-(defmethod pack :primitive [schema value {:keys [buffer]}]
-  `(~(symbol (format "mikron.buffer/!%s" (name schema)))
+(defmethod pack :primitive [[schema'] value {:keys [buffer]}]
+  `(~(symbol "mikron.buffer" (str "!" (name schema')))
     ~buffer
     ~value))
 
 (defmethod pack :vector [[_ _ schema'] value env]
   (compile-util/with-gensyms [length value' index]
     `(let [~length (util.coll/count ~value)]
-       ~(pack :varint length env)
+       ~(pack [:varint] length env)
        (dotimes [~index ~length]
          (let [~value' (util.coll/nth ~value ~index)]
            ~(pack* schema' value' env))))))
 
 (defmethod pack :coll [[_ options schema'] value env]
-  (compile-util/with-gensyms [value']
-    `(do ~(pack :varint `(count ~value) env)
-         (run! (fn [~value']
-                 ~(pack* schema' value' env))
-               ~value))))
+  (compile-util/with-gensyms [length value']
+    `(let [~length (count ~value)]
+       (do ~(pack [:varint] length env)
+           (run! (fn [~value']
+                   ~(pack* schema' value' env))
+                 ~value)))))
 
-(defmethod pack :map [[_ _ key-schema val-schema] value env]
-  (compile-util/with-gensyms [entry k v]
-    `(do ~(pack :varint `(util.coll/count ~value) env)
-         (run! (fn [~entry]
-                 (let [~k (key ~entry)
-                       ~v (val ~entry)]
-                   ~(pack key-schema k env)
-                   ~(pack* val-schema v env)))
-               ~value))))
+(defmethod pack :map [[_ _ key-schema value-schema] value env]
+  (compile-util/with-gensyms [length entry' key' value']
+    `(let [~length (util.coll/count ~value)]
+       (do ~(pack [:varint] length env)
+           (run! (fn [~entry']
+                   (let [~key'   (key ~entry')
+                         ~value' (val ~entry')]
+                     ~(pack key-schema key' env)
+                     ~(pack* value-schema value' env)))
+                 ~value)))))
 
 (defmethod pack :tuple [[_ _ schemas] value env]
-  (compile-util/with-gensyms [value']
-    `(do ~@(map-indexed (fn [index schema']
-                          `(let [~value' (util.coll/nth ~value ~index)]
-                             ~(pack* schema' value' env)))
-                        schemas))))
+  `(do ~@(map (fn [[key' value']]
+                `(let [~value' ~(compile-util/tuple-lookup value key')]
+                   ~(pack* (schemas key') value' env)))
+              (compile-util/tuple->fields schemas))))
 
 (defmethod pack :record [[_ {:keys [type]} schemas] value env]
-  (compile-util/with-gensyms [value']
-    `(do ~@(->> schemas
-                (into (sorted-map))
-                (map (fn [[index schema']]
-                       `(let [~value' ~(compile-util/record-lookup value index type)]
-                          ~(pack* schema' value' env))))))))
+  `(do ~@(map (fn [[key' value']]
+                `(let [~value' ~(compile-util/record-lookup value key' type)]
+                   ~(pack* (schemas key') value' env)))
+              (compile-util/record->fields schemas))))
 
 (defmethod pack :optional [[_ _ schema'] value env]
-  `(do ~(pack :boolean value env)
+  `(do ~(pack [:boolean] value env)
        (when ~value
          ~(pack schema' value env))))
 
 (defmethod pack :multi [[_ _ selector multi-map] value env]
-  (let [multi-cases (sort (keys multi-map))]
-    `(case (~selector ~value)
-       ~@(mapcat (fn [[multi-case schema']]
-                   [multi-case
-                    `(do ~(pack (compile-util/integer-type (count multi-map))
-                                (compile-util/index-of multi-case multi-cases) env)
-                         ~(pack schema' value env))])
-                 multi-map))))
+  `(case (~selector ~value)
+     ~@(->> multi-map
+            (keys)
+            (sort)
+            (map-indexed (fn [index multi-case]
+                           [multi-case
+                            `(do ~(pack (compile-util/integer-type (count multi-map)) index env)
+                                 ~(pack (multi-map multi-case) value env))]))
+            (apply concat))))
 
 (defmethod pack :enum [[_ _ enum-values] value env]
   (pack (compile-util/integer-type (count enum-values))
         `(case ~value
-           ~@(mapcat (fn [enum-value]
-                       [enum-value (compile-util/index-of enum-value enum-values)])
-                     enum-values))
+           ~@(->> enum-values
+                  (map-indexed (fn [index enum-value]
+                                 [enum-value index]))
+                  (apply concat)))
         env))
 
 (defmethod pack :wrapped [[_ _ pre _ schema'] value env]
@@ -94,8 +95,8 @@
     `(let [~value' (~pre ~value)]
        ~(pack schema' value' env))))
 
-(defmethod pack :aliased [schema value env]
-  (pack (type/aliases schema) value env))
+(defmethod pack :aliased [[schema'] value env]
+  (pack (type/aliases schema') value env))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
   `(~(compile-util/processor-name (if diffed? :pack-diffed :pack) schema) ~value ~buffer))

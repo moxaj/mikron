@@ -33,7 +33,7 @@
   `(util.type/gen-integer 8 true))
 
 (defmethod gen :varint [_ env]
-  (gen :long env))
+  (gen [:long] env))
 
 (defmethod gen :float [_ _]
   `(util.type/double->float (util.math/rand)))
@@ -48,7 +48,7 @@
   `(char (util.math/rand-long 500)))
 
 (defmethod gen :string [_ env]
-  `(apply str (util.coll/into! [] true ~gen-length (fn [] ~(gen :char env)))))
+  `(apply str (util.coll/into! [] true ~gen-length ~(gen [:char] env))))
 
 (defmethod gen :binary [_ _]
   `(util.type/gen-binary))
@@ -60,35 +60,37 @@
   nil)
 
 (defmethod gen :coll [[_ _ schema'] env]
-  `(util.coll/into! [] true ~gen-length (fn [] ~(gen schema' env))))
+  `(util.coll/into! [] true ~gen-length ~(gen schema' env)))
 
 (defmethod gen :set [[_ {:keys [sorted-by]} schema'] env]
   `(util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
                     ~(nil? sorted-by)
                     ~gen-length
-                    (fn [] ~(gen schema' env))))
+                    ~(gen schema' env)))
 
-(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] env]
+(defmethod gen :map [[_ {:keys [sorted-by]} key-schema value-schema] env]
   `(util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
                        ~(nil? sorted-by)
                        ~gen-length
-                       (fn [] ~(gen key-schema env))
-                       (fn [] ~(gen val-schema env))))
+                       ~(gen key-schema env)
+                       ~(gen value-schema env)))
 
 (defmethod gen :tuple [[_ _ schemas] env]
-  (mapv (fn [schema']
-          (gen schema' env))
-        schemas))
+  (let [fields (compile-util/tuple->fields schemas)]
+    `(let [~@(mapcat (fn [[key' value']]
+                       [value' (gen (schemas key') env)])
+                     fields)]
+       ~(compile-util/fields->tuple fields))))
 
 (defmethod gen :record [[_ {:keys [type]} schemas] env]
   (let [fields (compile-util/record->fields schemas)]
-    `(let [~@(mapcat (fn [[index field]]
-                       [field (gen (schemas index) env)])
+    `(let [~@(mapcat (fn [[key' value']]
+                       [value' (gen (schemas key') env)])
                      fields)]
        ~(compile-util/fields->record fields type))))
 
 (defmethod gen :optional [[_ _ schema'] env]
-  `(when ~(gen :boolean env)
+  `(when ~(gen [:boolean] env)
      ~(gen schema' env)))
 
 (defmethod gen :multi [[_ _ _ multi-map] env]
@@ -104,8 +106,8 @@
 (defmethod gen :wrapped [[_ _ _ post schema'] env]
   `(~post ~(gen schema' env)))
 
-(defmethod gen :aliased [schema env]
-  (gen (type/aliases schema) env))
+(defmethod gen :aliased [[schema'] env]
+  (gen (type/aliases schema') env))
 
 (defmethod gen :custom [schema env]
   `(~(compile-util/processor-name :gen schema)))

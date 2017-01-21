@@ -6,78 +6,56 @@
   #?(:clj (:import [clojure.lang Indexed Counted]))
   #?(:cljs (:require-macros [mikron.util.coll])))
 
-(defn count ^long [coll]
+(defn count
+  "Returns the length of a vector `coll`."
+  ^long [coll]
   #?(:clj  (.count ^Counted coll)
      :cljs (cljs.core/-count coll)))
 
-(defn nth [coll ^long index]
+(defn nth
+  "Returns the value of a vector `coll` at the position `index`."
+  [coll ^long index]
   #?(:clj  (.nth ^Indexed coll (unchecked-int index))
      :cljs (cljs.core/-nth coll (unchecked-int index))))
 
-(defn rand-nth [coll]
+(defn rand-nth
+  "Returns a random value from a vector `coll`."
+  [coll]
   (nth coll (util.math/rand-long (count coll))))
 
-#?(:clj
-   (defmacro every? [pred coll]
-     (compile-util/with-gensyms [index length value]
-       (compile-util/evaluated [pred coll]
-         `(let [~length (count ~coll)]
-            (loop [~index (long 0)]
-              (if (== ~index ~length)
-                true
-                (let [~value (nth ~coll ~index)]
-                  (and (~pred ~value) (recur (unchecked-inc ~index)))))))))))
+(defn every?
+  "Returns `true` if `pred` returns `true` for each element of a
+  vector `coll`, `false` otherwise."
+  [pred coll]
+  (let [length (count coll)]
+    (loop [index (long 0)]
+      (if (== index length)
+        true
+        (let [value (nth coll index)]
+          (and (pred value) (recur (unchecked-inc index))))))))
 
 #?(:clj
-   (defmacro combine! [coll-1 coll-2 coll transient? f-1 f-2]
-     (compile-util/with-gensyms [length-1 length-2 index value-1 value-2]
-       (compile-util/evaluated [coll-1 coll-2 coll]
-         `(let [~length-1 (count ~coll-1)
-                ~length-2 (count ~coll-2)]
-           (loop [~coll  ~(if transient? `(transient ~coll) coll)
-                  ~index (long 0)]
-             (if (== ~index ~length-2)
-               ~(if transient? `(persistent! ~coll) coll)
-               (recur (~(if transient? `conj! `conj)
-                       ~coll (let [~value-2 (nth ~coll-2 ~index)]
-                               (if (<= ~length-1 ~index)
-                                 (~f-2 nil ~value-2)
-                                 (let [~value-1 (nth ~coll-1 ~index)]
-                                   (~f-1 ~value-1 ~value-2)))))
-                      (unchecked-inc ~index)))))))))
-
-#?(:clj
-   (defmacro combine-kv! [coll-1 coll-2 coll transient? f-1 f-2]
-     (compile-util/with-gensyms [entry key-2 val-1 val-2]
-       (compile-util/evaluated [coll-1 coll-2 coll]
-         `(loop [~coll   ~(if transient? `(transient ~coll) coll)
-                 ~coll-2 (seq ~coll-2)]
-            (if-let [~entry (first ~coll-2)]
-              (let [~key-2 (key ~entry)]
-                (recur (~(if transient? `assoc! `assoc)
-                        ~coll ~key-2 (if-let [~val-1 (~coll-1 ~key-2)]
-                                       (let [~val-2 (val ~entry)]
-                                         (~f-1 ~val-1 ~val-2))
-                                       (~f-2 nil ~val-2)))
-                       (rest ~coll-2)))
-              ~(if transient? `(persistent! ~coll) coll)))))))
-
-#?(:clj
-   (defmacro into! [coll transient? times f]
-     (compile-util/evaluated [coll times f]
-       `(loop [~times (long ~times)
-               ~coll  ~(if transient? `(transient ~coll) coll)]
-          (if (== 0 ~times)
+   (defmacro into!
+     "Repeatedly evaluates `expr` `n` times, collecting the results into
+     a collection `coll`. Uses transient operations if `transient?` is `true`."
+     [coll transient? n expr]
+     (compile-util/with-evaluated [coll n]
+       `(loop [~n    (long ~n)
+               ~coll ~(if transient? `(transient ~coll) coll)]
+          (if (== 0 ~n)
             ~(if transient? `(persistent! ~coll) coll)
-            (recur (unchecked-dec ~times)
-                   (~(if transient? `conj! `conj) ~coll (~f))))))))
+            (recur (unchecked-dec ~n)
+                   (~(if transient? `conj! `conj) ~coll ~expr)))))))
 
 #?(:clj
-   (defmacro into-kv! [coll transient? times kf vf]
-     (compile-util/evaluated [coll times kf vf]
-       `(loop [~times (long ~times)
-               ~coll  ~(if transient? `(transient ~coll) coll)]
-          (if (== 0 ~times)
+   (defmacro into-kv!
+     "Repeatedly evaluates `key-expr` and `value-expr` `n` times, collecting the results into
+     a map `coll`. Uses transient operations if `transient?` is `true`."
+     [coll transient? n key-expr value-expr]
+     (compile-util/with-evaluated [coll n]
+       `(loop [~n    (long ~n)
+               ~coll ~(if transient? `(transient ~coll) coll)]
+          (if (== 0 ~n)
             ~(if transient? `(persistent! ~coll) coll)
-            (recur (unchecked-dec ~times)
-                   (~(if transient? `assoc! `assoc) ~coll (~kf) (~vf))))))))
+            (recur (unchecked-dec ~n)
+                   (~(if transient? `assoc! `assoc) ~coll ~key-expr ~value-expr)))))))

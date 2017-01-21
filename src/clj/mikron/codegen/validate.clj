@@ -29,8 +29,8 @@
 (defmethod valid? :long [_ value _]
   `(util.type/valid-integer? ~value 8 true))
 
-(defmethod valid? :varint [schema value env]
-  (valid? :long value env))
+(defmethod valid? :varint [_ value env]
+  (valid? [:long] value env))
 
 (defmethod valid? :floating [_ value _]
   `(number? ~value))
@@ -77,46 +77,43 @@
                     ~(valid? schema' value' env))
                   ~value))))
 
-(defmethod valid? :map [[_ _ key-schema val-schema] value env]
-  (compile-util/with-gensyms [entry k v]
+(defmethod valid? :map [[_ _ key-schema value-schema] value env]
+  (compile-util/with-gensyms [entry' key' value']
     `(and (map? ~value)
-          (every? (fn [~entry]
-                    (let [~k (key ~entry)
-                          ~v (val ~entry)]
-                      (and ~(valid? key-schema k env)
-                           ~(valid? val-schema v env))))
+          (every? (fn [~entry']
+                    (let [~key'   (key ~entry')
+                          ~value' (val ~entry')]
+                      (and ~(valid? key-schema key' env)
+                           ~(valid? value-schema value' env))))
                   ~value))))
 
 (defmethod valid? :tuple [[_ _ schemas] value env]
-  (compile-util/with-gensyms [value']
-    `(and (vector? ~value)
-          (== (util.coll/count ~value) ~(count schemas))
-          ~@(map-indexed (fn [index schema']
-                           `(let [~value' (util.coll/nth ~value ~index)]
-                              ~(valid? schema' value' env)))
-                         schemas))))
+  `(and (vector? ~value)
+        (== (util.coll/count ~value) ~(count schemas))
+        ~@(map (fn [[key' value']]
+                 `(let [~value' ~(compile-util/tuple-lookup value key')]
+                    ~(valid? (schemas key') value' env)))
+               (compile-util/tuple->fields schemas))))
 
 (defmethod valid? :record [[_ {:keys [type]} schemas] value env]
-  (compile-util/with-gensyms [value']
-    `(and ~(if type
-             `(instance? ~(first type) ~value)
-             `(map? ~value))
-          ~@(map (fn [[index schema']]
-                   `(let [~value' ~(compile-util/record-lookup value index type)]
-                      ~(valid? schema' value' env)))
-                 schemas))))
+  `(and ~(if type
+           `(instance? ~(first type) ~value)
+           `(map? ~value))
+        ~@(map (fn [[key' value']]
+                 `(let [~value' ~(compile-util/record-lookup value key' type)]
+                    ~(valid? (schemas key') value' env)))
+               (compile-util/record->fields schemas))))
 
 (defmethod valid? :optional [[_ _ schema'] value env]
   `(or (nil? ~value)
        ~(valid? schema' value env)))
 
 (defmethod valid? :multi [[_ _ selector multi-map] value env]
-  (compile-util/with-gensyms [value']
-    `(case (util/safe false (~selector ~value))
-       ~@(mapcat (fn [[multi-case schema']]
-                   [multi-case (valid? schema' value env)])
-                 multi-map)
-       :else false)))
+  `(case (util/safe :mikron/invalid (~selector ~value))
+     ~@(mapcat (fn [[multi-case schema']]
+                 [multi-case (valid? schema' value env)])
+               multi-map)
+     false))
 
 (defmethod valid? :enum [[_ _ enum-values] value _]
   `(~(set enum-values) ~value))
@@ -127,8 +124,8 @@
        (and (not= :mikron/invalid ~value')
             ~(valid? schema' value' env)))))
 
-(defmethod valid? :aliased [schema value env]
-  (valid? (type/aliases schema) value env))
+(defmethod valid? :aliased [[schema'] value env]
+  (valid? (type/aliases schema') value env))
 
 (defmethod valid? :custom [schema value _]
   `(~(compile-util/processor-name :valid? schema) ~value))

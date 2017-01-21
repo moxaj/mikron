@@ -6,7 +6,9 @@
   #?(:clj  (:import [java.util Arrays])
      :cljs (:require-macros [mikron.test :refer [def-mikron-tests]])))
 
-(defn equal? [x y]
+(defn equal?
+  "Extended equality checker for byte[] and ArrayBuffer."
+  [x y]
   (if (not= (type x) #?(:clj  (Class/forName "[B")
                         :cljs js/ArrayBuffer))
     (= x y)
@@ -14,7 +16,9 @@
        :cljs (= (seq (.from js/Array (js/Int8Array. x)))
                 (seq (.from js/Array (js/Int8Array. y)))))))
 
-(defmulti test-mikron (fn [method schema dataset] method))
+(defmulti test-mikron
+  "Test function for :pack, :diff, :valid? and :interp processors."
+  (fn [method schema dataset] method))
 
 (defmethod test-mikron :pack [_ schema dataset]
   (doseq [value dataset]
@@ -33,21 +37,25 @@
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
 #?(:clj
-   (defmacro def-mikron-tests [test-cases]
+   (defmacro def-mikron-tests
+     "Generates test methods for all the test cases."
+     [test-cases]
      (compile-util/with-gensyms [dataset]
-       `(do ~@(map-indexed (fn [index [schema-name schema]]
-                             `(let [~schema-name (mikron/schema ~schema)
-                                    ~dataset     (repeatedly 100 #(mikron/gen ~schema-name))]
-                                ~@(map (fn [method]
-                                         `(deftest ~(symbol (str (name method) "-" (name schema-name)))
-                                            (test-mikron ~method ~schema-name ~dataset)))
-                                       (keys (methods test-mikron)))))
-                           test-cases)))))
+       `(do ~@(for [[schema-name schema] test-cases]
+                `(let [~schema-name (mikron/schema ~schema)
+                       ~dataset     (repeatedly 100 #(mikron/gen ~schema-name))]
+                   ~@(for [method (keys (methods test-mikron))]
+                       `(deftest ~(symbol (str (name method) "-" (name schema-name)))
+                          (test-mikron ~method ~schema-name ~dataset)))))))))
 
-(defn pre-inc ^long [^long x]
+(defn pre-inc
+  "Type hinted inc."
+  ^long [^long x]
   (inc x))
 
-(defn post-dec ^long [^long x]
+(defn post-dec
+  "Type hinted dec."
+  ^long [^long x]
   (dec x))
 
 (def-mikron-tests

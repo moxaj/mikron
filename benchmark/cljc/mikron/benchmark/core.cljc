@@ -19,7 +19,8 @@
   #?(:clj (:import [java.io ByteArrayInputStream ByteArrayOutputStream ObjectInputStream ObjectOutputStream]
                    [java.nio ByteBuffer]
                    [com.google.protobuf AbstractMessageLite]
-                   [mikron Mikron$Doubles Mikron$Quartet Mikron$Snapshot])))
+                   [mikron Mikron$Doubles Mikron$Quartet Mikron$Snapshot]
+                   [mikron.colf Quartet Snapshot])))
 
 ;; Packers
 
@@ -27,10 +28,13 @@
    (octet/allocate 100000 #?(:clj  {:type :direct :impl :nio}
                              :cljs {:type :heap   :impl :es6})))
 
+#?(:clj (def colfer-buffer ^bytes (byte-array 10000)))
+
 (defmulti pack (fn [method _ _] method))
 
 (defmethod pack :edn ^bytes [_ _ data]
   (util.type/string->binary (util.type/any->string data)))
+
 (defmethod pack :mikron ^bytes [_ schema data]
   (mikron/pack schema data))
 
@@ -83,6 +87,15 @@
 #?(:clj ;; protobuf
    (defmethod pack :protobuf ^bytes [_ _ ^AbstractMessageLite data]
      (.toByteArray data)))
+
+#?(:clj ;; colfer
+   (defmethod pack :colfer ^bytes [_ schema data]
+     (.marshal (case schema
+                 ::benchmark.schema/quartet   ^Quartet data
+                 ::benchmark.schema/snapshot  ^Snapshot data
+                 ::benchmark.schema/snapshot2 ^Snapshot data)
+               colfer-buffer 0)
+     colfer-buffer))
 
 ;; Unpackers
 
@@ -143,6 +156,14 @@
        ::benchmark.schema/snapshot  (Mikron$Snapshot/parseFrom binary)
        ::benchmark.schema/snapshot2 (Mikron$Snapshot/parseFrom binary))))
 
+#?(:clj ;; colfer
+   (defmethod unpack :colfer [_ schema ^bytes binary]
+     (.unmarshal (case schema
+                   ::benchmark.schema/quartet   (Quartet.)
+                   ::benchmark.schema/snapshot  (Snapshot.)
+                   ::benchmark.schema/snapshot2 (Snapshot.))
+                 binary 0)))
+
 ;; Post process
 
 #?(:cljs
@@ -161,7 +182,7 @@
               (dotimes [_# 1000] ~expr)
               (- (now) t#))))))
 
-(defmulti measure (fn [stat _ _ _] stat))
+(defmulti measure (fn [stat method schema data] stat))
 
 (defmethod measure :size [_ method schema data]
   (count (pack method schema data)))
@@ -196,6 +217,6 @@
 
 (comment
   (diagram (benchmark :stats   [:pack-time]
-                      :methods [:octet]
+                      ;:methods [:mikron :protobuf]
                       :schema  ::benchmark.schema/snapshot))
   nil)

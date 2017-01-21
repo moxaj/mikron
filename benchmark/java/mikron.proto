@@ -39,7 +39,7 @@ message BodyUserData {
 message Body {
   BodyUserData userData = 1;
   Coord position = 2;
-  float angle = 3;
+  double angle = 3;
   enum BodyType {
     DYNAMIC = 0;
     STATIC = 1;
