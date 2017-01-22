@@ -412,7 +412,7 @@
   (!double* (?byte-buffer buffer) value))
 
 (defn ?bytes-n
-  "Reads n bytes from `buffer`."
+  "Reads `n` bytes from `buffer`."
   [^Buffer buffer n]
   (?bytes-n* (?byte-buffer buffer) n))
 

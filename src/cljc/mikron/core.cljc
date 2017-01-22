@@ -102,7 +102,7 @@
   ((schema :gen)))
 
 (defn valid?
-  "Returns true if `value` conforms to `schema`, false otherwise."
+  "Returns `true` if `value` conforms to `schema`, `false` otherwise."
   [schema value]
   ((schema :valid?) value))
 
