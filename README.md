@@ -2,6 +2,8 @@
 
 Mikron is a schema-based serialization library for Clojure and ClojureScript.
 
+[![Build Status](https://travis-ci.org/moxaj/mikron.svg?branch=master)](https://travis-ci.org/moxaj/mikron)
+
 ## Features
 
 - great performance
