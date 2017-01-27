@@ -5,7 +5,6 @@
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [org.clojure/clojurescript "1.9.293"]]
-                 ;[org.javassist/javassist "3.18.1-GA" :scope "test"]]
   :source-paths ["src/clj" "src/cljc"]
   :java-source-paths ["src/java"]
   :test-paths ["test/cljc"]
