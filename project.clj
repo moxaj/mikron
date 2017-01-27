@@ -12,7 +12,7 @@
   :profiles {:dev {:source-paths ["dev" "benchmark/cljc"]
                    :java-source-paths ["benchmark/java"]
                    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-                   :checksum :warn
+                   :checksum :ignore
                    :plugins [[lein-cljsbuild "1.1.4"]
                              [lein-figwheel "0.5.8"]
                              [lein-codox "0.10.2"]]
