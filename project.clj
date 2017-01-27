@@ -12,7 +12,6 @@
   :profiles {:dev {:source-paths ["dev" "benchmark/cljc"]
                    :java-source-paths ["benchmark/java"]
                    :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
-                   :checksum :ignore
                    :plugins [[lein-cljsbuild "1.1.4"]
                              [lein-figwheel "0.5.8"]
                              [lein-codox "0.10.2"]]
@@ -23,7 +22,8 @@
                                   [criterium "0.4.4"]
                                   [com.google.protobuf/protobuf-java "3.2.0-rc.1"]
                                   [com.taoensso/nippy "2.12.2"]
-                                  [com.cognitect/transit-clj "0.8.297"]
+                                  [com.cognitect/transit-clj "0.8.297" :exclusions [org.javassist/javassist]]
+                                  [org.javassist/javassist "3.21.0-GA"]
                                   [com.cognitect/transit-cljs "0.8.239"]
                                   [com.damballa/abracad "0.4.13"]
                                   [gloss "0.2.6"]
