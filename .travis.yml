@@ -1,7 +1,7 @@
 language: clojure
 lein: 2.7.1
 before_script:
-  - chmod bin/ci/test.sh
+  - chmod a+x bin/ci/test.sh
 script: bin/ci/test.sh
 jdk:
   - oraclejdk8
