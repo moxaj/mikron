@@ -28,7 +28,8 @@
                                   [gloss "0.2.6"]
                                   [cheshire "5.7.0"]
                                   [funcool/octet "1.0.1"]
-                                  [proto-repl-charts "0.3.2"]]}}
+                                  [proto-repl-charts "0.3.2"]
+                                  [viebel/codox-klipse-theme "0.0.4"]]}}
   :cljsbuild {:builds [{:id "browser"
                         :source-paths ["src/cljc" "test/cljc" "test/cljs" "benchmark/cljc" "target/classes"]
                         :figwheel true
@@ -51,7 +52,14 @@
                                    :parallel-build true
                                    :static-fns true
                                    :main "mikron.node"}}]}
-  :codox {:metadata {:doc/format :markdown}}
+  :codox {:metadata {:doc/format :markdown}
+          :source-paths ["src/clj" "src/cljc"]
+          :output-path "docs"
+          :namespaces [#"^mikron\.(?!codegen)"]
+          :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
+          :themes [:default [:klipse {:klipse/external-libs "https://raw.githubusercontent.com/moxaj/mikron/master/src/cljc"
+                                      :klipse/require-statement "(ns mikron.test
+                                                                   (:require [mikron.core :as mikron :refer [schema defschema pack unpack gen valid? diff diff* undiff undiff* interp]]))"}]]}
   :clean-targets ^{:protect false} ["resources/public/js"
                                     "node"
                                     :target-path])

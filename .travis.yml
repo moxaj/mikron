@@ -1,3 +1,7 @@
 language: clojure
 lein: 2.7.1
-script: lein2 do clean, javac, test
+script: "./bin/ci/test.sh"
+env:
+  - PLATFORM=clj
+  - PLATFORM=cljs_browser
+  - PLATFORM=cljs_node
