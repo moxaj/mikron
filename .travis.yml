@@ -1,6 +1,8 @@
 language: clojure
 lein: 2.7.1
 script: "./bin/ci/test.sh"
+jdk:
+  - oraclejdk8
 env:
   - PLATFORM=clj
   - PLATFORM=cljs_browser
