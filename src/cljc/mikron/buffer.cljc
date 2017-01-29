@@ -3,7 +3,7 @@
   (:require [mikron.util :as util]
             [mikron.util.math :as math]
             [mikron.compile-util :as compile-util]
-            [mikron.buffer-macros :refer [with-delta with-le]])
+            [mikron.buffer-macros #?(:clj :refer :cljs :refer-macros) [with-delta with-le]])
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
 (compile-util/definterface+ BitBufferOps
