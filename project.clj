@@ -52,13 +52,13 @@
                                    :static-fns true
                                    :main "mikron.node"}}]}
   :codox {:metadata {:doc/format :markdown}
-          :source-paths ["src/clj" "src/cljc"]
+          :source-paths ["src/cljc"]
           :output-path "docs"
           :namespaces [#"^mikron\.(?!codegen)"]
           :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
           :themes [:default [:klipse {:klipse/external-libs "https://raw.githubusercontent.com/moxaj/mikron/master/src/cljc"
-                                      :klipse/require-statement "(ns mikron.test
-                                                                   (:require [mikron.core :as mikron :refer [schema defschema pack unpack gen valid? diff diff* undiff undiff* interp]]))"}]]}
+                                      :klipse/require-statement "(ns mikron.codox
+                                                                   (:require [clojure.spec :as s]))"}]]}
   :clean-targets ^{:protect false} ["resources/public/js"
                                     "node"
                                     :target-path])
