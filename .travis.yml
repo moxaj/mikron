@@ -1,8 +1,9 @@
 language: clojure
 lein: 2.7.1
+sudo: required
 before_install:
   - chmod a+x scripts/before_install.sh
-  - scripts/before_install.sh  
+  - scripts/before_install.sh
 before_script:
   - chmod a+x scripts/before_script.sh
   - scripts/before_script.sh
