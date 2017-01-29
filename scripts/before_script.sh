@@ -1,8 +1,5 @@
 #!/bin/sh
 
 npm install -g lumo-cljs
-
-ls -l
-lumo -h
-
+npm list -g
 chmod a+x scripts/test.sh
