@@ -19,6 +19,7 @@ cache:
   directories:
     - $HOME/.m2
     - node_modules
+    - $(npm config get prefix)/node_modules
 env:
   - PLATFORM=clj
   - PLATFORM=cljs_browser
