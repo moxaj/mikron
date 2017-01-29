@@ -14,9 +14,9 @@ addons:
     packages:
       - libstdc++-4.9-dev
 before_script:
-  - chmod a+x scripts/before_script.sh
-  - scripts/before_script.sh
-script: scripts/test.sh
+  - chmod a+x scripts/ci/before_script.sh
+  - scripts/ci/before_script.sh
+script: scripts/ci/test.sh
 cache:
   directories:
     - $HOME/.m2
