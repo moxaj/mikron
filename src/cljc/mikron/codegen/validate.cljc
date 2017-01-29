@@ -4,30 +4,38 @@
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
             [mikron.util.schema :as util.schema]
-            [mikron.util.coll :as util.coll]))
+            [mikron.util.coll :as util.coll]
+            [mikron.util.math :as util.math]))
 
 (defmulti valid? compile-util/type-of :hierarchy #'schema/hierarchy)
 
+(defn valid-integer?
+  "Generates code for integer validation."
+  [value bytes signed?]
+  `(and (integer? ~value)
+        (>= (unchecked-long ~value) ~(util.math/lower-bound bytes signed?))
+        (<  (unchecked-long ~value) ~(util.math/upper-bound bytes signed?))))
+
 (defmethod valid? :byte [_ value _]
-  `(util.schema/valid-integer? ~value 1 true))
+  (valid-integer? value 1 true))
 
 (defmethod valid? :ubyte [_ value _]
-  `(util.schema/valid-integer? ~value 1 false))
+  (valid-integer? value 1 false))
 
 (defmethod valid? :short [_ value _]
-  `(util.schema/valid-integer? ~value 2 true))
+  (valid-integer? value 2 true))
 
 (defmethod valid? :ushort [_ value _]
-  `(util.schema/valid-integer? ~value 2 false))
+  (valid-integer? value 2 false))
 
 (defmethod valid? :int [_ value _]
-  `(util.schema/valid-integer? ~value 4 true))
+  (valid-integer? value 4 true))
 
 (defmethod valid? :uint [_ value _]
-  `(util.schema/valid-integer? ~value 4 false))
+  (valid-integer? value 4 false))
 
 (defmethod valid? :long [_ value _]
-  `(util.schema/valid-integer? ~value 8 true))
+  (valid-integer? value 8 true))
 
 (defmethod valid? :varint [_ value env]
   (valid? [:long] value env))

@@ -11,26 +11,36 @@
 
 (defmulti gen compile-util/type-of :hierarchy #'schema/hierarchy)
 
+(defn gen-integer
+  "Generates code for random integer generation."
+  [bytes signed?]
+  (compile-util/with-gensyms [r]
+    `(let [~r (util.math/rand)]
+       (-> (* ~r ~(util.math/upper-bound bytes signed?))
+           (+ (* (- 1 ~r) ~(util.math/lower-bound bytes signed?)))
+           (util.math/floor)
+           (unchecked-long)))))
+
 (defmethod gen :byte [_ _]
-  `(util.schema/gen-integer 1 true))
+  (gen-integer 1 true))
 
 (defmethod gen :ubyte [_ _]
-  `(util.schema/gen-integer 1 false))
+  (gen-integer 1 false))
 
 (defmethod gen :short [_ _]
-  `(util.schema/gen-integer 2 true))
+  (gen-integer 2 true))
 
 (defmethod gen :ushort [_ _]
-  `(util.schema/gen-integer 2 false))
+  (gen-integer 2 false))
 
 (defmethod gen :int [_ _]
-  `(util.schema/gen-integer 4 true))
+  (gen-integer 4 true))
 
 (defmethod gen :uint [_ _]
-  `(util.schema/gen-integer 4 false))
+  (gen-integer 4 false))
 
 (defmethod gen :long [_ _]
-  `(util.schema/gen-integer 8 true))
+  (gen-integer 8 true))
 
 (defmethod gen :varint [_ env]
   (gen [:long] env))
@@ -51,7 +61,10 @@
   `(apply str (util.coll/into! [] true ~gen-length ~(gen [:char] env))))
 
 (defmethod gen :binary [_ _]
-  `(util.schema/gen-binary))
+  `(-> (util.coll/into! [] true
+                        (unchecked-add 2 (util.math/rand-long 30))
+                        ~(gen-integer 1 true))
+       (util.schema/byte-seq->binary)))
 
 (defmethod gen :any [_ _]
   nil)

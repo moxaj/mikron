@@ -2,8 +2,8 @@
   "Macro input validation."
   (:require [clojure.spec :as s]
             [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util])
-  #?(:cljs (:require-macros [mikron.spec :refer [schema-spec*]])))
+            [mikron.compile-util :as compile-util]
+            [mikron.spec-macros :refer [schema-spec*]]))
 
 (s/def ::sorted-by
   some?)
@@ -14,16 +14,7 @@
          (s/conformer (fn [{:keys [class members]}]
                         (vec (cons class members))))))
 
-(defmacro schema-spec*
-  "Helper macro for shorthand schema spec definition."
-  [options & fields]
-  `(s/and (s/or ~@(when (empty? fields)
-                    [:simple `(s/and keyword? (s/conformer vector))])
-                :complex (s/and (s/cat :type    keyword?
-                                       :options (s/? (s/nilable (s/keys :opt-un ~options)))
-                                       ~@fields)
-                                (s/conformer (juxt :type :options ~@(take-nth 2 fields)))))
-          (s/conformer second)))
+
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."

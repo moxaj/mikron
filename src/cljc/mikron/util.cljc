@@ -1,6 +1,7 @@
 (ns mikron.util
   "Generic utility functions."
-  (:require [mikron.compile-util :as compile-util]))
+  (:require [mikron.compile-util :as compile-util])
+  #?(:cljs (:require-macros [mikron.util])))
 
 #?(:cljs
    (defn node-env?

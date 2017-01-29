@@ -2,48 +2,11 @@
   "Buffer interfaces, implementations, and derived operations."
   (:require [mikron.util :as util]
             [mikron.util.math :as math]
-            [mikron.compile-util :as compile-util])
-  #?(:clj  (:import [java.nio ByteBuffer ByteOrder])
-     :cljs (:require-macros [mikron.buffer :refer [definterface+ with-delta with-le]])))
+            [mikron.compile-util :as compile-util]
+            [mikron.buffer-macros :refer [with-delta with-le]])
+  #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
-(defmacro definterface+
-  "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
-  [name & ops]
-  (let [no-meta    #(with-meta % nil)
-        cljs?      (compile-util/cljs?)
-        ops        (map (fn [[op-name args doc-string]]
-                          [op-name
-                           args
-                           (vec (cons 'this (map no-meta args)))
-                           (when doc-string [doc-string])])
-                        ops)
-        inner-form `(~(if cljs? `defprotocol `definterface)
-                     ~name
-                     ~@(map (fn [[op-name args args' doc-string]]
-                              (if cljs?
-                                `(~(no-meta op-name)
-                                  ~args'
-                                  ~@doc-string)
-                                `(~(with-meta (munge op-name) (meta op-name))
-                                  ~args
-                                  ~@doc-string)))
-                            ops))]
-    (if cljs?
-      inner-form
-      `(do ~inner-form
-           ~@(map (fn [[op-name args args' doc-string]]
-                    `(defn ~(no-meta op-name)
-                       {:inline (fn ~args'
-                                  `(~'~(symbol (str "." (munge op-name)))
-                                    ~~@args'))}
-                       ~(with-meta (vec (cons (with-meta 'this {:tag name})
-                                              args))
-                                   (meta op-name))
-                       (~(symbol (str "." (munge op-name)))
-                        ~@args')))
-                  ops)))))
-
-(definterface+ BitBufferOps
+(compile-util/definterface+ BitBufferOps
   (^long   ?bit-pos* []            "Gets the current position.")
   (^Object !bit-pos* [^long value] "Sets the current position.")
 
@@ -72,7 +35,7 @@
   (!bit-value* [_ value']
     (set! value #?(:clj value' :cljs (unchecked-long value')))))
 
-(definterface+ ByteBufferOps
+(compile-util/definterface+ ByteBufferOps
   (^long   ?byte* []            "Reads a byte.")
   (^Object !byte* [^long value] "Writes a byte.")
 
@@ -158,14 +121,6 @@
      (!le* [_ value]
        (.order buffer (if value ByteOrder/LITTLE_ENDIAN ByteOrder/BIG_ENDIAN)))))
 
-(defmacro with-delta
-  "Executes `body` and updates the position `pos` with the delta `delta`."
-  [pos delta body]
-  (compile-util/with-gensyms [value]
-    `(let [~value ~body]
-       (set! ~pos (unchecked-add ~pos ~delta))
-       ~value)))
-
 #?(:cljs ;; ByteBufferOps cljs (buffer) impl (DataView + Int8Buffer)
    (deftype ByteBufferImplCljsBrowser [data-view
                                        int8-array
@@ -230,13 +185,6 @@
        le)
      (!le* [_ value]
        (set! le value))))
-
-(defmacro with-le
-  "Executes the expressions with the endianness automatically set to `le`."
-  [le [expr & exprs]]
-  `(if ~le
-     (~(symbol (str expr "LE")) ~@exprs)
-     (~(symbol (str expr "BE")) ~@exprs)))
 
 #?(:cljs ;; ByteBufferOps cljs (node) impl (Buffer)
    (deftype ByteBufferImplCljsNode [buffer
@@ -569,7 +517,7 @@
     (when-not (== -1 bit-pos)
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
-(definterface+ ByteBufferFactoryOps
+(compile-util/definterface+ ByteBufferFactoryOps
   (^mikron.buffer.ByteBufferOps allocate* [^long size]    "Allocates a buffer with size `size`.")
   (^mikron.buffer.ByteBufferOps wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 

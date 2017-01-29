@@ -1,11 +1,7 @@
 (ns mikron.util.schema
   "Runtime schema related functions."
   #?(:cljs (:refer-clojure :exclude [keyword-identical?]))
-  (:require [clojure.tools.reader.edn :as edn]
-            [mikron.util :as util]
-            [mikron.util.math :as util.math]
-            [mikron.util.coll :as util.coll])
-  #?(:cljs (:require-macros [mikron.util.schema :refer [gen-integer valid-integer?]]))
+  (:require [clojure.tools.reader :as edn])
   #?(:clj (:import [java.nio.charset StandardCharsets])))
 
 ;; converters
@@ -66,7 +62,13 @@
   #?(:clj  (unchecked-float x)
      :cljs (.fround js/Math x)))
 
-;; predicates
+(defn byte-seq->binary
+  "Converts a byte sequence to a binary value."
+  [byte-seq]
+  #?(:clj  (byte-array byte-seq)
+     :cljs (.-buffer (js/Int8Array. (apply array byte-seq)))))
+
+;; valid?
 
 (defn binary?
   "Returns `true` if `x` is a binary value, `false` otherwise."
@@ -74,51 +76,7 @@
   #?(:clj  (bytes? x)
      :cljs (instance? js/ArrayBuffer x)))
 
-;; helper
-
-(defn min-bound
-  "Returns the lower bound for an integer value."
-  [^long bytes signed?]
-  (if signed?
-    (- (util.math/pow 2 (dec (* bytes 8))))
-    0))
-
-(defn max-bound
-  "Returns the upper bound for an integer value."
-  [^long bytes signed?]
-  (let [m (util.math/pow 2 (* bytes 8))]
-    (if signed? (/ m 2) m)))
-
-;; generators
-
-(defmacro gen-integer
-  "Generates a random integer."
-  [bytes signed?]
-  `(let [r# (util.math/rand)]
-     (-> (* r# ~(max-bound bytes signed?))
-         (+ (* (- 1 r#) ~(min-bound bytes signed?)))
-         (util.math/floor)
-         (unchecked-long))))
-
-(defn gen-binary
-  "Generates a random binary value."
-  []
-  (let [byte-seq (util.coll/into! [] true
-                                  (unchecked-add 2 (util.math/rand-long 30))
-                                  (gen-integer 1 true))]
-    #?(:clj  (byte-array byte-seq)
-       :cljs (.-buffer (js/Int8Array. (apply array byte-seq))))))
-
-;; validators
-
-(defmacro valid-integer?
-  "Returns `true` if `value` is a valid integer, `false` otherwise."
-  [value bytes signed?]
-  `(and (integer? ~value)
-        (>= (unchecked-long ~value) ~(min-bound bytes signed?))
-        (<  (unchecked-long ~value) ~(max-bound bytes signed?))))
-
-;; differ
+;; diff
 
 (defn keyword-identical? [value-1 value-2]
   #?(:clj  (identical? value-1 value-2)

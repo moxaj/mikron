@@ -149,3 +149,18 @@
   ^long [^long x]
   (xor (unsigned-shift-right x 1)
        (negate (and x c1))))
+
+(defn lower-bound
+  "Returns the lower bound for an integer value."
+  [^long bytes signed?]
+  (if signed?
+    (- (pow 2 (dec (* bytes 8))))
+    0))
+
+(defn upper-bound
+  "Returns the upper bound for an integer value."
+  [^long bytes signed?]
+  (let [m (pow 2 (* bytes 8))]
+    (if signed?
+      (/ m 2)
+      m)))
