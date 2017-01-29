@@ -2,7 +2,7 @@ language: clojure
 lein: 2.7.1
 before_script:
   - chmod a+x scripts/before_script.sh
-  - before_script
+  - scripts/before_script.sh
 script: scripts/test.sh
 cache:
   directories:
