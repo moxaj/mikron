@@ -2,7 +2,7 @@
   "Buffer interfaces, implementations, and derived operations."
   (:require [mikron.util :as util]
             [mikron.util.math :as math]
-            [mikron.compile-util :as compile-util])
+            #?(:clj [mikron.compile-util :as compile-util]))
   #?(:clj  (:import [java.nio ByteBuffer ByteOrder])
      :cljs (:require-macros [mikron.buffer :refer [definterface+ with-delta with-le]])))
 
@@ -517,7 +517,7 @@
   (loop [value math/c0
          shift (long 0)]
     (if (>= shift 64)
-      (throw (ex-info "Malformed varint!" nil))
+      (throw (ex-info "Malformed varint!"))
       (let [byte  (math/from (?byte buffer))
             value (-> (math/and byte math/c127)
                       (math/shift-left shift)

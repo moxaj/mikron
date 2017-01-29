@@ -2,7 +2,7 @@
   "Unit tests for each processor."
   (:require [clojure.test :refer [deftest is testing are]]
             [mikron.core :as mikron]
-            #?(:clj [mikron.compile-util :as compile-util]))
+            [mikron.compile-util :as compile-util])
   #?(:clj  (:import [java.util Arrays])
      :cljs (:require-macros [mikron.test :refer [def-mikron-tests]])))
 
@@ -22,7 +22,7 @@
 
 (defmethod test-mikron :pack [_ schema dataset]
   (doseq [value dataset]
-    (is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema) :value)))))
+    (is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema))))))
 
 (defmethod test-mikron :diff [_ schema dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
@@ -36,27 +36,16 @@
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
-#?(:clj
-   (defmacro def-mikron-tests
-     "Generates test methods for all the test cases."
-     [test-cases]
-     (compile-util/with-gensyms [dataset]
-       `(do ~@(for [[schema-name schema] test-cases]
-                `(let [~schema-name (mikron/schema ~schema)
-                       ~dataset     (repeatedly 100 #(mikron/gen ~schema-name))]
-                   ~@(for [method (keys (methods test-mikron))]
-                       `(deftest ~(symbol (str (name method) "-" (name schema-name)))
-                          (test-mikron ~method ~schema-name ~dataset)))))))))
-
-(defn pre-inc
-  "Type hinted inc."
-  ^long [^long x]
-  (inc x))
-
-(defn post-dec
-  "Type hinted dec."
-  ^long [^long x]
-  (dec x))
+(defmacro def-mikron-tests
+  "Generates test methods for all the test cases."
+  [test-cases]
+  (compile-util/with-gensyms [dataset]
+    `(do ~@(for [[schema-name schema] test-cases]
+             `(let [~schema-name (mikron/schema ~schema)
+                    ~dataset     (repeatedly 100 #(mikron/gen ~schema-name))]
+                ~@(for [method (keys (methods test-mikron))]
+                    `(deftest ~(symbol (str (name method) "-" (name schema-name)))
+                       (test-mikron ~method ~schema-name ~dataset))))))))
 
 (def-mikron-tests
   {t-byte         :byte
@@ -90,4 +79,4 @@
    t-tuple        [:tuple [:int :string :double]]
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi number? {true :int false :string}]
-   t-wrapped      [:wrapped pre-inc post-dec :int]})
+   t-wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})

@@ -1,8 +1,9 @@
 (ns mikron.spec
   "Macro input validation."
   (:require [clojure.spec :as s]
-            [mikron.type :as type]
-            [mikron.compile-util :as compile-util]))
+            [mikron.schema :as schema]
+            [mikron.compile-util :as compile-util])
+  #?(:cljs (:require-macros [mikron.spec :refer [schema-spec*]])))
 
 (s/def ::sorted-by
   some?)
@@ -24,7 +25,9 @@
                                 (s/conformer (juxt :type :options ~@(take-nth 2 fields)))))
           (s/conformer second)))
 
-(defmulti schema-spec compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti schema-spec
+  "Returns a spec for a schema definition."
+  compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defmethod schema-spec :simple [_]
   (schema-spec* []))
@@ -67,14 +70,15 @@
   (constantly false))
 
 (s/def ::schema
-  (s/and #(empty? (descendants type/hierarchy %))
+  (s/and #(empty? (descendants schema/hierarchy %))
          (s/multi-spec schema-spec compile-util/type-of)))
 
 (s/def ::route
-  (s/and (s/or :tuple           (s/map-of int? ::route)
-               :record-or-multi (s/map-of keyword? ::route)
-               :coll-or-map     (s/keys :req-un [:route/all])
-               :true            true?)
+  (s/and (s/or :tuple       (s/map-of nat-int? ::route)
+               :record      (s/map-of keyword? ::route)
+               :multi       (s/map-of any? ::route)
+               :coll-or-map (s/keys :req-un [:route/all])
+               :true        true?)
          (s/conformer second)))
 
 (s/def :route/all ::route)
@@ -102,7 +106,7 @@
                                      (s/conformer (juxt :op-name :args :doc-string))))))
 
 (defn enforce
-  "Conforms `value` to `spec`. Throws an exception if it fails."
+  "Returns `value` conformed to `spec`, or throws an exception if it fails."
   [spec value]
   (let [value' (s/conform spec value)]
     (if (s/invalid? value')

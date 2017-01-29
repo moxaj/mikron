@@ -1,10 +1,11 @@
-(ns mikron.util.type
-  "Runtime type related functions."
+(ns mikron.util.schema
+  "Runtime schema related functions."
+  #?(:cljs (:refer-clojure :exclude [keyword-identical?]))
   (:require [clojure.tools.reader.edn :as edn]
             [mikron.util :as util]
             [mikron.util.math :as util.math]
             [mikron.util.coll :as util.coll])
-  #?(:cljs (:require-macros [mikron.util.type :refer [gen-integer valid-integer?]]))
+  #?(:cljs (:require-macros [mikron.util.schema :refer [gen-integer valid-integer?]]))
   #?(:clj (:import [java.nio.charset StandardCharsets])))
 
 ;; converters
@@ -75,32 +76,29 @@
 
 ;; helper
 
-#?(:clj
-   (defn min-bound
-     "Returns the lower bound for an integer value."
-     [^long bytes signed?]
-     (if signed?
-       (- (util.math/pow 2 (dec (* bytes 8))))
-       0)))
+(defn min-bound
+  "Returns the lower bound for an integer value."
+  [^long bytes signed?]
+  (if signed?
+    (- (util.math/pow 2 (dec (* bytes 8))))
+    0))
 
-#?(:clj
-   (defn max-bound
-     "Returns the upper bound for an integer value."
-     [^long bytes signed?]
-     (let [m (util.math/pow 2 (* bytes 8))]
-       (if signed? (/ m 2) m))))
+(defn max-bound
+  "Returns the upper bound for an integer value."
+  [^long bytes signed?]
+  (let [m (util.math/pow 2 (* bytes 8))]
+    (if signed? (/ m 2) m)))
 
 ;; generators
 
-#?(:clj
-   (defmacro gen-integer
-     "Generates a random integer."
-     [bytes signed?]
-     `(let [r# (util.math/rand)]
-        (-> (* r# ~(max-bound bytes signed?))
-            (+ (* (- 1 r#) ~(min-bound bytes signed?)))
-            (util.math/floor)
-            (unchecked-long)))))
+(defmacro gen-integer
+  "Generates a random integer."
+  [bytes signed?]
+  `(let [r# (util.math/rand)]
+     (-> (* r# ~(max-bound bytes signed?))
+         (+ (* (- 1 r#) ~(min-bound bytes signed?)))
+         (util.math/floor)
+         (unchecked-long))))
 
 (defn gen-binary
   "Generates a random binary value."
@@ -113,10 +111,15 @@
 
 ;; validators
 
-#?(:clj
-   (defmacro valid-integer?
-     "Returns `true` if `value` is a valid integer, `false` otherwise."
-     [value bytes signed?]
-     `(and (integer? ~value)
-           (>= (unchecked-long ~value) ~(min-bound bytes signed?))
-           (<  (unchecked-long ~value) ~(max-bound bytes signed?)))))
+(defmacro valid-integer?
+  "Returns `true` if `value` is a valid integer, `false` otherwise."
+  [value bytes signed?]
+  `(and (integer? ~value)
+        (>= (unchecked-long ~value) ~(min-bound bytes signed?))
+        (<  (unchecked-long ~value) ~(max-bound bytes signed?))))
+
+;; differ
+
+(defn keyword-identical? [value-1 value-2]
+  #?(:clj  (identical? value-1 value-2)
+     :cljs (clojure.core/keyword-identical? value-1 value-2)))

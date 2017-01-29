@@ -1,42 +1,42 @@
 (ns mikron.codegen.gen
   "Generator generating functions."
-  (:require [mikron.type :as type]
+  (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.util.type :as util.type]
-            [mikron.util.math :as util.math]
-            [mikron.util.coll :as util.coll]))
+            [mikron.util.schema :as util.schema]
+            [mikron.util.coll :as util.coll]
+            [mikron.util.math :as util.math]))
 
 (def ^:const gen-length 4)
 
-(defmulti gen compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti gen compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defmethod gen :byte [_ _]
-  `(util.type/gen-integer 1 true))
+  `(util.schema/gen-integer 1 true))
 
 (defmethod gen :ubyte [_ _]
-  `(util.type/gen-integer 1 false))
+  `(util.schema/gen-integer 1 false))
 
 (defmethod gen :short [_ _]
-  `(util.type/gen-integer 2 true))
+  `(util.schema/gen-integer 2 true))
 
 (defmethod gen :ushort [_ _]
-  `(util.type/gen-integer 2 false))
+  `(util.schema/gen-integer 2 false))
 
 (defmethod gen :int [_ _]
-  `(util.type/gen-integer 4 true))
+  `(util.schema/gen-integer 4 true))
 
 (defmethod gen :uint [_ _]
-  `(util.type/gen-integer 4 false))
+  `(util.schema/gen-integer 4 false))
 
 (defmethod gen :long [_ _]
-  `(util.type/gen-integer 8 true))
+  `(util.schema/gen-integer 8 true))
 
 (defmethod gen :varint [_ env]
   (gen [:long] env))
 
 (defmethod gen :float [_ _]
-  `(util.type/double->float (util.math/rand)))
+  `(util.schema/double->float (util.math/rand)))
 
 (defmethod gen :double [_ _]
   `(util.math/rand))
@@ -51,7 +51,7 @@
   `(apply str (util.coll/into! [] true ~gen-length ~(gen [:char] env))))
 
 (defmethod gen :binary [_ _]
-  `(util.type/gen-binary))
+  `(util.schema/gen-binary))
 
 (defmethod gen :any [_ _]
   nil)
@@ -107,7 +107,7 @@
   `(~post ~(gen schema' env)))
 
 (defmethod gen :aliased [[schema'] env]
-  (gen (type/aliases schema') env))
+  (gen (schema/aliases schema') env))
 
 (defmethod gen :custom [schema env]
   `(~(compile-util/processor-name :gen schema)))

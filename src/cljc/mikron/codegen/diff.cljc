@@ -1,20 +1,19 @@
 (ns mikron.codegen.diff
   "Differ and undiffer generating functions."
-  (:refer-clojure :exclude [comparator])
-  (:require [mikron.type :as type]
+  (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
             [mikron.util.coll :as util.coll]))
 
-(defmulti diff compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti diff compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (prefer-method diff :=-comparable :aliased)
 
 (prefer-method diff :=-comparable :built-in)
 
-(prefer-method diff :identical?-comparable :aliased)
-
 (prefer-method diff :identical?-comparable :built-in)
+
+(prefer-method diff :keyword-comparable :built-in)
 
 (defn diff* [schema route value-1 value-2 {:keys [processor-type] :as env}]
   (if-not route
@@ -42,6 +41,13 @@
 (defmethod diff :identical?-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
     :diff   `(if (identical? ~value-1 ~value-2)
+               :mikron/dnil
+               ~value-2)
+    :undiff value-2))
+
+(defmethod diff :keyword-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
+  (case processor-type
+    :diff   `(if (util.schema/keyword-identical? ~value-1 ~value-2)
                :mikron/dnil
                ~value-2)
     :undiff value-2))
@@ -159,7 +165,7 @@
                        multi-map)))))))
 
 (defmethod diff :aliased [[schema'] route value-1 value-2 env]
-  (diff (type/aliases schema') route value-1 value-2 env))
+  (diff (schema/aliases schema') route value-1 value-2 env))
 
 (defmethod diff :built-in [_ _ _ value-2 _]
   value-2)

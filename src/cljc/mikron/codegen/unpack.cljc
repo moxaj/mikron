@@ -1,13 +1,13 @@
 (ns mikron.codegen.unpack
-  "unpack generating functions."
+  "Unpacker generating functions."
   (:require [mikron.buffer :as buffer]
-            [mikron.type :as type]
+            [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
             [mikron.util.coll :as util.coll])
-  (:import [mikron.buffer Buffer]))
+  #?(:clj (:import [mikron.buffer Buffer])))
 
-(defmulti unpack compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti unpack compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defn unpack* [schema {:keys [diffed?] :as env}]
   (if-not diffed?
@@ -73,7 +73,7 @@
   `(~post ~(unpack schema' env)))
 
 (defmethod unpack :aliased [[schema'] env]
-  (unpack (type/aliases schema') env))
+  (unpack (schema/aliases schema') env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
   `(~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema) ~buffer))

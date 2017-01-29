@@ -1,5 +1,6 @@
 (ns mikron.compile-util
-  "Compile time utility functions.")
+  "Compile time utility functions."
+  #?(:cljs (:require-macros [mikron.compile-util])))
 
 ;; symbol
 
@@ -30,7 +31,7 @@
 
 (defmacro with-evaluated
   "Executes each expression of `body` in the context of each symbol in `syms`
-  bound to an evaluated value. Can be used to prevent accidental multiple evaluation
+  bound to an **evaluated** value. Can be used to prevent accidental multiple evaluation
   in macros."
   [syms & body]
   (let [m (into {} (map (juxt identity gensym) syms))]
@@ -61,7 +62,7 @@
 ;; schema
 
 (defn type-of
-  "Returns the type of `schema` (a keyword, or `nil` if the schema is invalid)."
+  "Returns the type of `schema` or `nil` if the schema is invalid."
   [schema & _]
   (cond
     (keyword? schema) schema

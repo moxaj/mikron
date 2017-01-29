@@ -1,33 +1,33 @@
 (ns mikron.codegen.validate
   "Validator generating functions."
-  (:require [mikron.type :as type]
+  (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.util.type :as util.type]
+            [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]))
 
-(defmulti valid? compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti valid? compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defmethod valid? :byte [_ value _]
-  `(util.type/valid-integer? ~value 1 true))
+  `(util.schema/valid-integer? ~value 1 true))
 
 (defmethod valid? :ubyte [_ value _]
-  `(util.type/valid-integer? ~value 1 false))
+  `(util.schema/valid-integer? ~value 1 false))
 
 (defmethod valid? :short [_ value _]
-  `(util.type/valid-integer? ~value 2 true))
+  `(util.schema/valid-integer? ~value 2 true))
 
 (defmethod valid? :ushort [_ value _]
-  `(util.type/valid-integer? ~value 2 false))
+  `(util.schema/valid-integer? ~value 2 false))
 
 (defmethod valid? :int [_ value _]
-  `(util.type/valid-integer? ~value 4 true))
+  `(util.schema/valid-integer? ~value 4 true))
 
 (defmethod valid? :uint [_ value _]
-  `(util.type/valid-integer? ~value 4 false))
+  `(util.schema/valid-integer? ~value 4 false))
 
 (defmethod valid? :long [_ value _]
-  `(util.type/valid-integer? ~value 8 true))
+  `(util.schema/valid-integer? ~value 8 true))
 
 (defmethod valid? :varint [_ value env]
   (valid? [:long] value env))
@@ -45,7 +45,7 @@
   `(string? ~value))
 
 (defmethod valid? :binary [_ value _]
-  `(util.type/binary? ~value))
+  `(util.schema/binary? ~value))
 
 (defmethod valid? :nil [_ value _]
   `(nil? ~value))
@@ -125,7 +125,7 @@
             ~(valid? schema' value' env)))))
 
 (defmethod valid? :aliased [[schema'] value env]
-  (valid? (type/aliases schema') value env))
+  (valid? (schema/aliases schema') value env))
 
 (defmethod valid? :custom [schema value _]
   `(~(compile-util/processor-name :valid? schema) ~value))

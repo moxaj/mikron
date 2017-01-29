@@ -1,12 +1,12 @@
 (ns mikron.codegen.interp
   "Linear interpolator generating functions."
-  (:require [mikron.type :as type]
+  (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
             [mikron.util :as util]
-            [mikron.util.math :as util.math]
-            [mikron.util.coll :as util.coll]))
+            [mikron.util.coll :as util.coll]
+            [mikron.util.math :as util.math]))
 
-(defmulti interp compile-util/type-of :hierarchy #'type/hierarchy)
+(defmulti interp compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defmethod interp :char [_ _ value-1 value-2 env]
   (interp :built-in nil value-1 value-2 char))
@@ -115,7 +115,7 @@
        (~post ~(interp schema' route value-1' value-2' env)))))
 
 (defmethod interp :aliased [[schema'] route value-1 value-2 env]
-  (interp (type/aliases schema') route value-1 value-2 env))
+  (interp (schema/aliases schema') route value-1 value-2 env))
 
 (defmethod interp :built-in [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))
