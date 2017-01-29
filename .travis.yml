@@ -1,14 +1,18 @@
 language: clojure
 lein: 2.7.1
 before_script:
-  - chmod a+x scripts/test.sh
+  - chmod a+x scripts/before_script.sh
+  - before_script
 script: scripts/test.sh
 cache:
   directories:
     - $HOME/.m2
+    - node_modules
 jdk:
   - oraclejdk8
+os:
+  - linux
 env:
   - PLATFORM=clj
   - PLATFORM=cljs_browser
-  - PLATFORM=cljs_node
+#  - PLATFORM=cljs_node
