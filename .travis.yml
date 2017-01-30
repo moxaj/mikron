@@ -4,17 +4,20 @@ os:
   - linux
 jdk:
   - oraclejdk8
-node_js:
-  - "6"  
 sudo: required
 notifications:
   email: false
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - libstdc++-4.9-dev
+#addons:
+#  apt:
+#    sources:
+#      - ubuntu-toolchain-r-test
+#    packages:
+#      - libstdc++-4.9-dev
+install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - nvm use stable
+  - npm install
 before_script:
   - chmod a+x scripts/ci/before_script.sh
   - scripts/ci/before_script.sh
