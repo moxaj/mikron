@@ -63,7 +63,7 @@
                                    :target :nodejs
                                    :optimizations :none
                                    :cache-analysis true
-                                   :parallel-build true
+                                   ;:parallel-build true
                                    :static-fns true
                                    :main "mikron.node"}}]}
   :codox {:metadata {:doc/format :markdown}
