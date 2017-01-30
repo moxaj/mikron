@@ -1,5 +1,7 @@
 #!/bin/sh
 
+node -v
+
 case "$PLATFORM" in
   "clj")
     lein do clean, javac, test ;;
