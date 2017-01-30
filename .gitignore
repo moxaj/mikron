@@ -1,7 +1,6 @@
 target
 classes
 checkouts
-resources/public/js
 node
 node_modules
 .repl*

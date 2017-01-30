@@ -8,6 +8,7 @@
 
 (defn -main [& args]
   (let [{:keys [fail error]} (run-tests 'mikron.test)]
+    (println "Fails: " fail ", errors: " error)
     (.exit js/process (if (= 0 fail error) 0 1))))
 
 (set! *main-cli-fn* -main)
