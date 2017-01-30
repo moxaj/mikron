@@ -25,4 +25,4 @@ cache:
 env:
   - PLATFORM=clj
   - PLATFORM=cljs_browser
-#  - PLATFORM=cljs_node
+  - PLATFORM=cljs_node
