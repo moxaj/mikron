@@ -1,30 +1,27 @@
-# Running tests and benchmarks
+# Running tests
 
-## 1 Setup
+## Clojure
 
-### Clojure
+`lein test`
 
-`lein do clean, repl`
-
-### ClojureScript (browser)
+## ClojureScript (browser)
 
 - `lein do clean, javac, figwheel browser`
 - visit `localhost:3349`
 
-### ClojureScript (Node.js)
+## ClojureScript (Node.js)
 
-- `lein do clean, javac, figwheel node`
-- `node node/app.js` (in separate window)
+- either
+  - `lein do clean, javac, figwheel node` (for REPL)
+  - `lein do clean, javac, cljsbuild once node`
+- `node resources/test/node/app.js`
 
-## 2 REPL
+## ClojureScript (headless browser)
 
-### Testing
+TODO: phantom.js does not support TypedArray.slice :disappointed:
 
-- `(require '[clojure.test :refer [run-tests]])`
-- `(require '[mikron.test])`
-- `(run-tests 'mikron.test)`
+## ClojureScript (bootstrapped with Lumo)
 
-### Benchmarks
+TODO
 
-- `(require '[mikron.benchmark.core :refer [benchmark]])`
-- `(benchmark :stats <stats> :methods <methods> :schema <schema>)`
+# Running benchmarks

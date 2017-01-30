@@ -40,5 +40,4 @@
      ;; comparability
      :identical?-comparable [:boolean :nil]
      :=-comparable          [:char :string :symbol]
-     :==-comparable         [:number]
      :keyword-comparable    [:keyword :enum]}))

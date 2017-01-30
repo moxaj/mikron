@@ -1,8 +1,8 @@
 (ns mikron.browser
   "Browser test client."
-  (:require [mikron.test]
-            [clojure.test :refer [run-tests]]))
-
+  (:require [clojure.test :refer [run-tests]]
+            [mikron.test]))
+            
 (enable-console-print!)
 
 (run-tests 'mikron.test)
