@@ -63,7 +63,8 @@
                                    :target :nodejs
                                    :optimizations :none
                                    :cache-analysis true
-                                   ;:parallel-build true
+                                   :parallel-build true
+                                   :verbose true
                                    :static-fns true
                                    :main "mikron.node"}}]}
   :codox {:metadata {:doc/format :markdown}
@@ -80,5 +81,5 @@
                                                              :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"}]]}
   :clean-targets ^{:protect false} ["resources/test/browser/js"
                                     "resources/test/phantom/js"
-                                    "node"
+                                    "resources/test/node"
                                     :target-path])
