@@ -1,9 +1,5 @@
 #!/bin/sh
 
-echo "Node version: "
-node -v
-echo "-----"
-
 case "$PLATFORM" in
   "clj")
     lein do clean, javac, test ;;

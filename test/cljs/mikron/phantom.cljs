@@ -1,12 +1,12 @@
 (ns mikron.phantom
   "Phantom.js test client."
-  (:require [clojure.test :refer [run-tests]]
+  (:require [clojure.test :as test]
             [mikron.test]))
 
 (enable-console-print!)
 
+(defmethod test/report [::test/default :summary] [{:keys [fail error]}]
+  (.exit js/process (if (= 0 fail error) 0 1)))
+
 (defn ^:export run []
-  (let [{:keys [fail error]} (run-tests 'mikron.test)]
-    (if (= 0 fail error)
-      0
-      1)))
+  (test/run-tests 'mikron.test))

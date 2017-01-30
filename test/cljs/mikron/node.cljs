@@ -1,14 +1,15 @@
 (ns mikron.node
   "Node.js test client."
   (:require [cljs.nodejs :as nodejs]
-            [clojure.test :refer [run-tests]]
+            [clojure.test :as test]
             [mikron.test]))
 
 (nodejs/enable-util-print!)
 
+(defmethod test/report [::test/default :summary] [{:keys [fail error]}]
+  (.exit js/process (if (= 0 fail error) 0 1)))
+
 (defn -main [& args]
-  (let [{:keys [fail error]} (run-tests 'mikron.test)]
-    (println "Fails: " fail ", errors: " error)
-    (.exit js/process (if (= 0 fail error) 0 1))))
+  (test/run-tests 'mikron.test))
 
 (set! *main-cli-fn* -main)
