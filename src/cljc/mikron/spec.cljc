@@ -3,7 +3,7 @@
   (:require [clojure.spec :as s]
             [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
-            [mikron.spec-macros #?(:clj :refer :cljs :refer-macros) [schema-spec*]]))
+            [mikron.spec-macros :refer [schema-spec*]]))
 
 (s/def ::sorted-by
   some?)
