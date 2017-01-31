@@ -58,23 +58,23 @@
   #?(:cljs ([low high]
             (.fromBits goog.math.Long low high))))
 
-(def ^:const c0
+(def c0 ;^:const
   "The constant long 0."
   (from 0))
 
-(def ^:const c1
+(def c1 ;^:const
   "The constant long 1."
   (from 1))
 
-(def ^:const c127
+(def c127 ;^:const
   "The constant long 127."
   (from 127))
 
-(def ^:const c128
+(def c128 ;^:const
   "The constant long 128."
   (from 128))
 
-(def ^:const c-128
+(def c-128 ;^:const
   "The constant long -128."
   (from -128))
 

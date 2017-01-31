@@ -7,7 +7,7 @@
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
-(def ^:const gen-length 4)
+(def gen-length 4) ;^:const
 
 (defmulti gen compile-util/type-of :hierarchy #'schema/hierarchy)
 
