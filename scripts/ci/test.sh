@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ $PLATFORM == clj ]; then
   lein do clean, javac, test
