@@ -42,26 +42,26 @@
                                    :parallel-build true
                                    :static-fns true
                                    :main "mikron.phantom"}}
-                       ;; manual browser
+                       ;; browser
                        {:id "browser"
                         :source-paths ["src/cljc" "test/cljc" "test/cljs" "target/classes"]
                         :figwheel true
                         :compiler {:asset-path "js/out"
                                    :output-to "resources/test/browser/js/app.js"
                                    :output-dir "resources/test/browser/js/out"
-                                   :optimizations :none
+                                   :optimizations ~(or (System/getenv "OPT") :none)
                                    :cache-analysis true
                                    :parallel-build true
                                    :static-fns true
                                    :main "mikron.browser"}}
-                       ;; manual node.js
+                       ;; node.js
                        {:id "node"
                         :source-paths ["src/cljc" "test/cljc" "test/cljs" "target/classes"]
                         :figwheel true
                         :compiler {:output-to "resources/test/node/app.js"
                                    :output-dir "resources/test/node"
                                    :target :nodejs
-                                   :optimizations :none
+                                   :optimizations ~(or (System/getenv "OPT") :none)
                                    :cache-analysis true
                                    :parallel-build true
                                    :verbose true
