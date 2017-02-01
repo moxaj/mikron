@@ -5,8 +5,7 @@
 
 (enable-console-print!)
 
-(defmethod test/report [::test/default :summary] [{:keys [fail error] :as summary}]
-  (println "Test summary: " summary)
-  (.exit js/process (if (= 0 fail error) 0 1)))
+(defmethod test/report [::test/default :summary] [summary]
+  (println "Test summary: " summary))
 
 (test/run-tests 'mikron.test)

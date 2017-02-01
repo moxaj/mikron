@@ -3,7 +3,7 @@
   (:require [clojure.spec :as s]
             [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
-            [mikron.spec-macros :refer [schema-spec*]]))
+            [mikron.spec-macros :as spec-macros]))
 
 (s/def ::sorted-by
   some?)
@@ -14,45 +14,43 @@
          (s/conformer (fn [{:keys [class members]}]
                         (vec (cons class members))))))
 
-
-
 (defmulti schema-spec
   "Returns a spec for a schema definition."
   compile-util/type-of :hierarchy #'schema/hierarchy)
 
 (defmethod schema-spec :simple [_]
-  (schema-spec* []))
+  (spec-macros/schema-spec* []))
 
 (defmethod schema-spec :coll [_]
-  (schema-spec* [] :schema ::schema))
+  (spec-macros/schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :set [_]
-  (schema-spec* [::sorted-by] :schema ::schema))
+  (spec-macros/schema-spec* [::sorted-by] :schema ::schema))
 
 (defmethod schema-spec :map [_]
-  (schema-spec* [::sorted-by] :key-schema ::schema
-                              :val-schema ::schema))
+  (spec-macros/schema-spec* [::sorted-by] :key-schema ::schema
+                                          :val-schema ::schema))
 
 (defmethod schema-spec :tuple [_]
-  (schema-spec* [] :schemas (s/coll-of ::schema :kind vector?)))
+  (spec-macros/schema-spec* [] :schemas (s/coll-of ::schema :kind vector?)))
 
 (defmethod schema-spec :record [_]
-  (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
+  (spec-macros/schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
 (defmethod schema-spec :optional [_]
-  (schema-spec* [] :schema ::schema))
+  (spec-macros/schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :enum [_]
-  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
+  (spec-macros/schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
 
 (defmethod schema-spec :multi [_]
-  (schema-spec* [] :selector some?
-                   :schemas  (s/map-of any? ::schema)))
+  (spec-macros/schema-spec* [] :selector some?
+                               :schemas  (s/map-of any? ::schema)))
 
 (defmethod schema-spec :wrapped [_]
-  (schema-spec* [] :pre    some?
-                   :post   some?
-                   :schema ::schema))
+  (spec-macros/schema-spec* [] :pre    some?
+                               :post   some?
+                               :schema ::schema))
 
 (defmethod schema-spec :custom [_]
   some?)

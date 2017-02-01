@@ -8,7 +8,7 @@
 
 (defmethod test/report [::test/default :summary] [{:keys [fail error] :as summary}]
   (println "Test summary: " summary)
-  (.exit js/process (if (= 0 fail error) 0 1)))
+  (.exit nodejs/process (if (= 0 fail error) 0 1)))
 
 (defn -main [& args]
   (test/run-tests 'mikron.test))

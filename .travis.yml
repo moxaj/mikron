@@ -6,28 +6,29 @@ jdk:
   - oraclejdk8
 notifications:
   email: false
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libstdc++-4.9-dev
 install:
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
   - nvm use stable
   - npm install
 before_script:
-  - chmod a+x scripts/ci/test.sh
+  - chmod a+x scripts/ci/before_script.sh
+  - scripts/ci/before_script.sh
 script: scripts/ci/test.sh
 cache:
   directories:
     - $HOME/.m2
     - node_modules
     - $(npm config get prefix)/node_modules
+    - lumo_cache
 env:
   - PLATFORM=clj
   - PLATFORM=cljs_browser
   - PLATFORM=cljs_node
-
-#use these for lumo
-#addons:
-#  apt:
-#    sources:
-#      - ubuntu-toolchain-r-test
-#    packages:
-#      - libstdc++-4.9-dev
+  - PLATFORM=cljs_node_self_hosted

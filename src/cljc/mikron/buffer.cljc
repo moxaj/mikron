@@ -3,10 +3,10 @@
   (:require [mikron.util :as util]
             [mikron.util.math :as math]
             [mikron.compile-util :as compile-util]
-            [mikron.buffer-macros :refer [with-delta with-le]])
+            [mikron.buffer-macros :as buffer-macros])
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
-(compile-util/definterface+ BitBufferOps
+(buffer-macros/definterface+ BitBufferOps
   (^long   ?bit-pos* []            "Gets the current position.")
   (^Object !bit-pos* [^long value] "Sets the current position.")
 
@@ -35,7 +35,7 @@
   (!bit-value* [_ value']
     (set! value #?(:clj value' :cljs (unchecked-long value')))))
 
-(compile-util/definterface+ ByteBufferOps
+(buffer-macros/definterface+ ByteBufferOps
   (^long   ?byte* []            "Reads a byte.")
   (^Object !byte* [^long value] "Writes a byte.")
 
@@ -128,19 +128,19 @@
                                        ^boolean ^:unsynchronized-mutable le]
      ByteBufferOps
      (?byte* [_]
-       (with-delta pos 1 (.getInt8 data-view pos)))
+       (buffer-macros/with-delta pos 1 (.getInt8 data-view pos)))
      (!byte* [_ value]
-       (with-delta pos 1 (.setInt8 data-view pos value)))
+       (buffer-macros/with-delta pos 1 (.setInt8 data-view pos value)))
 
      (?short* [_]
-       (with-delta pos 2 (.getInt16 data-view pos le)))
+       (buffer-macros/with-delta pos 2 (.getInt16 data-view pos le)))
      (!short* [_ value]
-       (with-delta pos 2 (.setInt16 data-view pos value le)))
+       (buffer-macros/with-delta pos 2 (.setInt16 data-view pos value le)))
 
      (?int* [_]
-       (with-delta pos 4 (.getInt32 data-view pos le)))
+       (buffer-macros/with-delta pos 4 (.getInt32 data-view pos le)))
      (!int* [_ value]
-       (with-delta pos 4 (.setInt32 data-view pos value le)))
+       (buffer-macros/with-delta pos 4 (.setInt32 data-view pos value le)))
 
      (?long* [this]
        (math/to (let [u (?int* this)
@@ -155,14 +155,14 @@
            (do (!int* this high) (!int* this low)))))
 
      (?float* [_]
-       (with-delta pos 4 (.getFloat32 data-view pos le)))
+       (buffer-macros/with-delta pos 4 (.getFloat32 data-view pos le)))
      (!float* [_ value]
-       (with-delta pos 4 (.setFloat32 data-view pos value le)))
+       (buffer-macros/with-delta pos 4 (.setFloat32 data-view pos value le)))
 
      (?double* [_]
-       (with-delta pos 8 (.getFloat64 data-view pos le)))
+       (buffer-macros/with-delta pos 8 (.getFloat64 data-view pos le)))
      (!double* [_ value]
-       (with-delta pos 8 (.setFloat64 data-view pos value le)))
+       (buffer-macros/with-delta pos 8 (.setFloat64 data-view pos value le)))
 
      (?bytes* [_ n]
        (let [from pos
@@ -192,19 +192,19 @@
                                     ^boolean ^:unsynchronized-mutable le]
      ByteBufferOps
      (?byte* [_]
-       (with-delta pos 1 (.readInt8 buffer pos true)))
+       (buffer-macros/with-delta pos 1 (.readInt8 buffer pos true)))
      (!byte* [_ value]
-       (with-delta pos 1 (.writeInt8 buffer value pos true)))
+       (buffer-macros/with-delta pos 1 (.writeInt8 buffer value pos true)))
 
      (?short* [_]
-       (with-delta pos 2 (with-le le (.readInt16 buffer pos true))))
+       (buffer-macros/with-delta pos 2 (buffer-macros/with-le le (.readInt16 buffer pos true))))
      (!short* [_ value]
-       (with-delta pos 2 (with-le le (.writeInt16 buffer value pos true))))
+       (buffer-macros/with-delta pos 2 (buffer-macros/with-le le (.writeInt16 buffer value pos true))))
 
      (?int* [_]
-       (with-delta pos 4 (with-le le (.readInt32 buffer pos true))))
+       (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.readInt32 buffer pos true))))
      (!int* [_ value]
-       (with-delta pos 4 (with-le le (.writeInt32 buffer value pos true))))
+       (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.writeInt32 buffer value pos true))))
 
      (?long* [this]
        (math/to (let [u (?int* this)
@@ -219,14 +219,14 @@
            (do (!int* this high) (!int* this low)))))
 
      (?float* [_]
-       (with-delta pos 4 (with-le le (.readFloat buffer pos true))))
+       (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.readFloat buffer pos true))))
      (!float* [_ value]
-       (with-delta pos 4 (with-le le (.writeFloat buffer value pos true))))
+       (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.writeFloat buffer value pos true))))
 
      (?double* [_]
-       (with-delta pos 8 (with-le le (.readDouble buffer pos true))))
+       (buffer-macros/with-delta pos 8 (buffer-macros/with-le le (.readDouble buffer pos true))))
      (!double* [_ value]
-       (with-delta pos 8 (with-le le (.writeDouble buffer value pos true))))
+       (buffer-macros/with-delta pos 8 (buffer-macros/with-le le (.writeDouble buffer value pos true))))
 
      (?bytes* [_ n]
        (let [from pos
@@ -517,7 +517,7 @@
     (when-not (== -1 bit-pos)
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
-(compile-util/definterface+ ByteBufferFactoryOps
+(buffer-macros/definterface+ ByteBufferFactoryOps
   (^mikron.buffer.ByteBufferOps allocate* [^long size]    "Allocates a buffer with size `size`.")
   (^mikron.buffer.ByteBufferOps wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 
