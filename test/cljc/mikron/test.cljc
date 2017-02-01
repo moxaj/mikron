@@ -1,6 +1,7 @@
 (ns mikron.test
   "Actual unit test cases."
-  (:require [mikron.test-macros :as test-macros]))
+  (:require [mikron.test-macros :as test-macros]
+            [clojure.test :as test]))
 
 (test-macros/def-mikron-tests
   {t-byte         :byte
