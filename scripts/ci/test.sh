@@ -1,5 +1,7 @@
 #!/bin/bash
 
+OPT=":"$OPT
+
 if [ $PLATFORM == clj ]; then
   lein do clean, javac, test
 else
