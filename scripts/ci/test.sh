@@ -9,5 +9,5 @@ case "$PLATFORM" in
     lein do clean, javac, cljsbuild once node
     node resources/test/node/app.js ;;
   "cljs_node_self_hosted")
-    lumo -k lumo_cache -cp `lein classpath` scripts/ci/lumo_script.clj ;;
+    lumo -c `lein classpath` -k lumo_cache scripts/ci/lumo_script.clj ;;
 esac
