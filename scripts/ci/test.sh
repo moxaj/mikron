@@ -7,7 +7,7 @@ if [ $PLATFORM == clj ]; then
 else
   if [ $SELF_HOSTED == true ]; then
     if [ $TARGET == node ]; then
-      lumo -vc `lein classpath` -k lumo_cache scripts/ci/lumo.clj
+      lumo -c `lein classpath` -k lumo_cache scripts/ci/lumo.clj
     fi # TODO add browser branch
   else
     lein do clean, javac, cljsbuild once $TARGET

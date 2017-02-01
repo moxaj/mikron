@@ -37,7 +37,7 @@
                         :compiler {:asset-path "js/out"
                                    :output-to "resources/test/phantom/js/app.js"
                                    :output-dir "resources/test/phantom/js/out"
-                                   :optimizations :none
+                                   :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
                                    :parallel-build true
                                    :static-fns true
@@ -49,7 +49,7 @@
                         :compiler {:asset-path "js/out"
                                    :output-to "resources/test/browser/js/app.js"
                                    :output-dir "resources/test/browser/js/out"
-                                   :optimizations ~(or (System/getenv "OPT") :none)
+                                   :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
                                    :parallel-build true
                                    :static-fns true
@@ -61,7 +61,7 @@
                         :compiler {:output-to "resources/test/node/app.js"
                                    :output-dir "resources/test/node"
                                    :target :nodejs
-                                   :optimizations ~(or (System/getenv "OPT") :none)
+                                   :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
                                    :parallel-build true
                                    :verbose true
