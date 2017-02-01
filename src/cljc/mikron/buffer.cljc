@@ -122,9 +122,9 @@
        (.order buffer (if value ByteOrder/LITTLE_ENDIAN ByteOrder/BIG_ENDIAN)))))
 
 #?(:cljs ;; ByteBufferOps cljs (buffer) impl (DataView + Int8Buffer)
-   (deftype ByteBufferImplCljsBrowser [data-view
-                                       int8-array
-                                       ^long    ^:unsynchronized-mutable pos
+   (deftype ByteBufferImplCljsBrowser [^js/DataView data-view
+                                       ^js/Int8Array int8-array
+                                       ^long ^:unsynchronized-mutable pos
                                        ^boolean ^:unsynchronized-mutable le]
      ByteBufferOps
      (?byte* [_]
@@ -187,8 +187,8 @@
        (set! le value))))
 
 #?(:cljs ;; ByteBufferOps cljs (node) impl (Buffer)
-   (deftype ByteBufferImplCljsNode [buffer
-                                    ^long    ^:unsynchronized-mutable pos
+   (deftype ByteBufferImplCljsNode [^js/Buffer buffer
+                                    ^long ^:unsynchronized-mutable pos
                                     ^boolean ^:unsynchronized-mutable le]
      ByteBufferOps
      (?byte* [_]

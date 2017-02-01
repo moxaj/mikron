@@ -30,9 +30,8 @@ env:
   - PLATFORM=clj
   - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=none
   - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=simple
-  - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=advanced
+# - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=advanced
   - PLATFORM=cljs TARGET=node    SELF_HOSTED=true  OPT=none
-# TODO add browser branches?
 # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=simple
 # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
 # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none

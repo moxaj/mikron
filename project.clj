@@ -39,8 +39,9 @@
                                    :output-dir "resources/test/phantom/js/out"
                                    :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
-                                   :parallel-build true
+                                   :parallel-build false
                                    :static-fns true
+                                   ;:infer-externs true
                                    :main "mikron.phantom"}}
                        ;; browser
                        {:id "browser"
@@ -51,8 +52,9 @@
                                    :output-dir "resources/test/browser/js/out"
                                    :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
-                                   :parallel-build true
+                                   :parallel-build false
                                    :static-fns true
+                                   ;:infer-externs true
                                    :main "mikron.browser"}}
                        ;; node.js
                        {:id "node"
@@ -63,9 +65,10 @@
                                    :target :nodejs
                                    :optimizations ~(keyword (or (System/getenv "OPT") :none))
                                    :cache-analysis true
-                                   :parallel-build true
+                                   :parallel-build false
                                    :verbose true
                                    :static-fns true
+                                   ;:infer-externs true
                                    :main "mikron.node"}}]}
   :codox {:metadata {:doc/format :markdown}
           :source-paths ["src/cljc"]
