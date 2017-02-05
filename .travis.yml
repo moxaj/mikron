@@ -20,8 +20,15 @@ before_install:
 install:
   - boot
 before_script:
+  # SlimerJS
+  - sh -e /etc/init.d/xvfb start
+  - wget http://download.slimerjs.org/releases/0.10.2/slimerjs-0.10.2.zip
+  - unzip slimerjs-0.10.2.zip
+  - mv slimerjs-0.8.3 ./slimerjs
+
+  # Lumo
   - npm install -g lumo-cljs
-  - npm install -g slimerjs
+
   - chmod a+x scripts/ci/test.sh
 script:
   - scripts/ci/test.sh
@@ -35,6 +42,7 @@ cache:
     - lumo_cache
 env:
   global:
+    - SLIMERJSLAUNCHER=$(which firefox) DISPLAY=:99.0 PATH=$TRAVIS_BUILD_DIR/slimerjs:$PATH
     - BOOT_JVM_OPTIONS= |
       - client
       - XX:+TieredCompilation
@@ -58,3 +66,5 @@ env:
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=true  OPT=none
+
+before_script:
