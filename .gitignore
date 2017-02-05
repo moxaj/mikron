@@ -3,6 +3,7 @@
 /checkouts
 /node
 /node_modules
+/lumo_cache
 .repl*
 **/*.exe
 **/*.bat
