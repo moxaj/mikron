@@ -40,14 +40,15 @@
 (defn format-commands
   [& commands]
   (as-> commands c
-        (map (fn [command]
-               (if windows?
-                 (into ["cmd" "/c"] command)
-                 (into ["sh" "-c"]  [(str "'" (string/join " " command) "'")])))
-             c)
         (interleave c (repeat [(if windows? "&" ";")]))
         (butlast c)
-        (apply concat c)))
+        (apply concat c)
+        ((fn [commands]
+           (if windows?
+             commands
+             [(str "'" (string/join " " commands) "'")]))
+         c)
+        (into (if windows? ["cmd" "/c"] ["sh" "-c"]) c)))
 
 (defn run-commands
   [& commands]
