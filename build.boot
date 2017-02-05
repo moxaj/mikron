@@ -37,23 +37,6 @@
 (def windows?
   (.startsWith (.toLowerCase (System/getProperty "os.name")) "windows"))
 
-(defn format-commands
-  [& commands]
-  (->> (interleave commands (repeat [(if windows? "&" ";")]))
-       (butlast)
-       (apply concat)
-       ((fn [commands]
-          (if windows?
-            commands
-            [(str "'" (string/join " " commands) "'")])))
-       (into (if windows? ["cmd" "/c"] ["sh" "-c"]))))
-
-(defn run-commands
-  [& commands]
-  (->> commands
-       (apply format-commands)
-       (apply util/dosh)))
-
 (defn fix-slashes
   [^String s]
   (if windows?
@@ -147,21 +130,16 @@
         (with-pass-thru _
           (host-process
             (conch/proc
-              (format-commands
-                ["lumo"
-                 "-c" (System/getProperty "fake.class.path")
-                 "-k" "lumo_cache"
-                 "target/mikron/node.cljs"])))))
+              "lumo"
+              "-c" (System/getProperty "fake.class.path")
+              "-k" "lumo_cache"
+              "target/mikron/node.cljs"))))
       (comp
         (compile-cljs :id "node/index")
         (target)
         (with-pass-thru _
-          (util/dosh "cd" "target")
-          (util/dosh "ls" "-l")
-          (util/info "C\n")
-          (util/dosh "bash" "-c" "'cd target ; ls -l'"))))))
-        ;(with-pass-thru _
-        ;  (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
+          (binding [util/*sh-dir* "target"]
+            (util/dosh "node" "index.js")))))))
 
 (deftask autotest
   "Runs the specified tests."
@@ -210,11 +188,10 @@
     (target)
     (with-pass-thru _
       (host-process
-        (apply conch/proc
-          (format-commands
-            ["lumo"
-             "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-             "-k" "lumo_cache"
-             "-e" (str "\"(require '[mikron.core :as mikron "
-                       ":refer [schema defschema pack unpack gen valid?]])\"")
-             "-r"]))))))
+        (conch/proc
+          "lumo"
+          "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+          "-k" "lumo_cache"
+          "-e" (str "\"(require '[mikron.core :as mikron "
+                    ":refer [schema defschema pack unpack gen valid?]])\"")
+          "-r")))))
