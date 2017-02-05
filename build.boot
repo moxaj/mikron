@@ -51,8 +51,10 @@
 
 (defn run-commands
   [& commands]
-  (util/info (str "Running command: ")
-             (apply str (apply format-commands commands)))
+  (util/info (str "Input commands:\n" (str (vec commands)) "\n\n"))
+  (util/info (str "Running command: \n"
+                  (apply str (apply format-commands commands))
+                  "\n\n"))
   (->> commands
        (apply format-commands)
        (apply util/dosh)))
