@@ -23,7 +23,7 @@ before_script:
   - sh -e /etc/init.d/xvfb start
   - wget http://download.slimerjs.org/releases/0.10.2/slimerjs-0.10.2.zip
   - unzip slimerjs-0.10.2.zip
-  - mv slimerjs-0.8.3 ./slimerjs
+  - mv slimerjs-0.10.2 ./slimerjs
   - npm install -g lumo-cljs
   - chmod a+x scripts/ci/test.sh
 script:
