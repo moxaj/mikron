@@ -46,6 +46,7 @@
 
 (defn run-commands
   [& command-sets]
+  (util/info (apply format-commands command-sets))
   (->> command-sets
        (apply format-commands)
        (apply util/dosh)))
