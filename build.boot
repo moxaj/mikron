@@ -138,7 +138,7 @@
         (compile-cljs :id "node/index")
         (target)
         (with-pass-thru _
-          (binding [util/*sh-dir* "target"]
+          (binding [util/*sh-dir* "target/node"]
             (util/dosh "node" "index.js")))))))
 
 (deftask autotest
