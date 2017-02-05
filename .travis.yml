@@ -8,6 +8,7 @@ jdk:
 notifications:
   email: false
 addons:
+  firefox: "49.0"
   apt:
     sources:
       - ubuntu-toolchain-r-test
