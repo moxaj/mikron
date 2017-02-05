@@ -157,11 +157,7 @@
         (target)
         (with-pass-thru _
           (util/info "A1\n")
-          (util/dosh "ls" "-l")
-          (util/info "A2\n")
-          (util/dosh "sh" "-c" "'ls -l'")
-          (util/info "A3\n")
-          (util/dosh "sh" "-c" "cd" "target" ";" "ls" "-l")
+          (util/dosh "sh" "-c" "'" "cd" "target" ";" "ls" "-l" "'")
           (util/info "B\n")
           (util/dosh "sudo" "sh" "-c" "'cd target'")
           (util/info "C\n")
