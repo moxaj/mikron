@@ -21,6 +21,7 @@
 
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
+         '[clojure.string :as string]
 
          '[boot.util :as util]
          '[adzerk.boot-test :as boot-test]
@@ -42,7 +43,7 @@
         (map (fn [command]
                (if windows?
                  (into ["cmd" "/c"] command)
-                 (into ["sh" "-c"]  (str "'" (apply str command) "'"))))
+                 (into ["sh" "-c"]  [(str "'" (string/join " " command) "'")])))
              c)
         (interleave c (repeat [(if windows? "&" ";")]))
         (butlast c)
