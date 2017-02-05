@@ -136,10 +136,12 @@
         (target)
         (with-pass-thru _
           (host-process
-            (conch/proc "cmd" "/c" "lumo"
-                        "-c" (System/getProperty "fake.class.path")
-                        "-k" "lumo_cache"
-                        "target/mikron/node.cljs"))))
+            (conch/proc
+              (format-commands
+                ["lumo"
+                 "-c" (System/getProperty "fake.class.path")
+                 "-k" "lumo_cache"
+                 "target/mikron/node.cljs"])))))
       (comp
         (compile-cljs :id "node\\index")
         (target)
