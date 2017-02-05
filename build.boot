@@ -151,7 +151,7 @@
         (target)
         (show :fileset true)
         (with-pass-thru _
-          (util/dosh "ls" "-l")
+          (util/dosh "sh" "-c" "cd" "target" "ls" "-l")
           (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
 
 (deftask autotest
