@@ -60,6 +60,14 @@
        (apply format-commands)
        (apply util/dosh)))
 
+(deftask travis
+  []
+  (with-pass-thru _
+    (util/info "A\n")
+    (run-commands ["cd" "target/node"])
+    (util/info "B\n")
+    (run-commands ["cd" "target/node"] ["echo" "foo"])))
+
 (deftask build
   "Builds the project."
   []
