@@ -39,34 +39,20 @@
 
 (defn format-commands
   [& commands]
-  (as-> commands c
-        (interleave c (repeat [(if windows? "&" ";")]))
-        (butlast c)
-        (apply concat c)
-        ((fn [commands]
-           (if windows?
-             commands
-             [(str "'" (string/join " " commands) "'")]))
-         c)
-        (into (if windows? ["cmd" "/c"] ["sh" "-c"]) c)))
+  (->> (interleave commands (repeat [(if windows? "&" ";")]))
+       (butlast)
+       (apply concat)
+       ((fn [commands]
+          (if windows?
+            commands
+            [(str "'" (string/join " " commands) "'")])))
+       (into (if windows? ["cmd" "/c"] ["sh" "-c"]))))
 
 (defn run-commands
   [& commands]
-  (util/info (str "Input commands:\n" (str (vec commands)) "\n\n"))
-  (util/info (str "Running command: \n"
-                  (str (vec (apply format-commands commands)))
-                  "\n\n"))
   (->> commands
        (apply format-commands)
        (apply util/dosh)))
-
-(deftask travis
-  []
-  (with-pass-thru _
-    (util/info "A\n")
-    (run-commands ["cd" "target/node"])
-    (util/info "B\n")
-    (run-commands ["cd" "target/node"] ["echo" "foo"])))
 
 (deftask build
   "Builds the project."
@@ -163,6 +149,7 @@
       (comp
         (compile-cljs :id "node\\index")
         (target)
+        (show :fileset true)
         (with-pass-thru _
           (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
 
