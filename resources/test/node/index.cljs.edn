@@ -1,0 +1,2 @@
+{:require          [mikron.node]
+ :compiler-options {:target :nodejs}}

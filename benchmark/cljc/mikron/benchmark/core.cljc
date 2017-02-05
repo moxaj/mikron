@@ -2,7 +2,7 @@
   "Benchmarks."
   (:require [mikron.core :as mikron]
             [mikron.util :as util]
-            [mikron.util.type :as util.type]
+            [mikron.util.schema :as util.schema]
             [mikron.benchmark.data :as benchmark.data]
             [mikron.benchmark.schema :as benchmark.schema]
             [cognitect.transit :as transit]
@@ -33,7 +33,7 @@
 (defmulti pack (fn [method _ _] method))
 
 (defmethod pack :edn ^bytes [_ _ data]
-  (util.type/string->binary (util.type/any->string data)))
+  (util.schema/string->binary (util.schema/any->string data)))
 
 (defmethod pack :mikron ^bytes [_ schema data]
   (mikron/pack schema data))
@@ -44,7 +44,7 @@
              (.toByteArray baos))
      :cljs (->> data
                 (transit/write (transit/writer :json))
-                (util.type/string->binary))))
+                (util.schema/string->binary))))
 
 (defmethod pack :octet ^bytes [_ schema data]
   (let [length (octet/write! octet-buffer data schema)]
@@ -56,7 +56,7 @@
 
 #?(:clj ;; json
    (defmethod pack :json ^bytes [_ _ data]
-     (util.type/string->binary (cheshire/generate-string data))))
+     (util.schema/string->binary (cheshire/generate-string data))))
 
 #?(:clj ;; smile
    (defmethod pack :smile ^bytes [_ _ data]
@@ -102,7 +102,7 @@
 (defmulti unpack (fn [method _ _] method))
 
 (defmethod unpack :edn [_ _ ^bytes binary]
-  (util.type/string->any (util.type/binary->string binary)))
+  (util.schema/string->any (util.schema/binary->string binary)))
 
 (defmethod unpack :mikron [_ schema ^bytes binary]
   (mikron/unpack schema binary))
@@ -112,7 +112,7 @@
                (transit/reader :json)
                (transit/read))
      :cljs (->> binary
-                (util.type/binary->string)
+                (util.schema/binary->string)
                 (transit/read (transit/reader :json)))))
 
 (defmethod unpack :octet [_ schema ^bytes binary]
@@ -122,7 +122,7 @@
 
 #?(:clj ;; json
    (defmethod unpack :json [_ _ ^bytes binary]
-     (cheshire/parse-string (util.type/binary->string binary))))
+     (cheshire/parse-string (util.schema/binary->string binary))))
 
 #?(:clj ;; smile
    (defmethod unpack :smile [_ _ ^bytes binary]
@@ -196,15 +196,16 @@
 
 (defn benchmark [& {:keys [stats methods schema]}]
   (let [all-methods (set (keys (clojure.core/methods pack)))
-        methods     (filter all-methods (or methods all-methods))]
-    [stats
-     (->> (for [method methods]
-            (let [data   (benchmark.data/get-data method schema)
-                  schema (benchmark.schema/get-schema method schema)]
-              [method (vec (for [stat stats]
-                             (do (println "Measuring" (name method) "|" (name stat))
-                                 (util/safe 0 (measure stat method schema data)))))]))
-          (into {}))]))
+        methods     (if-not methods
+                      all-methods
+                      (filter all-methods methods))]
+    (->> (for [method methods]
+           (let [data   (benchmark.data/get-data method schema)
+                 schema (benchmark.schema/get-schema method schema)]
+             [method (vec (for [stat stats]
+                            (do (println "Measuring" (name method) "|" (name stat))
+                                (measure stat method schema data))))]))
+         (into {}))))
 
 (def description
   {:size        "Size [bytes]"
@@ -216,7 +217,9 @@
      :cljs [[stats data]]))
 
 (comment
-  (diagram (benchmark :stats   [:pack-time]
-                      ;:methods [:mikron :protobuf]
-                      :schema  ::benchmark.schema/snapshot))
+  (let [stats [:size]]
+    (diagram [stats
+              (benchmark :stats   stats
+                         ;:methods [:mikron :protobuf]
+                         :schema  ::benchmark.schema/snapshot)]))
   nil)

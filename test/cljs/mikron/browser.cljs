@@ -1,5 +1,5 @@
 (ns mikron.browser
-  "Browser test client."
+  "Browser test runner."
   (:require [clojure.test :as test]
             [mikron.test]))
 

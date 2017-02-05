@@ -1,8 +1,8 @@
-target
-classes
-checkouts
-node
-node_modules
+/target
+/classes
+/checkouts
+/node
+/node_modules
 .repl*
 **/*.exe
 **/*.bat

@@ -1,5 +1,6 @@
-language: clojure
-lein: 2.7.1
+language: node_js
+node_js:
+  - 7
 os:
   - linux
 jdk:
@@ -12,27 +13,41 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - libstdc++-4.9-dev
+before_install:
+  - wget https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh
+  - mv boot.sh boot && chmod a+x boot && sudo mv boot /usr/local/bin
 install:
-  - . $HOME/.nvm/nvm.sh
-  - nvm install stable
-  - nvm use stable
+  - boot
 before_script:
   - npm install -g lumo-cljs
-  - chmod a+x scripts/ci/test.sh
-script: scripts/ci/test.sh
+  - npm install -g slimerjs
+script:
+  - boot autotest -p $PLATFORM -t $TARGET -s $SELF_HOSTED -o $OPT
 cache:
   directories:
     - $HOME/.m2
+    - $HOME/.boot/cache/lib
+    - $HOME/.boot/cache/bin
     - node_modules
     - $(npm config get prefix)/node_modules
     - lumo_cache
 env:
-  - PLATFORM=clj
-  - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=none
-  - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=simple
-# - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=advanced
-  - PLATFORM=cljs TARGET=node    SELF_HOSTED=true  OPT=none
-# - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=simple
-# - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
-# - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none
-# - PLATFORM=cljs TARGET=browser SELF_HOSTED=true  OPT=none
+  global:
+    - BOOT_JVM_OPTIONS= |
+      - client
+      - XX:+TieredCompilation
+      - XX:TieredStopAtLevel=1
+      - Xmx2g
+      - XX:+UseConcMarkSweepGC
+      - XX:+CMSClassUnloadingEnabled
+      - Xverify:none
+  matrix:
+    - PLATFORM=clj
+    - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=none
+    - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=simple
+  # - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=advanced
+    - PLATFORM=cljs TARGET=node    SELF_HOSTED=true  OPT=none
+  # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=simple
+  # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
+  # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none
+  # - PLATFORM=cljs TARGET=browser SELF_HOSTED=true  OPT=none
