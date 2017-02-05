@@ -51,6 +51,8 @@
 
 (defn run-commands
   [& commands]
+  (util/info (str "Running command: ")
+             (apply str (apply format-commands commands)))
   (->> commands
        (apply format-commands)
        (apply util/dosh)))
