@@ -54,6 +54,12 @@
        (apply format-commands)
        (apply util/dosh)))
 
+(defn fix-slashes
+  [^String s]
+  (if windows?
+    (.replaceAll s "/" "\\\\")
+    s))
+
 (deftask build
   "Builds the project."
   []
@@ -113,11 +119,11 @@
       (target))))
 
 (deftask compile-cljs
-  "Compiles the test files."
+  "Compiles the cljs source files."
   [o opt VAL kw  "The compiler optimization level."
    i id  VAL str "The id of the build."]
   (boot-cljs/cljs
-    :ids              (when id [id])
+    :ids              (when id [(fix-slashes id)])
     :compiler-options {:static-fns     true
                        :optimizations  (or opt :none)
                        :parallel-build false
@@ -147,11 +153,9 @@
                  "-k" "lumo_cache"
                  "target/mikron/node.cljs"])))))
       (comp
-        (compile-cljs :id "node\\index")
+        (compile-cljs :id "node/index")
         (target)
-        (show :fileset true)
         (with-pass-thru _
-          (util/dosh "sh" "-c" "cd" "target" "ls" "-l")
           (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
 
 (deftask autotest
@@ -188,7 +192,7 @@
     (watch)
     (boot-reload/reload)
     (boot-cljs-repl/cljs-repl)
-    (compile-cljs :id "browser\\index" :opt opt)
+    (compile-cljs :id "browser/index" :opt opt)
     (target)
     (speak)))
 
