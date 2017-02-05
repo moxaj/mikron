@@ -36,14 +36,19 @@
 (def windows?
   (.startsWith (.toLowerCase (System/getProperty "os.name")) "windows"))
 
-(defn run-commands
+(defn format-commands
   [& command-sets]
   (as-> command-sets c
         (map (partial concat (if windows? ["cmd" "/c"] ["sh" "-c"])) c)
         (interleave c (repeat (if windows? "&" ";")))
         (butlast c)
-        (flatten c)
-        (apply util/dosh c)))
+        (apply concat c)))
+
+(defn run-commands
+  [& command-sets]
+  (->> command-sets
+       (apply format-commands)
+       (apply util/dosh)))
 
 (deftask build
   "Builds the project."
@@ -188,9 +193,11 @@
     (target)
     (with-pass-thru _
       (host-process
-        (conch/proc "cmd" "/c" "lumo"
-                    "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-                    "-k" "lumo_cache"
-                    "-e" (str "\"(require '[mikron.core :as mikron "
-                              ":refer [schema defschema pack unpack gen valid?]])\"")
-                    "-r")))))
+        (apply conch/proc
+          (format-commands
+            ["lumo"
+             "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+             "-k" "lumo_cache"
+             "-e" (str "\"(require '[mikron.core :as mikron "
+                       ":refer [schema defschema pack unpack gen valid?]])\"")
+             "-r"]))))))
