@@ -37,17 +37,20 @@
   (.startsWith (.toLowerCase (System/getProperty "os.name")) "windows"))
 
 (defn format-commands
-  [& command-sets]
-  (as-> command-sets c
-        (map (partial concat (if windows? ["cmd" "/c"] ["sh" "-c"])) c)
-        (interleave c (repeat (if windows? "&" ";")))
+  [& commands]
+  (as-> commands c
+        (map (fn [command]
+               (if windows?
+                 (into ["cmd" "/c"] command)
+                 (into ["sh" "-c"]  (str "'" (apply str command) "'"))))
+             c)
+        (interleave c (repeat [(if windows? "&" ";")]))
         (butlast c)
         (apply concat c)))
 
 (defn run-commands
-  [& command-sets]
-  (util/info (apply format-commands command-sets))
-  (->> command-sets
+  [& commands]
+  (->> commands
        (apply format-commands)
        (apply util/dosh)))
 
