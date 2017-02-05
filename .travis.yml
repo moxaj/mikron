@@ -42,11 +42,11 @@ env:
       - XX:+CMSClassUnloadingEnabled
       - Xverify:none
   matrix:
-    - PLATFORM=clj
-    - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=none
-    - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=simple
-  # - PLATFORM=cljs TARGET=node    SELF_HOSTED=false OPT=advanced
-    - PLATFORM=cljs TARGET=node    SELF_HOSTED=true  OPT=none
+    - PLATFORM=clj  TARGET=nil     SELF_HOSTED=nil   OPT=nil
+    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=none
+    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=simple
+  # - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=advanced
+    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=true  OPT=none
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=simple
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
   # - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none
