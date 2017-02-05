@@ -153,7 +153,6 @@
       :clj  (autotest-clj)
       :cljs (case target
               :nodejs  (autotest-node :self-hosted? self-hosted?)
-              ;; todo: browser self hosted?
               :browser (boot-cljs-test/test-cljs :js-env        :slimer
                                                  :namespaces    ['mikron.test]
                                                  :optimizations opt)))))
