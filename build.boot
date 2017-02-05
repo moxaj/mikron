@@ -156,8 +156,8 @@
         (compile-cljs :id "node/index")
         (target)
         (with-pass-thru _
-          (util/dosh "/bin/sh" "-c" "'cd target")
-          (util/dosh "/bin/bash" "-c" "'cd target")
+          (util/dosh "/bin/sh" "-c" "'cd target'")
+          (util/dosh "/bin/bash" "-c" "'cd target'")
           (util/dosh "bash" "-c" "'cd target ; ls -l'"))))))
         ;(with-pass-thru _
         ;  (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
