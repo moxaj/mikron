@@ -156,7 +156,9 @@
         (compile-cljs :id "node/index")
         (target)
         (with-pass-thru _
-          (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
+          (util/dosh "sh" "-c" "'cd target ; ls -l'"))))))
+        ;(with-pass-thru _
+        ;  (run-commands ["cd" "target/node"] ["node" "index.js"]))))))
 
 (deftask autotest
   "Runs the specified tests."
