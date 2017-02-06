@@ -14,15 +14,11 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - libstdc++-4.9-dev
-before_install:
-  - wget https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh
-  - mv boot.sh boot && chmod a+x boot && sudo mv boot /usr/local/bin
 install:
-  - boot -u
-before_script:
-  - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/before_script.sh
-  - $TRAVIS_BUILD_DIR/scripts/ci/before_script.sh
+  - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
+  - $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
 script:
+  - sh -e /etc/init.d/xvfb start
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
   directories:
@@ -32,10 +28,11 @@ cache:
     - $TRAVIS_BUILD_DIR/node_modules
     - $(npm config get prefix)/node_modules
     - $TRAVIS_BUILD_DIR/lumo_cache
-#    - $TRAVIS_BUILD_DIR/slimerjs
+    - $TRAVIS_BUILD_DIR/dep_cache
 env:
   global:
-    - SLIMERJSLAUNCHER=$(which firefox) DISPLAY=:99.0 PATH=$TRAVIS_BUILD_DIR/slimerjs:$PATH
+    - SLIMERJSLAUNCHER=$(which firefox)
+    - DISPLAY=:99.0
     - BOOT_JVM_OPTIONS= |
       - client
       - XX:+TieredCompilation
