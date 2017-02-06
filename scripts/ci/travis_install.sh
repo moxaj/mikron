@@ -19,5 +19,5 @@ if [ ! -d $CACHE_DIR/boot ]; then
   mv boot.sh boot
   chmod a+x boot
   mkdir -p $CACHE_DIR/boot
-  mv boot $CACHE_DIR/boot/boot boot
+  mv boot $CACHE_DIR/boot/boot
 fi
