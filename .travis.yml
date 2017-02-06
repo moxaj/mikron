@@ -33,6 +33,8 @@ cache:
     - $TRAVIS_BUILD_DIR/dep_cache
 env:
   global:
+    - CACHE_DIR=$TRAVIS_BUILD_DIR/dep_cache
+    - PATH=$CACHE_DIR/lumo:$CACHE_DIR/slimerjs:$CACHE_DIR/boot:$PATH
     - SLIMERJSLAUNCHER=$(which firefox)
     - DISPLAY=:99.0
     - BOOT_JVM_OPTIONS= |
