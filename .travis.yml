@@ -42,7 +42,7 @@ env:
       - client
       - XX:+TieredCompilation
       - XX:TieredStopAtLevel=1
-      - Xmx2g
+      - Xmx4g
       - XX:+UseConcMarkSweepGC
       - XX:+CMSClassUnloadingEnabled
       - Xverify:none
