@@ -5,6 +5,7 @@ CACHE_DIR=$TRAVIS_BUILD_DIR/dep_cache
 if [ ! -d $CACHE_DIR/lumo ]; then
   wget https://github.com/anmonteiro/lumo/releases/download/1.1.0/lumo_linux64.zip
   unzip lumo_linux64.zip
+  chmod a+x lumo
   mkdir -p $CACHE_DIR/lumo
   mv lumo $CACHE_DIR/lumo/lumo
 fi
@@ -19,7 +20,12 @@ fi
 
 PATH=$CACHE_DIR/slimerjs:$PATH
 
-wget https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh
-mv boot.sh boot
-chmod a+x boot
-sudo mv boot /usr/local/bin
+if [ ! -d $CACHE_DIR/boot ]; then
+  wget https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh
+  mv boot.sh boot
+  chmod a+x boot
+  mkdir -p $CACHE_DIR/boot
+  mv boot $CACHE_DIR/boot/boot boot
+fi
+
+PATH=$CACHE_DIR/boot:$PATH
