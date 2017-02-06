@@ -5,6 +5,7 @@ CACHE_DIR=$TRAVIS_BUILD_DIR/dep_cache
 if [ ! -d $CACHE_DIR/lumo ]; then
   wget https://github.com/anmonteiro/lumo/releases/download/1.1.0/lumo_linux64.zip
   unzip lumo_linux64.zip
+  mkdir -p $CACHE_DIR/lumo
   mv lumo $CACHE_DIR/lumo/lumo
 fi
 
@@ -22,4 +23,3 @@ wget https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh
 mv boot.sh boot
 chmod a+x boot
 sudo mv boot /usr/local/bin
-boot -u

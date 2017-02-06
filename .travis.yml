@@ -17,6 +17,8 @@ addons:
 install:
   - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
   - $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
+before_script:
+  - boot -u
 script:
   - sh -e /etc/init.d/xvfb start
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
