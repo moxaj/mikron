@@ -20,6 +20,7 @@ before_install:
 install:
   - boot
 before_script:
+  - chmod a+x scripts/ci/before_script.sh
   - scripts/ci/before_script.sh
 script:
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
