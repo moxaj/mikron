@@ -21,6 +21,7 @@ before_script:
   - boot -u
 script:
   - sh -e /etc/init.d/xvfb start
+  - ulimit -s 1082768
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
   directories:
