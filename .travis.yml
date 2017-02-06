@@ -19,15 +19,14 @@ before_install:
   - mv boot.sh boot && chmod a+x boot && sudo mv boot /usr/local/bin
 install:
   - boot
-before_script:
-  - sh -e /etc/init.d/xvfb start
   - wget http://download.slimerjs.org/releases/0.10.2/slimerjs-0.10.2.zip
   - unzip slimerjs-0.10.2.zip
   - mv slimerjs-0.10.2 ./slimerjs
   - npm install -g lumo-cljs
-  - chmod a+x scripts/ci/test.sh
+before_script:
+  - sh -e /etc/init.d/xvfb start
 script:
-  - scripts/ci/test.sh
+  - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
   directories:
     - $HOME/.m2
@@ -36,6 +35,7 @@ cache:
     - node_modules
     - $(npm config get prefix)/node_modules
     - lumo_cache
+    - slimerjs
 env:
   global:
     - SLIMERJSLAUNCHER=$(which firefox) DISPLAY=:99.0 PATH=$TRAVIS_BUILD_DIR/slimerjs:$PATH
@@ -48,14 +48,14 @@ env:
       - XX:+CMSClassUnloadingEnabled
       - Xverify:none
   matrix:
-    - PLATFORM=clj  TARGET=nil     SELF_HOSTED=nil   OPT=nil
-    
-    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=none
-    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=simple
-  # - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=false OPT=advanced
-    - PLATFORM=cljs TARGET=nodejs  SELF_HOSTED=true  OPT=none
+    - PLATFORM=clj
 
-    - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=none
-    - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=simple
-    - PLATFORM=cljs TARGET=browser SELF_HOSTED=false OPT=advanced
-  # - PLATFORM=cljs TARGET=browser SELF_HOSTED=true  OPT=none
+    - PLATFORM=cljs TARGET=nodejs  OPT=none
+    - PLATFORM=cljs TARGET=nodejs  OPT=simple
+  # - PLATFORM=cljs TARGET=nodejs  OPT=advanced
+    - PLATFORM=cljs TARGET=nodejs  OPT=none     SELF_HOSTED=true
+
+    - PLATFORM=cljs TARGET=browser OPT=none
+    - PLATFORM=cljs TARGET=browser OPT=simple
+    - PLATFORM=cljs TARGET=browser OPT=advanced
+  # - PLATFORM=cljs TARGET=browser OPT=none     SELF_HOSTED=true

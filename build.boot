@@ -9,11 +9,13 @@
                     [adzerk/boot-cljs            "1.7.228-2" :scope "test"]
                     [adzerk/boot-cljs-repl       "0.3.3"     :scope "test"]
                     [crisptrutski/boot-cljs-test "0.3.0"     :scope "test"]
+                    [boot-codox                  "0.10.2"    :scope "test"]
 
                     [me.raynes/conch             "0.8.0"     :scope "test"]
                     [com.cemerick/piggieback     "0.2.1"     :scope "test"]
                     [weasel                      "0.7.0"     :scope "test"]
-                    [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]])
+                    [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
+                    [viebel/codox-klipse-theme   "0.0.4"]])
 
 (task-options!
   pom {:project 'moxaj/mikron
@@ -31,6 +33,7 @@
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
          '[crisptrutski.boot-cljs-test :as boot-cljs-test]
          '[me.raynes.conch.low-level :as conch]
+         '[codox.boot :as boot-codox]
 
          '[mikron.core :as mikron])
 
@@ -92,13 +95,16 @@
         (let [in-file (->> (output-files fileset) (by-name ["results.edn"]) (first))]
           (spit (io/file tmp (tmp-path in-file))
                 (str (slurp (tmp-file in-file))
-                     "\r\n\r\nStats: " (vec stats) "\r\n"
+                     "\r\n\r\n"
+                     "Stats: " (vec stats) "\r\n"
+                     "Schema: " schema "\r\n"
                      (do (require '[mikron.benchmark.core :as benchmark])
                          (let [results ((resolve 'benchmark/benchmark) :stats stats :schema schema)]
                            (with-out-str (pprint/pprint results))))))
           (-> fileset
               (add-resource tmp)
               (commit!))))
+      (sift :move {#"results.edn" "../resources/benchmark/results.edn"})
       (target))))
 
 (deftask compile-cljs
@@ -194,3 +200,22 @@
           "-e" (str "\"(require '[mikron.core :as mikron "
                     ":refer [schema defschema pack unpack gen valid?]])\"")
           "-r")))))
+
+(deftask generate-docs
+  "Generates documentation."
+  []
+  (comp
+    (boot-codox/codox
+      :name         "moxaj/mikron"
+      :metadata     {:doc/format :markdown}
+      :output-path  "../docs"
+      :namespaces   [#"^mikron\.(?!codegen)"]
+      :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
+      :themes       [:default
+                     [:klipse
+                      {:klipse/external-libs "https://raw.githubusercontent.com/moxaj/mikron/master/src/cljc"
+                       :klipse/require-statement "(ns mikron.codox
+                                                    (:require [mikron.core :as mikron
+                                                               :refer-macros [schema defschema]
+                                                               :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"}]])
+    (target)))
