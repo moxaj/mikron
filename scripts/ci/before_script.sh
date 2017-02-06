@@ -8,3 +8,11 @@ if [ ! -d $TRAVIS_BUILD_DIR/slimerjs ]; then
   unzip slimerjs-0.10.2.zip
   mv slimerjs-0.10.2 $TRAVIS_BUILD_DIR/slimerjs
 fi
+
+echo dir
+
+ls -l
+
+echo path
+
+echo $PATH
