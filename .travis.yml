@@ -20,8 +20,8 @@ before_install:
 install:
   - boot
 before_script:
-  - chmod a+x scripts/ci/before_script.sh
-  - scripts/ci/before_script.sh
+  - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/before_script.sh
+  - $TRAVIS_BUILD_DIR/scripts/ci/before_script.sh
 script:
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
@@ -29,10 +29,10 @@ cache:
     - $HOME/.m2
     - $HOME/.boot/cache/lib
     - $HOME/.boot/cache/bin
-    - node_modules
+    - $TRAVIS_BUILD_DIR/node_modules
     - $(npm config get prefix)/node_modules
-    - lumo_cache
-    - slimerjs
+    - $TRAVIS_BUILD_DIR/lumo_cache
+    - $TRAVIS_BUILD_DIR/slimerjs
 env:
   global:
     - SLIMERJSLAUNCHER=$(which firefox) DISPLAY=:99.0 PATH=$TRAVIS_BUILD_DIR/slimerjs:$PATH
