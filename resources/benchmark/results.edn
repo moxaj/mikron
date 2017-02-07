@@ -1,13 +1,14 @@
 Stats: [:size]
-{:nippy [2718],
- :java [8823],
- :smile [2238],
- :avro [1272],
- :protobuf [1677],
+Schema: :mikron.benchmark.schema/snapshot
+{:nippy [2719],
+ :java [8824],
+ :smile [2239],
+ :avro [1274],
+ :protobuf [1668],
  :octet [1292],
- :transit [2352],
- :edn [4387],
+ :transit [2353],
+ :edn [4379],
  :colfer [10000],
- :json [4500],
+ :json [4492],
  :gloss [1296],
  :mikron [1234]}
