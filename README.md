@@ -33,7 +33,7 @@ While an **entity** consists of:
 - **position**: a tuple of 2 numbers
 - **angle**: a number
 
-Let's get to work! First, require the core namespace and define our entity schema:
+Let's get to work! First, require the core namespace and define our **entity** schema:
 
 ```clojure
 (require '[mikron.core :as m])
