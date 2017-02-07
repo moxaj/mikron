@@ -8,9 +8,9 @@ Mikron is a schema-based serialization library for Clojure and ClojureScript.
 
 - great performance
 - compact serialization format
-- supports Clojure, ClojureScript(browser and Node.js)
+- supports both Clojure and ClojureScript(browser and Node.js)
 - flexible and extensible schema system
-- extras goodies beyond serialization: data validation, delta compression, random data generation
+- extras goodies beyond serialization: data validation, delta encoding, random data generation
 
 ### Not supported (yet?)
 
@@ -20,84 +20,67 @@ Mikron is a schema-based serialization library for Clojure and ClojureScript.
 
 `[moxaj/mikron "0.5.0"]`
 
-## Installation
+## Quick start
 
-Simply add `[moxaj/mikron "x.x.x"]` to your `:dependencies`.
+**mikron** let's you define schemas via a Hiccup-like DSL, and generates very efficient (de)serializing functions (among other things) for them.
 
-## Walkthrough
+Let's say we have a structure which represents a game state (a **snapshot**) and has the following layout:
+- **time**: a timestamp
+- **entities**: a list of entities
 
-Let's say we'd like to pass around some information about people between the server and the client, both running clojure(script). Each person has
+While an **entity** consists of:
+- **id**: an id
+- **position**: a tuple of 2 numbers
+- **angle**: a number
 
-- a **name**, represented as a **string**
-- an **age**, represented as an **integer**
-- an associated list of **tags**, for whatever reasons, represented as **keywords**, taken from a finite set
-
-Since we know the schema ahead of time, **mikron** can generate _very_ efficient packer and unpacker functions, among other things. Let's see how it can be done:
+Let's get to work! First, require the core namespace and define our entity schema:
 
 ```clojure
-;; First, require the relevant namespace and refer some symbols
-(require '[mikron.core :refer [schema defschema pack unpack gen diff undiff]])
+(require '[mikron.core :as m])
 
-;; Define a schema from our description
-(def person-schema
-  (schema [:record {:name :string
-                    :age  :ubyte
-                    :tags [:vector [:enum [:a :b :c :d :e]]]}]))
-
-;; Or, just use the shorthand 'defschema'
-(defschema person-schema
-  [:record {:name :string
-            :age  :ubyte
-            :tags [:vector [:enum [:a :b :c :d :e]]]}])
-
-;; As you can see, the DSL syntax is heavily inspired by Hiccup
-
-;; We also need a schema for a list of people
-(defschema person-list-schema
-  [:list person-schema])
-
-;; Let's define an example packet
-(def person-list
-  [{:name "Frank", :age 30, :tags [:a :b :c]}
-   {:name "Joe",   :age 21, :tags [:b :e]}])
-
-;; Or, generate one from our schema (generates some funny looking names,
-;; don't expect anything fancy here)
-(def person-list (gen person-list-schema))
-
-;; Now we're ready to serialize (pack) it
-(def packet (pack person-list-schema person-list))
-
-;; 'packet' is a raw binary value (and instance of byte[] or ArrayBuffer),
-;; persist it, send it around the network, do whatever you'd like
-
-;; Let's assume we're on the client side now (with the exact same schema definitions),
-;; having received 'packet', let's deserialize (unpack) it
-(def person-list' (:value (unpack person-list-schema packet)))
-
-;; 'person-list'' is either :mikron/invalid or a valid person list
-;; We can also double-check if it conforms to the schema
-(valid? person-list-schema person-list') ; => true
-
-;; We're already pretty fast, but suppose we need even better performance
-;; Let's define a custom record for our people
-(defrecord Person [^String name ^long age tags])
-
-;; We can make use of the record structure in our schemas
-;; Watch out! - from now on, the generated functions only accept actual records
-(defschema person-schema
-  [:record {:type [Person name age tags]} ; <= !
-           {:name :string
-            :age  :ubyte
-            :tags [:vector [:enum [:a :b :c :d :e]]]}])
-
-;; Redefine our list schema as well to use vectors (they are faster to iterate)
-;; Watch out! - from now on, you have to use vectors, not lists!
-(defschema person-list-schema
-  [:vector person-schema])
-
-;; Now you can use the new schemas
+(def s-entity
+  (m/schema [:record {:id       :long
+                      :position [:tuple [:float :float]]
+                      :angle    :float}]))
 ```
+
+Pretty straightforward. For our **snapshot** schema, we'll use the shorthand `defschema` macro:
+```clojure
+(m/defschema s-snapshot
+  [:record {:time     :long
+            :entities [:list s-entity]}])
+```
+
+> **Note:** the top level schema doesn't necessarily have to be a `:record`, it can be any valid schema
+
+Let's define an example **snapshot**:
+```clojure
+(def snapshot
+  {:time     1000
+   :entities [{:id 0, :position [0 0], :angle 30}
+              {:id 1, :position [5 5], :angle 60}]})
+```
+
+Or, we could ask **mikron** to do it for us:
+```clojure
+(def snapshot (m/gen s-snapshot))
+;; => some value
+```
+
+Now, we can serialize and then deserialize it (and do whatever we'd like with `packet` in-between):
+```clojure
+(def packet (m/pack s-snapshot snapshot))
+
+(def snapshot' (m/unpack s-snapshot packet))
+```
+
+Here, `snapshot'` is either `:mikron/invalid` or a valid **snapshot**. We can also double check the latter:
+```clojure
+(m/valid? s-snapshot snapshot')
+;; => true
+```
+
+> **Note:** The syntax of the various 'processors' (like `pack` or `unpack`) is very similar to that of `clojure.spec` (think of `explain` or `valid?`) - `(op schema arg & args)`. **mikron** however uses plain vars instead of namespaced keywords.
 
 That's it in a nutshell. For more information, please check out the [wiki](https://github.com/moxaj/mikron/wiki) or the [Demo project](https://github.com/moxaj/mikron-demo).
 
