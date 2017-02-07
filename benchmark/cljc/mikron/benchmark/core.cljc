@@ -16,7 +16,8 @@
                       [abracad.avro :as avro]
                       [prc :as chart]]))
   #?(:cljs (:require-macros [mikron.benchmark.core :refer [bench]]))
-  #?(:clj (:import [java.io ByteArrayInputStream ByteArrayOutputStream ObjectInputStream ObjectOutputStream]
+  #?(:clj (:import [java.util Arrays]
+                   [java.io ByteArrayInputStream ByteArrayOutputStream ObjectInputStream ObjectOutputStream]
                    [java.nio ByteBuffer]
                    [com.google.protobuf AbstractMessageLite]
                    [mikron Mikron$Doubles Mikron$Quartet Mikron$Snapshot]
@@ -90,12 +91,12 @@
 
 #?(:clj ;; colfer
    (defmethod pack :colfer ^bytes [_ schema data]
-     (.marshal (case schema
-                 ::benchmark.schema/quartet   ^Quartet data
-                 ::benchmark.schema/snapshot  ^Snapshot data
-                 ::benchmark.schema/snapshot2 ^Snapshot data)
-               colfer-buffer 0)
-     colfer-buffer))
+     (let [count (.marshal (case schema
+                             ::benchmark.schema/quartet   ^Quartet data
+                             ::benchmark.schema/snapshot  ^Snapshot data
+                             ::benchmark.schema/snapshot2 ^Snapshot data)
+                           colfer-buffer 0)]
+       (Arrays/copyOf colfer-buffer count))))
 
 ;; Unpackers
 
@@ -204,7 +205,7 @@
                  schema (benchmark.schema/get-schema method schema)]
              [method (vec (for [stat stats]
                             (do (println "Measuring" (name method) "|" (name stat))
-                                (measure stat method schema data))))]))
+                                (util/safe 0 (measure stat method schema data)))))]))
          (into {}))))
 
 (def description
