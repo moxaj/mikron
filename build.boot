@@ -5,11 +5,11 @@
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
-                    [adzerk/boot-reload          "0.5.0"     :scope "test"]
+                    [adzerk/boot-reload          "0.5.1"     :scope "test"]
                     [adzerk/boot-cljs            "1.7.228-2" :scope "test"]
                     [adzerk/boot-cljs-repl       "0.3.3"     :scope "test"]
                     [crisptrutski/boot-cljs-test "0.3.0"     :scope "test"]
-                    [boot-codox                  "0.10.2"    :scope "test"]
+                    [boot-codox                  "0.10.3"    :scope "test"]
 
                     [me.raynes/conch             "0.8.0"     :scope "test"]
                     [com.cemerick/piggieback     "0.2.1"     :scope "test"]
@@ -209,7 +209,7 @@
       :name         "moxaj/mikron"
       :metadata     {:doc/format :markdown}
       :output-path  "../docs"
-      :namespaces   [#"^mikron\.(?!codegen)"]
+      ;:namespaces   [#"^mikron\.(?!codegen)"]
       :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
       :themes       [:default
                      [:klipse
