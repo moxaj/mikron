@@ -15,7 +15,7 @@
                     [com.cemerick/piggieback     "0.2.1"     :scope "test"]
                     [weasel                      "0.7.0"     :scope "test"]
                     [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
-                    [viebel/codox-klipse-theme   "0.0.4"]])
+                    [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]])
 
 (task-options!
   pom {:project 'moxaj/mikron
@@ -38,7 +38,7 @@
          '[mikron.core :as mikron])
 
 (def windows?
-  (.startsWith (.toLowerCase (System/getProperty "os.name")) "windows"))
+  (.. (System/getProperty "os.name") (toLowerCase) (startsWith "windows")))
 
 (defn fix-slashes
   [^String s]

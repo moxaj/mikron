@@ -1,10 +1,6 @@
-language: node_js
-node_js:
-  - 7
-os:
-  - linux
-jdk:
-  - oraclejdk8
+language: java
+os: linux
+jdk: oraclejdk8
 notifications:
   email: false
 addons:
@@ -15,6 +11,9 @@ addons:
     packages:
       - libstdc++-4.9-dev
 install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - nvm use stable
   - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
   - $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
 before_script:
