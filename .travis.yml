@@ -11,9 +11,14 @@ addons:
     packages:
       - libstdc++-4.9-dev
 install:
+  - mkdir -p $HOME/bin
+  - curl -L https://github.com/boot-clj/boot-bin/releases/download/latest/boot.sh -o $HOME/bin/boot
+  - chmod a+x $HOME/bin/boot
+
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
   - nvm use stable
+
   - chmod a+x $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
   - $TRAVIS_BUILD_DIR/scripts/ci/travis_install.sh
 before_script:
@@ -23,6 +28,7 @@ script:
   - boot autotest -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
   directories:
+    - $HOME/bin
     - $HOME/.m2
     - $HOME/.boot/cache/lib
     - $HOME/.boot/cache/bin
@@ -33,7 +39,7 @@ cache:
 env:
   global:
     - CACHE_DIR=$TRAVIS_BUILD_DIR/dep_cache
-    - PATH=$CACHE_DIR/lumo:$CACHE_DIR/slimerjs:$CACHE_DIR/boot:$PATH
+    - PATH=$CACHE_DIR/lumo:$CACHE_DIR/slimerjs:$CACHE_DIR/boot:$HOME/bin:$PATH
     - SLIMERJSLAUNCHER=$(which firefox)
     - DISPLAY=:99.0
     - BOOT_JVM_OPTIONS="-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx4g -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xverify:none -XX:MaxPermSize=128m"
