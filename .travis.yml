@@ -47,11 +47,9 @@ env:
     - PLATFORM=clj
 
     - PLATFORM=cljs TARGET=nodejs  OPT=none
-    - PLATFORM=cljs TARGET=nodejs  OPT=simple
   # - PLATFORM=cljs TARGET=nodejs  OPT=advanced
     - PLATFORM=cljs TARGET=nodejs  OPT=none     SELF_HOSTED=true
 
     - PLATFORM=cljs TARGET=browser OPT=none
-    - PLATFORM=cljs TARGET=browser OPT=simple
     - PLATFORM=cljs TARGET=browser OPT=advanced
   # - PLATFORM=cljs TARGET=browser OPT=none     SELF_HOSTED=true
