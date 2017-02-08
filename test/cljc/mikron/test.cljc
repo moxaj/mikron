@@ -36,6 +36,3 @@
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi number? {true :int false :string}]
    t-wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})
-
-(test/deftest failing-test
-  (test/is (= 0 1)))
