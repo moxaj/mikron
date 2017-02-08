@@ -42,7 +42,7 @@ env:
     - PATH=$CACHE_DIR/lumo:$CACHE_DIR/slimerjs:$CACHE_DIR/boot:$HOME/bin:$PATH
     - SLIMERJSLAUNCHER=$(which firefox)
     - DISPLAY=:99.0
-    - BOOT_JVM_OPTIONS="-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx4g -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xverify:none -XX:MaxPermSize=128m"
+    - BOOT_JVM_OPTIONS="-client -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx4g -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -Xverify:none"
   matrix:
     - PLATFORM=clj
 
