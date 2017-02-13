@@ -231,8 +231,8 @@
             :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
             :themes       [:default
                            [:klipse
-                            #:klipse{:cached-macro-ns-regexp #"mikron\..*"
-                                     :cached-ns-regexp       #"mikron\..*"
+                            #:klipse{:cached-macro-ns-regexp #"/mikron\..*/"
+                                     :cached-ns-regexp       #"/mikron\..*/"
                                      :cached-ns-root         "cache-cljs"
                                      :require-statement      ns-str}]])
           (sift :move {#"docs" "../docs"})
