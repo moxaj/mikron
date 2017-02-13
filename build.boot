@@ -37,6 +37,8 @@
 
          '[mikron.core :as mikron])
 
+;; Util
+
 (def windows?
   (.. (System/getProperty "os.name") (toLowerCase) (startsWith "windows")))
 
@@ -46,21 +48,27 @@
     (.replaceAll s "/" "\\\\")
     s))
 
+(defn host-process
+  "Connects the stdin and stdout to a process."
+  [process]
+  (future (conch/feed-from process System/in))
+  (future (while true (conch/flush process) (Thread/sleep 100)))
+  (conch/stream-to-out process :out))
+
+;; Tasks
+
 (deftask build
   "Builds the project."
   []
-  (comp (pom) (jar) (install)))
+  (comp (pom)
+        (jar)
+        (install)))
 
 (deftask testing
   "Adds the test files to the fileset."
   []
   (merge-env! :resource-paths #{"test/cljc" "test/cljs" "resources/test"})
   identity)
-
-(deftask autotest-clj
-  "Runs the tests on JVM."
-  []
-  (comp (testing) (boot-test/test)))
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
@@ -88,24 +96,71 @@
                         (name (or schema (do (util/info "No :schema specified, using :snapshot.\n")
                                              :snapshot))))
         tmp    (tmp-dir!)]
-    (comp
-      (benchmarking)
-      (javac)
-      (with-pre-wrap fileset
-        (let [in-file (->> (output-files fileset) (by-name ["results.edn"]) (first))]
-          (spit (io/file tmp (tmp-path in-file))
-                (str (slurp (tmp-file in-file))
-                     "\r\n\r\n"
-                     "Stats: " (vec stats) "\r\n"
-                     "Schema: " schema "\r\n"
-                     (do (require '[mikron.benchmark.core :as benchmark])
-                         (let [results ((resolve 'benchmark/benchmark) :stats stats :schema schema)]
-                           (with-out-str (pprint/pprint results))))))
-          (-> fileset
-              (add-resource tmp)
-              (commit!))))
-      (sift :move {#"results.edn" "../resources/benchmark/results.edn"})
-      (target))))
+    (comp (benchmarking)
+          (javac)
+          (with-pre-wrap fileset
+            (let [in-file (->> (output-files fileset) (by-name ["results.edn"]) (first))]
+              (spit (io/file tmp (tmp-path in-file))
+                    (str (slurp (tmp-file in-file))
+                         "\r\n\r\n"
+                         "Stats: " (vec stats) "\r\n"
+                         "Schema: " schema "\r\n"
+                         (do (require '[mikron.benchmark.core :as benchmark])
+                             (let [results ((resolve 'benchmark/benchmark) :stats stats :schema schema)]
+                               (with-out-str (pprint/pprint results))))))
+              (-> fileset
+                  (add-resource tmp)
+                  (commit!))))
+          (sift :move {#"results.edn" "../resources/benchmark/results.edn"})
+          (target))))
+
+(deftask test-clj
+  "Runs the tests on JVM."
+  []
+  (comp (testing)
+        (boot-test/test)))
+
+(deftask test-node
+  "Runs the tests in a Node.js environment."
+  [o opt          VAL kw   "The optimization level for the cljs compiler."
+   s self-hosted?     bool "True if self-hosted."]
+  (comp (testing)
+        (if self-hosted?
+          (comp (target)
+                (with-pass-thru _
+                  (host-process
+                    (conch/proc
+                      "lumo"
+                      "-c" (System/getProperty "fake.class.path")
+                      "-k" "lumo_cache"
+                      "target/mikron/node.cljs"))))
+          (boot-cljs-test/test-cljs :js-env        :node
+                                    :namespaces    '[mikron.test]
+                                    :optimizations (or opt :none)))))
+
+(deftask test-browser
+  "Runs the tests in a browser environment."
+  [o opt    VAL kw   "The optimization level for the cljs compiler."
+   e js-env VAL kw "The js environment."]
+  (comp (testing)
+        (boot-cljs-test/test-cljs :js-env        js-env
+                                  :namespaces    '[mikron.test]
+                                  :optimizations (or opt :none))))
+
+(deftask test
+  "Runs the specified tests."
+  [p platform     VAL kw   "The platform to run on."
+   t target       VAL kw   "The target for the cljs compiler."
+   o opt          VAL kw   "The optimization level for the cljs compiler."
+   s self-hosted?     bool "True if self-hosted."]
+  (comp (testing)
+        (case platform
+          :clj  (test-clj)
+          :cljs (case target
+                  :nodejs  (test-node :opt          opt
+                                      :self-hosted? self-hosted?)
+                  :browser (test-browser :opt    opt
+                                         :js-env :slimer)))))
 
 (deftask compile-cljs
   "Compiles the cljs source files."
@@ -118,51 +173,6 @@
                        :parallel-build false
                        :infer-externs  false}))
 
-(defn host-process
-  "Connects the stdin and stdout to a process."
-  [process]
-  (future (conch/feed-from process System/in))
-  (future (while true (conch/flush process) (Thread/sleep 100)))
-  (conch/stream-to-out process :out))
-
-(deftask autotest-node
-  "Compiles the node test files and runs them."
-  [s self-hosted? bool "True if self-hosted."]
-  (comp
-    (testing)
-    (if self-hosted?
-      (comp
-        (target)
-        (with-pass-thru _
-          (host-process
-            (conch/proc
-              "lumo"
-              "-c" (System/getProperty "fake.class.path")
-              "-k" "lumo_cache"
-              "target/mikron/node.cljs"))))
-      (comp
-        (compile-cljs :id "node/index")
-        (target)
-        (with-pass-thru _
-          (binding [util/*sh-dir* "target/node"]
-            (util/dosh "node" "index.js")))))))
-
-(deftask autotest
-  "Runs the specified tests."
-  [p platform     VAL kw   "The platform to run on."
-   t target       VAL kw   "The target for the cljs compiler."
-   o opt          VAL kw   "The optimization level for the cljs compiler."
-   s self-hosted?     bool "True if self-hosted."]
-  (comp
-    (testing)
-    (case platform
-      :clj  (autotest-clj)
-      :cljs (case target
-              :nodejs  (autotest-node :self-hosted? self-hosted?)
-              :browser (boot-cljs-test/test-cljs :js-env        :slimer
-                                                 :namespaces    ['mikron.test]
-                                                 :optimizations opt)))))
-
 (deftask run-browser-repl
   "Compiles the cljs sources, serves them on localhost:3000, and sets up
    an nrepl listener.
@@ -173,49 +183,58 @@
      - (boot-cljs-repl/start-repl)
    localhost:3000"
   [o opt VAL kw  "The compiler optimization level."]
-  (comp
-    (benchmarking)
-    (testing)
-    (boot-http/serve :dir "target/browser")
-    (watch)
-    (boot-reload/reload)
-    (boot-cljs-repl/cljs-repl)
-    (compile-cljs :id "browser/index" :opt opt)
-    (target)
-    (speak)))
+  (comp (benchmarking)
+        (testing)
+        (boot-http/serve :dir "target/browser")
+        (watch)
+        (boot-reload/reload)
+        (boot-cljs-repl/cljs-repl)
+        (compile-cljs :id "browser/index" :opt opt)
+        (target)
+        (speak)))
 
 (deftask run-node-repl
   "Runs a node repl."
   []
-  (comp
-    (testing)
-    (benchmarking)
-    (target)
-    (with-pass-thru _
-      (host-process
-        (conch/proc
-          "lumo"
-          "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-          "-k" "lumo_cache"
-          "-e" (str "\"(require '[mikron.core :as mikron "
-                    ":refer [schema defschema pack unpack gen valid?]])\"")
-          "-r")))))
+  (comp (testing)
+        (benchmarking)
+        (target)
+        (with-pass-thru _
+          (host-process
+            (conch/proc
+              "lumo"
+              "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+              "-k" "lumo_cache"
+              "-e" (str "\"(require '[mikron.core :as mikron "
+                        ":refer [schema defschema pack unpack gen valid?]])\"")
+              "-r")))))
 
 (deftask generate-docs
   "Generates documentation."
   []
-  (comp
-    (boot-codox/codox
-      :name         "moxaj/mikron"
-      :metadata     {:doc/format :markdown}
-      :output-path  "../docs"
-      ;:namespaces   [#"^mikron\.(?!codegen)"]
-      :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
-      :themes       [:default
-                     [:klipse
-                      {:klipse/external-libs "https://raw.githubusercontent.com/moxaj/mikron/master/src/cljc"
-                       :klipse/require-statement "(ns mikron.codox
-                                                    (:require [mikron.core :as mikron
-                                                               :refer-macros [schema defschema]
-                                                               :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"}]])
-    (target)))
+  (let [ns-str "(ns mikron.codox
+                  (:require [mikron.core :as mikron
+                             :refer-macros [schema defschema]
+                             :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"]
+    (comp #_(with-pass-thru _
+              (host-process
+                (conch/proc
+                  "lumo"
+                  "-c" (System/getProperty "fake.class.path")
+                  "-k" "docs/cache-cljs"
+                  "-e" ns-str)))
+          (boot-codox/codox
+            :name         "moxaj/mikron"
+            :metadata     {:doc/format :markdown}
+            :output-path  "docs"
+            ;:namespaces   [#"^mikron\.(?!codegen)"]
+            :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
+            :themes       [:default
+                           [:klipse
+                            #:klipse{:cached-macro-ns-regexp #"/mikron\..*/"
+                                     :cached-ns-regexp       #"/mikron\..*/"
+                                     :cached-ns-root         "cache-cljs"
+                                     :require-statement      ns-str}]])
+          (sift :move {#"docs" "../docs"})
+          (show :fileset true)
+          (target))))
