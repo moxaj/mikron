@@ -214,8 +214,7 @@
   []
   (let [ns-str "(ns mikron.codox
                   (:require [mikron.core :as mikron
-                             :refer-macros [schema defschema]
-                             :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"]
+                             :refer [schema defschema pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
     (comp (with-pass-thru _
             (host-process
               (conch/proc
@@ -234,6 +233,6 @@
                             #:klipse{:cached-macro-ns-regexp #"/mikron\..*/"
                                      :cached-ns-regexp       #"/mikron\..*/"
                                      :cached-ns-root         "./cache-cljs"
-                                     :require-statement      ns-str}]])
+                                     :require-statement      (str ns-str "  (js/console.log \"a\")")}]])
           (sift :move {#"docs" "../docs"})
           (target))))

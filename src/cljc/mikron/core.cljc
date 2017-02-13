@@ -73,6 +73,7 @@
 (defn allocate-buffer
   "Allocates a new buffer with the given `size`.
    ~~~klipse
+   (js/console.log \"b\")
    (allocate-buffer 2048)
    ~~~"
   [size]
