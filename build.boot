@@ -233,7 +233,7 @@
                            [:klipse
                             #:klipse{:cached-macro-ns-regexp #"/mikron\..*/"
                                      :cached-ns-regexp       #"/mikron\..*/"
-                                     :cached-ns-root         "cache-cljs"
+                                     :cached-ns-root         "./cache-cljs"
                                      :require-statement      ns-str}]])
           (sift :move {#"docs" "../docs"})
           (target))))
