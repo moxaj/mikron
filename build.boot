@@ -216,13 +216,13 @@
                   (:require [mikron.core :as mikron
                              :refer-macros [schema defschema]
                              :refer [pack unpack gen valid? diff diff* undiff undiff* interp]]))"]
-    (comp #_(with-pass-thru _
-              (host-process
-                (conch/proc
-                  "lumo"
-                  "-c" (System/getProperty "fake.class.path")
-                  "-k" "docs/cache-cljs"
-                  "-e" ns-str)))
+    (comp (with-pass-thru _
+            (host-process
+              (conch/proc
+                "lumo"
+                "-c" (System/getProperty "fake.class.path")
+                "-k" "docs/cache-cljs"
+                "-e" ns-str)))
           (boot-codox/codox
             :name         "moxaj/mikron"
             :metadata     {:doc/format :markdown}
@@ -236,5 +236,4 @@
                                      :cached-ns-root         "cache-cljs"
                                      :require-statement      ns-str}]])
           (sift :move {#"docs" "../docs"})
-          (show :fileset true)
           (target))))

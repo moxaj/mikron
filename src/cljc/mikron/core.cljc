@@ -48,12 +48,19 @@
                       (into {}))))))
 
 (defmacro schema
-  "Creates a new schema."
+  "Creates a new schema.
+   ~~~klipse
+   (schema [:tuple [:int :string [:enum [:a :b :c]]]])
+   ~~~"
   [& args]
   (schema* (spec/enforce :mikron.spec/schema-args args)))
 
 (defmacro defschema
-  "Creates a new schema and binds it to the given symbol."
+  "Creates a new schema and binds it to the given symbol.
+   ~~~klipse
+   (defschema my-schema
+     [:record {:a :keyword :b :ubyte}])
+   ~~~"
   [& args]
   (let [{:keys [schema-name doc-string] :as env} (spec/enforce :mikron.spec/defschema-args args)]
     `(def ~schema-name ~@(when doc-string [doc-string])
@@ -64,7 +71,10 @@
   (buffer/allocate 10000))
 
 (defn allocate-buffer
-  "Allocates a new buffer with the given `size`."
+  "Allocates a new buffer with the given `size`.
+   ~~~klipse
+   (allocate-buffer 2048)
+   ~~~"
   [size]
   {:pre [(nat-int? size)]}
   (buffer/allocate size))
@@ -89,7 +99,11 @@
 
 (defn pack
   "Packs `value`, which must conform to `schema`, and may be an instance of
-  `DiffedValue`."
+   `DiffedValue`.
+   ~~~klipse
+   (let [s (schema [:tuple [:int :keyword]])]
+     (pack s [100 :cat]))
+   ~~~"
   [schema value]
   {:pre [(schema? schema)]}
   (let [buffer    *buffer*
@@ -101,7 +115,11 @@
     (buffer/?bytes-all buffer)))
 
 (defn unpack
-  "Unpacks a value (which conforms to `schema`) from the binary value `binary`."
+  "Unpacks a value (which conforms to `schema`) from the binary value `binary`.
+   ~~~klipse
+   (let [s (schema [:tuple [:int :keyword]])]
+     (->> [100 :cat] (pack s) (unpack s)))
+   ~~~"
   [schema binary]
   {:pre [(schema? schema)]}
   (util/safe :mikron/invalid
@@ -113,14 +131,22 @@
         diffed? (DiffedValue.)))))
 
 (defn gen
-  "Generates a new value which conforms to `schema`."
+  "Generates a new value which conforms to `schema`.
+   ~~~klipse
+   (let [s (schema [:multi int? {true :int false [:enum [:a :b :c]]}])]
+     (gen s))
+   ~~~"
   [schema]
   {:pre [(schema? schema)]}
   (let [processor ((.-processors ^Schema schema) :gen)]
     (processor)))
 
 (defn valid?
-  "Returns `true` if `value` conforms to `schema`, `false` otherwise."
+  "Returns `true` if `value` conforms to `schema`, `false` otherwise.
+   ~~~klipse
+   (let [s (schema [:vector :byte])]
+     (valid? s [0 1 2 3 4 5]))
+   ~~~"
   [schema value]
   {:pre [(schema? schema)]}
   (let [processor ((.-processors ^Schema schema) :valid?)]
