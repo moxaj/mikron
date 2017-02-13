@@ -234,6 +234,6 @@
                             #:klipse{:cached-macro-ns-regexp #"/mikron\..*/"
                                      :cached-ns-regexp       #"/mikron\..*/"
                                      :cached-ns-root         "./cache-cljs"
-                                     :require-statement      (str "(do " ns-str " (js/console.log \"a\"))")}]])
+                                     :require-statement      ns-str}]])
           (sift :move {#"docs" "../docs"})
           (target))))
