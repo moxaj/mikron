@@ -214,7 +214,7 @@
   []
   (let [ns-str "(ns mikron.codox
                   (:require [mikron.core :as mikron
-                             :refer-macros [schema defschema]
+                             :refer-macros [schema defschema with-buffer]
                              :refer [pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
     (comp (with-pass-thru _
             (host-process

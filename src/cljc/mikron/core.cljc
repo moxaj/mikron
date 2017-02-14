@@ -50,7 +50,8 @@
 (defmacro schema
   "Creates a new schema.
    ~~~klipse
-   (schema [:tuple [:int :string [:enum [:a :b :c]]]])
+   (def my-schema
+     (schema [:tuple [:int :string [:enum [:a :b :c]]]]))
    ~~~"
   [& args]
   (schema* (spec/enforce :mikron.spec/schema-args args)))
@@ -73,7 +74,6 @@
 (defn allocate-buffer
   "Allocates a new buffer with the given `size`.
    ~~~klipse
-   (js/console.log \"b\")
    (allocate-buffer 2048)
    ~~~"
   [size]
@@ -86,24 +86,28 @@
   (buffer/set-byte-buffer-factory! factory))
 
 (defmacro with-buffer
-  "Executes all the expressions of `body` in the context of `buffer`."
+  "Executes all the expressions of `body` in the context of `buffer`.
+   ~~~klipse
+   (let [my-schema (schema [:vector :int])]
+     (with-buffer (allocate-buffer 10000)
+       (pack my-schema (repeatedly 2000 #(rand-int 1000)))))
+   ~~~"
   [buffer & body]
   `(binding [*buffer* ~buffer]
      ~@body))
 
 (defrecord DiffedValue [value])
 
-(defn diffed?
+(defn ^:private diffed?
   "Returns `true` if `value` is diffed, `false` otherwise."
   [value]
   (instance? DiffedValue value))
 
 (defn pack
-  "Packs `value`, which must conform to `schema`, and may be an instance of
-   `DiffedValue`.
+  "Packs `value`, which must conform to `schema`, and may be an instance of `DiffedValue`.
    ~~~klipse
-   (let [s (schema [:tuple [:int :keyword]])]
-     (pack s [100 :cat]))
+   (let [my-schema (schema [:tuple [:int :keyword]])]
+     (pack my-schema [100 :cat]))
    ~~~"
   [schema value]
   {:pre [(schema? schema)]}
@@ -118,8 +122,8 @@
 (defn unpack
   "Unpacks a value (which conforms to `schema`) from the binary value `binary`.
    ~~~klipse
-   (let [s (schema [:tuple [:int :keyword]])]
-     (->> [100 :cat] (pack s) (unpack s)))
+   (let [my-schema (schema [:tuple [:int :keyword]])]
+     (->> [100 :cat] (pack my-schema) (unpack my-schema)))
    ~~~"
   [schema binary]
   {:pre [(schema? schema)]}
@@ -134,8 +138,8 @@
 (defn gen
   "Generates a new value which conforms to `schema`.
    ~~~klipse
-   (let [s (schema [:multi int? {true :int false [:enum [:a :b :c]]}])]
-     (gen s))
+   (let [my-schema (schema [:multi int? {true :int false [:enum [:a :b :c]]}])]
+     (repeatedly 10 #(gen my-schema)))
    ~~~"
   [schema]
   {:pre [(schema? schema)]}
@@ -145,8 +149,8 @@
 (defn valid?
   "Returns `true` if `value` conforms to `schema`, `false` otherwise.
    ~~~klipse
-   (let [s (schema [:vector :byte])]
-     (valid? s [0 1 2 3 4 5]))
+   (let [my-schema (schema [:vector :byte])]
+     (valid? my-schema [0 1 2 3 4 5]))
    ~~~"
   [schema value]
   {:pre [(schema? schema)]}
@@ -154,8 +158,11 @@
     (processor value)))
 
 (defn diff*
-  "Returns the diff between the old (`value-1`) and the new (`value-2`) value,
-  both conforming to `schema`."
+  "Returns the diff between the old (`value-1`) and the new (`value-2`) value, both conforming to `schema`.
+   ~~~klipse
+   (let [my-schema (schema [:vector [:enum [:a :b]]])]
+     (diff* my-schema [:a :b :a :a] [:b :b :a :b]))
+   ~~~"
   [schema value-1 value-2]
   {:pre [(schema? schema)]}
   (let [processor ((.-processors ^Schema schema) :diff)]
@@ -163,33 +170,50 @@
 
 (defn undiff*
   "Returns the original value from the old (`value-1`) and the diffed (`value-2`) value.
-  The old value must conform to `schema`."
+   The old value must conform to `schema`.
+   ~~~klipse
+   (let [my-schema (schema [:vector [:enum [:a :b]]])
+         old-value [:a :b :a :a]]
+     (->> [:b :b :a :b] (diff* my-schema old-value) (undiff* my-schema old-value)))
+   ~~~"
   [schema value-1 value-2]
   {:pre [(schema? schema)]}
   (let [processor ((.-processors ^Schema schema) :undiff)]
     (processor value-1 value-2)))
 
 (defn diff
-  "Returns the diff between the old (`value-1`) and the new (`value-2`) value,
-  both conforming to `schema`. Wraps the return value with `DiffedValue` for `pack`
-  and `undiff` consumption."
+  "Returns the diff between the old (`value-1`) and the new (`value-2`) value, both conforming to `schema`.
+   Wraps the return value with `DiffedValue` for `pack` and `undiff` consumption.
+   ~~~klipse
+   (let [my-schema (schema [:map :byte :keyword])]
+     (diff my-schema {0 :a 1 :b} {0 :a 1 :c 2 :d}))
+   ~~~"
   [schema value-1 value-2]
   {:pre [(schema? schema)]}
   (let [processor ((.-processors ^Schema schema) :diff)]
     (DiffedValue. (processor value-1 value-2))))
 
 (defn undiff
-  "Returns the original value from the old (`value-1`) and the diffed (`value-2`) value.
-  The old value must conform to `schema`. `value-2` must be an instance of `DiffedValue`."
+  "Returns the original value from the old (`value-1`) and the diffed (`value-2`) value. The old value must conform to
+   `schema`. `value-2` must be an instance of `DiffedValue`.
+   ~~~klipse
+   (let [my-schema (schema [:map :byte :keyword])
+         old-value {0 :a 1 :b}]
+     (->> {0 :a 1 :c 2 :d} (diff my-schema old-value) (undiff my-schema old-value)))
+   ~~~"
   [schema value-1 value-2]
   {:pre [(schema? schema) (diffed? value-2)]}
   (let [processor ((.-processors ^Schema schema) :undiff)]
     (processor value-1 (.-value ^DiffedValue value-2))))
 
 (defn interp
-  "Calculates a new value of an entity at `time`, given two other values
-  (`value-1` and `value-2`, both conforming to `schema`) and their respective
-  timestamps (`time-1` and `time-2`). Uses linear interpolation."
+  "Calculates a new value of an entity at `time`, given two other values (`value-1` and `value-2`, both conforming to
+   `schema`) and their respective timestamps (`time-1` and `time-2`). Uses linear interpolation.
+   ~~~klipse
+   (let [my-schema (schema [:record {:a :float :b [:vector :float]}]
+                           :interp {:a true :b {:all true}})]
+     (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]}))
+   ~~~"
   [schema value-1 value-2 time-1 time-2 time]
   {:pre [(schema? schema) (number? time-1) (number? time-2) (number? time)]}
   (let [time          (double time)
