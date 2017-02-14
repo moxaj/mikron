@@ -9,18 +9,20 @@
 <pre><code class="klipse">(defschema my-schema
   [:record {:a :keyword :b :ubyte}])
 </code></pre></div></div></div><div class="public anchor" id="var-diff"><h3>diff</h3><div class="usage"><code>(diff schema value-1 value-2)</code></div><div class="doc"><div class="markdown"><p>Returns the diff between the old (<code>value-1</code>) and the new (<code>value-2</code>) value, both conforming to <code>schema</code>. Wraps the return value with <code>DiffedValue</code> for <code>pack</code> and <code>undiff</code> consumption.</p>
-<pre><code class="klipse">(let [my-schema (schema [:map :byte :keyword])]
+<pre><code class="klipse">(let [my-schema (schema [:map :byte :keyword]
+                        :diff {:all true})]
   (diff my-schema {0 :a 1 :b} {0 :a 1 :c 2 :d}))
 </code></pre></div></div></div><div class="public anchor" id="var-diff*"><h3>diff*</h3><div class="usage"><code>(diff* schema value-1 value-2)</code></div><div class="doc"><div class="markdown"><p>Returns the diff between the old (<code>value-1</code>) and the new (<code>value-2</code>) value, both conforming to <code>schema</code>.</p>
-<pre><code class="klipse">(let [my-schema (schema [:vector [:enum [:a :b]]])]
+<pre><code class="klipse">(let [my-schema (schema [:vector [:enum [:a :b]]]
+                        :diff {:all true})]
   (diff* my-schema [:a :b :a :a] [:b :b :a :b]))
 </code></pre></div></div></div><div class="public anchor" id="var-gen"><h3>gen</h3><div class="usage"><code>(gen schema)</code></div><div class="doc"><div class="markdown"><p>Generates a new value which conforms to <code>schema</code>.</p>
-<pre><code class="klipse">(let [my-schema (schema [:multi int? {true :int false [:enum [:a :b :c]]}])]
+<pre><code class="klipse">(let [my-schema (schema [:multi number? {true :ubyte false [:enum [:a :b :c]]}])]
   (repeatedly 10 #(gen my-schema)))
 </code></pre></div></div></div><div class="public anchor" id="var-interp"><h3>interp</h3><div class="usage"><code>(interp schema value-1 value-2 time-1 time-2 time)</code></div><div class="doc"><div class="markdown"><p>Calculates a new value of an entity at <code>time</code>, given two other values (<code>value-1</code> and <code>value-2</code>, both conforming to <code>schema</code>) and their respective timestamps (<code>time-1</code> and <code>time-2</code>). Uses linear interpolation.</p>
 <pre><code class="klipse">(let [my-schema (schema [:record {:a :float :b [:vector :float]}]
                         :interp {:a true :b {:all true}})]
-  (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]}))
+  (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]} 0 1 0.5))
 </code></pre></div></div></div><div class="public anchor" id="var-pack"><h3>pack</h3><div class="usage"><code>(pack schema value)</code></div><div class="doc"><div class="markdown"><p>Packs <code>value</code>, which must conform to <code>schema</code>, and may be an instance of <code>DiffedValue</code>.</p>
 <pre><code class="klipse">(let [my-schema (schema [:tuple [:int :keyword]])]
   (pack my-schema [100 :cat]))
@@ -28,11 +30,13 @@
 <pre><code class="klipse">(def my-schema
   (schema [:tuple [:int :string [:enum [:a :b :c]]]]))
 </code></pre></div></div></div><div class="public anchor" id="var-schema.3F"><h3>schema?</h3><div class="usage"><code>(schema? value)</code></div><div class="doc"><div class="markdown"><p>Returns <code>true</code> if <code>value</code> is an instance of <code>Schema</code>, <code>false</code> otherwise.</p></div></div></div><div class="public anchor" id="var-set-byte-buffer-factory.21"><h3>set-byte-buffer-factory!</h3><div class="usage"><code>(set-byte-buffer-factory! factory)</code></div><div class="doc"><div class="markdown"><p>Sets the byte buffer factory.</p></div></div></div><div class="public anchor" id="var-undiff"><h3>undiff</h3><div class="usage"><code>(undiff schema value-1 value-2)</code></div><div class="doc"><div class="markdown"><p>Returns the original value from the old (<code>value-1</code>) and the diffed (<code>value-2</code>) value. The old value must conform to <code>schema</code>. <code>value-2</code> must be an instance of <code>DiffedValue</code>.</p>
-<pre><code class="klipse">(let [my-schema (schema [:map :byte :keyword])
+<pre><code class="klipse">(let [my-schema (schema [:map :byte :keyword]
+                        :diff {:all true})
       old-value {0 :a 1 :b}]
   (-&gt;&gt; {0 :a 1 :c 2 :d} (diff my-schema old-value) (undiff my-schema old-value)))
 </code></pre></div></div></div><div class="public anchor" id="var-undiff*"><h3>undiff*</h3><div class="usage"><code>(undiff* schema value-1 value-2)</code></div><div class="doc"><div class="markdown"><p>Returns the original value from the old (<code>value-1</code>) and the diffed (<code>value-2</code>) value. The old value must conform to <code>schema</code>.</p>
-<pre><code class="klipse">(let [my-schema (schema [:vector [:enum [:a :b]]])
+<pre><code class="klipse">(let [my-schema (schema [:vector [:enum [:a :b]]]
+                        :diff {:all true})
       old-value [:a :b :a :a]]
   (-&gt;&gt; [:b :b :a :b] (diff* my-schema old-value) (undiff* my-schema old-value)))
 </code></pre></div></div></div><div class="public anchor" id="var-unpack"><h3>unpack</h3><div class="usage"><code>(unpack schema binary)</code></div><div class="doc"><div class="markdown"><p>Unpacks a value (which conforms to <code>schema</code>) from the binary value <code>binary</code>.</p>
@@ -42,7 +46,7 @@
 <pre><code class="klipse">(let [my-schema (schema [:vector :byte])]
   (valid? my-schema [0 1 2 3 4 5]))
 </code></pre></div></div></div><div class="public anchor" id="var-with-buffer"><h3>with-buffer</h3><h4 class="type">macro</h4><div class="usage"><code>(with-buffer buffer &amp; body)</code></div><div class="doc"><div class="markdown"><p>Executes all the expressions of <code>body</code> in the context of <code>buffer</code>.</p>
-<pre><code class="klipse">(let [my-schema (schema [:vector :int])]
+<pre><code class="klipse">(let [my-schema (schema [:list :int])]
   (with-buffer (allocate-buffer 10000)
     (pack my-schema (repeatedly 2000 #(rand-int 1000)))))
 </code></pre></div></div></div></div><script>window.klipse_settings = {

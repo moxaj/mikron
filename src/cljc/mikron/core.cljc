@@ -88,7 +88,7 @@
 (defmacro with-buffer
   "Executes all the expressions of `body` in the context of `buffer`.
    ~~~klipse
-   (let [my-schema (schema [:vector :int])]
+   (let [my-schema (schema [:list :int])]
      (with-buffer (allocate-buffer 10000)
        (pack my-schema (repeatedly 2000 #(rand-int 1000)))))
    ~~~"
@@ -138,7 +138,7 @@
 (defn gen
   "Generates a new value which conforms to `schema`.
    ~~~klipse
-   (let [my-schema (schema [:multi int? {true :int false [:enum [:a :b :c]]}])]
+   (let [my-schema (schema [:multi number? {true :ubyte false [:enum [:a :b :c]]}])]
      (repeatedly 10 #(gen my-schema)))
    ~~~"
   [schema]
@@ -160,7 +160,8 @@
 (defn diff*
   "Returns the diff between the old (`value-1`) and the new (`value-2`) value, both conforming to `schema`.
    ~~~klipse
-   (let [my-schema (schema [:vector [:enum [:a :b]]])]
+   (let [my-schema (schema [:vector [:enum [:a :b]]]
+                           :diff {:all true})]
      (diff* my-schema [:a :b :a :a] [:b :b :a :b]))
    ~~~"
   [schema value-1 value-2]
@@ -172,7 +173,8 @@
   "Returns the original value from the old (`value-1`) and the diffed (`value-2`) value.
    The old value must conform to `schema`.
    ~~~klipse
-   (let [my-schema (schema [:vector [:enum [:a :b]]])
+   (let [my-schema (schema [:vector [:enum [:a :b]]]
+                           :diff {:all true})
          old-value [:a :b :a :a]]
      (->> [:b :b :a :b] (diff* my-schema old-value) (undiff* my-schema old-value)))
    ~~~"
@@ -185,7 +187,8 @@
   "Returns the diff between the old (`value-1`) and the new (`value-2`) value, both conforming to `schema`.
    Wraps the return value with `DiffedValue` for `pack` and `undiff` consumption.
    ~~~klipse
-   (let [my-schema (schema [:map :byte :keyword])]
+   (let [my-schema (schema [:map :byte :keyword]
+                           :diff {:all true})]
      (diff my-schema {0 :a 1 :b} {0 :a 1 :c 2 :d}))
    ~~~"
   [schema value-1 value-2]
@@ -197,7 +200,8 @@
   "Returns the original value from the old (`value-1`) and the diffed (`value-2`) value. The old value must conform to
    `schema`. `value-2` must be an instance of `DiffedValue`.
    ~~~klipse
-   (let [my-schema (schema [:map :byte :keyword])
+   (let [my-schema (schema [:map :byte :keyword]
+                           :diff {:all true})
          old-value {0 :a 1 :b}]
      (->> {0 :a 1 :c 2 :d} (diff my-schema old-value) (undiff my-schema old-value)))
    ~~~"
@@ -212,7 +216,7 @@
    ~~~klipse
    (let [my-schema (schema [:record {:a :float :b [:vector :float]}]
                            :interp {:a true :b {:all true}})]
-     (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]}))
+     (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]} 0 1 0.5))
    ~~~"
   [schema value-1 value-2 time-1 time-2 time]
   {:pre [(schema? schema) (number? time-1) (number? time-2) (number? time)]}
