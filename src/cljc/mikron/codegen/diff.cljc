@@ -2,7 +2,7 @@
   "Differ and undiffer generating functions."
   (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
-            [mikron.util :as util]
+            [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]))
 
 (defmulti diff compile-util/type-of :hierarchy #'schema/hierarchy)
@@ -12,6 +12,8 @@
 (prefer-method diff :=-comparable :built-in)
 
 (prefer-method diff :identical?-comparable :built-in)
+
+(prefer-method diff :keyword-comparable :aliased)
 
 (prefer-method diff :keyword-comparable :built-in)
 

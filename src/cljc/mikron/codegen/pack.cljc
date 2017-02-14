@@ -3,7 +3,6 @@
   (:require [mikron.buffer]
             [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
-            [mikron.util :as util]
             [mikron.util.coll :as util.coll])
   #?(:clj (:import [mikron.buffer Buffer])))
 

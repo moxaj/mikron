@@ -2,7 +2,6 @@
   "Generator generating functions."
   (:require [mikron.schema :as schema]
             [mikron.compile-util :as compile-util]
-            [mikron.util :as util]
             [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
