@@ -22,7 +22,7 @@ new cljs.core.Var(function(){return mikron.util.schema.string__GT_any;},new cljs
  */
 (function (){
 mikron.util.schema.keyword__GT_string = (function mikron$util$schema$keyword__GT_string(x){
-return [cljs.core.str(x)].join('').substring((1));
+return [cljs.core.str.cljs$core$IFn$_invoke$arity$1(x)].join('').substring((1));
 }); return (
 new cljs.core.Var(function(){return mikron.util.schema.keyword__GT_string;},new cljs.core.Symbol("mikron.util.schema","keyword->string","mikron.util.schema/keyword->string",(1495241845),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.util.schema","mikron.util.schema",(1120404086),null),new cljs.core.Symbol(null,"keyword->string","keyword->string",(-437703116),null),"mikron/util/schema.cljc",(22),(1),(19),(19),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"x","x",(-555367584),null)], null)),"Converts a keyword `x` to a string.",(cljs.core.truth_(mikron.util.schema.keyword__GT_string)?mikron.util.schema.keyword__GT_string.cljs$lang$test:null)])));})()
 ;
@@ -60,14 +60,14 @@ new cljs.core.Var(function(){return mikron.util.schema.int__GT_char;},new cljs.c
 mikron.util.schema.string__GT_binary = (function mikron$util$schema$string__GT_binary(s){
 var chars = unescape(encodeURIComponent(s)).split("");
 var array = [];
-var n__22666__auto___240 = chars.length;
-var i_241 = (0);
+var n__25765__auto___22 = chars.length;
+var i_23 = (0);
 while(true){
-if((i_241 < n__22666__auto___240)){
-array.push((chars[i_241]).charCodeAt((0)));
+if((i_23 < n__25765__auto___22)){
+array.push((chars[i_23]).charCodeAt((0)));
 
-var G__242 = (i_241 + (1));
-i_241 = G__242;
+var G__24 = (i_23 + (1));
+i_23 = G__24;
 continue;
 } else {
 }

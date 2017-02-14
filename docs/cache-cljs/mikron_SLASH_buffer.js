@@ -5,7 +5,7 @@ goog.provide("mikron.buffer");
  */
 (function (){
 mikron.buffer.BitBufferOps = function(){}; return (
-new cljs.core.Var(function(){return mikron.buffer.BitBufferOps;},new cljs.core.Symbol("mikron.buffer","BitBufferOps","mikron.buffer/BitBufferOps",(-180573392),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"protocol-symbol","protocol-symbol",(1279552198)),new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"protocol-info","protocol-info",(1471745843)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"jsdoc","jsdoc",(1745183516)),new cljs.core.Keyword(null,"test","test",(577538877))],[true,new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"BitBufferOps","BitBufferOps",(-542910020),null),"mikron/buffer.cljc",(42),(1),(9),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"methods","methods",(453930866)),cljs.core.PersistentArrayMap.fromArray([cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-pos*","?bit-pos*",(-514510785),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current position."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-pos*","!bit-pos*",(642398045),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current position."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-index*","?bit-index*",(1366098102),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-index*","!bit-index*",(-451861568),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-value*","?bit-value*",(1927664097),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current value at the index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-value*","!bit-value*",(-53172620),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current value at the index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null)], true, false)], null),(9),cljs.core.List.EMPTY,null,cljs.core.list("@interface"),(cljs.core.truth_(mikron.buffer.BitBufferOps)?mikron.buffer.BitBufferOps.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer.BitBufferOps;},new cljs.core.Symbol("mikron.buffer","BitBufferOps","mikron.buffer/BitBufferOps",(-180573392),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"protocol-symbol","protocol-symbol",(1279552198)),new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"protocol-info","protocol-info",(1471745843)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"jsdoc","jsdoc",(1745183516)),new cljs.core.Keyword(null,"test","test",(577538877))],[true,new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"BitBufferOps","BitBufferOps",(-542910020),null),"mikron/buffer.cljc",(42),(1),(9),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"methods","methods",(453930866)),cljs.core.PersistentArrayMap.createAsIfByAssoc([cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-pos*","?bit-pos*",(-514510785),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current position."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-pos*","!bit-pos*",(642398045),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current position."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-index*","?bit-index*",(1366098102),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-index*","!bit-index*",(-451861568),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"?bit-value*","?bit-value*",(1927664097),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Gets the current value at the index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"!bit-value*","!bit-value*",(-53172620),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Sets the current value at the index."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"value","value",(1946509744),null)], null)], null)])], null),(9),cljs.core.List.EMPTY,null,cljs.core.list("@interface"),(cljs.core.truth_(mikron.buffer.BitBufferOps)?mikron.buffer.BitBufferOps.cljs$lang$test:null)])));})()
 ;
 
 /**
@@ -16,14 +16,14 @@ mikron.buffer._QMARK_bit_pos_STAR_ = (function mikron$buffer$_QMARK_bit_pos_STAR
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_QMARK_bit_pos_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$BitBufferOps$_QMARK_bit_pos_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_bit_pos_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_bit_pos_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_bit_pos_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_bit_pos_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.?bit-pos*",this$);
 }
@@ -41,14 +41,14 @@ mikron.buffer._BANG_bit_pos_STAR_ = (function mikron$buffer$_BANG_bit_pos_STAR_(
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_BANG_bit_pos_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$BitBufferOps$_BANG_bit_pos_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_bit_pos_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_bit_pos_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_bit_pos_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_bit_pos_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.!bit-pos*",this$);
 }
@@ -66,14 +66,14 @@ mikron.buffer._QMARK_bit_index_STAR_ = (function mikron$buffer$_QMARK_bit_index_
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_QMARK_bit_index_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$BitBufferOps$_QMARK_bit_index_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_bit_index_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_bit_index_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_bit_index_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_bit_index_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.?bit-index*",this$);
 }
@@ -91,14 +91,14 @@ mikron.buffer._BANG_bit_index_STAR_ = (function mikron$buffer$_BANG_bit_index_ST
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_BANG_bit_index_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$BitBufferOps$_BANG_bit_index_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_bit_index_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_bit_index_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_bit_index_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_bit_index_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.!bit-index*",this$);
 }
@@ -116,14 +116,14 @@ mikron.buffer._QMARK_bit_value_STAR_ = (function mikron$buffer$_QMARK_bit_value_
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_QMARK_bit_value_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$BitBufferOps$_QMARK_bit_value_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_bit_value_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_bit_value_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_bit_value_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_bit_value_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.?bit-value*",this$);
 }
@@ -141,14 +141,14 @@ mikron.buffer._BANG_bit_value_STAR_ = (function mikron$buffer$_BANG_bit_value_ST
 if((!((this$ == null))) && (!((this$.mikron$buffer$BitBufferOps$_BANG_bit_value_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$BitBufferOps$_BANG_bit_value_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_bit_value_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_bit_value_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_bit_value_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_bit_value_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"BitBufferOps.!bit-value*",this$);
 }
@@ -214,8 +214,8 @@ mikron.buffer.BitBufferImpl.cljs$lang$type = true;
 
 mikron.buffer.BitBufferImpl.cljs$lang$ctorStr = "mikron.buffer/BitBufferImpl";
 
-mikron.buffer.BitBufferImpl.cljs$lang$ctorPrWriter = (function (this__22193__auto__,writer__22194__auto__,opt__22195__auto__){
-return cljs.core._write.call(null,writer__22194__auto__,"mikron.buffer/BitBufferImpl");
+mikron.buffer.BitBufferImpl.cljs$lang$ctorPrWriter = (function (this__21580__auto__,writer__21581__auto__,opt__21582__auto__){
+return cljs.core._write.call(null,writer__21581__auto__,"mikron.buffer/BitBufferImpl");
 });
 
 (function (){
@@ -242,14 +242,14 @@ mikron.buffer._QMARK_byte_STAR_ = (function mikron$buffer$_QMARK_byte_STAR_(this
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_byte_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_byte_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_byte_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_byte_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_byte_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_byte_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?byte*",this$);
 }
@@ -267,14 +267,14 @@ mikron.buffer._BANG_byte_STAR_ = (function mikron$buffer$_BANG_byte_STAR_(this$,
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_byte_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_byte_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_byte_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_byte_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_byte_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_byte_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!byte*",this$);
 }
@@ -292,14 +292,14 @@ mikron.buffer._QMARK_short_STAR_ = (function mikron$buffer$_QMARK_short_STAR_(th
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_short_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_short_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_short_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_short_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_short_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_short_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?short*",this$);
 }
@@ -317,14 +317,14 @@ mikron.buffer._BANG_short_STAR_ = (function mikron$buffer$_BANG_short_STAR_(this
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_short_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_short_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_short_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_short_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_short_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_short_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!short*",this$);
 }
@@ -342,14 +342,14 @@ mikron.buffer._QMARK_int_STAR_ = (function mikron$buffer$_QMARK_int_STAR_(this$)
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_int_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_int_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_int_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_int_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_int_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_int_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?int*",this$);
 }
@@ -367,14 +367,14 @@ mikron.buffer._BANG_int_STAR_ = (function mikron$buffer$_BANG_int_STAR_(this$,va
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_int_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_int_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_int_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_int_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_int_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_int_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!int*",this$);
 }
@@ -392,14 +392,14 @@ mikron.buffer._QMARK_long_STAR_ = (function mikron$buffer$_QMARK_long_STAR_(this
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_long_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_long_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_long_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_long_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_long_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_long_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?long*",this$);
 }
@@ -417,14 +417,14 @@ mikron.buffer._BANG_long_STAR_ = (function mikron$buffer$_BANG_long_STAR_(this$,
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_long_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_long_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_long_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_long_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_long_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_long_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!long*",this$);
 }
@@ -442,14 +442,14 @@ mikron.buffer._QMARK_float_STAR_ = (function mikron$buffer$_QMARK_float_STAR_(th
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_float_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_float_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_float_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_float_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_float_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_float_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?float*",this$);
 }
@@ -467,14 +467,14 @@ mikron.buffer._BANG_float_STAR_ = (function mikron$buffer$_BANG_float_STAR_(this
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_float_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_float_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_float_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_float_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_float_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_float_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!float*",this$);
 }
@@ -492,14 +492,14 @@ mikron.buffer._QMARK_double_STAR_ = (function mikron$buffer$_QMARK_double_STAR_(
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_double_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_double_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_double_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_double_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_double_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_double_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?double*",this$);
 }
@@ -517,14 +517,14 @@ mikron.buffer._BANG_double_STAR_ = (function mikron$buffer$_BANG_double_STAR_(th
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_double_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_double_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_double_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_double_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_double_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_double_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!double*",this$);
 }
@@ -542,14 +542,14 @@ mikron.buffer._QMARK_bytes_STAR_ = (function mikron$buffer$_QMARK_bytes_STAR_(th
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_bytes_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_bytes_STAR_$arity$2(this$,n);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_bytes_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,n);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_bytes_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,n);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_bytes_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,n);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_bytes_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,n);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?bytes*",this$);
 }
@@ -567,14 +567,14 @@ mikron.buffer._BANG_bytes_STAR_ = (function mikron$buffer$_BANG_bytes_STAR_(this
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_bytes_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_bytes_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_bytes_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_bytes_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_bytes_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_bytes_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!bytes*",this$);
 }
@@ -592,14 +592,14 @@ mikron.buffer._QMARK_bytes_all_STAR_ = (function mikron$buffer$_QMARK_bytes_all_
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_bytes_all_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_bytes_all_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_bytes_all_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_bytes_all_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_bytes_all_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_bytes_all_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?bytes-all*",this$);
 }
@@ -617,14 +617,14 @@ mikron.buffer._QMARK_pos_STAR_ = (function mikron$buffer$_QMARK_pos_STAR_(this$)
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_pos_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_pos_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_pos_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_pos_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_pos_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_pos_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?pos*",this$);
 }
@@ -642,14 +642,14 @@ mikron.buffer._BANG_pos_STAR_ = (function mikron$buffer$_BANG_pos_STAR_(this$,po
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_pos_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_pos_STAR_$arity$2(this$,pos);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_pos_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,pos);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_pos_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,pos);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_pos_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,pos);
+var m__21637__auto____$1 = (mikron.buffer._BANG_pos_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,pos);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!pos*",this$);
 }
@@ -667,14 +667,14 @@ mikron.buffer._QMARK_le_STAR_ = (function mikron$buffer$_QMARK_le_STAR_(this$){
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_QMARK_le_STAR_$arity$1 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_QMARK_le_STAR_$arity$1(this$);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._QMARK_le_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._QMARK_le_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._QMARK_le_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$);
+var m__21637__auto____$1 = (mikron.buffer._QMARK_le_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.?le*",this$);
 }
@@ -692,14 +692,14 @@ mikron.buffer._BANG_le_STAR_ = (function mikron$buffer$_BANG_le_STAR_(this$,valu
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferOps$_BANG_le_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferOps$_BANG_le_STAR_$arity$2(this$,value);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer._BANG_le_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,value);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer._BANG_le_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,value);
 } else {
-var m__22250__auto____$1 = (mikron.buffer._BANG_le_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,value);
+var m__21637__auto____$1 = (mikron.buffer._BANG_le_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,value);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferOps.!le*",this$);
 }
@@ -731,28 +731,28 @@ return self__.pos = value;
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_BANG_double_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value194 = self__.data_view.setFloat64(self__.pos,value,self__.le);
+var value243 = self__.data_view.setFloat64(self__.pos,value,self__.le);
 self__.pos = (self__.pos + (8));
 
-return value194;
+return value243;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_double_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value195 = self__.data_view.getFloat64(self__.pos,self__.le);
+var value244 = self__.data_view.getFloat64(self__.pos,self__.le);
 self__.pos = (self__.pos + (8));
 
-return value195;
+return value244;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_byte_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value196 = self__.data_view.getInt8(self__.pos);
+var value245 = self__.data_view.getInt8(self__.pos);
 self__.pos = (self__.pos + (1));
 
-return value196;
+return value245;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_pos_STAR_$arity$1 = (function (_){
@@ -801,19 +801,19 @@ return self__.int8_array.slice((0),self__.pos).buffer;
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_BANG_short_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value197 = self__.data_view.setInt16(self__.pos,value,self__.le);
+var value246 = self__.data_view.setInt16(self__.pos,value,self__.le);
 self__.pos = (self__.pos + (2));
 
-return value197;
+return value246;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_int_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value198 = self__.data_view.getInt32(self__.pos,self__.le);
+var value247 = self__.data_view.getInt32(self__.pos,self__.le);
 self__.pos = (self__.pos + (4));
 
-return value198;
+return value247;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_le_STAR_$arity$1 = (function (_){
@@ -838,28 +838,28 @@ return mikron.util.math.from.call(null,v,u);
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_BANG_byte_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value199 = self__.data_view.setInt8(self__.pos,value);
+var value248 = self__.data_view.setInt8(self__.pos,value);
 self__.pos = (self__.pos + (1));
 
-return value199;
+return value248;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_float_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value200 = self__.data_view.getFloat32(self__.pos,self__.le);
+var value249 = self__.data_view.getFloat32(self__.pos,self__.le);
 self__.pos = (self__.pos + (4));
 
-return value200;
+return value249;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_BANG_int_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value201 = self__.data_view.setInt32(self__.pos,value,self__.le);
+var value250 = self__.data_view.setInt32(self__.pos,value,self__.le);
 self__.pos = (self__.pos + (4));
 
-return value201;
+return value250;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_bytes_STAR_$arity$2 = (function (_,n){
@@ -875,19 +875,19 @@ return self__.int8_array.slice(from,to).buffer;
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_BANG_float_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value202 = self__.data_view.setFloat32(self__.pos,value,self__.le);
+var value251 = self__.data_view.setFloat32(self__.pos,value,self__.le);
 self__.pos = (self__.pos + (4));
 
-return value202;
+return value251;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.prototype.mikron$buffer$ByteBufferOps$_QMARK_short_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value193 = self__.data_view.getInt16(self__.pos,self__.le);
+var value242 = self__.data_view.getInt16(self__.pos,self__.le);
 self__.pos = (self__.pos + (2));
 
-return value193;
+return value242;
 });
 
 mikron.buffer.ByteBufferImplCljsBrowser.getBasis = (function (){
@@ -898,8 +898,8 @@ mikron.buffer.ByteBufferImplCljsBrowser.cljs$lang$type = true;
 
 mikron.buffer.ByteBufferImplCljsBrowser.cljs$lang$ctorStr = "mikron.buffer/ByteBufferImplCljsBrowser";
 
-mikron.buffer.ByteBufferImplCljsBrowser.cljs$lang$ctorPrWriter = (function (this__22193__auto__,writer__22194__auto__,opt__22195__auto__){
-return cljs.core._write.call(null,writer__22194__auto__,"mikron.buffer/ByteBufferImplCljsBrowser");
+mikron.buffer.ByteBufferImplCljsBrowser.cljs$lang$ctorPrWriter = (function (this__21580__auto__,writer__21581__auto__,opt__21582__auto__){
+return cljs.core._write.call(null,writer__21581__auto__,"mikron.buffer/ByteBufferImplCljsBrowser");
 });
 
 (function (){
@@ -930,28 +930,28 @@ return self__.pos = value;
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_BANG_double_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value204 = ((self__.le)?self__.buffer.writeDoubleLE(value,self__.pos,true):self__.buffer.writeDoubleBE(value,self__.pos,true));
+var value253 = ((self__.le)?self__.buffer.writeDoubleLE(value,self__.pos,true):self__.buffer.writeDoubleBE(value,self__.pos,true));
 self__.pos = (self__.pos + (8));
 
-return value204;
+return value253;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_double_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value205 = ((self__.le)?self__.buffer.readDoubleLE(self__.pos,true):self__.buffer.readDoubleBE(self__.pos,true));
+var value254 = ((self__.le)?self__.buffer.readDoubleLE(self__.pos,true):self__.buffer.readDoubleBE(self__.pos,true));
 self__.pos = (self__.pos + (8));
 
-return value205;
+return value254;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_byte_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value206 = self__.buffer.readInt8(self__.pos,true);
+var value255 = self__.buffer.readInt8(self__.pos,true);
 self__.pos = (self__.pos + (1));
 
-return value206;
+return value255;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_pos_STAR_$arity$1 = (function (_){
@@ -1000,19 +1000,19 @@ return self__.buffer.buffer.slice((0),self__.pos);
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_BANG_short_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value207 = ((self__.le)?self__.buffer.writeInt16LE(value,self__.pos,true):self__.buffer.writeInt16BE(value,self__.pos,true));
+var value256 = ((self__.le)?self__.buffer.writeInt16LE(value,self__.pos,true):self__.buffer.writeInt16BE(value,self__.pos,true));
 self__.pos = (self__.pos + (2));
 
-return value207;
+return value256;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_int_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value208 = ((self__.le)?self__.buffer.readInt32LE(self__.pos,true):self__.buffer.readInt32BE(self__.pos,true));
+var value257 = ((self__.le)?self__.buffer.readInt32LE(self__.pos,true):self__.buffer.readInt32BE(self__.pos,true));
 self__.pos = (self__.pos + (4));
 
-return value208;
+return value257;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_le_STAR_$arity$1 = (function (_){
@@ -1037,28 +1037,28 @@ return mikron.util.math.from.call(null,v,u);
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_BANG_byte_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value209 = self__.buffer.writeInt8(value,self__.pos,true);
+var value258 = self__.buffer.writeInt8(value,self__.pos,true);
 self__.pos = (self__.pos + (1));
 
-return value209;
+return value258;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_float_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value210 = ((self__.le)?self__.buffer.readFloatLE(self__.pos,true):self__.buffer.readFloatBE(self__.pos,true));
+var value259 = ((self__.le)?self__.buffer.readFloatLE(self__.pos,true):self__.buffer.readFloatBE(self__.pos,true));
 self__.pos = (self__.pos + (4));
 
-return value210;
+return value259;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_BANG_int_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value211 = ((self__.le)?self__.buffer.writeInt32LE(value,self__.pos,true):self__.buffer.writeInt32BE(value,self__.pos,true));
+var value260 = ((self__.le)?self__.buffer.writeInt32LE(value,self__.pos,true):self__.buffer.writeInt32BE(value,self__.pos,true));
 self__.pos = (self__.pos + (4));
 
-return value211;
+return value260;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_bytes_STAR_$arity$2 = (function (_,n){
@@ -1074,19 +1074,19 @@ return self__.buffer.buffer.slice(from,to);
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_BANG_float_STAR_$arity$2 = (function (_,value){
 var self__ = this;
 var ___$1 = this;
-var value212 = ((self__.le)?self__.buffer.writeFloatLE(value,self__.pos,true):self__.buffer.writeFloatBE(value,self__.pos,true));
+var value261 = ((self__.le)?self__.buffer.writeFloatLE(value,self__.pos,true):self__.buffer.writeFloatBE(value,self__.pos,true));
 self__.pos = (self__.pos + (4));
 
-return value212;
+return value261;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.prototype.mikron$buffer$ByteBufferOps$_QMARK_short_STAR_$arity$1 = (function (_){
 var self__ = this;
 var ___$1 = this;
-var value203 = ((self__.le)?self__.buffer.readInt16LE(self__.pos,true):self__.buffer.readInt16BE(self__.pos,true));
+var value252 = ((self__.le)?self__.buffer.readInt16LE(self__.pos,true):self__.buffer.readInt16BE(self__.pos,true));
 self__.pos = (self__.pos + (2));
 
-return value203;
+return value252;
 });
 
 mikron.buffer.ByteBufferImplCljsNode.getBasis = (function (){
@@ -1097,8 +1097,8 @@ mikron.buffer.ByteBufferImplCljsNode.cljs$lang$type = true;
 
 mikron.buffer.ByteBufferImplCljsNode.cljs$lang$ctorStr = "mikron.buffer/ByteBufferImplCljsNode";
 
-mikron.buffer.ByteBufferImplCljsNode.cljs$lang$ctorPrWriter = (function (this__22193__auto__,writer__22194__auto__,opt__22195__auto__){
-return cljs.core._write.call(null,writer__22194__auto__,"mikron.buffer/ByteBufferImplCljsNode");
+mikron.buffer.ByteBufferImplCljsNode.cljs$lang$ctorPrWriter = (function (this__21580__auto__,writer__21581__auto__,opt__21582__auto__){
+return cljs.core._write.call(null,writer__21581__auto__,"mikron.buffer/ByteBufferImplCljsNode");
 });
 
 (function (){
@@ -1125,8 +1125,8 @@ mikron.buffer.Buffer.cljs$lang$type = true;
 
 mikron.buffer.Buffer.cljs$lang$ctorStr = "mikron.buffer/Buffer";
 
-mikron.buffer.Buffer.cljs$lang$ctorPrWriter = (function (this__22193__auto__,writer__22194__auto__,opt__22195__auto__){
-return cljs.core._write.call(null,writer__22194__auto__,"mikron.buffer/Buffer");
+mikron.buffer.Buffer.cljs$lang$ctorPrWriter = (function (this__21580__auto__,writer__21581__auto__,opt__21582__auto__){
+return cljs.core._write.call(null,writer__21581__auto__,"mikron.buffer/Buffer");
 });
 
 (function (){
@@ -1439,14 +1439,14 @@ new cljs.core.Var(function(){return mikron.buffer._BANG_uint;},new cljs.core.Sym
 (function (){
 mikron.buffer._BANG_byte_at = (function mikron$buffer$_BANG_byte_at(buffer,pos,value){
 var pos_SINGLEQUOTE_ = mikron.buffer._QMARK_pos.call(null,buffer);
-var G__214 = buffer;
-mikron.buffer._BANG_pos.call(null,G__214,pos);
+var G__263 = buffer;
+mikron.buffer._BANG_pos.call(null,G__263,pos);
 
-mikron.buffer._BANG_byte.call(null,G__214,value);
+mikron.buffer._BANG_byte.call(null,G__263,value);
 
-mikron.buffer._BANG_pos.call(null,G__214,pos_SINGLEQUOTE_);
+mikron.buffer._BANG_pos.call(null,G__263,pos_SINGLEQUOTE_);
 
-return G__214;
+return G__263;
 }); return (
 new cljs.core.Var(function(){return mikron.buffer._BANG_byte_at;},new cljs.core.Symbol("mikron.buffer","!byte-at","mikron.buffer/!byte-at",(1155647482),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"!byte-at","!byte-at",(1850119302),null),"mikron/buffer.cljc",(15),(1),(426),(426),cljs.core.list(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.with_meta(new cljs.core.Symbol(null,"buffer","buffer",(-2037140571),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"Buffer","Buffer",(-358711607),null)], null)),cljs.core.with_meta(new cljs.core.Symbol(null,"pos","pos",(775924307),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"long","long",(1469079434),null)], null)),cljs.core.with_meta(new cljs.core.Symbol(null,"value","value",(1946509744),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"long","long",(1469079434),null)], null))], null)),"Writes a byte to the given position in `buffer`.",(cljs.core.truth_(mikron.buffer._BANG_byte_at)?mikron.buffer._BANG_byte_at.cljs$lang$test:null)])));})()
 ;
@@ -1510,10 +1510,10 @@ var value__$1 = mikron.util.math.or.call(null,mikron.util.math.shift_left.call(n
 if(cljs.core.truth_(mikron.util.math.zero_QMARK_.call(null,mikron.util.math.and.call(null,byte$,mikron.util.math.c128)))){
 return mikron.util.math.to.call(null,mikron.util.math.zigzag_decode.call(null,value__$1));
 } else {
-var G__215 = value__$1;
-var G__216 = (shift + (7));
-value = G__215;
-shift = G__216;
+var G__264 = value__$1;
+var G__265 = (shift + (7));
+value = G__264;
+shift = G__265;
 continue;
 }
 }
@@ -1534,8 +1534,8 @@ return mikron.buffer._BANG_byte.call(null,buffer,mikron.util.math.to.call(null,v
 } else {
 mikron.buffer._BANG_byte.call(null,buffer,mikron.util.math.to.call(null,mikron.util.math.or.call(null,mikron.util.math.and.call(null,value__$1,mikron.util.math.c127),mikron.util.math.c128)));
 
-var G__217 = mikron.util.math.unsigned_shift_right.call(null,value__$1,(7));
-value__$1 = G__217;
+var G__266 = mikron.util.math.unsigned_shift_right.call(null,value__$1,(7));
+value__$1 = G__266;
 continue;
 }
 break;
@@ -1557,12 +1557,12 @@ new cljs.core.Var(function(){return mikron.buffer._QMARK_binary;},new cljs.core.
  */
 (function (){
 mikron.buffer._BANG_binary = (function mikron$buffer$_BANG_binary(buffer,value){
-var G__219 = buffer;
-mikron.buffer._BANG_varint.call(null,G__219,value.byteLength);
+var G__268 = buffer;
+mikron.buffer._BANG_varint.call(null,G__268,value.byteLength);
 
-mikron.buffer._BANG_bytes.call(null,G__219,value);
+mikron.buffer._BANG_bytes.call(null,G__268,value);
 
-return G__219;
+return G__268;
 }); return (
 new cljs.core.Var(function(){return mikron.buffer._BANG_binary;},new cljs.core.Symbol("mikron.buffer","!binary","mikron.buffer/!binary",(243974873),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"!binary","!binary",(895512677),null),"mikron/buffer.cljc",(14),(1),(494),(494),cljs.core.list(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.with_meta(new cljs.core.Symbol(null,"buffer","buffer",(-2037140571),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"Buffer","Buffer",(-358711607),null)], null)),cljs.core.with_meta(new cljs.core.Symbol(null,"value","value",(1946509744),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"bytes","bytes",(-1478569089),null)], null))], null)),"Writes a binary value `value` to `buffer`.",(cljs.core.truth_(mikron.buffer._BANG_binary)?mikron.buffer._BANG_binary.cljs$lang$test:null)])));})()
 ;
@@ -1571,16 +1571,16 @@ new cljs.core.Var(function(){return mikron.buffer._BANG_binary;},new cljs.core.S
  */
 (function (){
 mikron.buffer._BANG_reset = (function mikron$buffer$_BANG_reset(buffer){
-var G__221 = buffer;
-mikron.buffer._BANG_pos.call(null,G__221,(0));
+var G__270 = buffer;
+mikron.buffer._BANG_pos.call(null,G__270,(0));
 
-mikron.buffer._BANG_bit_pos.call(null,G__221,(-1));
+mikron.buffer._BANG_bit_pos.call(null,G__270,(-1));
 
-mikron.buffer._BANG_bit_value.call(null,G__221,(0));
+mikron.buffer._BANG_bit_value.call(null,G__270,(0));
 
-mikron.buffer._BANG_bit_index.call(null,G__221,(0));
+mikron.buffer._BANG_bit_index.call(null,G__270,(0));
 
-return G__221;
+return G__270;
 }); return (
 new cljs.core.Var(function(){return mikron.buffer._BANG_reset;},new cljs.core.Symbol("mikron.buffer","!reset","mikron.buffer/!reset",(2137141573),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"!reset","!reset",(-1593252167),null),"mikron/buffer.cljc",(13),(1),(504),(504),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.with_meta(new cljs.core.Symbol(null,"buffer","buffer",(-2037140571),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"Buffer","Buffer",(-358711607),null)], null))], null)),"Resets `buffer`.",(cljs.core.truth_(mikron.buffer._BANG_reset)?mikron.buffer._BANG_reset.cljs$lang$test:null)])));})()
 ;
@@ -1604,7 +1604,7 @@ new cljs.core.Var(function(){return mikron.buffer._BANG_finalize;},new cljs.core
  */
 (function (){
 mikron.buffer.ByteBufferFactoryOps = function(){}; return (
-new cljs.core.Var(function(){return mikron.buffer.ByteBufferFactoryOps;},new cljs.core.Symbol("mikron.buffer","ByteBufferFactoryOps","mikron.buffer/ByteBufferFactoryOps",(1624378086),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"protocol-symbol","protocol-symbol",(1279552198)),new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"protocol-info","protocol-info",(1471745843)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"jsdoc","jsdoc",(1745183516)),new cljs.core.Keyword(null,"test","test",(577538877))],[true,new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"ByteBufferFactoryOps","ByteBufferFactoryOps",(-1233422230),null),"mikron/buffer.cljc",(50),(1),(520),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"methods","methods",(453930866)),cljs.core.PersistentArrayMap.fromArray([cljs.core.with_meta(new cljs.core.Symbol(null,"allocate*","allocate*",(-1145608660),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Allocates a buffer with size `size`."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"size","size",(-1555742762),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"wrap*","wrap*",(203976753),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Wraps a binary value `binary` with a buffer."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"binary","binary",(-161700761),null)], null)], null)], true, false)], null),(520),cljs.core.List.EMPTY,null,cljs.core.list("@interface"),(cljs.core.truth_(mikron.buffer.ByteBufferFactoryOps)?mikron.buffer.ByteBufferFactoryOps.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer.ByteBufferFactoryOps;},new cljs.core.Symbol("mikron.buffer","ByteBufferFactoryOps","mikron.buffer/ByteBufferFactoryOps",(1624378086),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"protocol-symbol","protocol-symbol",(1279552198)),new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"protocol-info","protocol-info",(1471745843)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"jsdoc","jsdoc",(1745183516)),new cljs.core.Keyword(null,"test","test",(577538877))],[true,new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"ByteBufferFactoryOps","ByteBufferFactoryOps",(-1233422230),null),"mikron/buffer.cljc",(50),(1),(520),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"methods","methods",(453930866)),cljs.core.PersistentArrayMap.createAsIfByAssoc([cljs.core.with_meta(new cljs.core.Symbol(null,"allocate*","allocate*",(-1145608660),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Allocates a buffer with size `size`."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"size","size",(-1555742762),null)], null)], null),cljs.core.with_meta(new cljs.core.Symbol(null,"wrap*","wrap*",(203976753),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"doc","doc",(1913296891)),"Wraps a binary value `binary` with a buffer."], null)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"this","this",(1028897902),null),new cljs.core.Symbol(null,"binary","binary",(-161700761),null)], null)], null)])], null),(520),cljs.core.List.EMPTY,null,cljs.core.list("@interface"),(cljs.core.truth_(mikron.buffer.ByteBufferFactoryOps)?mikron.buffer.ByteBufferFactoryOps.cljs$lang$test:null)])));})()
 ;
 
 /**
@@ -1615,14 +1615,14 @@ mikron.buffer.allocate_STAR_ = (function mikron$buffer$allocate_STAR_(this$,size
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferFactoryOps$allocate_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferFactoryOps$allocate_STAR_$arity$2(this$,size);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer.allocate_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,size);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer.allocate_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,size);
 } else {
-var m__22250__auto____$1 = (mikron.buffer.allocate_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,size);
+var m__21637__auto____$1 = (mikron.buffer.allocate_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,size);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferFactoryOps.allocate*",this$);
 }
@@ -1640,14 +1640,14 @@ mikron.buffer.wrap_STAR_ = (function mikron$buffer$wrap_STAR_(this$,binary){
 if((!((this$ == null))) && (!((this$.mikron$buffer$ByteBufferFactoryOps$wrap_STAR_$arity$2 == null)))){
 return this$.mikron$buffer$ByteBufferFactoryOps$wrap_STAR_$arity$2(this$,binary);
 } else {
-var x__22249__auto__ = (((this$ == null))?null:this$);
-var m__22250__auto__ = (mikron.buffer.wrap_STAR_[goog.typeOf(x__22249__auto__)]);
-if(!((m__22250__auto__ == null))){
-return m__22250__auto__.call(null,this$,binary);
+var x__21636__auto__ = (((this$ == null))?null:this$);
+var m__21637__auto__ = (mikron.buffer.wrap_STAR_[goog.typeOf(x__21636__auto__)]);
+if(!((m__21637__auto__ == null))){
+return m__21637__auto__.call(null,this$,binary);
 } else {
-var m__22250__auto____$1 = (mikron.buffer.wrap_STAR_["_"]);
-if(!((m__22250__auto____$1 == null))){
-return m__22250__auto____$1.call(null,this$,binary);
+var m__21637__auto____$1 = (mikron.buffer.wrap_STAR_["_"]);
+if(!((m__21637__auto____$1 == null))){
+return m__21637__auto____$1.call(null,this$,binary);
 } else {
 throw cljs.core.missing_protocol.call(null,"ByteBufferFactoryOps.wrap*",this$);
 }
@@ -1692,57 +1692,57 @@ this.__hash = __hash;
 this.cljs$lang$protocol_mask$partition0$ = -2065299702;
 this.cljs$lang$protocol_mask$partition1$ = 8192;
 })
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ILookup$_lookup$arity$2 = (function (this__22214__auto__,k__22215__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ILookup$_lookup$arity$2 = (function (this__21601__auto__,k__21602__auto__){
 var self__ = this;
-var this__22214__auto____$1 = this;
-return cljs.core._lookup.call(null,this__22214__auto____$1,k__22215__auto__,null);
+var this__21601__auto____$1 = this;
+return this__21601__auto____$1.cljs$core$ILookup$_lookup$arity$3(null,k__21602__auto__,null);
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__22216__auto__,k223,else__22217__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__21603__auto__,k272,else__21604__auto__){
 var self__ = this;
-var this__22216__auto____$1 = this;
-var G__225 = k223;
-switch (G__225) {
+var this__21603__auto____$1 = this;
+var G__274 = k272;
+switch (G__274) {
 default:
-return cljs.core.get.call(null,self__.__extmap,k223,else__22217__auto__);
+return cljs.core.get.call(null,self__.__extmap,k272,else__21604__auto__);
 
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = (function (this__22228__auto__,writer__22229__auto__,opts__22230__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = (function (this__21615__auto__,writer__21616__auto__,opts__21617__auto__){
 var self__ = this;
-var this__22228__auto____$1 = this;
-var pr_pair__22231__auto__ = ((function (this__22228__auto____$1){
-return (function (keyval__22232__auto__){
-return cljs.core.pr_sequential_writer.call(null,writer__22229__auto__,cljs.core.pr_writer,""," ","",opts__22230__auto__,keyval__22232__auto__);
-});})(this__22228__auto____$1))
+var this__21615__auto____$1 = this;
+var pr_pair__21618__auto__ = ((function (this__21615__auto____$1){
+return (function (keyval__21619__auto__){
+return cljs.core.pr_sequential_writer.call(null,writer__21616__auto__,cljs.core.pr_writer,""," ","",opts__21617__auto__,keyval__21619__auto__);
+});})(this__21615__auto____$1))
 ;
-return cljs.core.pr_sequential_writer.call(null,writer__22229__auto__,pr_pair__22231__auto__,"#mikron.buffer.ByteBufferFactoryImplCljsBrowser{",", ","}",opts__22230__auto__,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
+return cljs.core.pr_sequential_writer.call(null,writer__21616__auto__,pr_pair__21618__auto__,"#mikron.buffer.ByteBufferFactoryImplCljsBrowser{",", ","}",opts__21617__auto__,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
 });
 
 mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IIterable$ = cljs.core.PROTOCOL_SENTINEL;
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__222){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__271){
 var self__ = this;
-var G__222__$1 = this;
-return (new cljs.core.RecordIter((0),G__222__$1,(0),cljs.core.PersistentVector.EMPTY,(cljs.core.truth_(self__.__extmap)?cljs.core._iterator.call(null,self__.__extmap):cljs.core.nil_iter.call(null))));
+var G__271__$1 = this;
+return (new cljs.core.RecordIter((0),G__271__$1,(0),cljs.core.PersistentVector.EMPTY,(cljs.core.truth_(self__.__extmap)?cljs.core._iterator.call(null,self__.__extmap):cljs.core.nil_iter.call(null))));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__22212__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__21599__auto__){
 var self__ = this;
-var this__22212__auto____$1 = this;
+var this__21599__auto____$1 = this;
 return self__.__meta;
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICloneable$_clone$arity$1 = (function (this__22208__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICloneable$_clone$arity$1 = (function (this__21595__auto__){
 var self__ = this;
-var this__22208__auto____$1 = this;
+var this__21595__auto____$1 = this;
 return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(self__.__meta,self__.__extmap,self__.__hash));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICounted$_count$arity$1 = (function (this__22218__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICounted$_count$arity$1 = (function (this__21605__auto__){
 var self__ = this;
-var this__22218__auto____$1 = this;
+var this__21605__auto____$1 = this;
 return ((0) + cljs.core.count.call(null,self__.__extmap));
 });
 
@@ -1761,33 +1761,28 @@ var ___$1 = this;
 return (new mikron.buffer.ByteBufferImplCljsBrowser((new DataView(binary)),(new Int8Array(binary)),(0),true));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IHash$_hash$arity$1 = (function (this__22209__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IHash$_hash$arity$1 = (function (this__21596__auto__){
 var self__ = this;
-var this__22209__auto____$1 = this;
-var h__21927__auto__ = self__.__hash;
-if(!((h__21927__auto__ == null))){
-return h__21927__auto__;
+var this__21596__auto____$1 = this;
+var h__21202__auto__ = self__.__hash;
+if(!((h__21202__auto__ == null))){
+return h__21202__auto__;
 } else {
-var h__21927__auto____$1 = cljs.core.hash_imap.call(null,this__22209__auto____$1);
-self__.__hash = h__21927__auto____$1;
+var h__21202__auto____$1 = cljs.core.hash_imap.call(null,this__21596__auto____$1);
+self__.__hash = h__21202__auto____$1;
 
-return h__21927__auto____$1;
+return h__21202__auto____$1;
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this__22210__auto__,other__22211__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this__21597__auto__,other__21598__auto__){
 var self__ = this;
-var this__22210__auto____$1 = this;
-if(cljs.core.truth_((function (){var and__21118__auto__ = other__22211__auto__;
-if(cljs.core.truth_(and__21118__auto__)){
-var and__21118__auto____$1 = (this__22210__auto____$1.constructor === other__22211__auto__.constructor);
-if(and__21118__auto____$1){
-return cljs.core.equiv_map.call(null,this__22210__auto____$1,other__22211__auto__);
+var this__21597__auto____$1 = this;
+if(cljs.core.truth_((function (){var and__20483__auto__ = other__21598__auto__;
+if(cljs.core.truth_(and__20483__auto__)){
+return ((this__21597__auto____$1.constructor === other__21598__auto__.constructor)) && (cljs.core.equiv_map.call(null,this__21597__auto____$1,other__21598__auto__));
 } else {
-return and__21118__auto____$1;
-}
-} else {
-return and__21118__auto__;
+return and__20483__auto__;
 }
 })())){
 return true;
@@ -1796,43 +1791,43 @@ return false;
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__22223__auto__,k__22224__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__21610__auto__,k__21611__auto__){
 var self__ = this;
-var this__22223__auto____$1 = this;
-if(cljs.core.contains_QMARK_.call(null,cljs.core.PersistentHashSet.EMPTY,k__22224__auto__)){
-return cljs.core.dissoc.call(null,cljs.core.with_meta.call(null,cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,this__22223__auto____$1),self__.__meta),k__22224__auto__);
+var this__21610__auto____$1 = this;
+if(cljs.core.contains_QMARK_.call(null,cljs.core.PersistentHashSet.EMPTY,k__21611__auto__)){
+return cljs.core.dissoc.call(null,cljs.core.with_meta.call(null,cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,this__21610__auto____$1),self__.__meta),k__21611__auto__);
 } else {
-return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(self__.__meta,cljs.core.not_empty.call(null,cljs.core.dissoc.call(null,self__.__extmap,k__22224__auto__)),null));
+return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(self__.__meta,cljs.core.not_empty.call(null,cljs.core.dissoc.call(null,self__.__extmap,k__21611__auto__)),null));
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__22221__auto__,k__22222__auto__,G__222){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__21608__auto__,k__21609__auto__,G__271){
 var self__ = this;
-var this__22221__auto____$1 = this;
-var pred__226 = cljs.core.keyword_identical_QMARK_;
-var expr__227 = k__22222__auto__;
-return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(self__.__meta,cljs.core.assoc.call(null,self__.__extmap,k__22222__auto__,G__222),null));
+var this__21608__auto____$1 = this;
+var pred__275 = cljs.core.keyword_identical_QMARK_;
+var expr__276 = k__21609__auto__;
+return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(self__.__meta,cljs.core.assoc.call(null,self__.__extmap,k__21609__auto__,G__271),null));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ISeqable$_seq$arity$1 = (function (this__22226__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ISeqable$_seq$arity$1 = (function (this__21613__auto__){
 var self__ = this;
-var this__22226__auto____$1 = this;
+var this__21613__auto____$1 = this;
 return cljs.core.seq.call(null,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__22213__auto__,G__222){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__21600__auto__,G__271){
 var self__ = this;
-var this__22213__auto____$1 = this;
-return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(G__222,self__.__extmap,self__.__hash));
+var this__21600__auto____$1 = this;
+return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(G__271,self__.__extmap,self__.__hash));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__22219__auto__,entry__22220__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__21606__auto__,entry__21607__auto__){
 var self__ = this;
-var this__22219__auto____$1 = this;
-if(cljs.core.vector_QMARK_.call(null,entry__22220__auto__)){
-return cljs.core._assoc.call(null,this__22219__auto____$1,cljs.core._nth.call(null,entry__22220__auto__,(0)),cljs.core._nth.call(null,entry__22220__auto__,(1)));
+var this__21606__auto____$1 = this;
+if(cljs.core.vector_QMARK_.call(null,entry__21607__auto__)){
+return this__21606__auto____$1.cljs$core$IAssociative$_assoc$arity$3(null,cljs.core._nth.call(null,entry__21607__auto__,(0)),cljs.core._nth.call(null,entry__21607__auto__,(1)));
 } else {
-return cljs.core.reduce.call(null,cljs.core._conj,this__22219__auto____$1,entry__22220__auto__);
+return cljs.core.reduce.call(null,cljs.core._conj,this__21606__auto____$1,entry__21607__auto__);
 }
 });
 
@@ -1842,12 +1837,12 @@ return cljs.core.PersistentVector.EMPTY;
 
 mikron.buffer.ByteBufferFactoryImplCljsBrowser.cljs$lang$type = true;
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.cljs$lang$ctorPrSeq = (function (this__22239__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.cljs$lang$ctorPrSeq = (function (this__21626__auto__){
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,"mikron.buffer/ByteBufferFactoryImplCljsBrowser");
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsBrowser.cljs$lang$ctorPrWriter = (function (this__22239__auto__,writer__22240__auto__){
-return cljs.core._write.call(null,writer__22240__auto__,"mikron.buffer/ByteBufferFactoryImplCljsBrowser");
+mikron.buffer.ByteBufferFactoryImplCljsBrowser.cljs$lang$ctorPrWriter = (function (this__21626__auto__,writer__21627__auto__){
+return cljs.core._write.call(null,writer__21627__auto__,"mikron.buffer/ByteBufferFactoryImplCljsBrowser");
 });
 
 (function (){
@@ -1858,10 +1853,10 @@ new cljs.core.Var(function(){return mikron.buffer.__GT_ByteBufferFactoryImplCljs
 ;
 
 (function (){
-mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser = (function mikron$buffer$map__GT_ByteBufferFactoryImplCljsBrowser(G__224){
-return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(null,cljs.core.dissoc.call(null,G__224),null));
+mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser = (function mikron$buffer$map__GT_ByteBufferFactoryImplCljsBrowser(G__273){
+return (new mikron.buffer.ByteBufferFactoryImplCljsBrowser(null,cljs.core.dissoc.call(null,G__273),null));
 }); return (
-new cljs.core.Var(function(){return mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser;},new cljs.core.Symbol("mikron.buffer","map->ByteBufferFactoryImplCljsBrowser","mikron.buffer/map->ByteBufferFactoryImplCljsBrowser",(-2068244490),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"internal-ctor","internal-ctor",(937392560)),new cljs.core.Keyword(null,"factory","factory",(63933746)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"map->ByteBufferFactoryImplCljsBrowser","map->ByteBufferFactoryImplCljsBrowser",(-549295998),null),"mikron/buffer.cljc",(47),(4),true,new cljs.core.Keyword(null,"map","map",(1371690461)),(538),(538),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"G__224","G__224",(1089815785),null)], null)),null,(cljs.core.truth_(mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser)?mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser;},new cljs.core.Symbol("mikron.buffer","map->ByteBufferFactoryImplCljsBrowser","mikron.buffer/map->ByteBufferFactoryImplCljsBrowser",(-2068244490),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"internal-ctor","internal-ctor",(937392560)),new cljs.core.Keyword(null,"factory","factory",(63933746)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"map->ByteBufferFactoryImplCljsBrowser","map->ByteBufferFactoryImplCljsBrowser",(-549295998),null),"mikron/buffer.cljc",(47),(4),true,new cljs.core.Keyword(null,"map","map",(1371690461)),(538),(538),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"G__273","G__273",(-2010320959),null)], null)),null,(cljs.core.truth_(mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser)?mikron.buffer.map__GT_ByteBufferFactoryImplCljsBrowser.cljs$lang$test:null)])));})()
 ;
 
 
@@ -1890,57 +1885,57 @@ this.__hash = __hash;
 this.cljs$lang$protocol_mask$partition0$ = -2065299702;
 this.cljs$lang$protocol_mask$partition1$ = 8192;
 })
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ILookup$_lookup$arity$2 = (function (this__22214__auto__,k__22215__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ILookup$_lookup$arity$2 = (function (this__21601__auto__,k__21602__auto__){
 var self__ = this;
-var this__22214__auto____$1 = this;
-return cljs.core._lookup.call(null,this__22214__auto____$1,k__22215__auto__,null);
+var this__21601__auto____$1 = this;
+return this__21601__auto____$1.cljs$core$ILookup$_lookup$arity$3(null,k__21602__auto__,null);
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__22216__auto__,k231,else__22217__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ILookup$_lookup$arity$3 = (function (this__21603__auto__,k280,else__21604__auto__){
 var self__ = this;
-var this__22216__auto____$1 = this;
-var G__233 = k231;
-switch (G__233) {
+var this__21603__auto____$1 = this;
+var G__282 = k280;
+switch (G__282) {
 default:
-return cljs.core.get.call(null,self__.__extmap,k231,else__22217__auto__);
+return cljs.core.get.call(null,self__.__extmap,k280,else__21604__auto__);
 
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = (function (this__22228__auto__,writer__22229__auto__,opts__22230__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IPrintWithWriter$_pr_writer$arity$3 = (function (this__21615__auto__,writer__21616__auto__,opts__21617__auto__){
 var self__ = this;
-var this__22228__auto____$1 = this;
-var pr_pair__22231__auto__ = ((function (this__22228__auto____$1){
-return (function (keyval__22232__auto__){
-return cljs.core.pr_sequential_writer.call(null,writer__22229__auto__,cljs.core.pr_writer,""," ","",opts__22230__auto__,keyval__22232__auto__);
-});})(this__22228__auto____$1))
+var this__21615__auto____$1 = this;
+var pr_pair__21618__auto__ = ((function (this__21615__auto____$1){
+return (function (keyval__21619__auto__){
+return cljs.core.pr_sequential_writer.call(null,writer__21616__auto__,cljs.core.pr_writer,""," ","",opts__21617__auto__,keyval__21619__auto__);
+});})(this__21615__auto____$1))
 ;
-return cljs.core.pr_sequential_writer.call(null,writer__22229__auto__,pr_pair__22231__auto__,"#mikron.buffer.ByteBufferFactoryImplCljsNode{",", ","}",opts__22230__auto__,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
+return cljs.core.pr_sequential_writer.call(null,writer__21616__auto__,pr_pair__21618__auto__,"#mikron.buffer.ByteBufferFactoryImplCljsNode{",", ","}",opts__21617__auto__,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
 });
 
 mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IIterable$ = cljs.core.PROTOCOL_SENTINEL;
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__230){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IIterable$_iterator$arity$1 = (function (G__279){
 var self__ = this;
-var G__230__$1 = this;
-return (new cljs.core.RecordIter((0),G__230__$1,(0),cljs.core.PersistentVector.EMPTY,(cljs.core.truth_(self__.__extmap)?cljs.core._iterator.call(null,self__.__extmap):cljs.core.nil_iter.call(null))));
+var G__279__$1 = this;
+return (new cljs.core.RecordIter((0),G__279__$1,(0),cljs.core.PersistentVector.EMPTY,(cljs.core.truth_(self__.__extmap)?cljs.core._iterator.call(null,self__.__extmap):cljs.core.nil_iter.call(null))));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__22212__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IMeta$_meta$arity$1 = (function (this__21599__auto__){
 var self__ = this;
-var this__22212__auto____$1 = this;
+var this__21599__auto____$1 = this;
 return self__.__meta;
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICloneable$_clone$arity$1 = (function (this__22208__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICloneable$_clone$arity$1 = (function (this__21595__auto__){
 var self__ = this;
-var this__22208__auto____$1 = this;
+var this__21595__auto____$1 = this;
 return (new mikron.buffer.ByteBufferFactoryImplCljsNode(self__.__meta,self__.__extmap,self__.__hash));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICounted$_count$arity$1 = (function (this__22218__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICounted$_count$arity$1 = (function (this__21605__auto__){
 var self__ = this;
-var this__22218__auto____$1 = this;
+var this__21605__auto____$1 = this;
 return ((0) + cljs.core.count.call(null,self__.__extmap));
 });
 
@@ -1958,33 +1953,28 @@ var ___$1 = this;
 return (new mikron.buffer.ByteBufferImplCljsNode(Buffer.from(binary),(0),true));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IHash$_hash$arity$1 = (function (this__22209__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IHash$_hash$arity$1 = (function (this__21596__auto__){
 var self__ = this;
-var this__22209__auto____$1 = this;
-var h__21927__auto__ = self__.__hash;
-if(!((h__21927__auto__ == null))){
-return h__21927__auto__;
+var this__21596__auto____$1 = this;
+var h__21202__auto__ = self__.__hash;
+if(!((h__21202__auto__ == null))){
+return h__21202__auto__;
 } else {
-var h__21927__auto____$1 = cljs.core.hash_imap.call(null,this__22209__auto____$1);
-self__.__hash = h__21927__auto____$1;
+var h__21202__auto____$1 = cljs.core.hash_imap.call(null,this__21596__auto____$1);
+self__.__hash = h__21202__auto____$1;
 
-return h__21927__auto____$1;
+return h__21202__auto____$1;
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this__22210__auto__,other__22211__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IEquiv$_equiv$arity$2 = (function (this__21597__auto__,other__21598__auto__){
 var self__ = this;
-var this__22210__auto____$1 = this;
-if(cljs.core.truth_((function (){var and__21118__auto__ = other__22211__auto__;
-if(cljs.core.truth_(and__21118__auto__)){
-var and__21118__auto____$1 = (this__22210__auto____$1.constructor === other__22211__auto__.constructor);
-if(and__21118__auto____$1){
-return cljs.core.equiv_map.call(null,this__22210__auto____$1,other__22211__auto__);
+var this__21597__auto____$1 = this;
+if(cljs.core.truth_((function (){var and__20483__auto__ = other__21598__auto__;
+if(cljs.core.truth_(and__20483__auto__)){
+return ((this__21597__auto____$1.constructor === other__21598__auto__.constructor)) && (cljs.core.equiv_map.call(null,this__21597__auto____$1,other__21598__auto__));
 } else {
-return and__21118__auto____$1;
-}
-} else {
-return and__21118__auto__;
+return and__20483__auto__;
 }
 })())){
 return true;
@@ -1993,43 +1983,43 @@ return false;
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__22223__auto__,k__22224__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IMap$_dissoc$arity$2 = (function (this__21610__auto__,k__21611__auto__){
 var self__ = this;
-var this__22223__auto____$1 = this;
-if(cljs.core.contains_QMARK_.call(null,cljs.core.PersistentHashSet.EMPTY,k__22224__auto__)){
-return cljs.core.dissoc.call(null,cljs.core.with_meta.call(null,cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,this__22223__auto____$1),self__.__meta),k__22224__auto__);
+var this__21610__auto____$1 = this;
+if(cljs.core.contains_QMARK_.call(null,cljs.core.PersistentHashSet.EMPTY,k__21611__auto__)){
+return cljs.core.dissoc.call(null,cljs.core.with_meta.call(null,cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,this__21610__auto____$1),self__.__meta),k__21611__auto__);
 } else {
-return (new mikron.buffer.ByteBufferFactoryImplCljsNode(self__.__meta,cljs.core.not_empty.call(null,cljs.core.dissoc.call(null,self__.__extmap,k__22224__auto__)),null));
+return (new mikron.buffer.ByteBufferFactoryImplCljsNode(self__.__meta,cljs.core.not_empty.call(null,cljs.core.dissoc.call(null,self__.__extmap,k__21611__auto__)),null));
 }
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__22221__auto__,k__22222__auto__,G__230){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IAssociative$_assoc$arity$3 = (function (this__21608__auto__,k__21609__auto__,G__279){
 var self__ = this;
-var this__22221__auto____$1 = this;
-var pred__234 = cljs.core.keyword_identical_QMARK_;
-var expr__235 = k__22222__auto__;
-return (new mikron.buffer.ByteBufferFactoryImplCljsNode(self__.__meta,cljs.core.assoc.call(null,self__.__extmap,k__22222__auto__,G__230),null));
+var this__21608__auto____$1 = this;
+var pred__283 = cljs.core.keyword_identical_QMARK_;
+var expr__284 = k__21609__auto__;
+return (new mikron.buffer.ByteBufferFactoryImplCljsNode(self__.__meta,cljs.core.assoc.call(null,self__.__extmap,k__21609__auto__,G__279),null));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ISeqable$_seq$arity$1 = (function (this__22226__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ISeqable$_seq$arity$1 = (function (this__21613__auto__){
 var self__ = this;
-var this__22226__auto____$1 = this;
+var this__21613__auto____$1 = this;
 return cljs.core.seq.call(null,cljs.core.concat.call(null,cljs.core.PersistentVector.EMPTY,self__.__extmap));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__22213__auto__,G__230){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (this__21600__auto__,G__279){
 var self__ = this;
-var this__22213__auto____$1 = this;
-return (new mikron.buffer.ByteBufferFactoryImplCljsNode(G__230,self__.__extmap,self__.__hash));
+var this__21600__auto____$1 = this;
+return (new mikron.buffer.ByteBufferFactoryImplCljsNode(G__279,self__.__extmap,self__.__hash));
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__22219__auto__,entry__22220__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.prototype.cljs$core$ICollection$_conj$arity$2 = (function (this__21606__auto__,entry__21607__auto__){
 var self__ = this;
-var this__22219__auto____$1 = this;
-if(cljs.core.vector_QMARK_.call(null,entry__22220__auto__)){
-return cljs.core._assoc.call(null,this__22219__auto____$1,cljs.core._nth.call(null,entry__22220__auto__,(0)),cljs.core._nth.call(null,entry__22220__auto__,(1)));
+var this__21606__auto____$1 = this;
+if(cljs.core.vector_QMARK_.call(null,entry__21607__auto__)){
+return this__21606__auto____$1.cljs$core$IAssociative$_assoc$arity$3(null,cljs.core._nth.call(null,entry__21607__auto__,(0)),cljs.core._nth.call(null,entry__21607__auto__,(1)));
 } else {
-return cljs.core.reduce.call(null,cljs.core._conj,this__22219__auto____$1,entry__22220__auto__);
+return cljs.core.reduce.call(null,cljs.core._conj,this__21606__auto____$1,entry__21607__auto__);
 }
 });
 
@@ -2039,12 +2029,12 @@ return cljs.core.PersistentVector.EMPTY;
 
 mikron.buffer.ByteBufferFactoryImplCljsNode.cljs$lang$type = true;
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.cljs$lang$ctorPrSeq = (function (this__22239__auto__){
+mikron.buffer.ByteBufferFactoryImplCljsNode.cljs$lang$ctorPrSeq = (function (this__21626__auto__){
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,"mikron.buffer/ByteBufferFactoryImplCljsNode");
 });
 
-mikron.buffer.ByteBufferFactoryImplCljsNode.cljs$lang$ctorPrWriter = (function (this__22239__auto__,writer__22240__auto__){
-return cljs.core._write.call(null,writer__22240__auto__,"mikron.buffer/ByteBufferFactoryImplCljsNode");
+mikron.buffer.ByteBufferFactoryImplCljsNode.cljs$lang$ctorPrWriter = (function (this__21626__auto__,writer__21627__auto__){
+return cljs.core._write.call(null,writer__21627__auto__,"mikron.buffer/ByteBufferFactoryImplCljsNode");
 });
 
 (function (){
@@ -2055,10 +2045,10 @@ new cljs.core.Var(function(){return mikron.buffer.__GT_ByteBufferFactoryImplCljs
 ;
 
 (function (){
-mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode = (function mikron$buffer$map__GT_ByteBufferFactoryImplCljsNode(G__232){
-return (new mikron.buffer.ByteBufferFactoryImplCljsNode(null,cljs.core.dissoc.call(null,G__232),null));
+mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode = (function mikron$buffer$map__GT_ByteBufferFactoryImplCljsNode(G__281){
+return (new mikron.buffer.ByteBufferFactoryImplCljsNode(null,cljs.core.dissoc.call(null,G__281),null));
 }); return (
-new cljs.core.Var(function(){return mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode;},new cljs.core.Symbol("mikron.buffer","map->ByteBufferFactoryImplCljsNode","mikron.buffer/map->ByteBufferFactoryImplCljsNode",(-800760503),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"internal-ctor","internal-ctor",(937392560)),new cljs.core.Keyword(null,"factory","factory",(63933746)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"map->ByteBufferFactoryImplCljsNode","map->ByteBufferFactoryImplCljsNode",(-420606011),null),"mikron/buffer.cljc",(44),(4),true,new cljs.core.Keyword(null,"map","map",(1371690461)),(551),(551),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"G__232","G__232",(2030950493),null)], null)),null,(cljs.core.truth_(mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode)?mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode;},new cljs.core.Symbol("mikron.buffer","map->ByteBufferFactoryImplCljsNode","mikron.buffer/map->ByteBufferFactoryImplCljsNode",(-800760503),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"internal-ctor","internal-ctor",(937392560)),new cljs.core.Keyword(null,"factory","factory",(63933746)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"map->ByteBufferFactoryImplCljsNode","map->ByteBufferFactoryImplCljsNode",(-420606011),null),"mikron/buffer.cljc",(44),(4),true,new cljs.core.Keyword(null,"map","map",(1371690461)),(551),(551),cljs.core.list(new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"G__281","G__281",(-1739614715),null)], null)),null,(cljs.core.truth_(mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode)?mikron.buffer.map__GT_ByteBufferFactoryImplCljsNode.cljs$lang$test:null)])));})()
 ;
 
 /**
@@ -2105,14 +2095,14 @@ new cljs.core.Var(function(){return mikron.buffer.wrap;},new cljs.core.Symbol("m
  */
 (function (){
 mikron.buffer._BANG_headers = (function mikron$buffer$_BANG_headers(buffer,diffed_QMARK_){
-var G__239 = buffer;
-mikron.buffer._BANG_reset.call(null,G__239);
+var G__288 = buffer;
+mikron.buffer._BANG_reset.call(null,G__288);
 
-mikron.buffer._BANG_boolean.call(null,G__239,mikron.buffer._QMARK_le.call(null,buffer));
+mikron.buffer._BANG_boolean.call(null,G__288,mikron.buffer._QMARK_le.call(null,buffer));
 
-mikron.buffer._BANG_boolean.call(null,G__239,diffed_QMARK_);
+mikron.buffer._BANG_boolean.call(null,G__288,diffed_QMARK_);
 
-return G__239;
+return G__288;
 }); return (
 new cljs.core.Var(function(){return mikron.buffer._BANG_headers;},new cljs.core.Symbol("mikron.buffer","!headers","mikron.buffer/!headers",(-1488483695),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer","mikron.buffer",(-229394077),null),new cljs.core.Symbol(null,"!headers","!headers",(-1694681059),null),"mikron/buffer.cljc",(15),(1),(584),(584),cljs.core.list(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.with_meta(new cljs.core.Symbol(null,"buffer","buffer",(-2037140571),null),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"tag","tag",(-1290361223)),new cljs.core.Symbol(null,"Buffer","Buffer",(-358711607),null)], null)),new cljs.core.Symbol(null,"diffed?","diffed?",(-454160819),null)], null)),"Writes the headers of `buffer`.",(cljs.core.truth_(mikron.buffer._BANG_headers)?mikron.buffer._BANG_headers.cljs$lang$test:null)])));})()
 ;
