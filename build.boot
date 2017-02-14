@@ -223,6 +223,10 @@
                 "-c" (System/getProperty "fake.class.path")
                 "-k" "docs/cache-cljs"
                 "-e" ns-str)))
+          (with-pass-thru _
+            (host-process
+              (conch/proc
+                "lumo" "scripts/lumo/generate_cljs_cache.cljs")))
           (boot-codox/codox
             :name         "moxaj/mikron"
             :metadata     {:doc/format :markdown}
