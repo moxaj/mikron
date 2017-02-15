@@ -18,3 +18,4 @@ figwheel_server.log
 .hgignore
 .hg/
 Clojure REPL
+.nrepl-history
