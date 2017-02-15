@@ -1,6 +1,6 @@
-# Mikron (WORK IN PROGRESS)
+# mikron (WORK IN PROGRESS)
 
-Mikron is a schema-based serialization library for Clojure and ClojureScript.
+**mikron** is a schema-based serialization library for Clojure and ClojureScript.
 
 [![Build Status](https://travis-ci.org/moxaj/mikron.svg?branch=master)](https://travis-ci.org/moxaj/mikron)
 
@@ -12,17 +12,13 @@ Mikron is a schema-based serialization library for Clojure and ClojureScript.
 - flexible and extensible schema system
 - extras goodies beyond serialization: data validation, delta encoding, random data generation
 
-### Not supported (yet?)
-
-- Schema evolution (forward / backward compability)
-
 ## Latest version
 
 `[moxaj/mikron "0.5.0"]`
 
 ## Quick start
 
-**mikron** let's you define schemas via a Hiccup-like DSL, and generates very efficient (de)serializing functions (among other things) for them.
+**mikron** let's you define schemas via a [Hiccup](https://github.com/weavejester/hiccup)-like DSL, and generates very efficient (de)serializing functions (among other things) for them.
 
 Let's say we have a structure which represents a game state (a **snapshot**) and has the following layout:
 - **time**: a timestamp
@@ -44,14 +40,14 @@ Let's get to work! First, require the core namespace and define our **entity** s
                       :angle    :float}]))
 ```
 
-Pretty straightforward. For our **snapshot** schema, we'll use the shorthand `defschema` macro:
+For our **snapshot** schema, we'll use the shorthand `defschema` macro:
 ```clojure
 (m/defschema s-snapshot
   [:record {:time     :long
             :entities [:list s-entity]}])
 ```
 
-> **Note:** the top level schema doesn't necessarily have to be a `:record`, it can be any valid schema
+> **Note:** the top level schema doesn't necessarily have to be a `:record`, it can be any valid schema.
 
 Let's define an example **snapshot**:
 ```clojure
@@ -80,12 +76,10 @@ Here, `snapshot'` is either `:mikron/invalid` or a valid **snapshot**. We can al
 ;; => true
 ```
 
-> **Note:** The syntax of the various 'processors' (like `pack` or `unpack`) is very similar to that of `clojure.spec` (think of `explain` or `valid?`) - `(op schema arg & args)`. **mikron** however uses plain vars instead of namespaced keywords.
-
 That's it in a nutshell. For more information, please check out the [wiki](https://github.com/moxaj/mikron/wiki) or the [Demo project](https://github.com/moxaj/mikron-demo).
 
 ## License
 
-Copyright © 2016 Viktor Magyari
+Copyright © 2017 Viktor Magyari
 
 Distributed under the Eclipse Public License v1.0.
