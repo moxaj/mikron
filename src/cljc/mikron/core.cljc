@@ -37,7 +37,7 @@
        (into (sorted-set))))
 
 (defn schema*
-  "Generates all the processor related code for the given env."
+  "Generates all the processor related code for the given args."
   [& args]
   (let [processors (processors (spec/enforce ::spec/schema*-args args))]
     `(let [~@(mapcat (fn [dependency]

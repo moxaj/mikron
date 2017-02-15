@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/cljc"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha14"]
-                    [org.clojure/clojurescript   "1.9.456"]
+                    [org.clojure/clojurescript   "1.9.456"   :exclusions [com.google.protobuf/protobuf-java]]
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
@@ -82,9 +82,21 @@
                                 [funcool/octet "1.0.1"]
                                 [com.google.protobuf/protobuf-java "3.2.0"]
                                 [com.taoensso/nippy "2.12.2"]
-                                [criterium "0.4.4"]
-                                [proto-repl-charts "0.3.2"]])
+                                [criterium "0.4.4"]])
   identity)
+
+(deftask dev
+  "Dev task for proto-repl."
+  []
+  (merge-env! :init-ns        'user
+              :resource-paths #{"dev"}
+              :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
+                                [proto-repl-charts "0.3.2"]])
+  (require 'clojure.tools.namespace.repl)
+  (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
+  (comp (testing)
+        (benchmarking)
+        (javac)))
 
 (deftask benchmark-clj
   "Runs the benchmarks on JVM."
