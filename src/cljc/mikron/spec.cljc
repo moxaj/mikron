@@ -76,28 +76,27 @@
 
 (s/def ::interp ::route)
 
-(s/def ::schema-args
+(s/def ::schema*-args
   (s/cat :schema ::schema
          :ext    (s/keys* :opt-un [::diff ::interp])))
 
+(s/def ::schema-args (s/* any?))
+
 (s/def ::defschema-args
-  (s/cat :schema-name simple-symbol?
-         :doc-string  (s/? string?)
-         :schema      ::schema
-         :ext         (s/keys* :opt-un [::diff ::interp])))
+  (s/cat :schema-name  simple-symbol?
+         :doc-string   (s/? string?)
+         :schema*-args (s/* any?)))
 
 (s/def ::definterface+-args
   (s/cat :interface-name simple-symbol?
-         :doc-string     (s/? string?)
-         :ops            (s/* (s/and (s/cat :op-name    simple-symbol?
-                                            :args       (s/coll-of simple-symbol? :kind vector?)
-                                            :doc-string (s/? string?))
-                                     (s/conformer (juxt :op-name :args :doc-string))))))
+         :ops            (s/* (s/spec (s/cat :op-name    simple-symbol?
+                                             :args       (s/coll-of simple-symbol? :kind vector?)
+                                             :doc-string (s/? string?))))))
 
 (defn enforce
   "Returns `value` conformed to `spec`, or throws an exception if it fails."
   [spec value]
   (let [value' (s/conform spec value)]
     (if (s/invalid? value')
-      (throw (ex-info "Invalid schema definition" (s/explain-data spec value)))
+      (throw (ex-info "Value does not conform to spec" (s/explain-data spec value)))
       value')))

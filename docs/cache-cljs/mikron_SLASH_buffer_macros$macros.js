@@ -4,7 +4,7 @@ goog.provide("mikron.buffer_macros$macros");
  */
 (function (){
 mikron.buffer_macros$macros.with_delta = (function mikron$buffer_macros$macros$with_delta(_AMPERSAND_form,_AMPERSAND_env,pos,delta,body){
-var value = cljs.core.with_meta.call(null,cljs.core.gensym.call(null,"value"),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"file","file",(-1269645878)),mikron.buffer_macros,new cljs.core.Keyword(null,"line","line",(212345235)),(8),new cljs.core.Keyword(null,"column","column",(2078222095)),(31),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),(8),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),(36)], null));
+var value = cljs.core.with_meta.call(null,cljs.core.gensym.call(null,"value"),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"file","file",(-1269645878)),mikron.buffer_macros,new cljs.core.Keyword(null,"line","line",(212345235)),(10),new cljs.core.Keyword(null,"column","column",(2078222095)),(31),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),(10),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),(36)], null));
 return cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Symbol("cljs.core","let","cljs.core/let",(-308701135),null)),(function (){var x__25689__auto__ = cljs.core.vec.call(null,cljs.core.sequence.call(null,cljs.core.concat.call(null,(function (){var x__25689__auto__ = value;
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),(function (){var x__25689__auto__ = body;
@@ -25,7 +25,7 @@ return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })()));
 }); return (
-new cljs.core.Var(function(){return mikron.buffer_macros$macros.with_delta;},new cljs.core.Symbol("mikron.buffer-macros$macros","with-delta","mikron.buffer-macros$macros/with-delta",(-284030426),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"with-delta","with-delta",(-1102625563),null),"mikron/buffer_macros.cljc",(21),(1),(5),true,(5),cljs.core.list(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"pos","pos",(775924307),null),new cljs.core.Symbol(null,"delta","delta",(1749471484),null),new cljs.core.Symbol(null,"body","body",(-408674142),null)], null)),"Executes `body` and updates the position `pos` with the delta `delta`.",(cljs.core.truth_(mikron.buffer_macros$macros.with_delta)?mikron.buffer_macros$macros.with_delta.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer_macros$macros.with_delta;},new cljs.core.Symbol("mikron.buffer-macros$macros","with-delta","mikron.buffer-macros$macros/with-delta",(-284030426),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"with-delta","with-delta",(-1102625563),null),"mikron/buffer_macros.cljc",(21),(1),(7),true,(7),cljs.core.list(new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"pos","pos",(775924307),null),new cljs.core.Symbol(null,"delta","delta",(1749471484),null),new cljs.core.Symbol(null,"body","body",(-408674142),null)], null)),"Executes `body` and updates the position `pos` with the delta `delta`.",(cljs.core.truth_(mikron.buffer_macros$macros.with_delta)?mikron.buffer_macros$macros.with_delta.cljs$lang$test:null)])));})()
 ;
 
 mikron.buffer_macros$macros.with_delta.cljs$lang$macro = true;
@@ -33,13 +33,13 @@ mikron.buffer_macros$macros.with_delta.cljs$lang$macro = true;
  * Executes the expressions with the endianness automatically set to `le`.
  */
 (function (){
-mikron.buffer_macros$macros.with_le = (function mikron$buffer_macros$macros$with_le(_AMPERSAND_form,_AMPERSAND_env,le,p__190){
-var vec__194 = p__190;
-var seq__195 = cljs.core.seq.call(null,vec__194);
-var first__196 = cljs.core.first.call(null,seq__195);
-var seq__195__$1 = cljs.core.next.call(null,seq__195);
-var expr = first__196;
-var exprs = seq__195__$1;
+mikron.buffer_macros$macros.with_le = (function mikron$buffer_macros$macros$with_le(_AMPERSAND_form,_AMPERSAND_env,le,p__189){
+var vec__193 = p__189;
+var seq__194 = cljs.core.seq.call(null,vec__193);
+var first__195 = cljs.core.first.call(null,seq__194);
+var seq__194__$1 = cljs.core.next.call(null,seq__194);
+var expr = first__195;
+var exprs = seq__194__$1;
 return cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Symbol(null,"if","if",(1181717262),null)),(function (){var x__25689__auto__ = le;
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),(function (){var x__25689__auto__ = cljs.core.sequence.call(null,cljs.core.concat.call(null,(function (){var x__25689__auto__ = cljs.core.symbol.call(null,[cljs.core.str.cljs$core$IFn$_invoke$arity$1(expr),cljs.core.str.cljs$core$IFn$_invoke$arity$1("LE")].join(''));
@@ -52,7 +52,7 @@ return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })()));
 }); return (
-new cljs.core.Var(function(){return mikron.buffer_macros$macros.with_le;},new cljs.core.Symbol("mikron.buffer-macros$macros","with-le","mikron.buffer-macros$macros/with-le",(-774329731),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"with-le","with-le",(15197368),null),"mikron/buffer_macros.cljc",(18),(1),(13),true,(13),cljs.core.list(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"le","le",(1421379234),null),new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"expr","expr",(-1908713478),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"exprs","exprs",(-858606675),null)], null)], null)),"Executes the expressions with the endianness automatically set to `le`.",(cljs.core.truth_(mikron.buffer_macros$macros.with_le)?mikron.buffer_macros$macros.with_le.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer_macros$macros.with_le;},new cljs.core.Symbol("mikron.buffer-macros$macros","with-le","mikron.buffer-macros$macros/with-le",(-774329731),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"with-le","with-le",(15197368),null),"mikron/buffer_macros.cljc",(18),(1),(15),true,(15),cljs.core.list(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"le","le",(1421379234),null),new cljs.core.PersistentVector(null, 3, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"expr","expr",(-1908713478),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"exprs","exprs",(-858606675),null)], null)], null)),"Executes the expressions with the endianness automatically set to `le`.",(cljs.core.truth_(mikron.buffer_macros$macros.with_le)?mikron.buffer_macros$macros.with_le.cljs$lang$test:null)])));})()
 ;
 
 mikron.buffer_macros$macros.with_le.cljs$lang$macro = true;
@@ -62,14 +62,14 @@ mikron.buffer_macros$macros.with_le.cljs$lang$macro = true;
 (function (){
 mikron.buffer_macros$macros.definterface_PLUS_ = (function mikron$buffer_macros$macros$definterface_PLUS_(var_args){
 var args__25948__auto__ = [];
-var len__25946__auto___213 = arguments.length;
-var i__25947__auto___214 = (0);
+var len__25946__auto___212 = arguments.length;
+var i__25947__auto___213 = (0);
 while(true){
-if((i__25947__auto___214 < len__25946__auto___213)){
-args__25948__auto__.push((arguments[i__25947__auto___214]));
+if((i__25947__auto___213 < len__25946__auto___212)){
+args__25948__auto__.push((arguments[i__25947__auto___213]));
 
-var G__215 = (i__25947__auto___214 + (1));
-i__25947__auto___214 = G__215;
+var G__214 = (i__25947__auto___213 + (1));
+i__25947__auto___213 = G__214;
 continue;
 } else {
 }
@@ -79,7 +79,7 @@ break;
 var argseq__25949__auto__ = ((((3) < args__25948__auto__.length))?(new cljs.core.IndexedSeq(args__25948__auto__.slice((3)),(0),null)):null);
 return mikron.buffer_macros$macros.definterface_PLUS_.cljs$core$IFn$_invoke$arity$variadic((arguments[(0)]),(arguments[(1)]),(arguments[(2)]),argseq__25949__auto__);
 }); return (
-new cljs.core.Var(function(){return mikron.buffer_macros$macros.definterface_PLUS_;},new cljs.core.Symbol("mikron.buffer-macros$macros","definterface+","mikron.buffer-macros$macros/definterface+",(-255189946),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"top-fn","top-fn",(-2056129173)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"definterface+","definterface+",(1596413445),null),"mikron/buffer_macros.cljc",(24),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"variadic","variadic",(882626057)),true,new cljs.core.Keyword(null,"max-fixed-arity","max-fixed-arity",(-690205543)),(3),new cljs.core.Keyword(null,"method-params","method-params",(-980792179)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.list(new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null))], null),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),new cljs.core.Keyword(null,"arglists-meta","arglists-meta",(1944829838)),cljs.core.list(null)], null),(1),(20),true,(20),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),"Expands to a `definterface` call in clj, `defprotocol` call in cljs.",(cljs.core.truth_(mikron.buffer_macros$macros.definterface_PLUS_)?mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$test:null)])));})()
+new cljs.core.Var(function(){return mikron.buffer_macros$macros.definterface_PLUS_;},new cljs.core.Symbol("mikron.buffer-macros$macros","definterface+","mikron.buffer-macros$macros/definterface+",(-255189946),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"top-fn","top-fn",(-2056129173)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"definterface+","definterface+",(1596413445),null),"mikron/buffer_macros.cljc",(24),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"variadic","variadic",(882626057)),true,new cljs.core.Keyword(null,"max-fixed-arity","max-fixed-arity",(-690205543)),(3),new cljs.core.Keyword(null,"method-params","method-params",(-980792179)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.list(new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null))], null),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),new cljs.core.Keyword(null,"arglists-meta","arglists-meta",(1944829838)),cljs.core.list(null)], null),(1),(22),true,(22),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),"Expands to a `definterface` call in clj, `defprotocol` call in cljs.",(cljs.core.truth_(mikron.buffer_macros$macros.definterface_PLUS_)?mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$test:null)])));})()
 ;
 
 mikron.buffer_macros$macros.definterface_PLUS_.cljs$core$IFn$_invoke$arity$variadic = (function (_AMPERSAND_form,_AMPERSAND_env,name,ops){
@@ -88,11 +88,11 @@ return cljs.core.with_meta.call(null,p1__6_SHARP_,null);
 });
 var cljs_QMARK_ = cljs.core.boolean$.call(null,new cljs.core.Keyword(null,"ns","ns",(441598760)).cljs$core$IFn$_invoke$arity$1(_AMPERSAND_env));
 var ops__$1 = cljs.core.map.call(null,((function (no_meta,cljs_QMARK_){
-return (function (p__201){
-var vec__202 = p__201;
-var op_name = cljs.core.nth.call(null,vec__202,(0),null);
-var args = cljs.core.nth.call(null,vec__202,(1),null);
-var doc_string = cljs.core.nth.call(null,vec__202,(2),null);
+return (function (p__200){
+var vec__201 = p__200;
+var op_name = cljs.core.nth.call(null,vec__201,(0),null);
+var args = cljs.core.nth.call(null,vec__201,(1),null);
+var doc_string = cljs.core.nth.call(null,vec__201,(2),null);
 return new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, [op_name,args,cljs.core.vec.call(null,cljs.core.cons.call(null,new cljs.core.Symbol(null,"this","this",(1028897902),null),cljs.core.map.call(null,no_meta,args))),(cljs.core.truth_(doc_string)?new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [doc_string], null):null)], null);
 });})(no_meta,cljs_QMARK_))
 ,ops);
@@ -101,12 +101,12 @@ return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),(function (){var x__25689__auto__ = name;
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),cljs.core.map.call(null,((function (no_meta,cljs_QMARK_,ops__$1){
-return (function (p__205){
-var vec__206 = p__205;
-var op_name = cljs.core.nth.call(null,vec__206,(0),null);
-var args = cljs.core.nth.call(null,vec__206,(1),null);
-var args_SINGLEQUOTE_ = cljs.core.nth.call(null,vec__206,(2),null);
-var doc_string = cljs.core.nth.call(null,vec__206,(3),null);
+return (function (p__204){
+var vec__205 = p__204;
+var op_name = cljs.core.nth.call(null,vec__205,(0),null);
+var args = cljs.core.nth.call(null,vec__205,(1),null);
+var args_SINGLEQUOTE_ = cljs.core.nth.call(null,vec__205,(2),null);
+var doc_string = cljs.core.nth.call(null,vec__205,(3),null);
 if(cljs_QMARK_){
 return cljs.core.sequence.call(null,cljs.core.concat.call(null,(function (){var x__25689__auto__ = no_meta.call(null,op_name);
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
@@ -128,12 +128,12 @@ return inner_form;
 return cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Symbol(null,"do","do",(1686842252),null)),(function (){var x__25689__auto__ = inner_form;
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),cljs.core.map.call(null,((function (no_meta,cljs_QMARK_,ops__$1,inner_form){
-return (function (p__209){
-var vec__210 = p__209;
-var op_name = cljs.core.nth.call(null,vec__210,(0),null);
-var args = cljs.core.nth.call(null,vec__210,(1),null);
-var args_SINGLEQUOTE_ = cljs.core.nth.call(null,vec__210,(2),null);
-var doc_string = cljs.core.nth.call(null,vec__210,(3),null);
+return (function (p__208){
+var vec__209 = p__208;
+var op_name = cljs.core.nth.call(null,vec__209,(0),null);
+var args = cljs.core.nth.call(null,vec__209,(1),null);
+var args_SINGLEQUOTE_ = cljs.core.nth.call(null,vec__209,(2),null);
+var doc_string = cljs.core.nth.call(null,vec__209,(3),null);
 return cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Symbol("cljs.core","defn","cljs.core/defn",(-1606493717),null)),(function (){var x__25689__auto__ = no_meta.call(null,op_name);
 return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 })(),(function (){var x__25689__auto__ = cljs.core.apply.call(null,cljs.core.array_map,cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Keyword(null,"inline","inline",(1399884222))),(function (){var x__25689__auto__ = cljs.core.sequence.call(null,cljs.core.concat.call(null,cljs.core._conj.call(null,cljs.core.List.EMPTY,new cljs.core.Symbol("cljs.core","fn","cljs.core/fn",(-1065745098),null)),(function (){var x__25689__auto__ = args_SINGLEQUOTE_;
@@ -168,16 +168,17 @@ return cljs.core._conj.call(null,cljs.core.List.EMPTY,x__25689__auto__);
 
 mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$maxFixedArity = (3);
 
-mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$applyTo = (function (seq197){
-var G__198 = cljs.core.first.call(null,seq197);
-var seq197__$1 = cljs.core.next.call(null,seq197);
-var G__199 = cljs.core.first.call(null,seq197__$1);
-var seq197__$2 = cljs.core.next.call(null,seq197__$1);
-var G__200 = cljs.core.first.call(null,seq197__$2);
-var seq197__$3 = cljs.core.next.call(null,seq197__$2);
-return mikron.buffer_macros$macros.definterface_PLUS_.cljs$core$IFn$_invoke$arity$variadic(G__198,G__199,G__200,seq197__$3);
+mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$applyTo = (function (seq196){
+var G__197 = cljs.core.first.call(null,seq196);
+var seq196__$1 = cljs.core.next.call(null,seq196);
+var G__198 = cljs.core.first.call(null,seq196__$1);
+var seq196__$2 = cljs.core.next.call(null,seq196__$1);
+var G__199 = cljs.core.first.call(null,seq196__$2);
+var seq196__$3 = cljs.core.next.call(null,seq196__$2);
+return mikron.buffer_macros$macros.definterface_PLUS_.cljs$core$IFn$_invoke$arity$variadic(G__197,G__198,G__199,seq196__$3);
 });
 
-new cljs.core.Var(function(){return mikron.buffer_macros$macros.definterface_PLUS_;},new cljs.core.Symbol("mikron.buffer-macros$macros","definterface+","mikron.buffer-macros$macros/definterface+",(-255189946),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"top-fn","top-fn",(-2056129173)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"definterface+","definterface+",(1596413445),null),"mikron/buffer_macros.cljc",(24),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"variadic","variadic",(882626057)),true,new cljs.core.Keyword(null,"max-fixed-arity","max-fixed-arity",(-690205543)),(3),new cljs.core.Keyword(null,"method-params","method-params",(-980792179)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.list(new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null))], null),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),new cljs.core.Keyword(null,"arglists-meta","arglists-meta",(1944829838)),cljs.core.list(null)], null),(1),(20),true,(20),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),"Expands to a `definterface` call in clj, `defprotocol` call in cljs.",(cljs.core.truth_(mikron.buffer_macros$macros.definterface_PLUS_)?mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$test:null)]));
+new cljs.core.Var(function(){return mikron.buffer_macros$macros.definterface_PLUS_;},new cljs.core.Symbol("mikron.buffer-macros$macros","definterface+","mikron.buffer-macros$macros/definterface+",(-255189946),null),cljs.core.PersistentHashMap.fromArrays([new cljs.core.Keyword(null,"ns","ns",(441598760)),new cljs.core.Keyword(null,"name","name",(1843675177)),new cljs.core.Keyword(null,"file","file",(-1269645878)),new cljs.core.Keyword(null,"end-column","end-column",(1425389514)),new cljs.core.Keyword(null,"top-fn","top-fn",(-2056129173)),new cljs.core.Keyword(null,"column","column",(2078222095)),new cljs.core.Keyword(null,"line","line",(212345235)),new cljs.core.Keyword(null,"macro","macro",(-867863404)),new cljs.core.Keyword(null,"end-line","end-line",(1837326455)),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),new cljs.core.Keyword(null,"doc","doc",(1913296891)),new cljs.core.Keyword(null,"test","test",(577538877))],[new cljs.core.Symbol(null,"mikron.buffer-macros$macros","mikron.buffer-macros$macros",(-179449759),null),new cljs.core.Symbol(null,"definterface+","definterface+",(1596413445),null),"mikron/buffer_macros.cljc",(24),new cljs.core.PersistentArrayMap(null, 5, [new cljs.core.Keyword(null,"variadic","variadic",(882626057)),true,new cljs.core.Keyword(null,"max-fixed-arity","max-fixed-arity",(-690205543)),(3),new cljs.core.Keyword(null,"method-params","method-params",(-980792179)),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.list(new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null))], null),new cljs.core.Keyword(null,"arglists","arglists",(1661989754)),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),new cljs.core.Keyword(null,"arglists-meta","arglists-meta",(1944829838)),cljs.core.list(null)], null),(1),(22),true,(22),cljs.core.list(new cljs.core.PersistentVector(null, 5, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Symbol(null,"&form","&form",(1482799337),null),new cljs.core.Symbol(null,"&env","&env",(-919163083),null),new cljs.core.Symbol(null,"name","name",(-810760592),null),new cljs.core.Symbol(null,"&","&",(-2144855648),null),new cljs.core.Symbol(null,"ops","ops",(-1417105706),null)], null)),"Expands to a `definterface` call in clj, `defprotocol` call in cljs.",(cljs.core.truth_(mikron.buffer_macros$macros.definterface_PLUS_)?mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$test:null)]));
 
 mikron.buffer_macros$macros.definterface_PLUS_.cljs$lang$macro = true;
+cljs.spec.def_impl.call(null,new cljs.core.Symbol("mikron.buffer-macros$macros","definterface+","mikron.buffer-macros$macros/definterface+",(-255189946),null),cljs.core.list(new cljs.core.Symbol("cljs.spec","fspec","cljs.spec/fspec",(982220571),null),new cljs.core.Keyword(null,"args","args",(1315556576)),new cljs.core.Keyword("mikron.spec","definterface+-args","mikron.spec/definterface+-args",(540411213))),cljs.spec.fspec_impl.call(null,cljs.spec.spec_impl.call(null,new cljs.core.Keyword("mikron.spec","definterface+-args","mikron.spec/definterface+-args",(540411213)),new cljs.core.Keyword("mikron.spec","definterface+-args","mikron.spec/definterface+-args",(540411213)),null,null),new cljs.core.Keyword("mikron.spec","definterface+-args","mikron.spec/definterface+-args",(540411213)),null,null,null,null,null));

@@ -67,23 +67,23 @@ new cljs.core.Var(function(){return mikron.util.math.rand_long;},new cljs.core.S
  */
 (function (){
 mikron.util.math.from = (function mikron$util$math$from(var_args){
-var args183 = [];
-var len__25946__auto___186 = arguments.length;
-var i__25947__auto___187 = (0);
+var args182 = [];
+var len__25946__auto___185 = arguments.length;
+var i__25947__auto___186 = (0);
 while(true){
-if((i__25947__auto___187 < len__25946__auto___186)){
-args183.push((arguments[i__25947__auto___187]));
+if((i__25947__auto___186 < len__25946__auto___185)){
+args182.push((arguments[i__25947__auto___186]));
 
-var G__188 = (i__25947__auto___187 + (1));
-i__25947__auto___187 = G__188;
+var G__187 = (i__25947__auto___186 + (1));
+i__25947__auto___186 = G__187;
 continue;
 } else {
 }
 break;
 }
 
-var G__185 = args183.length;
-switch (G__185) {
+var G__184 = args182.length;
+switch (G__184) {
 case (1):
 return mikron.util.math.from.cljs$core$IFn$_invoke$arity$1((arguments[(0)]));
 
@@ -93,7 +93,7 @@ return mikron.util.math.from.cljs$core$IFn$_invoke$arity$2((arguments[(0)]),(arg
 
 break;
 default:
-throw (new Error([cljs.core.str.cljs$core$IFn$_invoke$arity$1("Invalid arity: "),cljs.core.str.cljs$core$IFn$_invoke$arity$1(args183.length)].join('')));
+throw (new Error([cljs.core.str.cljs$core$IFn$_invoke$arity$1("Invalid arity: "),cljs.core.str.cljs$core$IFn$_invoke$arity$1(args182.length)].join('')));
 
 }
 }); return (

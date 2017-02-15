@@ -1,5 +1,7 @@
 (ns mikron.buffer-macros
-  (:require [mikron.compile-util :as compile-util])
+  (:require [clojure.spec :as s]
+            [mikron.spec :as spec]
+            [mikron.compile-util :as compile-util])
   #?(:cljs (:require-macros [mikron.buffer-macros])))
 
 (defmacro with-delta
@@ -53,3 +55,5 @@
                        (~(symbol (str "." (munge op-name)))
                         ~@args')))
                   ops)))))
+
+(s/fdef definterface+ :args ::spec/definterface+-args)

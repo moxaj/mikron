@@ -11,8 +11,7 @@
    :any     [:wrapped {} `util.schema/any->string `util.schema/string->any [:string]]})
 
 (defn derives
-  "Returns a new hierarchy in which all `children` derive from `parent`, using
-  `hierarchy` as the base."
+  "Returns a new hierarchy in which all `children` derive from `parent`, using `hierarchy` as the base."
   [hierarchy parent children]
   (reduce #(derive %1 %2 parent) hierarchy children))
 

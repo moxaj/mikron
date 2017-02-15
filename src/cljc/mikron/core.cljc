@@ -1,6 +1,7 @@
  (ns mikron.core
   "Core namespace."
-  (:require [mikron.spec :as spec]
+  (:require [clojure.spec :as s]
+            [mikron.spec :as spec]
             [mikron.compile-util :as compile-util]
             [mikron.codegen.pack]
             [mikron.codegen.unpack]
@@ -35,10 +36,10 @@
        (compile-util/find-by (comp :schema-name meta))
        (into (sorted-set))))
 
-(defn ^:private schema*
+(defn schema*
   "Generates all the processor related code for the given env."
-  [env]
-  (let [processors (processors env)]
+  [& args]
+  (let [processors (processors (spec/enforce ::spec/schema*-args args))]
     `(let [~@(mapcat (fn [dependency]
                        (let [{:keys [processor-type schema-name]} (meta dependency)]
                          [dependency `((.-processors ^Schema ~schema-name) ~processor-type)]))
@@ -54,7 +55,9 @@
      (schema [:tuple [:int :string [:enum [:a :b :c]]]]))
    ~~~"
   [& args]
-  (schema* (spec/enforce :mikron.spec/schema-args args)))
+  (apply schema* args))
+
+(s/fdef schema :args ::spec/schema-args)
 
 (defmacro defschema
   "Creates a new schema and binds it to the given symbol.
@@ -63,9 +66,11 @@
      [:record {:a :keyword :b :ubyte}])
    ~~~"
   [& args]
-  (let [{:keys [schema-name doc-string] :as env} (spec/enforce :mikron.spec/defschema-args args)]
+  (let [{:keys [schema-name doc-string schema*-args]} (spec/enforce ::spec/defschema-args args)]
     `(def ~schema-name ~@(when doc-string [doc-string])
-       ~(schema* env))))
+       ~(apply schema* schema*-args))))
+
+(s/fdef defschema :args ::spec/defschema-args)
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."
