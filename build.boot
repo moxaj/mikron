@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/cljc"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha14"]
-                    [org.clojure/clojurescript   "1.9.456"   :exclusions [com.google.protobuf/protobuf-java]]
+                    [org.clojure/clojurescript   "1.9.456"]
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
