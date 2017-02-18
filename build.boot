@@ -228,8 +228,7 @@
   []
   (let [ns-str "(ns mikron.codox
                   (:require [mikron.core :as mikron
-                             :refer-macros [schema defschema with-buffer]
-                             :refer [pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
+                             :refer [schema defschema with-buffer pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
     (comp (proc "lumo"
                 "-c" (System/getProperty "fake.class.path")
                 "-k" "docs/cache-cljs"
