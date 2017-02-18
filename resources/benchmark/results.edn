@@ -1,14 +1,30 @@
-Stats: [:size]
-Schema: :mikron.benchmark.schema/snapshot
-{:nippy [2719],
- :java [8824],
- :smile [2239],
- :avro [1274],
- :protobuf [1668],
- :octet [1292],
- :transit [2353],
- :edn [4379],
- :colfer [10000],
- :json [4492],
- :gloss [1296],
- :mikron [1234]}
+[{:stats [:size],
+  :schema :mikron.benchmark.schema/snapshot,
+  :results
+  [[:mikron [1234]]
+   [:avro [1276]]
+   [:octet [1292]]
+   [:gloss [1296]]
+   [:colfer [1568]]
+   [:protobuf [1663]]
+   [:smile [2239]]
+   [:transit [2352]]
+   [:nippy [2717]]
+   [:edn [4397]]
+   [:json [4510]]
+   [:java [8823]]]}
+ {:stats [:size],
+  :schema :mikron.benchmark.schema/snapshot,
+  :results
+  [[:mikron [1234]]
+   [:avro [1275]]
+   [:octet [1292]]
+   [:gloss [1296]]
+   [:colfer [1564]]
+   [:protobuf [1679]]
+   [:smile [2239]]
+   [:transit [2352]]
+   [:nippy [2717]]
+   [:edn [4378]]
+   [:json [4491]]
+   [:java [8823]]]}]

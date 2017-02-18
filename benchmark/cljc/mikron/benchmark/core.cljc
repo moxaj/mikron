@@ -13,8 +13,7 @@
                       [cheshire.core :as cheshire]
                       [gloss.core :as gloss]
                       [gloss.io]
-                      [abracad.avro :as avro]
-                      [prc :as chart]]))
+                      [abracad.avro :as avro]]))
   #?(:cljs (:require-macros [mikron.benchmark.core :refer [bench]]))
   #?(:clj (:import [java.util Arrays]
                    [java.io ByteArrayInputStream ByteArrayOutputStream ObjectInputStream ObjectOutputStream]
@@ -206,21 +205,16 @@
              [method (vec (for [stat stats]
                             (do (println "Measuring" (name method) "|" (name stat))
                                 (util/safe 0 (measure stat method schema data)))))]))
-         (into {}))))
+         (sort-by second)
+         (vec))))
 
 (def description
   {:size        "Size [bytes]"
    :pack-time   "Serialization time [μs]"
    :unpack-time "Deserialization time [μs]"})
 
-(defn diagram [[stats data]]
-  #?(:clj  (chart/bar-chart "Benchmarks" data {:labels (map description stats)})
-     :cljs [[stats data]]))
-
 (comment
-  (let [stats [:size]]
-    (diagram [stats
-              (benchmark :stats   stats
-                         ;:methods [:mikron :protobuf]
-                         :schema  ::benchmark.schema/snapshot)]))
+  (benchmark :stats   [:size]
+             ;:methods [:mikron :protobuf]
+             :schema  ::benchmark.schema/snapshot)
   nil)

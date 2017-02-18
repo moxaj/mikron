@@ -96,8 +96,7 @@
   (merge-env! :init-ns        'user
               :resource-paths #{"dev"}
               :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
-                                [proto-repl "0.3.1" :exclusions [org.clojure/core.async]]
-                                [proto-repl-charts "0.3.2"]])
+                                [proto-repl "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
   (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
   (comp (testing)
@@ -119,13 +118,16 @@
           (with-pre-wrap fileset
             (let [in-file (->> (output-files fileset) (by-name ["results.edn"]) (first))]
               (spit (io/file tmp (tmp-path in-file))
-                    (str (slurp (tmp-file in-file))
-                         "\r\n\r\n"
-                         "Stats: " (vec stats) "\r\n"
-                         "Schema: " schema "\r\n"
-                         (do (require '[mikron.benchmark.core :as benchmark])
-                             (let [results ((resolve 'benchmark/benchmark) :stats stats :schema schema)]
-                               (with-out-str (pprint/pprint results))))))
+                    (let [results (do (require '[mikron.benchmark.core :as benchmark])
+                                      ((resolve 'benchmark/benchmark) :stats stats :schema schema))]
+                      (-> (tmp-file in-file)
+                          (slurp)
+                          (read-string)
+                          (conj {:stats   (vec stats)
+                                 :schema  schema
+                                 :results results})
+                          (pprint/pprint)
+                          (with-out-str))))
               (-> fileset
                   (add-resource tmp)
                   (commit!))))
