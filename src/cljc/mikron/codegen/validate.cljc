@@ -13,8 +13,9 @@
   "Generates code for integer validation."
   [value bytes signed?]
   `(and (integer? ~value)
-        (>= (unchecked-long ~value) ~(util.math/lower-bound bytes signed?))
-        (<  (unchecked-long ~value) ~(util.math/upper-bound bytes signed?))))
+        (let [~value (unchecked-long ~value)]
+          (and (>= ~value ~(util.math/lower-bound bytes signed?))
+               (<  ~value ~(util.math/upper-bound bytes signed?))))))
 
 (defmethod valid? :byte [_ value _]
   (valid-integer? value 1 true))

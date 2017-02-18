@@ -57,6 +57,11 @@
 
 ;; Tasks
 
+(defn proc
+  "Returns a task which runs the args as a shell command."
+  [& args]
+  (with-pass-thru _ (host-process (apply conch/proc args))))
+
 (deftask build
   "Builds the project."
   []
@@ -91,6 +96,7 @@
   (merge-env! :init-ns        'user
               :resource-paths #{"dev"}
               :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
+                                [proto-repl "0.3.1" :exclusions [org.clojure/core.async]]
                                 [proto-repl-charts "0.3.2"]])
   (require 'clojure.tools.namespace.repl)
   (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
@@ -139,13 +145,10 @@
   (comp (testing)
         (if self-hosted?
           (comp (target)
-                (with-pass-thru _
-                  (host-process
-                    (conch/proc
-                      "lumo"
+                (proc "lumo"
                       "-c" (System/getProperty "fake.class.path")
                       "-k" "lumo_cache"
-                      "target/mikron/node.cljs"))))
+                      "target/mikron/node.cljs"))
           (boot-cljs-test/test-cljs :js-env        :node
                                     :namespaces    '[mikron.test]
                                     :optimizations (or opt :none)))))
@@ -211,15 +214,12 @@
   (comp (testing)
         (benchmarking)
         (target)
-        (with-pass-thru _
-          (host-process
-            (conch/proc
-              "lumo"
+        (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
               "-e" (str "\"(require '[mikron.core :as mikron "
                         ":refer [schema defschema pack unpack gen valid?]])\"")
-              "-r")))))
+              "-r")))
 
 (deftask generate-docs
   "Generates documentation."
@@ -228,17 +228,11 @@
                   (:require [mikron.core :as mikron
                              :refer-macros [schema defschema with-buffer]
                              :refer [pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
-    (comp (with-pass-thru _
-            (host-process
-              (conch/proc
-                "lumo"
+    (comp (proc "lumo"
                 "-c" (System/getProperty "fake.class.path")
                 "-k" "docs/cache-cljs"
-                "-e" ns-str)))
-          (with-pass-thru _
-            (host-process
-              (conch/proc
-                "lumo" "scripts/lumo/generate_cljs_cache.cljs")))
+                "-e" ns-str)
+          (proc "lumo" "scripts/lumo/generate_cljs_cache.cljs")
           (boot-codox/codox
             :name         "moxaj/mikron"
             :metadata     {:doc/format :markdown}

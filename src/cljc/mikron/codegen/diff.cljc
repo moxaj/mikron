@@ -5,7 +5,13 @@
             [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]))
 
-(defmulti diff compile-util/type-of :hierarchy #'schema/hierarchy)
+(def hierarchy
+  (-> schema/hierarchy
+      (schema/derives :identical?-comparable [:boolean :nil])
+      (schema/derives :=-comparable          [:char :string :symbol])
+      (schema/derives :keyword-comparable    [:keyword :enum])))
+
+(defmulti diff compile-util/type-of :hierarchy #'hierarchy)
 
 (prefer-method diff :=-comparable :aliased)
 

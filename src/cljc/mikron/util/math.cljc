@@ -48,7 +48,7 @@
 (defn rand-long
   "Returns a random long value in range from 0 (inclusive) to `n` (exclusive)."
   ^long [^long n]
-  (->> (rand) (* n) (unchecked-long)))
+  (unchecked-long (* n (rand))))
 
 (defn from
   "Creates a new long value."

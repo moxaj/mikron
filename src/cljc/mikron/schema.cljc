@@ -26,8 +26,7 @@
 (def hierarchy
   "The default type hierarchy."
   (graph->hierarchy
-    {;; base hierarchy
-     :integer   [:byte :ubyte :short :ushort :int :uint :long :varint]
+    {:integer   [:byte :ubyte :short :ushort :int :uint :long :varint]
      :floating  [:float :double]
      :number    [:integer :floating]
      :primitive [:number :boolean :binary :nil]
@@ -35,8 +34,4 @@
      :simple    [:primitive :aliased]
      :coll      [:list :vector :set]
      :complex   [:coll :map :tuple :record :optional :multi :enum :wrapped]
-     :built-in  [:simple :complex]
-     ;; comparability
-     :identical?-comparable [:boolean :nil]
-     :=-comparable          [:char :string :symbol]
-     :keyword-comparable    [:keyword :enum]}))
+     :built-in  [:simple :complex]}))
