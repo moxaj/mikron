@@ -37,6 +37,8 @@
 
          '[mikron.core :as mikron])
 
+(import '[java.util Date])
+
 ;; Util
 
 (def windows?
@@ -125,7 +127,8 @@
                           (read-string)
                           (conj {:stats   (vec stats)
                                  :schema  schema
-                                 :results results})
+                                 :results results
+                                 :time    (.getTime (Date.))})
                           (pprint/pprint)
                           (with-out-str))))
               (-> fileset
