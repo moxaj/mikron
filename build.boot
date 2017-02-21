@@ -138,7 +138,7 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test)))
+        (boot-test/test :namespaces ['mikron.test])))
 
 (deftask test-node
   "Runs the tests in a Node.js environment."
