@@ -23,7 +23,7 @@
   "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
   [name & ops]
   (let [no-meta    #(with-meta % nil)
-        cljs?      (boolean (:ns &env))
+        cljs?      (compile-util/cljs?)
         ops        (map (fn [[op-name args doc-string]]
                           [op-name
                            args

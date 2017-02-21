@@ -6,7 +6,7 @@
             [mikron.buffer-macros :as buffer-macros])
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
-(buffer-macros/definterface+ BitBufferOps
+(buffer-macros/definterface+ IBitBuffer
   (^long   ?bit-pos* []            "Gets the current position.")
   (^Object !bit-pos* [^long value] "Sets the current position.")
 
@@ -16,10 +16,10 @@
   (^long   ?bit-value* []            "Gets the current value at the index.")
   (^Object !bit-value* [^long value] "Sets the current value at the index."))
 
-(deftype BitBufferImpl [^long ^:unsynchronized-mutable value
+(deftype BitBuffer [^long ^:unsynchronized-mutable value
                         ^long ^:unsynchronized-mutable index
                         ^long ^:unsynchronized-mutable pos]
-  BitBufferOps
+  IBitBuffer
   (?bit-pos* [_]
     pos)
   (!bit-pos* [_ value']
@@ -35,7 +35,7 @@
   (!bit-value* [_ value']
     (set! value #?(:clj value' :cljs (unchecked-long value')))))
 
-(buffer-macros/definterface+ ByteBufferOps
+(buffer-macros/definterface+ IByteBuffer
   (^long   ?byte* []            "Reads a byte.")
   (^Object !byte* [^long value] "Writes a byte.")
 
@@ -65,9 +65,9 @@
   (^Object ?le* []              "Gets the current endianness.")
   (^Object !le* [^Object value] "Sets the current endianness."))
 
-#?(:clj  ;; ByteBufferOps clj impl (nio ByteBuffer)
-   (deftype ByteBufferImplClj [^ByteBuffer buffer]
-     ByteBufferOps
+#?(:clj  ;; IByteBuffer clj impl (nio ByteBuffer)
+   (deftype ByteBufferClj [^ByteBuffer buffer]
+     IByteBuffer
      (?byte* [_]
        (unchecked-long (.get buffer)))
      (!byte* [_ value]
@@ -121,12 +121,12 @@
      (!le* [_ value]
        (.order buffer (if value ByteOrder/LITTLE_ENDIAN ByteOrder/BIG_ENDIAN)))))
 
-#?(:cljs ;; ByteBufferOps cljs (buffer) impl (DataView + Int8Buffer)
-   (deftype ByteBufferImplCljsBrowser [^js/DataView data-view
-                                       ^js/Int8Array int8-array
-                                       ^long ^:unsynchronized-mutable pos
-                                       ^boolean ^:unsynchronized-mutable le]
-     ByteBufferOps
+#?(:cljs ;; IByteBuffer cljs (buffer) impl (DataView + Int8Buffer)
+   (deftype ByteBufferCljsBrowser [^js/DataView data-view
+                                   ^js/Int8Array int8-array
+                                   ^long ^:unsynchronized-mutable pos
+                                   ^boolean ^:unsynchronized-mutable le]
+     IByteBuffer
      (?byte* [_]
        (buffer-macros/with-delta pos 1 (.getInt8 data-view pos)))
      (!byte* [_ value]
@@ -186,11 +186,11 @@
      (!le* [_ value]
        (set! le value))))
 
-#?(:cljs ;; ByteBufferOps cljs (node) impl (Buffer)
-   (deftype ByteBufferImplCljsNode [^js/Buffer buffer
-                                    ^long ^:unsynchronized-mutable pos
-                                    ^boolean ^:unsynchronized-mutable le]
-     ByteBufferOps
+#?(:cljs ;; IByteBuffer cljs (node) impl (Buffer)
+   (deftype ByteBufferCljsNode [^js/Buffer buffer
+                                ^long ^:unsynchronized-mutable pos
+                                ^boolean ^:unsynchronized-mutable le]
+     IByteBuffer
      (?byte* [_]
        (buffer-macros/with-delta pos 1 (.readInt8 buffer pos true)))
      (!byte* [_ value]
@@ -250,17 +250,17 @@
      (!le* [_ value]
        (set! le value))))
 
-(deftype Buffer [^{:tag #?(:clj `BitBufferOps  :cljs nil)} bit-buffer
-                 ^{:tag #?(:clj `ByteBufferOps :cljs nil)} byte-buffer])
+(deftype Buffer [^{:tag #?(:clj `IBitBuffer  :cljs nil)} bit-buffer
+                 ^{:tag #?(:clj `IByteBuffer :cljs nil)} byte-buffer])
 
 (defn ?byte-buffer
   "Gets the byte buffer of `buffer`."
-  ^ByteBufferOps [^Buffer buffer]
+  ^IByteBuffer [^Buffer buffer]
   (.-byte-buffer buffer))
 
 (defn ?bit-buffer
   "Gets the bit buffer of `buffer`."
-  ^BitBufferOps [^Buffer buffer]
+  ^IBitBuffer [^Buffer buffer]
   (.-bit-buffer buffer))
 
 (defn ?bit-pos
@@ -517,50 +517,50 @@
     (when-not (== -1 bit-pos)
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
-(buffer-macros/definterface+ ByteBufferFactoryOps
-  (^mikron.buffer.ByteBufferOps allocate* [^long size]    "Allocates a buffer with size `size`.")
-  (^mikron.buffer.ByteBufferOps wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
+(buffer-macros/definterface+ IByteBufferFactory
+  (^mikron.buffer.IByteBuffer allocate* [^long size]    "Allocates a buffer with size `size`.")
+  (^mikron.buffer.IByteBuffer wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 
 (defn byte-buffer-factory?
-  "Returns `true` if `value` is an instance of `ByteBufferFactoryOps`, `false` otherwise."
+  "Returns `true` if `value` is an instance of `IByteBufferFactory`, `false` otherwise."
   [value]
-  (instance? ByteBufferFactoryOps value))
+  (instance? IByteBufferFactory value))
 
-#?(:clj ;; ByteBufferFactoryOps impl clj
-   (defrecord ByteBufferFactoryImplClj []
-     ByteBufferFactoryOps
+#?(:clj ;; IByteBufferFactory impl clj
+   (defrecord ByteBufferFactoryClj []
+     IByteBufferFactory
      (allocate* [_ size]
-       (ByteBufferImplClj. (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder))))
+       (ByteBufferClj. (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder))))
      (wrap* [_ binary]
-       (ByteBufferImplClj. (ByteBuffer/wrap binary)))))
+       (ByteBufferClj. (ByteBuffer/wrap binary)))))
 
-#?(:cljs ;; ByteBufferFactoryOps impl cljs (buffer)
-   (defrecord ByteBufferFactoryImplCljsBrowser []
-     ByteBufferFactoryOps
+#?(:cljs ;; IByteBufferFactory impl cljs (buffer)
+   (defrecord ByteBufferFactoryCljsBrowser []
+     IByteBufferFactory
      (allocate* [_ size]
        (let [array-buffer (js/ArrayBuffer. size)]
-         (ByteBufferImplCljsBrowser. (js/DataView. array-buffer)
-                                     (js/Int8Array. array-buffer)
-                                     0 true)))
+         (ByteBufferCljsBrowser. (js/DataView. array-buffer)
+                                 (js/Int8Array. array-buffer)
+                                 0 true)))
      (wrap* [_ binary]
-       (ByteBufferImplCljsBrowser. (js/DataView. binary)
-                                   (js/Int8Array. binary)
-                                   0 true))))
+       (ByteBufferCljsBrowser. (js/DataView. binary)
+                               (js/Int8Array. binary)
+                               0 true))))
 
-#?(:cljs ;; ByteBufferFactoryOps impl cljs (node)
-   (defrecord ByteBufferFactoryImplCljsNode []
-     ByteBufferFactoryOps
+#?(:cljs ;; IByteBufferFactory impl cljs (node)
+   (defrecord ByteBufferFactoryCljsNode []
+     IByteBufferFactory
      (allocate* [_ size]
-       (ByteBufferImplCljsNode. (.allocUnsafe js/Buffer size) 0 true))
+       (ByteBufferCljsNode. (.allocUnsafe js/Buffer size) 0 true))
      (wrap* [_ binary]
-       (ByteBufferImplCljsNode. (.from js/Buffer binary) 0 true))))
+       (ByteBufferCljsNode. (.from js/Buffer binary) 0 true))))
 
-(def ^ByteBufferFactoryOps byte-buffer-factory
+(def ^IByteBufferFactory byte-buffer-factory
   "The default byte buffer factory."
-  #?(:clj  (ByteBufferFactoryImplClj.)
+  #?(:clj  (ByteBufferFactoryClj.)
      :cljs (if (util/node-env?)
-             (ByteBufferFactoryImplCljsNode.)
-             (ByteBufferFactoryImplCljsBrowser.))))
+             (ByteBufferFactoryCljsNode.)
+             (ByteBufferFactoryCljsBrowser.))))
 
 (defn set-byte-buffer-factory!
   "Sets the byte buffer factory."
@@ -572,13 +572,13 @@
 (defn allocate
   "Allocates a buffer with the size `size`."
   ^Buffer [^long size]
-  (Buffer. (BitBufferImpl. 0 0 -1)
+  (Buffer. (BitBuffer. 0 0 -1)
            (allocate* byte-buffer-factory size)))
 
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
   ^Buffer [^bytes binary]
-  (Buffer. (BitBufferImpl. 0 0 -1)
+  (Buffer. (BitBuffer. 0 0 -1)
            (wrap* byte-buffer-factory binary)))
 
 (defn !headers
