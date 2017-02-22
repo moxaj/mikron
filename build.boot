@@ -10,6 +10,7 @@
                     [adzerk/boot-cljs-repl       "0.3.3"     :scope "test"]
                     [crisptrutski/boot-cljs-test "0.3.0"     :scope "test"]
                     [boot-codox                  "0.10.3"    :scope "test"]
+                    [adzerk/bootlaces            "0.1.13"    :scope "test"]
 
                     [me.raynes/conch             "0.8.0"     :scope "test"]
                     [com.cemerick/piggieback     "0.2.1"     :scope "test"]
@@ -17,9 +18,11 @@
                     [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
                     [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]])
 
+(def +version+ "0.6.0")
+
 (task-options!
-  pom {:project 'moxaj/mikron
-       :version "0.5.0"})
+  pom  {:project 'moxaj/mikron
+        :version +version+})
 
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
@@ -31,6 +34,7 @@
          '[adzerk.boot-reload :as boot-reload]
          '[adzerk.boot-cljs :as boot-cljs]
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
+         '[adzerk.bootlaces :as bootlaces]
          '[crisptrutski.boot-cljs-test :as boot-cljs-test]
          '[me.raynes.conch.low-level :as conch]
          '[codox.boot :as boot-codox]
@@ -38,6 +42,8 @@
          '[mikron.core :as mikron])
 
 (import '[java.util Date])
+
+(bootlaces/bootlaces! +version+ :dont-modify-paths? true)
 
 ;; Util
 
@@ -63,13 +69,6 @@
   "Returns a task which runs the args as a shell command."
   [& args]
   (with-pass-thru _ (host-process (apply conch/proc args))))
-
-(deftask build
-  "Builds the project."
-  []
-  (comp (pom)
-        (jar)
-        (install)))
 
 (deftask testing
   "Adds the test files to the fileset."
