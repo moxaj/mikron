@@ -18,12 +18,6 @@
                     [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
                     [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]])
 
-(def +version+ "0.6.0")
-
-(task-options!
-  pom  {:project 'moxaj/mikron
-        :version +version+})
-
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
          '[clojure.string :as string]
@@ -43,9 +37,17 @@
 
 (import '[java.util Date])
 
+(def +version+ "0.6.1-SNAPSHOT")
+
+(task-options!
+  pom  {:project 'moxaj/mikron
+        :version +version+})
+
 (bootlaces/bootlaces! +version+
-  :dont-modify-paths? true
-  :ensure-clean       false)
+  :dont-modify-paths? true)
+
+(task-options!
+  push {:ensure-clean false})
 
 ;; Util
 

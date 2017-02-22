@@ -14,7 +14,7 @@
 
 ## Latest version
 
-`[moxaj/mikron "0.5.0"]`
+[![Clojars Project](https://img.shields.io/clojars/v/moxaj/mikron.svg)](https://clojars.org/moxaj/mikron)
 
 ## Quick start
 
