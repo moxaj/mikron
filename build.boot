@@ -40,11 +40,12 @@
 (def +version+ "0.6.1-SNAPSHOT")
 
 (task-options!
-  pom  {:project     'moxaj/mikron
-        :version     +version+
-        :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
-        :url         "https://github.com/moxaj/mikron"
-        :licence     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
+  pom {:project     'moxaj/mikron
+       :version     +version+
+       :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
+       :url         "http://github.com/moxaj/mikron"
+       :licence     {:name "Eclipse Public License"
+                     :url  "http://www.eclipse.org/legal/epl-v10.html"}})
 
 (bootlaces/bootlaces! +version+
   :dont-modify-paths? true)
