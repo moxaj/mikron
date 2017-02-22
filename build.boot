@@ -44,8 +44,7 @@
        :version     +version+
        :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
        :url         "http://github.com/moxaj/mikron"
-       :license     {:name "Eclipse Public License"
-                     :url  "http://www.eclipse.org/legal/epl-v10.html"}})
+       :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
 
 (bootlaces/bootlaces! +version+
   :dont-modify-paths? true)
