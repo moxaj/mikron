@@ -43,7 +43,9 @@
 
 (import '[java.util Date])
 
-(bootlaces/bootlaces! +version+ :dont-modify-paths? true)
+(bootlaces/bootlaces! +version+
+  :dont-modify-paths? true
+  :ensure-clean       false)
 
 ;; Util
 
