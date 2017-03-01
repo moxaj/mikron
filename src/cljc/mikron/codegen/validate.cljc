@@ -7,7 +7,7 @@
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
-(defmulti valid? compile-util/type-of :hierarchy #'schema/hierarchy)
+(defmulti valid? schema/schema-name :hierarchy #'schema/hierarchy)
 
 (defn valid-integer?
   "Generates code for integer validation."
@@ -134,7 +134,7 @@
             ~(valid? schema' value' env)))))
 
 (defmethod valid? :aliased [[schema'] value env]
-  (valid? (schema/aliases schema') value env))
+  (valid? (schema/aliased-schemas schema') value env))
 
 (defmethod valid? :custom [schema value _]
   `(~(compile-util/processor-name :valid? schema) ~value))

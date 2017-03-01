@@ -14,9 +14,17 @@
          (s/conformer (fn [{:keys [class members]}]
                         (vec (cons class members))))))
 
+(defn schema-name
+  "Returns a spec for a schema definition."
+  [schema]
+  (cond
+    (keyword? schema) schema
+    (vector? schema)  (first schema)
+    (symbol? schema)  :custom))
+
 (defmulti schema-spec
   "Returns a spec for a schema definition."
-  compile-util/type-of :hierarchy #'schema/hierarchy)
+  schema-name :hierarchy #'schema/hierarchy)
 
 (defmethod schema-spec :simple [_]
   (spec-macros/schema-spec* []))
@@ -55,30 +63,31 @@
 (defmethod schema-spec :custom [_]
   some?)
 
-(defmethod schema-spec nil [_]
-  (constantly false))
-
 (s/def ::schema
   (s/and #(empty? (descendants schema/hierarchy %))
-         (s/multi-spec schema-spec compile-util/type-of)))
+         (s/multi-spec schema-spec schema-name)))
 
-(s/def ::route
-  (s/and (s/or :tuple       (s/map-of nat-int? ::route)
-               :record      (s/map-of keyword? ::route)
-               :multi       (s/map-of any? ::route)
-               :coll-or-map (s/keys :req-un [:route/all])
+(s/def ::path
+  (s/and (s/or :tuple       (s/map-of nat-int? ::path)
+               :record      (s/map-of keyword? ::path)
+               :multi       (s/map-of any? ::path)
+               :coll-or-map (s/keys :req-un [:path/all])
                :true        true?)
          (s/conformer second)))
 
-(s/def :route/all ::route)
+(s/def :path/all ::path)
 
-(s/def ::diff ::route)
+(s/def ::diff ::path)
 
-(s/def ::interp ::route)
+(s/def ::interp ::path)
 
 (s/def ::schema*-args
-  (s/cat :schema ::schema
-         :ext    (s/keys* :opt-un [::diff ::interp])))
+  (s/and (s/cat :schema ::schema
+                :ext    (s/keys* :opt-un [::diff ::interp]))
+         (s/conformer (fn [{:keys [schema] :as schema*-args}]
+                        (-> schema*-args
+                            (update-in [:ext :diff] schema/expand-path schema)
+                            (update-in [:ext :interp] schema/expand-path schema))))))
 
 (s/def ::schema-args (s/* any?))
 

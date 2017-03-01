@@ -1,7 +1,35 @@
 (ns mikron.test
   "Actual unit test cases."
-  (:require [mikron.test-macros :as test-macros]
-            [clojure.test :as test]))
+  (:require [clojure.test :as test]
+            [mikron.core :as mikron]
+            [mikron.test-macros :as test-macros])
+  #?(:clj (:import [java.util Arrays])))
+
+(defn equal?
+  "Extended equality checker for byte[] and ArrayBuffer."
+  [x y]
+  (if (not= (type x) #?(:clj  (Class/forName "[B")
+                        :cljs js/ArrayBuffer))
+    (= x y)
+    #?(:clj  (Arrays/equals ^bytes x ^bytes y)
+       :cljs (= (seq (.from js/Array (js/Int8Array. x)))
+                (seq (.from js/Array (js/Int8Array. y)))))))
+
+(defmethod test-macros/test-mikron :pack [_ schema dataset]
+  (doseq [value dataset]
+    (test/is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema))))))
+
+(defmethod test-macros/test-mikron :diff [_ schema dataset]
+  (doseq [[value-1 value-2] (partition 2 dataset)]
+    (test/is (= value-2 (->> value-2 (mikron/diff schema value-1) (mikron/undiff schema value-1))))))
+
+(defmethod test-macros/test-mikron :valid? [_ schema dataset]
+  (doseq [value dataset]
+    (test/is (mikron/valid? schema value))))
+
+(defmethod test-macros/test-mikron :interp [_ schema dataset]
+  (doseq [[value-1 value-2] (partition 2 dataset)]
+    (mikron/interp schema value-1 value-2 0 1 0.5)))
 
 (test-macros/def-mikron-tests
   {t-byte         :byte

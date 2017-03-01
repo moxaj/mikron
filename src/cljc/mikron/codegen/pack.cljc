@@ -6,7 +6,7 @@
             [mikron.util.coll :as util.coll])
   #?(:clj (:import [mikron.buffer Buffer])))
 
-(defmulti pack compile-util/type-of :hierarchy #'schema/hierarchy)
+(defmulti pack schema/schema-name :hierarchy #'schema/hierarchy)
 
 (defn pack* [schema value {:keys [diffed?] :as env}]
   (if-not diffed?
@@ -76,12 +76,12 @@
             (sort)
             (map-indexed (fn [index multi-case]
                            [multi-case
-                            `(do ~(pack (compile-util/integer-type (count multi-map)) index env)
+                            `(do ~(pack (schema/integer-schema (count multi-map)) index env)
                                  ~(pack (multi-map multi-case) value env))]))
             (apply concat))))
 
 (defmethod pack :enum [[_ _ enum-values] value env]
-  (pack (compile-util/integer-type (count enum-values))
+  (pack (schema/integer-schema (count enum-values))
         `(case ~value
            ~@(->> enum-values
                   (map-indexed (fn [index enum-value]
@@ -95,7 +95,7 @@
        ~(pack schema' value' env))))
 
 (defmethod pack :aliased [[schema'] value env]
-  (pack (schema/aliases schema') value env))
+  (pack (schema/aliased-schemas schema') value env))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
   `(~(compile-util/processor-name (if diffed? :pack-diffed :pack) schema) ~value ~buffer))

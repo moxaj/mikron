@@ -6,9 +6,9 @@
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
-(def gen-length 4) ;^:const
+(def ^:const gen-length 4)
 
-(defmulti gen compile-util/type-of :hierarchy #'schema/hierarchy)
+(defmulti gen schema/schema-name :hierarchy #'schema/hierarchy)
 
 (defn gen-integer
   "Generates code for random integer generation."
@@ -119,7 +119,7 @@
   `(~post ~(gen schema' env)))
 
 (defmethod gen :aliased [[schema'] env]
-  (gen (schema/aliases schema') env))
+  (gen (schema/aliased-schemas schema') env))
 
 (defmethod gen :custom [schema env]
   `(~(compile-util/processor-name :gen schema)))

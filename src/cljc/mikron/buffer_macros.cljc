@@ -46,9 +46,10 @@
       `(do ~inner-form
            ~@(map (fn [[op-name args args' doc-string]]
                     `(defn ~(no-meta op-name)
-                       {:inline (fn ~args'
-                                  `(~'~(symbol (str "." (munge op-name)))
-                                    ~~@args'))}
+                       {:inline         (fn ~args'
+                                          `(~'~(symbol (str "." (munge op-name)))
+                                            ~~@args'))
+                        :inline-arities #{~(count args')}}
                        ~(with-meta (vec (cons (with-meta 'this {:tag name})
                                               args))
                                    (meta op-name))

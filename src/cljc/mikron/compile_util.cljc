@@ -1,5 +1,6 @@
 (ns mikron.compile-util
   "Compile time utility functions."
+  (:require [mikron.schema :as schema])
   #?(:cljs (:require-macros [mikron.compile-util])))
 
 ;; symbol
@@ -55,29 +56,11 @@
 
 (defn find-by
   "Walks `form` and collects all values for which the predicate `f` returns true.
-  Filter duplicates."
+  Filters duplicates."
   [f form]
   (set (find-by* f form)))
 
 ;; schema
-
-(defn type-of
-  "Returns the type of `schema` or `nil` if the schema is invalid."
-  [schema & _]
-  (cond
-    (keyword? schema) schema
-    (vector? schema)  (first schema)
-    (symbol? schema)  :custom
-    :else             nil))
-
-(defn integer-type
-  "Returns an integer type into which `size` can fit."
-  [^long size]
-  (condp > size
-    256        [:byte]
-    65536      [:short]
-    2147483648 [:int]
-    [:long]))
 
 (defn record-lookup
   "Generates code for record value lookup."
@@ -92,7 +75,7 @@
   [schemas]
   (->> (keys schemas)
        (map (fn [key]
-              [key (gensym key)]))
+              [key (gensym (name key))]))
        (into (sorted-map))))
 
 (defn fields->record
@@ -122,6 +105,8 @@
   "Generates code which reconstructs a tuple from its fields."
   [fields]
   (vec (vals fields)))
+
+;; processor
 
 (defmulti processor
   "Generates processor code."
