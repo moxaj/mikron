@@ -45,20 +45,16 @@
 
 ;; coll
 
-(defn find-by*
-  "Walks `form` and collects all values for which the predicate `f` returns `true`.
-  Does not filter duplicates."
-  [f form]
-  (cond-> (if (seqable? form)
-            (mapcat (partial find-by* f) form)
-            [])
-    (f form) (conj form)))
-
 (defn find-by
   "Walks `form` and collects all values for which the predicate `f` returns true.
   Filters duplicates."
   [f form]
-  (set (find-by* f form)))
+  (set ((fn find-by* [f form]
+          (cond-> (if (seqable? form)
+                    (mapcat (partial find-by* f) form)
+                    [])
+            (f form) (conj form)))
+        f form)))
 
 ;; schema
 

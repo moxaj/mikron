@@ -75,7 +75,7 @@
   (unpack (schema/aliased-schemas schema') env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
-  `(~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema) ~buffer))
+  `((deref ~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
 
 (defmethod compile-util/processor :unpack [_ {:keys [schema] :as env}]
   (compile-util/with-gensyms [buffer]

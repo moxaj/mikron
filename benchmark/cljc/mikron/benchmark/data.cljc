@@ -9,9 +9,9 @@
 
 (def data
   {::benchmark.schema/doubles   (vec (repeatedly 200 #(double (rand))))
-   ::benchmark.schema/quartet   (mikron/gen benchmark.schema/quartet)
-   ::benchmark.schema/snapshot  (mikron/gen benchmark.schema/snapshot)
-   ::benchmark.schema/snapshot2 (mikron/gen benchmark.schema/snapshot2)})
+   ::benchmark.schema/quartet   (mikron/gen ::benchmark.schema/quartet)
+   ::benchmark.schema/snapshot  (mikron/gen ::benchmark.schema/snapshot)
+   ::benchmark.schema/snapshot2 (mikron/gen ::benchmark.schema/snapshot2)})
 
 (defmulti get-data* (fn [method schema data] [method schema]))
 

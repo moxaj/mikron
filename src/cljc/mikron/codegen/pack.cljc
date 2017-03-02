@@ -98,7 +98,7 @@
   (pack (schema/aliased-schemas schema') value env))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
-  `(~(compile-util/processor-name (if diffed? :pack-diffed :pack) schema) ~value ~buffer))
+  `((deref ~(compile-util/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))
 
 (defmethod compile-util/processor :pack [_ {:keys [schema] :as env}]
   (compile-util/with-gensyms [value buffer]

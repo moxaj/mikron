@@ -214,7 +214,7 @@
    :unpack-time "Deserialization time [μs]"})
 
 (comment
-  (benchmark :stats   [:size]
-             ;:methods [:mikron :protobuf]
-             :schema  ::benchmark.schema/snapshot)
+  (benchmark :stats   [:pack-time]
+             :methods [:mikron]
+             :schema  ::benchmark.schema/snapshot2)
   nil)

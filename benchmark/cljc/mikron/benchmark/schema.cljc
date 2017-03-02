@@ -7,33 +7,33 @@
             #?@(:clj [[abracad.avro :as avro]
                       [gloss.core :as gloss]])))
 
-(mikron/defschema doubles
+(mikron/defschema ::doubles
   [:vector :double])
 
-(mikron/defschema person
+(mikron/defschema ::person
   [:record {:first-name :string
             :last-name  :string}])
 
-(mikron/defschema quartet
-  [:tuple [person person person person]])
+(mikron/defschema ::quartet
+  [:tuple [::person ::person ::person ::person]])
 
-(mikron/defschema coord
+(mikron/defschema ::coord
   [:record {:x :double :y :double}])
 
-(mikron/defschema fixture
+(mikron/defschema ::fixture
   [:record {:user-data [:record {:color :int}]
-            :coords    [:list coord]}])
+            :coords    [:list ::coord]}])
 
-(mikron/defschema body
+(mikron/defschema ::body
   [:record {:user-data [:record {:id :int}]
-            :position  coord
+            :position  ::coord
             :angle     :double
             :body-type [:enum [:dynamic :static :kinetic]]
-            :fixtures  [:list fixture]}])
+            :fixtures  [:list ::fixture]}])
 
-(mikron/defschema snapshot
+(mikron/defschema ::snapshot
   [:record {:time   :long
-            :bodies [:list body]}])
+            :bodies [:list ::body]}])
 
 (defrecord Coord [^double x ^double y])
 
@@ -47,43 +47,43 @@
 
 (defrecord Snapshot [^long time bodies])
 
-(mikron/defschema coord2
+(mikron/defschema ::coord2
   [:record {:type [Coord x y]}
            {:x :double :y :double}])
 
-(mikron/defschema fixture2
+(mikron/defschema ::fixture2
   [:record {:type [Fixture user-data coords]}
            {:user-data [:record {:type [FixtureUserData color]}
                                 {:color :int}]
-            :coords    [:vector coord2]}])
+            :coords    [:vector ::coord2]}])
 
-(mikron/defschema body2
+(mikron/defschema ::body2
   [:record {:type [Body user-data position angle body-type fixtures]}
            {:user-data [:record {:type [BodyUserData id]}
                                 {:id :int}]
-            :position  coord2
+            :position  ::coord2
             :angle     :double
             :body-type [:enum [:dynamic :static :kinetic]]
-            :fixtures  [:vector fixture2]}])
+            :fixtures  [:vector ::fixture2]}])
 
-(mikron/defschema snapshot2
+(mikron/defschema ::snapshot2
   [:record {:type [Snapshot time bodies]}
            {:time   :long
-            :bodies [:vector body2]}])
+            :bodies [:vector ::body2]}])
 
 (defmulti get-schema* (fn [method schema] [method schema]))
 
 (defmethod get-schema* [:mikron ::doubles] [_ _]
-  doubles)
+  ::doubles)
 
 (defmethod get-schema* [:mikron ::quartet] [_ _]
-  quartet)
+  ::quartet)
 
 (defmethod get-schema* [:mikron ::snapshot] [_ _]
-  snapshot)
+  ::snapshot)
 
 (defmethod get-schema* [:mikron ::snapshot2] [_ _]
-  snapshot2)
+  ::snapshot2)
 
 #?(:clj ;; avro doubles
    (defmethod get-schema* [:avro ::doubles] [_ _]

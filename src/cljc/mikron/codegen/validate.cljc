@@ -137,7 +137,7 @@
   (valid? (schema/aliased-schemas schema') value env))
 
 (defmethod valid? :custom [schema value _]
-  `(~(compile-util/processor-name :valid? schema) ~value))
+  `((deref ~(compile-util/processor-name :valid? schema)) ~value))
 
 (defmethod compile-util/processor :valid? [_ {:keys [schema] :as env}]
   (compile-util/with-gensyms [value]

@@ -122,7 +122,7 @@
   (gen (schema/aliased-schemas schema') env))
 
 (defmethod gen :custom [schema env]
-  `(~(compile-util/processor-name :gen schema)))
+  `((deref ~(compile-util/processor-name :gen schema))))
 
 (defmethod compile-util/processor :gen [_ {:keys [schema] :as env}]
   `([]

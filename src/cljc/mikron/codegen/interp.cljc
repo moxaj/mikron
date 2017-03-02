@@ -124,7 +124,7 @@
   `(if ~prefer-first? ~value-1 ~value-2))
 
 (defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor]}]
-  `(~(compile-util/processor-name :interp schema) ~value-1 ~value-2 ~prefer-first? ~time-factor))
+  `((deref ~(compile-util/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))
 
 (defmethod compile-util/processor :interp [_ {:keys [schema ext] :as env}]
   (compile-util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]

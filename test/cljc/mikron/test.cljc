@@ -32,35 +32,35 @@
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
 (test-macros/def-mikron-tests
-  {t-byte         :byte
-   t-short        :short
-   t-int          :int
-   t-long         :long
-   #?@(:clj [t-float :float]) ;; js, meh
-   t-double       :double
-   t-boolean      :boolean
-   t-char         :char
-   t-ubyte        :ubyte
-   t-ushort       :ushort
-   t-uint         :uint
-   t-varint       :varint
-   t-string       :string
-   t-keyword      :keyword
-   t-symbol       :symbol
-   t-nil          :nil
-   t-binary       :binary
-   t-any          :any
-   t-list         [:list :byte]
-   t-vector       [:vector :int]
-   t-set          [:set :short]
-   t-<-sorted-set [:set {:sorted-by <} :short]
-   t->-sorted-set [:set {:sorted-by >} :int]
-   t-map          [:map :byte :string]
-   t-<-sorted-map [:map {:sorted-by <} :byte :string]
-   t->-sorted-map [:map {:sorted-by >} :byte :string]
-   t-optional     [:optional :byte]
-   t-enum         [:enum [:cat :dog :measurement :error]]
-   t-tuple        [:tuple [:int :string :double]]
-   t-record       [:record {:a :int :b :string :c :byte}]
-   t-multi        [:multi number? {true :int false :string}]
-   t-wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})
+  {::byte         :byte
+   ::short        :short
+   ::int          :int
+   ::long         :long
+   #?@(:clj [::float :float]) ;; js, meh
+   ::double       :double
+   ::boolean      :boolean
+   ::char         :char
+   ::ubyte        :ubyte
+   ::ushort       :ushort
+   ::uint         :uint
+   ::varint       :varint
+   ::string       :string
+   ::keyword      :keyword
+   ::symbol       :symbol
+   ::nil          :nil
+   ::binary       :binary
+   ::any          :any
+   ::list         [:list :byte]
+   ::vector       [:vector :int]
+   ::set          [:set :short]
+   ::<-sorted-set [:set {:sorted-by <} :short]
+   ::>-sorted-set [:set {:sorted-by >} :int]
+   ::map          [:map :byte :string]
+   ::<-sorted-map [:map {:sorted-by <} :byte :string]
+   ::>-sorted-map [:map {:sorted-by >} :byte :string]
+   ::optional     [:optional :byte]
+   ::enum         [:enum [:cat :dog :measurement :error]]
+   ::tuple        [:tuple [:int :string :double]]
+   ::record       [:record {:a :int :b :string :c :byte}]
+   ::multi        [:multi number? {true :int false :string}]
+   ::wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})

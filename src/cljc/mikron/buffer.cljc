@@ -465,7 +465,7 @@
   (loop [value math/c0
          shift (long 0)]
     (if (>= shift 64)
-      (throw (ex-info "Malformed varint!" nil))
+      (throw (ex-info "Malformed varint!" {}))
       (let [byte  (math/from (?byte buffer))
             value (-> (math/and byte math/c127)
                       (math/shift-left shift)

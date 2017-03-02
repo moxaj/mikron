@@ -179,7 +179,7 @@
   value-2)
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type]}]
-  `(~(compile-util/processor-name processor-type schema) ~value-1 ~value-2))
+  `((deref ~(compile-util/processor-name processor-type schema)) ~value-1 ~value-2))
 
 (defmethod compile-util/processor :diff [_ {:keys [schema ext] :as env}]
   (compile-util/with-gensyms [_ value-1 value-2]

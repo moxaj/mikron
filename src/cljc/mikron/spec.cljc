@@ -18,9 +18,9 @@
   "Returns a spec for a schema definition."
   [schema]
   (cond
-    (keyword? schema) schema
-    (vector? schema)  (first schema)
-    (symbol? schema)  :custom))
+    (simple-keyword? schema)    schema
+    (vector? schema)            (first schema)
+    (qualified-keyword? schema) :custom))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
@@ -92,8 +92,7 @@
 (s/def ::schema-args (s/* any?))
 
 (s/def ::defschema-args
-  (s/cat :schema-name  simple-symbol?
-         :doc-string   (s/? string?)
+  (s/cat :schema-name  qualified-keyword?
          :schema*-args (s/* any?)))
 
 (s/def ::definterface+-args

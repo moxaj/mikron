@@ -21,6 +21,16 @@
   [value]
   (instance? Schema value))
 
+(defonce registry-ref (atom {}))
+
+(defn resolve-schema
+  [arg]
+  (if (schema? arg)
+    arg
+    (if-let [schema (@registry-ref arg)]
+      schema
+      (throw (ex-info "Invalid schema" {:arg arg})))))
+
 (defn ^:private processors
   "Returns all the generated processors for the given env."
   [env]
@@ -42,7 +52,8 @@
   (let [processors (processors (spec/enforce ::spec/schema*-args args))]
     `(let [~@(mapcat (fn [dependency]
                        (let [{:keys [processor-type schema-name]} (meta dependency)]
-                         [dependency `((.-processors ^Schema ~schema-name) ~processor-type)]))
+                         [dependency `(delay ((.-processors ^Schema (resolve-schema ~schema-name))
+                                              ~processor-type))]))
                      (dependencies processors))]
        (Schema. ~(->> processors
                       (map (juxt :processor-type :processor-fn))
@@ -66,9 +77,8 @@
      [:record {:a :keyword :b :ubyte}])
    ~~~"
   [& args]
-  (let [{:keys [schema-name doc-string schema*-args]} (spec/enforce ::spec/defschema-args args)]
-    `(def ~schema-name ~@(when doc-string [doc-string])
-       ~(apply schema* schema*-args))))
+  (let [{:keys [schema-name schema*-args]} (spec/enforce ::spec/defschema-args args)]
+    `(swap! registry-ref assoc ~schema-name ~(apply schema* schema*-args))))
 
 (s/fdef defschema :args ::spec/defschema-args)
 
@@ -115,10 +125,9 @@
      (pack my-schema [100 :cat]))
    ~~~"
   [schema value]
-  {:pre [(schema? schema)]}
   (let [buffer    *buffer*
         diffed?   (diffed? value)
-        processor ((.-processors ^Schema schema) (if diffed? :pack-diffed :pack))]
+        processor ((.-processors ^Schema (resolve-schema schema)) (if diffed? :pack-diffed :pack))]
     (buffer/!headers buffer diffed?)
     (processor (if diffed? (.-value ^DiffedValue value) value) buffer)
     (buffer/!finalize buffer)
@@ -131,12 +140,11 @@
      (->> [100 :cat] (pack my-schema) (unpack my-schema)))
    ~~~"
   [schema binary]
-  {:pre [(schema? schema)]}
   (util/safe :mikron/invalid
     (let [buffer    (buffer/wrap binary)
           headers   (buffer/?headers buffer)
           diffed?   (headers :diffed?)
-          processor ((if diffed? :unpack-diffed :unpack) (.-processors ^Schema schema))]
+          processor ((if diffed? :unpack-diffed :unpack) (.-processors ^Schema (resolve-schema schema)))]
       (cond-> (processor buffer)
         diffed? (DiffedValue.)))))
 
@@ -147,8 +155,7 @@
      (repeatedly 10 #(gen my-schema)))
    ~~~"
   [schema]
-  {:pre [(schema? schema)]}
-  (let [processor ((.-processors ^Schema schema) :gen)]
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :gen)]
     (processor)))
 
 (defn valid?
@@ -158,8 +165,7 @@
      (valid? my-schema [0 1 2 3 4 5]))
    ~~~"
   [schema value]
-  {:pre [(schema? schema)]}
-  (let [processor ((.-processors ^Schema schema) :valid?)]
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :valid?)]
     (processor value)))
 
 (defn diff*
@@ -170,8 +176,7 @@
      (diff* my-schema [:a :b :a :a] [:b :b :a :b]))
    ~~~"
   [schema value-1 value-2]
-  {:pre [(schema? schema)]}
-  (let [processor ((.-processors ^Schema schema) :diff)]
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :diff)]
     (processor value-1 value-2)))
 
 (defn undiff*
@@ -184,8 +189,7 @@
      (->> [:b :b :a :b] (diff* my-schema old-value) (undiff* my-schema old-value)))
    ~~~"
   [schema value-1 value-2]
-  {:pre [(schema? schema)]}
-  (let [processor ((.-processors ^Schema schema) :undiff)]
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :undiff)]
     (processor value-1 value-2)))
 
 (defn diff
@@ -197,8 +201,7 @@
      (diff my-schema {0 :a 1 :b} {0 :a 1 :c 2 :d}))
    ~~~"
   [schema value-1 value-2]
-  {:pre [(schema? schema)]}
-  (let [processor ((.-processors ^Schema schema) :diff)]
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :diff)]
     (DiffedValue. (processor value-1 value-2))))
 
 (defn undiff
@@ -211,8 +214,8 @@
      (->> {0 :a 1 :c 2 :d} (diff my-schema old-value) (undiff my-schema old-value)))
    ~~~"
   [schema value-1 value-2]
-  {:pre [(schema? schema) (diffed? value-2)]}
-  (let [processor ((.-processors ^Schema schema) :undiff)]
+  {:pre [(diffed? value-2)]}
+  (let [processor ((.-processors ^Schema (resolve-schema schema)) :undiff)]
     (processor value-1 (.-value ^DiffedValue value-2))))
 
 (defn interp
@@ -224,12 +227,12 @@
      (interp my-schema {:a 10 :b [1 2 3]} {:a 20 :b [4 5 6 7]} 0 1 0.5))
    ~~~"
   [schema value-1 value-2 time-1 time-2 time]
-  {:pre [(schema? schema) (number? time-1) (number? time-2) (number? time)]}
+  {:pre [(number? time-1) (number? time-2) (number? time)]}
   (let [time          (double time)
         time-1        (double time-1)
         time-2        (double time-2)
         prefer-first? (< (util.math/abs (- time time-1))
                          (util.math/abs (- time time-2)))
         time-factor   (/ (- time time-1) (- time-2 time-1))
-        processor     ((.-processors ^Schema schema) :interp)]
+        processor     ((.-processors ^Schema (resolve-schema schema)) :interp)]
     (processor value-1 value-2 prefer-first? time-factor)))
