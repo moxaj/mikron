@@ -8,6 +8,12 @@
 
 (def ^:const gen-length 4)
 
+(def ^:const max-recursive-depth 3)
+
+(def ^:dynamic *recursive-depths* {})
+
+(def ^:dynamic *short-circuit?* false)
+
 (defmulti gen schema/schema-name :hierarchy #'schema/hierarchy)
 
 (defn gen-integer
@@ -72,20 +78,30 @@
   nil)
 
 (defmethod gen :coll [[_ _ schema'] env]
-  `(util.coll/into! [] true ~gen-length ~(gen schema' env)))
+  `(if *short-circuit?*
+     []
+     (util.coll/into! [] true ~gen-length ~(gen schema' env))))
 
 (defmethod gen :set [[_ {:keys [sorted-by]} schema'] env]
-  `(util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
-                    ~(nil? sorted-by)
-                    ~gen-length
-                    ~(gen schema' env)))
+  `(if *short-circuit?*
+     ~(if sorted-by
+        `(sorted-set-by ~sorted-by)
+        #{})
+     (util.coll/into! ~(if sorted-by `(sorted-set-by ~sorted-by) #{})
+                      ~(nil? sorted-by)
+                      ~gen-length
+                      ~(gen schema' env))))
 
 (defmethod gen :map [[_ {:keys [sorted-by]} key-schema value-schema] env]
-  `(util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
-                       ~(nil? sorted-by)
-                       ~gen-length
-                       ~(gen key-schema env)
-                       ~(gen value-schema env)))
+  `(if *short-circuit?*
+     ~(if sorted-by
+        `(sorted-map-by ~sorted-by)
+        {})
+     (util.coll/into-kv! ~(if sorted-by `(sorted-map-by ~sorted-by) {})
+                         ~(nil? sorted-by)
+                         ~gen-length
+                         ~(gen key-schema env)
+                         ~(gen value-schema env))))
 
 (defmethod gen :tuple [[_ _ schemas] env]
   (let [fields (compile-util/tuple->fields schemas)]
@@ -102,8 +118,10 @@
        ~(compile-util/fields->record fields type))))
 
 (defmethod gen :optional [[_ _ schema'] env]
-  `(when ~(gen [:boolean] env)
-     ~(gen schema' env)))
+  `(if *short-circuit?*
+     nil
+     (when ~(gen [:boolean] env)
+       ~(gen schema' env))))
 
 (defmethod gen :multi [[_ _ _ multi-map] env]
   `(case (util.math/rand-long ~(count multi-map))
@@ -122,7 +140,14 @@
   (gen (schema/aliased-schemas schema') env))
 
 (defmethod gen :custom [schema env]
-  `((deref ~(compile-util/processor-name :gen schema))))
+  (compile-util/with-gensyms [recursive-depth short-circuit?]
+    `(if *short-circuit?*
+       ((deref ~(compile-util/processor-name :gen schema)))
+       (let [~recursive-depth (or (*recursive-depths* ~schema) max-recursive-depth)
+             ~short-circuit?  (== 0 ~recursive-depth)]
+         (binding [*recursive-depths* (assoc *recursive-depths* ~schema (unchecked-dec ~recursive-depth))
+                   *short-circuit?*   ~short-circuit?]
+           ((deref ~(compile-util/processor-name :gen schema))))))))
 
 (defmethod compile-util/processor :gen [_ {:keys [schema] :as env}]
   `([]

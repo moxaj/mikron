@@ -78,7 +78,8 @@
    ~~~"
   [& args]
   (let [{:keys [schema-name schema*-args]} (spec/enforce ::spec/defschema-args args)]
-    `(swap! registry-ref assoc ~schema-name ~(apply schema* schema*-args))))
+    `(do (swap! registry-ref assoc ~schema-name ~(apply schema* schema*-args))
+         ~schema-name)))
 
 (s/fdef defschema :args ::spec/defschema-args)
 
