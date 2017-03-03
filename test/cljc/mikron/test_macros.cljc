@@ -17,5 +17,5 @@
              `(let [~schema  (mikron/schema ~schema-def :diff true :interp true)
                     ~dataset (repeatedly 100 #(mikron/gen ~schema))]
                 ~@(for [method (keys (methods test-mikron))]
-                    `(test/deftest ~(gensym (symbol (str (name method) "-" (name schema-name))))
+                    `(test/deftest ~(gensym (str (name method) "-" (name schema-name)))
                        (test-mikron ~method ~schema ~dataset))))))))
