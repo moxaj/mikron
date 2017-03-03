@@ -64,6 +64,3 @@
    ::record       [:record {:a :int :b :string :c :byte}]
    ::multi        [:multi number? {true :int false :string}]
    ::wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})
-
-(test/deftest foo
-  (is true))
