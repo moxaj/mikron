@@ -31,7 +31,7 @@
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
-(test-macros/def-mikron-tests
+(test-macros/def-mikron-tests [:pack :diff :valid? :interp]
   {::byte         :byte
    ::short        :short
    ::int          :int

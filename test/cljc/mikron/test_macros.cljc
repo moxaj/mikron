@@ -11,11 +11,11 @@
 
 (defmacro def-mikron-tests
   "Generates test methods for all the test cases."
-  [test-cases]
+  [test-methods test-cases]
   (compile-util/with-gensyms [schema dataset]
     `(do ~@(for [[schema-name schema-def] test-cases]
              `(let [~schema  (mikron/schema ~schema-def :diff true :interp true)
                     ~dataset (repeatedly 100 #(mikron/gen ~schema))]
-                ~@(for [method (keys (methods test-mikron))]
+                ~@(for [method test-methods]
                     `(test/deftest ~(gensym (str (name method) "-" (name schema-name)))
                        (test-mikron ~method ~schema ~dataset))))))))
