@@ -28,7 +28,7 @@
     (diff [:built-in] path value-1 value-2 env)
     (case processor-type
       :diff   (diff schema path value-1 value-2 env)
-      :undiff `(if (identical? :mikron/dnil ~value-2)
+      :undiff `(if (util.schema/keyword-identical? :mikron/dnil ~value-2)
                  ~value-1
                  ~(diff schema path value-1 value-2 env)))))
 
