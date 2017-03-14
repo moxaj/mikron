@@ -1,8 +1,8 @@
-(ns mikron.test
+(ns mikron.test.core
   "Actual unit test cases."
   (:require [clojure.test :as test]
             [mikron.core :as mikron]
-            [mikron.test-macros :as test-macros])
+            [mikron.test.core-macros :as test-macros])
   #?(:clj (:import [java.util Arrays])))
 
 (defn equal?
@@ -64,7 +64,3 @@
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi number? {true :int false :string}]
    t-wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})
-
-(mikron/defschema ::circular-a [:list ::circular-b])
-
-(mikron/defschema ::circular-b [:list [:tuple [:int ::circular-a]]])

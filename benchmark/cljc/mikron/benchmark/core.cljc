@@ -208,13 +208,8 @@
          (sort-by second)
          (vec))))
 
-(def description
-  {:size        "Size [bytes]"
-   :pack-time   "Serialization time [μs]"
-   :unpack-time "Deserialization time [μs]"})
-
 (comment
-  (benchmark :stats   [:pack-time]
-             :methods [:mikron]
+  (benchmark :stats   [:pack-time :unpack-time]
+             :methods [:mikron :transit]
              :schema  ::benchmark.schema/snapshot2)
   nil)

@@ -1,5 +1,5 @@
  (ns mikron.core
-  "Core namespace."
+  "Core namespace. Contains the public API."
   (:require [clojure.spec :as s]
             [mikron.spec :as spec]
             [mikron.compile-util :as compile-util]
@@ -14,16 +14,23 @@
             [mikron.util.math :as util.math])
   #?(:cljs (:require-macros [mikron.core])))
 
-(defrecord Schema [processors])
+(defrecord Schema [processors env])
 
 (defn schema?
-  "Returns `true` if `value` is an instance of `Schema`, `false` otherwise."
-  [value]
-  (instance? Schema value))
+  "Returns `true` if `arg` is an instance of `Schema`, `false` otherwise."
+  [arg]
+  (instance? Schema arg))
 
-(defonce registry-ref (atom {}))
+(defonce ^:private registry-ref (atom {}))
+
+(defn register-schema
+  "Registers a reified schema with the given name."
+  [schema-name schema]
+  (swap! registry-ref assoc schema-name schema)
+  schema-name)
 
 (defn resolve-schema
+  ""
   [arg]
   (if (schema? arg)
     arg
@@ -31,36 +38,27 @@
       schema
       (throw (ex-info "Invalid schema" {:arg arg})))))
 
-(defn ^:private processors
-  "Returns all the generated processors for the given env."
-  [env]
-  (for [processor-type (keys (methods compile-util/processor))]
-    {:processor-type processor-type
-     :processor-fn   `(fn ~(compile-util/processor processor-type env))}))
-
-(defn ^:private dependencies
-  "Returns all the processor dependencies of the given processors."
-  [processors]
-  (->> processors
-       (map :processor-fn)
-       (compile-util/find-by (comp :schema-name meta))
-       (into (sorted-set))))
-
 (defn schema*
-  "Generates all the processor related code for the given args."
+  "Given a schema definition, returns the unevaluated code to produce a reified schema.
+   ~~~klipse
+   (schema* [:vector :int])
+   ~~~"
   [& args]
-  (let [processors (processors (spec/enforce ::spec/schema*-args args))]
-    `(let [~@(mapcat (fn [dependency]
-                       (let [{:keys [processor-type schema-name]} (meta dependency)]
-                         [dependency `(delay ((.-processors ^Schema (resolve-schema ~schema-name))
-                                              ~processor-type))]))
-                     (dependencies processors))]
-       (Schema. ~(->> processors
-                      (map (juxt :processor-type :processor-fn))
-                      (into {}))))))
+  (let [{:keys [dependencies] :as env} (spec/enforce ::spec/schema*-args args)
+        processor-types (keys (methods compile-util/processor))]
+    `(let [~@(->> (for [processor-type processor-types
+                        dependency     dependencies]
+                    [(compile-util/processor-name processor-type dependency)
+                     `(delay (~processor-type (.-processors ^Schema (resolve-schema ~dependency))))])
+                  (apply concat))]
+       (Schema. ~(->> processor-types
+                      (map (fn [processor-type]
+                             [processor-type `(fn ~(compile-util/processor processor-type env))]))
+                      (into {}))
+                '~env))))
 
 (defmacro schema
-  "Creates a new schema.
+  "Given a schema definition, returns a reified schema.
    ~~~klipse
    (def my-schema
      (schema [:tuple [:int :string [:enum [:a :b :c]]]]))
@@ -71,15 +69,14 @@
 (s/fdef schema :args ::spec/schema-args)
 
 (defmacro defschema
-  "Creates a new schema and binds it to the given symbol.
+  "Given a name and a schema definition, returns a globally registered, reified schema.
    ~~~klipse
-   (defschema my-schema
+   (defschema ::schema
      [:record {:a :keyword :b :ubyte}])
    ~~~"
   [& args]
   (let [{:keys [schema-name schema*-args]} (spec/enforce ::spec/defschema-args args)]
-    `(do (swap! registry-ref assoc ~schema-name ~(apply schema* schema*-args))
-         ~schema-name)))
+    `(register-schema ~schema-name ~(apply schema* schema*-args))))
 
 (s/fdef defschema :args ::spec/defschema-args)
 

@@ -1,18 +1,7 @@
 (ns mikron.compile-util
   "Compile time utility functions."
-  (:require [mikron.schema :as schema])
+  (:require [clojure.string :as string])
   #?(:cljs (:require-macros [mikron.compile-util])))
-
-;; symbol
-
-(def processor-name
-  "Returns a memoized processor name."
-  (memoize
-    (fn [processor-type schema-name]
-      (-> (str (name processor-type) "-" (name schema-name))
-          (gensym)
-          (with-meta {:processor-type processor-type
-                      :schema-name    schema-name})))))
 
 ;; macro helper
 
@@ -43,20 +32,7 @@
           ~(let [~@(mapcat identity m)]
              ~@body)))))
 
-;; coll
-
-(defn find-by
-  "Walks `form` and collects all values for which the predicate `f` returns true.
-  Filters duplicates."
-  [f form]
-  (set ((fn find-by* [f form]
-          (cond-> (if (seqable? form)
-                    (mapcat (partial find-by* f) form)
-                    [])
-            (f form) (conj form)))
-        f form)))
-
-;; schema
+;; schema destructuring
 
 (defn record-lookup
   "Generates code for record value lookup."
@@ -103,6 +79,14 @@
   (vec (vals fields)))
 
 ;; processor
+
+(def processor-name
+  "Returns a memoized processor name."
+  (memoize
+    (fn [processor-type schema-name]
+      (-> (str (name processor-type) "-" (namespace schema-name) "-" (name schema-name))
+          (string/replace "." "_DOT_")
+          (gensym)))))
 
 (defmulti processor
   "Generates processor code."

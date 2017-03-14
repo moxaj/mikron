@@ -11,8 +11,9 @@
             [mikron.util :as util]
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]
-            [mikron.compile-util :as compile-util]))
+            [mikron.compile-util :as compile-util]
             ;[no.disassemble :as d]))
+            [clojure.walk :as walk]))
 
 (defmacro c! [& body]
   `(c/with-progress-reporting (c/quick-bench (do ~@body))))
@@ -33,20 +34,3 @@
 
 (defmacro d! [expr]
   `(println (d/disassemble ~expr)))
-
-(comment
-  (defschema ::a [:list ::b2])
-
-  (defschema ::b [:record {:a [:optional ::a2] :c :int :d :string}])
-
-  (defschema ::a2 [:list ::b3])
-
-  (defschema ::b2 [:record {:a [:optional ::a3] :c :int :d :string}])
-
-  (defschema ::a3 [:list :nil])
-
-  (defschema ::b3 [:record {:a [:optional :nil] :c :int :d :string}])
-
-  (c! (gen (schema [:list :nil])))
-
-  (c! (gen (schema :int))))

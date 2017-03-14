@@ -1,7 +1,7 @@
 (set-env!
-  :resource-paths #{"src/cljc"}
+  :resource-paths #{"src/cljc" "src/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha14"]
-                    [org.clojure/clojurescript   "1.9.456"]
+                    [org.clojure/clojurescript   "1.9.473"]
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
@@ -147,7 +147,7 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test :namespaces ['mikron.test])))
+        (boot-test/test :namespaces ['mikron.test.core])))
 
 (deftask test-node
   "Runs the tests in a Node.js environment."
@@ -161,7 +161,7 @@
                       "-k" "lumo_cache"
                       "target/mikron/node.cljs"))
           (boot-cljs-test/test-cljs :js-env        :node
-                                    :namespaces    '[mikron.test]
+                                    :namespaces    '[mikron.test.core]
                                     :optimizations (or opt :none)))))
 
 (deftask test-browser
@@ -170,7 +170,7 @@
    e js-env VAL kw "The js environment."]
   (comp (testing)
         (boot-cljs-test/test-cljs :js-env        js-env
-                                  :namespaces    '[mikron.test]
+                                  :namespaces    '[mikron.test.core]
                                   :optimizations (or opt :none))))
 
 (deftask test
@@ -182,7 +182,7 @@
   (comp (testing)
         (case platform
           :clj  (test-clj)
-          :cljs (case target
+          :cljs (case (or target :browser)
                   :nodejs  (test-node :opt          opt
                                       :self-hosted? self-hosted?)
                   :browser (test-browser :opt    opt
@@ -193,11 +193,9 @@
   [o opt VAL kw  "The compiler optimization level."
    i id  VAL str "The id of the build."]
   (boot-cljs/cljs
-    :ids              (when id [(fix-slashes id)])
-    :compiler-options {:static-fns     true
-                       :optimizations  (or opt :none)
-                       :parallel-build false
-                       :infer-externs  false}))
+    :ids              [(fix-slashes (or id "browser/index"))]
+    :compiler-options {:static-fns    true
+                       :optimizations (or opt :none)}))
 
 (deftask run-browser-repl
   "Compiles the cljs sources, serves them on localhost:3000, and sets up
@@ -211,6 +209,7 @@
   [o opt VAL kw  "The compiler optimization level."]
   (comp (benchmarking)
         (testing)
+        (javac)
         (boot-http/serve :dir "target/browser")
         (watch)
         (boot-reload/reload)
@@ -220,11 +219,14 @@
         (speak)))
 
 (deftask run-node-repl
-  "Runs a node repl."
+  "Runs a node repl.
+   TODO does not work - waiting on Lumo commonjs modules"
   []
   (comp (testing)
         (benchmarking)
         (target)
+        (with-pass-thru _
+          (run! println (string/split (System/getProperty "fake.class.path") #";")))
         (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
@@ -233,7 +235,8 @@
               "-r")))
 
 (deftask generate-docs
-  "Generates documentation."
+  "Generates documentation.
+   TODO does not work - waiting on Lumo commonjs modules"
   []
   (let [ns-str "(ns mikron.codox
                   (:require [mikron.core :as mikron

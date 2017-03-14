@@ -26,7 +26,10 @@
   "Returns a spec for a schema definition."
   schema-name :hierarchy #'schema/hierarchy)
 
-(defmethod schema-spec :simple [_]
+(defmethod schema-spec :primitive [_]
+  (spec-macros/schema-spec* []))
+
+(defmethod schema-spec :aliased [_]
   (spec-macros/schema-spec* []))
 
 (defmethod schema-spec :coll [_]
@@ -87,7 +90,8 @@
          (s/conformer (fn [{:keys [schema] :as schema*-args}]
                         (-> schema*-args
                             (update-in [:ext :diff] schema/expand-path schema)
-                            (update-in [:ext :interp] schema/expand-path schema))))))
+                            (update-in [:ext :interp] schema/expand-path schema)
+                            (assoc :dependencies (schema/dependencies schema)))))))
 
 (s/def ::schema-args (s/* any?))
 

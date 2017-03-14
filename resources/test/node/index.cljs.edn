@@ -1,2 +1,2 @@
-{:require          [mikron.node]
+{:require          [mikron.test-runner.node mikron.benchmark.core]
  :compiler-options {:target :nodejs}}

@@ -86,14 +86,14 @@
                     ~(valid? schema' value' env))
                   ~value))))
 
-(defmethod valid? :map [[_ _ key-schema value-schema] value env]
+(defmethod valid? :map [[_ _ key-schema val-schema] value env]
   (compile-util/with-gensyms [entry' key' value']
     `(and (map? ~value)
           (every? (fn [~entry']
                     (let [~key'   (key ~entry')
                           ~value' (val ~entry')]
                       (and ~(valid? key-schema key' env)
-                           ~(valid? value-schema value' env))))
+                           ~(valid? val-schema value' env))))
                   ~value))))
 
 (defmethod valid? :tuple [[_ _ schemas] value env]
@@ -117,11 +117,11 @@
   `(or (nil? ~value)
        ~(valid? schema' value env)))
 
-(defmethod valid? :multi [[_ _ selector multi-map] value env]
+(defmethod valid? :multi [[_ _ selector schemas'] value env]
   `(case (util/safe :mikron/invalid (~selector ~value))
-     ~@(mapcat (fn [[multi-case schema']]
-                 [multi-case (valid? schema' value env)])
-               multi-map)
+     ~@(mapcat (fn [[key' schema']]
+                 [key' (valid? schema' value env)])
+               schemas')
      false))
 
 (defmethod valid? :enum [[_ _ enum-values] value _]
@@ -133,8 +133,8 @@
        (and (not= :mikron/invalid ~value')
             ~(valid? schema' value' env)))))
 
-(defmethod valid? :aliased [[schema'] value env]
-  (valid? (schema/aliased-schemas schema') value env))
+(defmethod valid? :aliased [[schema-name] value env]
+  (valid? (schema/aliased-schemas schema-name) value env))
 
 (defmethod valid? :custom [schema value _]
   `((deref ~(compile-util/processor-name :valid? schema)) ~value))

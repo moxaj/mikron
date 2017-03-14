@@ -41,7 +41,7 @@
                    ~(pack* schema' value' env))
                  ~value)))))
 
-(defmethod pack :map [[_ _ key-schema value-schema] value env]
+(defmethod pack :map [[_ _ key-schema val-schema] value env]
   (compile-util/with-gensyms [length entry' key' value']
     `(let [~length (util.coll/count ~value)]
        (do ~(pack [:varint] length env)
@@ -49,7 +49,7 @@
                    (let [~key'   (key ~entry')
                          ~value' (val ~entry')]
                      ~(pack key-schema key' env)
-                     ~(pack* value-schema value' env)))
+                     ~(pack* val-schema value' env)))
                  ~value)))))
 
 (defmethod pack :tuple [[_ _ schemas] value env]
@@ -69,15 +69,14 @@
        (when ~value
          ~(pack schema' value env))))
 
-(defmethod pack :multi [[_ _ selector multi-map] value env]
+(defmethod pack :multi [[_ _ selector schemas'] value env]
   `(case (~selector ~value)
-     ~@(->> multi-map
+     ~@(->> schemas'
             (keys)
             (sort)
-            (map-indexed (fn [index multi-case]
-                           [multi-case
-                            `(do ~(pack (schema/integer-schema (count multi-map)) index env)
-                                 ~(pack (multi-map multi-case) value env))]))
+            (map-indexed (fn [index key']
+                           [key' `(do ~(pack (schema/integer-schema (count schemas')) index env)
+                                      ~(pack (schemas' key') value env))]))
             (apply concat))))
 
 (defmethod pack :enum [[_ _ enum-values] value env]
@@ -94,8 +93,8 @@
     `(let [~value' (~pre ~value)]
        ~(pack schema' value' env))))
 
-(defmethod pack :aliased [[schema'] value env]
-  (pack (schema/aliased-schemas schema') value env))
+(defmethod pack :aliased [[schema-name] value env]
+  (pack (schema/aliased-schemas schema-name) value env))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
   `((deref ~(compile-util/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))

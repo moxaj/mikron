@@ -56,13 +56,13 @@
   `(when ~(unpack [:boolean] env)
      ~(unpack schema' env)))
 
-(defmethod unpack :multi [[_ _ _ multi-map] env]
-  `(case ~(unpack (schema/integer-schema (count multi-map)) env)
-     ~@(->> multi-map
+(defmethod unpack :multi [[_ _ _ schemas'] env]
+  `(case ~(unpack (schema/integer-schema (count schemas')) env)
+     ~@(->> schemas'
             (keys)
             (sort)
-            (map-indexed (fn [index multi-case]
-                           [index (unpack (multi-map multi-case) env)]))
+            (map-indexed (fn [index key']
+                           [index (unpack (schemas' key') env)]))
             (apply concat))))
 
 (defmethod unpack :enum [[_ _ enum-values] env]
@@ -71,8 +71,8 @@
 (defmethod unpack :wrapped [[_ _ _ post schema'] env]
   `(~post ~(unpack schema' env)))
 
-(defmethod unpack :aliased [[schema'] env]
-  (unpack (schema/aliased-schemas schema') env))
+(defmethod unpack :aliased [[schema-name] env]
+  (unpack (schema/aliased-schemas schema-name) env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
   `((deref ~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
