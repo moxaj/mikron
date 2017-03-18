@@ -2,7 +2,7 @@
   "Unit tests for each processor."
   (:require [clojure.test :as test]
             [mikron.core :as mikron]
-            [mikron.compile-util :as compile-util])
+            [mikron.compiler.util :as compiler-util])
   #?(:cljs (:require-macros [mikron.test.core-macros])))
 
 (defmulti test-mikron
@@ -12,7 +12,7 @@
 (defmacro def-mikron-tests
   "Generates test methods for all the test cases."
   [test-methods test-cases]
-  (compile-util/with-gensyms [schema dataset]
+  (compiler-util/with-gensyms [schema dataset]
     `(do ~@(for [[schema-name schema-def] test-cases]
              `(let [~schema  (mikron/schema ~schema-def :diff true :interp true)
                     ~dataset (repeatedly 100 #(mikron/gen ~schema))]

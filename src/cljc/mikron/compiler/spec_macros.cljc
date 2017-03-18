@@ -1,6 +1,6 @@
-(ns mikron.spec-macros
+(ns mikron.compiler.spec-macros
   (:require [clojure.spec :as s])
-  #?(:cljs (:require-macros [mikron.spec-macros])))
+  #?(:cljs (:require-macros [mikron.compiler.spec-macros])))
 
 (defmacro schema-spec*
   "Helper macro for shorthand schema spec definition."

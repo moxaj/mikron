@@ -1,9 +1,8 @@
-(ns mikron.spec
+(ns mikron.compiler.spec
   "Macro input validation."
   (:require [clojure.spec :as s]
-            [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
-            [mikron.spec-macros :as spec-macros]))
+            [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.spec-macros :refer [schema-spec*]]))
 
 (s/def ::sorted-by
   some?)
@@ -12,10 +11,10 @@
   (s/and (s/cat :class   symbol?
                 :members (s/* symbol?))
          (s/conformer (fn [{:keys [class members]}]
-                        (vec (cons class members))))))
+                        (into [class] members)))))
 
 (defn schema-name
-  "Returns a spec for a schema definition."
+  "Returns the name part of a schema definition."
   [schema]
   (cond
     (simple-keyword? schema)    schema
@@ -24,50 +23,50 @@
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
-  schema-name :hierarchy #'schema/hierarchy)
+  schema-name :hierarchy #'compiler.schema/hierarchy)
 
 (defmethod schema-spec :primitive [_]
-  (spec-macros/schema-spec* []))
+  (schema-spec* []))
 
 (defmethod schema-spec :aliased [_]
-  (spec-macros/schema-spec* []))
+  (schema-spec* []))
 
 (defmethod schema-spec :coll [_]
-  (spec-macros/schema-spec* [] :schema ::schema))
+  (schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :set [_]
-  (spec-macros/schema-spec* [::sorted-by] :schema ::schema))
+  (schema-spec* [::sorted-by] :schema ::schema))
 
 (defmethod schema-spec :map [_]
-  (spec-macros/schema-spec* [::sorted-by] :key-schema ::schema
-                                          :val-schema ::schema))
+  (schema-spec* [::sorted-by] :key-schema ::schema
+                              :val-schema ::schema))
 
 (defmethod schema-spec :tuple [_]
-  (spec-macros/schema-spec* [] :schemas (s/coll-of ::schema :kind vector?)))
+  (schema-spec* [] :schemas (s/coll-of ::schema :kind vector?)))
 
 (defmethod schema-spec :record [_]
-  (spec-macros/schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
+  (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
 (defmethod schema-spec :optional [_]
-  (spec-macros/schema-spec* [] :schema ::schema))
+  (schema-spec* [] :schema ::schema))
 
 (defmethod schema-spec :enum [_]
-  (spec-macros/schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
+  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
 
 (defmethod schema-spec :multi [_]
-  (spec-macros/schema-spec* [] :selector some?
-                               :schemas  (s/map-of any? ::schema)))
+  (schema-spec* [] :selector some?
+                   :schemas  (s/map-of any? ::schema)))
 
 (defmethod schema-spec :wrapped [_]
-  (spec-macros/schema-spec* [] :pre    some?
-                               :post   some?
-                               :schema ::schema))
+  (schema-spec* [] :pre    some?
+                   :post   some?
+                   :schema ::schema))
 
 (defmethod schema-spec :custom [_]
   some?)
 
 (s/def ::schema
-  (s/and #(empty? (descendants schema/hierarchy %))
+  (s/and #(empty? (descendants compiler.schema/hierarchy %))
          (s/multi-spec schema-spec schema-name)))
 
 (s/def ::path
@@ -89,9 +88,9 @@
                 :ext    (s/keys* :opt-un [::diff ::interp]))
          (s/conformer (fn [{:keys [schema] :as schema*-args}]
                         (-> schema*-args
-                            (update-in [:ext :diff] schema/expand-path schema)
-                            (update-in [:ext :interp] schema/expand-path schema)
-                            (assoc :dependencies (schema/dependencies schema)))))))
+                            (update-in [:ext :diff] compiler.schema/expand-path schema)
+                            (update-in [:ext :interp] compiler.schema/expand-path schema)
+                            (assoc :dependencies (compiler.schema/dependencies schema)))))))
 
 (s/def ::schema-args (s/* any?))
 
@@ -106,7 +105,7 @@
                                              :doc-string (s/? string?))))))
 
 (defn enforce
-  "Returns `value` conformed to `spec`, or throws an exception if it fails."
+  "Returns `value` conformed to `spec`, or throws an exception if the conformation fails."
   [spec value]
   (let [value' (s/conform spec value)]
     (if (s/invalid? value')

@@ -1,8 +1,8 @@
 (ns mikron.util.coll
   "Fast collection operations."
   (:refer-clojure :exclude [count nth every? rand-nth])
-  (:require [mikron.util.math :as util.math]
-            [mikron.compile-util :as compile-util])
+  (:require [mikron.compiler.util :as compiler.util]
+            [mikron.util.math :as util.math])
   #?(:clj (:import [clojure.lang Indexed Counted]))
   #?(:cljs (:require-macros [mikron.util.coll])))
 
@@ -37,7 +37,7 @@
   "Repeatedly evaluates `expr` `n` times, collecting the results into
   a collection `coll`. Uses transient operations if `transient?` is `true`."
   [coll transient? n expr]
-  (compile-util/with-evaluated [coll n]
+  (compiler.util/with-evaluated [coll n]
     `(loop [~n    (long ~n)
             ~coll ~(if transient? `(transient ~coll) coll)]
        (if (== 0 ~n)
@@ -49,7 +49,7 @@
   "Repeatedly evaluates `key-expr` and `value-expr` `n` times, collecting the results into
   a map `coll`. Uses transient operations if `transient?` is `true`."
   [coll transient? n key-expr value-expr]
-  (compile-util/with-evaluated [coll n]
+  (compiler.util/with-evaluated [coll n]
     `(loop [~n    (long ~n)
             ~coll ~(if transient? `(transient ~coll) coll)]
        (if (== 0 ~n)

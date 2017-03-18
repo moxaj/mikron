@@ -1,12 +1,13 @@
-(ns mikron.codegen.unpack
+(ns mikron.compiler.processor.unpack
   "Unpacker generating functions."
-  (:require [mikron.buffer :as buffer]
-            [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
+  (:require [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.util :as compiler.util]
+            ;; Runtime
+            [mikron.buffer :as buffer]
             [mikron.util.coll :as util.coll])
   #?(:clj (:import [mikron.buffer Buffer])))
 
-(defmulti unpack schema/schema-name :hierarchy #'schema/hierarchy)
+(defmulti unpack compiler.schema/schema-name :hierarchy #'compiler.schema/hierarchy)
 
 (defn unpack* [schema {:keys [diffed?] :as env}]
   (if-not diffed?
@@ -39,25 +40,25 @@
                        ~(unpack* val-schema env)))
 
 (defmethod unpack :tuple [[_ _ schemas] env]
-  (let [fields (compile-util/tuple->fields schemas)]
+  (let [fields (compiler.util/tuple->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
                        [value' (unpack* (schemas key') env)])
                      fields)]
-       ~(compile-util/fields->tuple fields))))
+       ~(compiler.util/fields->tuple fields))))
 
 (defmethod unpack :record [[_ {:keys [type]} schemas] env]
-  (let [fields (compile-util/record->fields schemas)]
+  (let [fields (compiler.util/record->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
                        [value' (unpack* (schemas key') env)])
                      fields)]
-       ~(compile-util/fields->record fields type))))
+       ~(compiler.util/fields->record fields type))))
 
 (defmethod unpack :optional [[_ _ schema'] env]
   `(when ~(unpack [:boolean] env)
      ~(unpack schema' env)))
 
 (defmethod unpack :multi [[_ _ _ schemas'] env]
-  `(case ~(unpack (schema/integer-schema (count schemas')) env)
+  `(case ~(unpack (compiler.schema/integer-schema (count schemas')) env)
      ~@(->> schemas'
             (keys)
             (sort)
@@ -66,23 +67,23 @@
             (apply concat))))
 
 (defmethod unpack :enum [[_ _ enum-values] env]
-  `(util.coll/nth ~enum-values ~(unpack (schema/integer-schema (count enum-values)) env)))
+  `(util.coll/nth ~enum-values ~(unpack (compiler.schema/integer-schema (count enum-values)) env)))
 
 (defmethod unpack :wrapped [[_ _ _ post schema'] env]
   `(~post ~(unpack schema' env)))
 
 (defmethod unpack :aliased [[schema-name] env]
-  (unpack (schema/aliased-schemas schema-name) env))
+  (unpack (compiler.schema/aliased-schemas schema-name) env))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
-  `((deref ~(compile-util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
+  `((deref ~(compiler.util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
 
-(defmethod compile-util/processor :unpack [_ {:keys [schema] :as env}]
-  (compile-util/with-gensyms [buffer]
+(defmethod compiler.util/processor :unpack [_ {:keys [schema] :as env}]
+  (compiler.util/with-gensyms [buffer]
     `([~buffer]
       ~(unpack* schema (assoc env :diffed? false :buffer buffer)))))
 
-(defmethod compile-util/processor :unpack-diffed [_ {:keys [schema] :as env}]
-  (compile-util/with-gensyms [buffer]
+(defmethod compiler.util/processor :unpack-diffed [_ {:keys [schema] :as env}]
+  (compiler.util/with-gensyms [buffer]
     `([~buffer]
       ~(unpack* schema (assoc env :diffed? true :buffer buffer)))))

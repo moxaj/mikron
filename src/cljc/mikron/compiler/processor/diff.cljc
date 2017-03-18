@@ -1,17 +1,18 @@
-(ns mikron.codegen.diff
+(ns mikron.compiler.processor.diff
   "Differ and undiffer generating functions."
-  (:require [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
+  (:require [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.util :as compiler.util]
+            ;; Runtime
             [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]))
 
 (def hierarchy
-  (-> schema/hierarchy
-      (schema/derive-all :identical?-comparable [:boolean :nil])
-      (schema/derive-all :=-comparable          [:char :string :symbol])
-      (schema/derive-all :keyword-comparable    [:keyword :enum])))
+  (-> compiler.schema/hierarchy
+      (compiler.schema/derive-all :identical?-comparable [:boolean :nil])
+      (compiler.schema/derive-all :=-comparable          [:char :string :symbol])
+      (compiler.schema/derive-all :keyword-comparable    [:keyword :enum])))
 
-(defmulti diff schema/schema-name :hierarchy #'hierarchy)
+(defmulti diff compiler.schema/schema-name :hierarchy #'hierarchy)
 
 (prefer-method diff :=-comparable :aliased)
 
@@ -55,13 +56,13 @@
     :undiff value-2))
 
 (defmethod diff :list [[_ options schema'] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1-vec value-2-vec]
+  (compiler.util/with-gensyms [value-1-vec value-2-vec]
     `(let [~value-1-vec (vec ~value-1)
            ~value-2-vec (vec ~value-2)]
        ~(diff [:vector options schema'] path value-1-vec value-2-vec env))))
 
 (defmethod diff :vector [[_ _ schema'] path value-1 value-2 env]
-  (compile-util/with-gensyms [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]
+  (compiler.util/with-gensyms [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]
     (let [path' (:all path)]
       (if-not path'
         (diff [:default] nil value-1 value-2 env)
@@ -85,8 +86,8 @@
                         (and ~all-dnil? (identical? :mikron/dnil ~value')))))))))))
 
 (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2' entry-1 key-2 keys-2 value value'
-                              length-1 length-2 same-length? all-dnil?]
+  (compiler.util/with-gensyms [value-1' value-2' entry-1 key-2 keys-2 value value'
+                               length-1 length-2 same-length? all-dnil?]
     (let [path' (:all path)]
       (if-not path'
         (diff [:default] nil value-1 value-2 env)
@@ -111,13 +112,13 @@
                         (and ~all-dnil? ~entry-1 (identical? :mikron/dnil ~value')))))))))))
 
 (defmethod diff :tuple [[_ _ schemas] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2']
+  (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (diff [:default] nil value-1 value-2 env)
-      (let [fields (compile-util/tuple->fields schemas)]
+      (let [fields (compiler.util/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compile-util/tuple-lookup value-1 key)
-                                          ~value-2' ~(compile-util/tuple-lookup value-2 key)]
+                           [value' `(let [~value-1' ~(compiler.util/tuple-lookup value-1 key)
+                                          ~value-2' ~(compiler.util/tuple-lookup value-2 key)]
                                       ~(if-let [path' (path key)]
                                          (diff* (schemas key) path' value-1' value-2' env)
                                          (diff [:default] nil value-1' value-2' env)))])
@@ -126,16 +127,16 @@
                              `(identical? :mikron/dnil ~value'))
                            fields))
              :mikron/dnil
-             ~(compile-util/fields->tuple fields)))))))
+             ~(compiler.util/fields->tuple fields)))))))
 
 (defmethod diff :record [[_ {:keys [type]} schemas] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2']
+  (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (diff [:default] nil value-1 value-2 env)
-      (let [fields (compile-util/record->fields schemas)]
+      (let [fields (compiler.util/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compile-util/record-lookup value-1 key type)
-                                          ~value-2' ~(compile-util/record-lookup value-2 key type)]
+                           [value' `(let [~value-1' ~(compiler.util/record-lookup value-1 key type)
+                                          ~value-2' ~(compiler.util/record-lookup value-2 key type)]
                                       ~(if-let [path' (path key)]
                                          (diff* (schemas key) path' value-1' value-2' env)
                                          (diff [:default] nil value-1' value-2' env)))])
@@ -144,7 +145,7 @@
                              `(identical? :mikron/dnil ~value'))
                            fields))
              :mikron/dnil
-             ~(compile-util/fields->record fields type)))))))
+             ~(compiler.util/fields->record fields type)))))))
 
 (defmethod diff :optional [[_ _ schema'] path value-1 value-2 env]
   `(if (and ~value-1 ~value-2)
@@ -152,7 +153,7 @@
      ~(diff [:default] nil value-1 value-2 env)))
 
 (defmethod diff :multi [[_ _ selector schemas'] path value-1 value-2 env]
-  (compile-util/with-gensyms [case-1 case-2]
+  (compiler.util/with-gensyms [case-1 case-2]
     (if-not path
       (diff [:default] nil value-1 value-2 env)
       `(let [~case-1 (~selector ~value-1)
@@ -167,20 +168,20 @@
                        schemas')))))))
 
 (defmethod diff :aliased [[schema-name] path value-1 value-2 env]
-  (diff (schema/aliased-schemas schema-name) path value-1 value-2 env))
+  (diff (compiler.schema/aliased-schemas schema-name) path value-1 value-2 env))
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type]}]
-  `((deref ~(compile-util/processor-name processor-type schema)) ~value-1 ~value-2))
+  `((deref ~(compiler.util/processor-name processor-type schema)) ~value-1 ~value-2))
 
 (defmethod diff :default [_ _ _ value-2 _]
   value-2)
 
-(defmethod compile-util/processor :diff [_ {:keys [schema ext] :as env}]
-  (compile-util/with-gensyms [_ value-1 value-2]
+(defmethod compiler.util/processor :diff [_ {:keys [schema ext] :as env}]
+  (compiler.util/with-gensyms [_ value-1 value-2]
     `([~value-1 ~value-2]
       ~(diff* schema (:diff ext) value-1 value-2 (assoc env :processor-type :diff)))))
 
-(defmethod compile-util/processor :undiff [_ {:keys [schema ext] :as env}]
-  (compile-util/with-gensyms [_ value-1 value-2]
+(defmethod compiler.util/processor :undiff [_ {:keys [schema ext] :as env}]
+  (compiler.util/with-gensyms [_ value-1 value-2]
     `([~value-1 ~value-2]
       ~(diff* schema (:diff ext) value-1 value-2 (assoc env :processor-type :undiff)))))

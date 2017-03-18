@@ -1,11 +1,12 @@
-(ns mikron.codegen.interp
+(ns mikron.compiler.processor.interp
   "Linear interpolator generating functions."
-  (:require [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
+  (:require [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.util :as compiler.util]
+            ;; Runtime
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
-(defmulti interp schema/schema-name :hierarchy #'schema/hierarchy)
+(defmulti interp compiler.schema/schema-name :hierarchy #'compiler.schema/hierarchy)
 
 (defmethod interp :char [_ _ value-1 value-2 env]
   (interp [:default] nil value-1 value-2 char))
@@ -17,7 +18,7 @@
   `(util.math/interp ~value-1 ~value-2 ~time-factor))
 
 (defmethod interp :list [[_ options schema'] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1-vec value-2-vec]
+  (compiler.util/with-gensyms [value-1-vec value-2-vec]
     (if-not (:all path)
       (interp [:default] nil value-1 value-2 env)
       `(let [~value-1-vec (vec ~value-1)
@@ -25,7 +26,7 @@
          ~(interp [:vector options schema'] path value-1-vec value-2-vec env)))))
 
 (defmethod interp :vector [[_ _ schema'] path value-1 value-2 env]
-  (compile-util/with-gensyms [index value-1' value-2' value value' length-1 length-2]
+  (compiler.util/with-gensyms [index value-1' value-2' value value' length-1 length-2]
     (let [path' (:all path)]
       (if-not path'
         (interp [:default] nil value-1 value-2 env)
@@ -44,7 +45,7 @@
                         (unchecked-inc ~index))))))))))
 
 (defmethod interp :map [[_ {:keys [sorted-by]} key-schema val-schema] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2' key-2 keys-2 value value']
+  (compiler.util/with-gensyms [value-1' value-2' key-2 keys-2 value value']
     (let [path' (:all path)]
       (if-not path'
         (interp [:default] nil value-1 value-2 env)
@@ -64,32 +65,32 @@
                       ~keys-2))))))))
 
 (defmethod interp :tuple [[_ _ schemas] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2']
+  (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (interp [:default] nil value-1 value-2 env)
-      (let [fields (compile-util/tuple->fields schemas)]
+      (let [fields (compiler.util/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compile-util/tuple-lookup value-1 key)
-                                          ~value-2' ~(compile-util/tuple-lookup value-2 key)]
+                           [value' `(let [~value-1' ~(compiler.util/tuple-lookup value-1 key)
+                                          ~value-2' ~(compiler.util/tuple-lookup value-2 key)]
                                       ~(if-let [path' (path key)]
                                          (interp (schemas key) path' value-1' value-2' env)
                                          (interp [:default] nil value-1' value-2' env)))])
                          fields)]
-           ~(compile-util/fields->tuple fields))))))
+           ~(compiler.util/fields->tuple fields))))))
 
 (defmethod interp :record [[_ {:keys [type]} schemas] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2']
+  (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (interp [:default] nil value-1 value-2 env)
-      (let [fields (compile-util/record->fields schemas)]
+      (let [fields (compiler.util/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compile-util/record-lookup value-1 key type)
-                                          ~value-2' ~(compile-util/record-lookup value-2 key type)]
+                           [value' `(let [~value-1' ~(compiler.util/record-lookup value-1 key type)
+                                          ~value-2' ~(compiler.util/record-lookup value-2 key type)]
                                       ~(if-let [path' (path key)]
                                          (interp (schemas key) path' value-1' value-2' env)
                                          (interp [:default] nil value-1' value-2' env)))])
                          fields)]
-           ~(compile-util/fields->record fields type))))))
+           ~(compiler.util/fields->record fields type))))))
 
 (defmethod interp :optional [[_ _ schema'] path value-1 value-2 env]
   `(if (and ~value-1 ~value-2)
@@ -97,7 +98,7 @@
      ~(interp [:default] nil value-1 value-2 env)))
 
 (defmethod interp :multi [[_ _ selector schemas'] path value-1 value-2 env]
-  (compile-util/with-gensyms [case-1 case-2]
+  (compiler.util/with-gensyms [case-1 case-2]
     (if-not path
       (interp [:default] nil value-1 value-2 env)
       `(let [~case-1 (~selector ~value-1)
@@ -112,22 +113,22 @@
                        schemas')))))))
 
 (defmethod interp :wrapped [[_ _ pre post schema'] path value-1 value-2 env]
-  (compile-util/with-gensyms [value-1' value-2']
+  (compiler.util/with-gensyms [value-1' value-2']
     `(let [~value-1' (~pre ~value-1)
            ~value-2' (~pre ~value-2)]
        (~post ~(interp schema' path value-1' value-2' env)))))
 
 (defmethod interp :aliased [[schema-name] path value-1 value-2 env]
-  (interp (schema/aliased-schemas schema-name) path value-1 value-2 env))
+  (interp (compiler.schema/aliased-schemas schema-name) path value-1 value-2 env))
 
 (defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor]}]
-  `((deref ~(compile-util/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))
+  `((deref ~(compiler.util/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))
 
 (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))
 
-(defmethod compile-util/processor :interp [_ {:keys [schema ext] :as env}]
-  (compile-util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]
+(defmethod compiler.util/processor :interp [_ {:keys [schema ext] :as env}]
+  (compiler.util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]
     `([~value-1 ~value-2 ~prefer-first? ~time-factor]
       ~(interp schema (:interp ext) value-1 value-2
                (assoc env :prefer-first? prefer-first? :time-factor time-factor)))))

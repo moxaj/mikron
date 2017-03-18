@@ -1,19 +1,20 @@
-(ns mikron.codegen.gen
+(ns mikron.compiler.processor.gen
   "Generator generating functions."
-  (:require [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
+  (:require [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.util :as compiler.util]
+            ;; Runtime
             [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
 (def ^:const gen-length 4)
 
-(defmulti gen schema/schema-name :hierarchy #'schema/hierarchy)
+(defmulti gen compiler.schema/schema-name :hierarchy #'compiler.schema/hierarchy)
 
 (defn gen-integer
   "Generates code for random integer generation."
   [bytes signed?]
-  (compile-util/with-gensyms [r]
+  (compiler.util/with-gensyms [r]
     `(let [~r (util.math/rand)]
        (-> (* ~r ~(util.math/upper-bound bytes signed?))
            (+ (* (- 1 ~r) ~(util.math/lower-bound bytes signed?)))
@@ -88,18 +89,18 @@
                        ~(gen val-schema env)))
 
 (defmethod gen :tuple [[_ _ schemas] env]
-  (let [fields (compile-util/tuple->fields schemas)]
+  (let [fields (compiler.util/tuple->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
                        [value' (gen (schemas key') env)])
                      fields)]
-       ~(compile-util/fields->tuple fields))))
+       ~(compiler.util/fields->tuple fields))))
 
 (defmethod gen :record [[_ {:keys [type]} schemas] env]
-  (let [fields (compile-util/record->fields schemas)]
+  (let [fields (compiler.util/record->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
                        [value' (gen (schemas key') env)])
                      fields)]
-       ~(compile-util/fields->record fields type))))
+       ~(compiler.util/fields->record fields type))))
 
 (defmethod gen :optional [[_ _ schema'] env]
   `(when ~(gen [:boolean] env)
@@ -119,11 +120,11 @@
   `(~post ~(gen schema' env)))
 
 (defmethod gen :aliased [[schema-name] env]
-  (gen (schema/aliased-schemas schema-name) env))
+  (gen (compiler.schema/aliased-schemas schema-name) env))
 
 (defmethod gen :custom [schema env]
-  `((deref ~(compile-util/processor-name :gen schema))))
+  `((deref ~(compiler.util/processor-name :gen schema))))
 
-(defmethod compile-util/processor :gen [_ {:keys [schema] :as env}]
+(defmethod compiler.util/processor :gen [_ {:keys [schema] :as env}]
   `([]
     ~(gen schema env)))

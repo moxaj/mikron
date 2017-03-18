@@ -2,7 +2,7 @@
   "Actual unit test cases."
   (:require [clojure.test :as test]
             [mikron.core :as mikron]
-            [mikron.test.core-macros :as test-macros])
+            [mikron.test.core-macros :as test-macros :refer [def-mikron-tests]])
   #?(:clj (:import [java.util Arrays])))
 
 (defn equal?
@@ -31,7 +31,7 @@
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
-(test-macros/def-mikron-tests [:pack :diff :valid? :interp]
+(def-mikron-tests [:pack :diff :valid? :interp]
   {t-byte         :byte
    t-short        :short
    t-int          :int

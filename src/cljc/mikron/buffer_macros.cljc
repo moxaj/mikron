@@ -1,13 +1,13 @@
 (ns mikron.buffer-macros
   (:require [clojure.spec :as s]
-            [mikron.spec :as spec]
-            [mikron.compile-util :as compile-util])
+            [mikron.compiler.spec :as compiler.spec]
+            [mikron.compiler.util :as compiler.util])
   #?(:cljs (:require-macros [mikron.buffer-macros])))
 
 (defmacro with-delta
   "Executes `body` and updates the position `pos` with the delta `delta`."
   [pos delta body]
-  (compile-util/with-gensyms [value]
+  (compiler.util/with-gensyms [value]
     `(let [~value ~body]
        (set! ~pos (unchecked-add ~pos ~delta))
        ~value)))
@@ -23,7 +23,7 @@
   "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
   [name & ops]
   (let [no-meta    #(with-meta % nil)
-        cljs?      (compile-util/cljs?)
+        cljs?      (compiler.util/cljs?)
         ops        (map (fn [[op-name args doc-string]]
                           [op-name
                            args
@@ -57,4 +57,4 @@
                         ~@args')))
                   ops)))))
 
-(s/fdef definterface+ :args ::spec/definterface+-args)
+(s/fdef definterface+ :args ::compiler.spec/definterface+-args)

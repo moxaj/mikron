@@ -1,14 +1,14 @@
  (ns mikron.core
   "Core namespace. Contains the public API."
   (:require [clojure.spec :as s]
-            [mikron.spec :as spec]
-            [mikron.compile-util :as compile-util]
-            [mikron.codegen.pack]
-            [mikron.codegen.unpack]
-            [mikron.codegen.validate]
-            [mikron.codegen.gen]
-            [mikron.codegen.diff]
-            [mikron.codegen.interp]
+            [mikron.compiler.spec :as compiler.spec]
+            [mikron.compiler.util :as compiler.util]
+            [mikron.compiler.processor.pack]
+            [mikron.compiler.processor.unpack]
+            [mikron.compiler.processor.validate]
+            [mikron.compiler.processor.gen]
+            [mikron.compiler.processor.diff]
+            [mikron.compiler.processor.interp]
             [mikron.buffer :as buffer]
             [mikron.util :as util]
             [mikron.util.math :as util.math])
@@ -30,7 +30,7 @@
   schema-name)
 
 (defn resolve-schema
-  ""
+  "Returns a resolved schema for the given argument."
   [arg]
   (if (schema? arg)
     arg
@@ -44,16 +44,16 @@
    (schema* [:vector :int])
    ~~~"
   [& args]
-  (let [{:keys [dependencies] :as env} (spec/enforce ::spec/schema*-args args)
-        processor-types (keys (methods compile-util/processor))]
+  (let [{:keys [dependencies] :as env} (compiler.spec/enforce ::compiler.spec/schema*-args args)
+        processor-types (keys (methods compiler.util/processor))]
     `(let [~@(->> (for [processor-type processor-types
                         dependency     dependencies]
-                    [(compile-util/processor-name processor-type dependency)
+                    [(compiler.util/processor-name processor-type dependency)
                      `(delay (~processor-type (.-processors ^Schema (resolve-schema ~dependency))))])
                   (apply concat))]
        (Schema. ~(->> processor-types
                       (map (fn [processor-type]
-                             [processor-type `(fn ~(compile-util/processor processor-type env))]))
+                             [processor-type `(fn ~(compiler.util/processor processor-type env))]))
                       (into {}))
                 '~env))))
 
@@ -66,7 +66,7 @@
   [& args]
   (apply schema* args))
 
-(s/fdef schema :args ::spec/schema-args)
+(s/fdef schema :args ::compiler.spec/schema-args)
 
 (defmacro defschema
   "Given a name and a schema definition, returns a globally registered, reified schema.
@@ -75,10 +75,10 @@
      [:record {:a :keyword :b :ubyte}])
    ~~~"
   [& args]
-  (let [{:keys [schema-name schema*-args]} (spec/enforce ::spec/defschema-args args)]
+  (let [{:keys [schema-name schema*-args]} (compiler.spec/enforce ::compiler.spec/defschema-args args)]
     `(register-schema ~schema-name ~(apply schema* schema*-args))))
 
-(s/fdef defschema :args ::spec/defschema-args)
+(s/fdef defschema :args ::compiler.spec/defschema-args)
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."

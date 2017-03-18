@@ -180,13 +180,14 @@
    o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
   (comp (testing)
-        (case platform
+        (case (or platform :clj)
           :clj  (test-clj)
           :cljs (case (or target :browser)
-                  :nodejs  (test-node :opt          opt
-                                      :self-hosted? self-hosted?)
                   :browser (test-browser :opt    opt
-                                         :js-env :slimer)))))
+                                         :js-env :slimer)
+                  :nodejs  (test-node :opt          opt
+                                      :self-hosted? self-hosted?)))))
+
 
 (deftask compile-cljs
   "Compiles the cljs source files."

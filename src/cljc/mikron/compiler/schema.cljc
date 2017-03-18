@@ -1,6 +1,7 @@
-(ns mikron.schema
+(ns mikron.compiler.schema
   "Schema definition related functions."
   (:require [clojure.set :as set]
+            ;; Runtime
             [mikron.util.schema :as util.schema]))
 
 (def aliased-schemas

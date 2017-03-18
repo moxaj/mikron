@@ -1,7 +1,7 @@
-(ns mikron.compile-util
+(ns mikron.compiler.util
   "Compile time utility functions."
   (:require [clojure.string :as string])
-  #?(:cljs (:require-macros [mikron.compile-util])))
+  #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
 

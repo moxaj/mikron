@@ -2,12 +2,11 @@
   "Buffer interfaces, implementations, and derived operations."
   (:require [mikron.util :as util]
             [mikron.util.math :as math]
-            [mikron.compile-util :as compile-util]
-            [mikron.buffer-macros :as buffer-macros]
-            #?(:cljs [feross.buffer :as js-buffer]))
+            [mikron.buffer-macros :refer [with-delta with-le definterface+]]
+            #?(:cljs [feross.buffer]))
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
-(buffer-macros/definterface+ IMikronBitBuffer
+(definterface+ IMikronBitBuffer
   (^long   ?bit-pos* []            "Gets the current position.")
   (^Object !bit-pos* [^long value] "Sets the current position.")
 
@@ -36,7 +35,7 @@
   (!bit-value* [_ value']
     (set! value #?(:clj value' :cljs (unchecked-long value')))))
 
-(buffer-macros/definterface+ IMikronByteBuffer
+(definterface+ IMikronByteBuffer
   (^long   ?byte* []            "Reads a byte.")
   (^Object !byte* [^long value] "Writes a byte.")
 
@@ -68,9 +67,9 @@
 
 #?(:cljs
    (def NativeJsBuffer
-     (if (util/node-env?)
+     (if (= "nodejs" cljs.core/*target*)
        (.-Buffer (js/require "buffer"))
-       js-buffer/Buffer)))
+       feross.buffer/Buffer)))
 
 (deftype MikronByteBuffer
   #?(:clj  [^ByteBuffer buffer]
@@ -78,27 +77,26 @@
             ^long ^:unsynchronized-mutable pos
             ^boolean ^:unsynchronized-mutable le])
   IMikronByteBuffer
-
   (?byte* [_]
     #?(:clj  (unchecked-long (.get buffer))
-       :cljs (buffer-macros/with-delta pos 1 (.readInt8 buffer pos true))))
+       :cljs (with-delta pos 1 (.readInt8 buffer pos true))))
   (!byte* [_ value]
     #?(:clj  (.put buffer (unchecked-byte value))
-       :cljs (buffer-macros/with-delta pos 1 (.writeInt8 buffer value pos true))))
+       :cljs (with-delta pos 1 (.writeInt8 buffer value pos true))))
 
   (?short* [_]
     #?(:clj  (unchecked-long (.getShort buffer))
-       :cljs (buffer-macros/with-delta pos 2 (buffer-macros/with-le le (.readInt16 buffer pos true)))))
+       :cljs (with-delta pos 2 (with-le le (.readInt16 buffer pos true)))))
   (!short* [_ value]
     #?(:clj  (.putShort buffer (unchecked-short value))
-       :cljs (buffer-macros/with-delta pos 2 (buffer-macros/with-le le (.writeInt16 buffer value pos true)))))
+       :cljs (with-delta pos 2 (with-le le (.writeInt16 buffer value pos true)))))
 
   (?int* [_]
     #?(:clj  (.getInt buffer)
-       :cljs (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.readInt32 buffer pos true)))))
+       :cljs (with-delta pos 4 (with-le le (.readInt32 buffer pos true)))))
   (!int* [_ value]
     #?(:clj  (.putInt buffer (unchecked-int value))
-       :cljs (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.writeInt32 buffer value pos true)))))
+       :cljs (with-delta pos 4 (with-le le (.writeInt32 buffer value pos true)))))
 
   (?long* [this]
     #?(:clj  (.getLong buffer)
@@ -116,17 +114,17 @@
 
   (?float* [_]
     #?(:clj  (double (.getFloat buffer))
-       :cljs (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.readFloat buffer pos true)))))
+       :cljs (with-delta pos 4 (with-le le (.readFloat buffer pos true)))))
   (!float* [_ value]
     #?(:clj  (.putFloat buffer (unchecked-float value))
-       :cljs (buffer-macros/with-delta pos 4 (buffer-macros/with-le le (.writeFloat buffer value pos true)))))
+       :cljs (with-delta pos 4 (with-le le (.writeFloat buffer value pos true)))))
 
   (?double* [_]
     #?(:clj  (.getDouble buffer)
-       :cljs (buffer-macros/with-delta pos 8 (buffer-macros/with-le le (.readDouble buffer pos true)))))
+       :cljs (with-delta pos 8 (with-le le (.readDouble buffer pos true)))))
   (!double* [_ value]
     #?(:clj  (.putDouble buffer value)
-       :cljs (buffer-macros/with-delta pos 8 (buffer-macros/with-le le (.writeDouble buffer value pos true)))))
+       :cljs (with-delta pos 8 (with-le le (.writeDouble buffer value pos true)))))
 
   (?bytes* [_ n]
     #?(:clj  (let [value (byte-array n)]
@@ -429,7 +427,7 @@
     (when-not (== -1 bit-pos)
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
-(buffer-macros/definterface+ IMikronByteBufferFactory
+(definterface+ IMikronByteBufferFactory
   (^mikron.buffer.IMikronByteBuffer allocate* [^long size]    "Allocates a buffer with size `size`.")
   (^mikron.buffer.IMikronByteBuffer wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 

@@ -1,13 +1,14 @@
-(ns mikron.codegen.validate
+(ns mikron.compiler.processor.validate
   "Validator generating functions."
-  (:require [mikron.schema :as schema]
-            [mikron.compile-util :as compile-util]
+  (:require [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.util :as compiler.util]
+            ;; Runtime
             [mikron.util :as util]
             [mikron.util.schema :as util.schema]
             [mikron.util.coll :as util.coll]
             [mikron.util.math :as util.math]))
 
-(defmulti valid? schema/schema-name :hierarchy #'schema/hierarchy)
+(defmulti valid? compiler.schema/schema-name :hierarchy #'compiler.schema/hierarchy)
 
 (defn valid-integer?
   "Generates code for integer validation."
@@ -66,28 +67,28 @@
   `(symbol? ~value))
 
 (defmethod valid? :list [[_ _ schema'] value env]
-  (compile-util/with-gensyms [value']
+  (compiler.util/with-gensyms [value']
     `(and (sequential? ~value)
           (every? (fn [~value']
                     ~(valid? schema' value' env))
                   ~value))))
 
 (defmethod valid? :vector [[_ _ schema'] value env]
-  (compile-util/with-gensyms [value']
+  (compiler.util/with-gensyms [value']
     `(and (vector? ~value)
           (util.coll/every? (fn [~value']
                               ~(valid? schema' value' env))
                             ~value))))
 
 (defmethod valid? :set [[_ _ schema'] value env]
-  (compile-util/with-gensyms [value']
+  (compiler.util/with-gensyms [value']
     `(and (set? ~value)
           (every? (fn [~value']
                     ~(valid? schema' value' env))
                   ~value))))
 
 (defmethod valid? :map [[_ _ key-schema val-schema] value env]
-  (compile-util/with-gensyms [entry' key' value']
+  (compiler.util/with-gensyms [entry' key' value']
     `(and (map? ~value)
           (every? (fn [~entry']
                     (let [~key'   (key ~entry')
@@ -100,18 +101,18 @@
   `(and (vector? ~value)
         (== (util.coll/count ~value) ~(count schemas))
         ~@(map (fn [[key' value']]
-                 `(let [~value' ~(compile-util/tuple-lookup value key')]
+                 `(let [~value' ~(compiler.util/tuple-lookup value key')]
                     ~(valid? (schemas key') value' env)))
-               (compile-util/tuple->fields schemas))))
+               (compiler.util/tuple->fields schemas))))
 
 (defmethod valid? :record [[_ {:keys [type]} schemas] value env]
   `(and ~(if type
            `(instance? ~(first type) ~value)
            `(map? ~value))
         ~@(map (fn [[key' value']]
-                 `(let [~value' ~(compile-util/record-lookup value key' type)]
+                 `(let [~value' ~(compiler.util/record-lookup value key' type)]
                     ~(valid? (schemas key') value' env)))
-               (compile-util/record->fields schemas))))
+               (compiler.util/record->fields schemas))))
 
 (defmethod valid? :optional [[_ _ schema'] value env]
   `(or (nil? ~value)
@@ -128,18 +129,18 @@
   `(~(set enum-values) ~value))
 
 (defmethod valid? :wrapped [[_ _ pre _ schema'] value env]
-  (compile-util/with-gensyms [value']
+  (compiler.util/with-gensyms [value']
     `(let [~value' (util/safe :mikron/invalid (~pre ~value))]
        (and (not= :mikron/invalid ~value')
             ~(valid? schema' value' env)))))
 
 (defmethod valid? :aliased [[schema-name] value env]
-  (valid? (schema/aliased-schemas schema-name) value env))
+  (valid? (compiler.schema/aliased-schemas schema-name) value env))
 
 (defmethod valid? :custom [schema value _]
-  `((deref ~(compile-util/processor-name :valid? schema)) ~value))
+  `((deref ~(compiler.util/processor-name :valid? schema)) ~value))
 
-(defmethod compile-util/processor :valid? [_ {:keys [schema] :as env}]
-  (compile-util/with-gensyms [value]
+(defmethod compiler.util/processor :valid? [_ {:keys [schema] :as env}]
+  (compiler.util/with-gensyms [value]
     `([~value]
       ~(valid? schema value env))))
