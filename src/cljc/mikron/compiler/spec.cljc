@@ -19,7 +19,7 @@
   (cond
     (simple-keyword? schema)    schema
     (vector? schema)            (first schema)
-    (qualified-keyword? schema) :custom))
+    :else                       :custom))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
