@@ -1,7 +1,6 @@
 (ns mikron.compiler.schema
   "Schema definition related functions."
-  (:require [clojure.set :as set]
-            ;; Runtime
+  (:require ;; Runtime
             [mikron.util.schema :as util.schema]))
 
 (def aliased-schemas
@@ -94,7 +93,9 @@
 
 (defmulti schema-seq* schema-name :hierarchy #'hierarchy)
 
-(defn schema-seq [schema]
+(defn schema-seq
+  "Does a pre-order walk on the schema hierarchy, and collects them into a sequence."
+  [schema]
   (into [schema] (schema-seq* schema)))
 
 (defmethod schema-seq* :coll [[_ _ schema']]
@@ -133,7 +134,9 @@
 (defmethod schema-seq* :default [schema]
   [])
 
-(defn dependencies [schema]
+(defn dependencies
+  "Returns the dependencies of `schema`."
+  [schema]
   (->> schema
        (schema-seq)
        (filter (complement vector?))

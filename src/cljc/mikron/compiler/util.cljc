@@ -1,6 +1,5 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
-  (:require [clojure.string :as string])
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
@@ -84,10 +83,4 @@
   "Returns a memoized processor name."
   (memoize
     (fn [processor-type schema-name]
-      (-> (str (name processor-type) "-" (namespace schema-name) "-" (name schema-name))
-          (string/replace "." "_DOT_")
-          (gensym)))))
-
-(defmulti processor
-  "Generates processor code."
-  (fn [processor-type env] processor-type))
+      (gensym (str (name processor-type) "-" (name schema-name))))))
