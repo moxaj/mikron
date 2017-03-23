@@ -3,6 +3,7 @@
   (:require [clojure.spec :as s]
             [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util]
+            [mikron.compiler.processor.common :as compiler.common]
             [mikron.compiler.processor.pack]
             [mikron.compiler.processor.unpack]
             [mikron.compiler.processor.validate]
@@ -14,7 +15,7 @@
             [mikron.util.math :as util.math])
   #?(:cljs (:require-macros [mikron.core])))
 
-(defrecord Schema [processors env])
+(defrecord Schema [processors opts])
 
 (defn schema?
   "Returns `true` if `arg` is an instance of `Schema`, `false` otherwise."
@@ -44,8 +45,8 @@
    (schema* [:vector :int])
    ~~~"
   [& args]
-  (let [{:keys [dependencies] :as env} (compiler.spec/enforce ::compiler.spec/schema*-args args)
-        processor-types (keys (methods compiler.util/processor))]
+  (let [{:keys [dependencies] :as opts} (compiler.spec/enforce ::compiler.spec/schema*-args args)
+        processor-types (keys (methods compiler.common/processor))]
     `(let [~@(->> (for [processor-type processor-types
                         dependency     dependencies]
                     [(compiler.util/processor-name processor-type dependency)
@@ -53,12 +54,12 @@
                   (apply concat))]
        (Schema. ~(->> processor-types
                       (map (fn [processor-type]
-                             [processor-type `(fn ~(compiler.util/processor processor-type env))]))
+                             [processor-type `(fn ~(compiler.common/processor processor-type opts))]))
                       (into {}))
-                '~env))))
+                '~opts))))
 
 (defmacro schema
-  "Given a schema definition, returns a reified schema.
+  "Returns a reified schema for the given schema definition.
    ~~~klipse
    (def my-schema
      (schema [:tuple [:int :string [:enum [:a :b :c]]]]))
@@ -69,14 +70,13 @@
 (s/fdef schema :args ::compiler.spec/schema-args)
 
 (defmacro defschema
-  "Given a name and a schema definition, returns a globally registered, reified schema.
+  "Registers a reified schema for the given schema definition, with the given name.
    ~~~klipse
    (defschema ::schema
      [:record {:a :keyword :b :ubyte}])
    ~~~"
-  [& args]
-  (let [{:keys [schema-name schema*-args]} (compiler.spec/enforce ::compiler.spec/defschema-args args)]
-    `(register-schema ~schema-name ~(apply schema* schema*-args))))
+  [schema-name & args]
+  `(register-schema ~schema-name ~(apply schema* args)))
 
 (s/fdef defschema :args ::compiler.spec/defschema-args)
 

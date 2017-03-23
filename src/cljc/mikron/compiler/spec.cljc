@@ -17,9 +17,9 @@
   "Returns the name part of a schema definition."
   [schema]
   (cond
-    (simple-keyword? schema)    schema
-    (vector? schema)            (first schema)
-    :else                       :custom))
+    (simple-keyword? schema) schema
+    (vector? schema)         (first schema)
+    :else                    :custom))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
@@ -92,11 +92,12 @@
                             (update-in [:ext :interp] compiler.schema/expand-path schema)
                             (assoc :dependencies (compiler.schema/dependencies schema)))))))
 
-(s/def ::schema-args (s/* any?))
+(s/def ::schema-args
+  (s/* any?))
 
 (s/def ::defschema-args
-  (s/cat :schema-name  qualified-keyword?
-         :schema*-args (s/* any?)))
+  (s/cat :schema-name qualified-keyword?
+         :args        (s/* any?)))
 
 (s/def ::definterface+-args
   (s/cat :interface-name simple-symbol?
