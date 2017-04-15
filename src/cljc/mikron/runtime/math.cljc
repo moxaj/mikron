@@ -1,4 +1,4 @@
-(ns mikron.util.math
+(ns mikron.runtime.math
   "Numeric utility functions."
   (:refer-clojure :exclude [and or not zero? rand rand-int])
   #?(:cljs (:import goog.math.Long)))
@@ -58,23 +58,23 @@
   #?(:cljs ([low high]
             (.fromBits goog.math.Long low high))))
 
-(def c0 ;^:const
+(def ^:const c0
   "The constant long 0."
   (from 0))
 
-(def c1 ;^:const
+(def ^:const c1
   "The constant long 1."
   (from 1))
 
-(def c127 ;^:const
+(def ^:const c127
   "The constant long 127."
   (from 127))
 
-(def c128 ;^:const
+(def ^:const c128
   "The constant long 128."
   (from 128))
 
-(def c-128 ;^:const
+(def ^:const c-128
   "The constant long -128."
   (from -128))
 
@@ -151,14 +151,14 @@
        (negate (and x c1))))
 
 (defn lower-bound
-  "Returns the lower bound for an integer value."
+  "Returns the lower bound for an integer type"
   [^long bytes signed?]
   (if signed?
     (- (pow 2 (dec (* bytes 8))))
     0))
 
 (defn upper-bound
-  "Returns the upper bound for an integer value."
+  "Returns the upper bound for an integer type"
   [^long bytes signed?]
   (let [m (pow 2 (* bytes 8))]
     (if signed?

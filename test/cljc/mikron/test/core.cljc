@@ -1,7 +1,7 @@
 (ns mikron.test.core
   "Actual unit test cases."
   (:require [clojure.test :as test]
-            [mikron.core :as mikron]
+            [mikron.runtime.core :as mikron]
             [mikron.test.core-macros :as test-macros :refer [def-mikron-tests]])
   #?(:clj (:import [java.util Arrays])))
 

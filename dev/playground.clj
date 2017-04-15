@@ -2,8 +2,13 @@
   (:refer-clojure :exclude [doubles])
   (:require [clojure.pprint :as p]
             [criterium.core :as c]
-            [mikron.core :as mikron :refer [defschema schema pack unpack gen valid? diff undiff interp]]))
+            [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff interp]]
+            [clojure.spec :as s]))
             ;[no.disassemble :as d]))
+
+(set! *warn-on-reflection* true)
+
+(set! *unchecked-math* :warn-on-boxed)
 
 (defmacro c! [& body]
   `(c/with-progress-reporting (c/quick-bench (do ~@body))))

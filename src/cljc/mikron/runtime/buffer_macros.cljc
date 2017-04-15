@@ -1,8 +1,8 @@
-(ns mikron.buffer-macros
+(ns mikron.runtime.buffer-macros
   (:require [clojure.spec :as s]
             [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util])
-  #?(:cljs (:require-macros [mikron.buffer-macros])))
+  #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
 (defmacro with-delta
   "Executes `body` and updates the position `pos` with the delta `delta`."

@@ -1,8 +1,8 @@
 (ns mikron.benchmark.core
   "Benchmarks."
-  (:require [mikron.core :as mikron]
-            [mikron.util :as util]
-            [mikron.util.schema :as util.schema]
+  (:require [mikron.runtime.core :as mikron]
+            [mikron.runtime.util :as runtime.util]
+            [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.benchmark.data :as benchmark.data]
             [mikron.benchmark.schema :as benchmark.schema]
             [cognitect.transit :as transit]
@@ -33,7 +33,7 @@
 (defmulti pack (fn [method _ _] method))
 
 (defmethod pack :edn ^bytes [_ _ data]
-  (util.schema/string->binary (util.schema/any->string data)))
+  (runtime.processor.common/string->binary (runtime.processor.common/any->string data)))
 
 (defmethod pack :mikron ^bytes [_ schema data]
   (mikron/pack schema data))
@@ -44,7 +44,7 @@
              (.toByteArray baos))
      :cljs (->> data
                 (transit/write (transit/writer :json))
-                (util.schema/string->binary))))
+                (runtime.processor.common/string->binary))))
 
 (defmethod pack :octet ^bytes [_ schema data]
   (let [length (octet/write! octet-buffer data schema)]
@@ -56,7 +56,7 @@
 
 #?(:clj ;; json
    (defmethod pack :json ^bytes [_ _ data]
-     (util.schema/string->binary (cheshire/generate-string data))))
+     (runtime.processor.common/string->binary (cheshire/generate-string data))))
 
 #?(:clj ;; smile
    (defmethod pack :smile ^bytes [_ _ data]
@@ -102,7 +102,7 @@
 (defmulti unpack (fn [method _ _] method))
 
 (defmethod unpack :edn [_ _ ^bytes binary]
-  (util.schema/string->any (util.schema/binary->string binary)))
+  (runtime.processor.common/string->any (runtime.processor.common/binary->string binary)))
 
 (defmethod unpack :mikron [_ schema ^bytes binary]
   (mikron/unpack schema binary))
@@ -112,7 +112,7 @@
                (transit/reader :json)
                (transit/read))
      :cljs (->> binary
-                (util.schema/binary->string)
+                (runtime.processor.common/binary->string)
                 (transit/read (transit/reader :json)))))
 
 (defmethod unpack :octet [_ schema ^bytes binary]
@@ -122,7 +122,7 @@
 
 #?(:clj ;; json
    (defmethod unpack :json [_ _ ^bytes binary]
-     (cheshire/parse-string (util.schema/binary->string binary))))
+     (cheshire/parse-string (runtime.processor.common/binary->string binary))))
 
 #?(:clj ;; smile
    (defmethod unpack :smile [_ _ ^bytes binary]
@@ -168,7 +168,7 @@
 
 #?(:cljs
    (defn now []
-     (if (util/node-env?)
+     (if (runtime.util/node-env?)
        (let [[secs nanos] (.hrtime js/process)]
          (+ (* 1000 secs) (/ nanos 1000 1000)))
        (.now js/performance))))
@@ -204,7 +204,7 @@
                  schema (benchmark.schema/get-schema method schema)]
              [method (vec (for [stat stats]
                             (do (println "Measuring" (name method) "|" (name stat))
-                                (util/safe 0 (measure stat method schema data)))))]))
+                                (runtime.util/safe 0 (measure stat method schema data)))))]))
          (sort-by second)
          (vec))))
 

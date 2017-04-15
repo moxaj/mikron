@@ -21,15 +21,31 @@
     (vector? schema)         (first schema)
     :else                    :custom))
 
+(def hierarchy
+  (-> compiler.schema/hierarchy
+      (compiler.schema/derive-all :simple-schema [:number :boolean :binary :nil])))
+
 (defmulti schema-spec
   "Returns a spec for a schema definition."
-  schema-name :hierarchy #'compiler.schema/hierarchy)
+  schema-name :hierarchy #'hierarchy)
 
-(defmethod schema-spec :primitive [_]
+(defmethod schema-spec :simple-schema [_]
   (schema-spec* []))
 
-(defmethod schema-spec :aliased [_]
-  (schema-spec* []))
+(defmethod schema-spec :enum [_]
+  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
+
+(defmethod schema-spec :optional [_]
+  (schema-spec* [] :schema ::schema))
+
+(defmethod schema-spec :wrapped [_]
+  (schema-spec* [] :pre    some?
+                   :post   some?
+                   :schema ::schema))
+
+(defmethod schema-spec :multi [_]
+  (schema-spec* [] :selector some?
+                   :schemas  (s/map-of any? ::schema)))
 
 (defmethod schema-spec :coll [_]
   (schema-spec* [] :schema ::schema))
@@ -47,26 +63,14 @@
 (defmethod schema-spec :record [_]
   (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
-(defmethod schema-spec :optional [_]
-  (schema-spec* [] :schema ::schema))
-
-(defmethod schema-spec :enum [_]
-  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
-
-(defmethod schema-spec :multi [_]
-  (schema-spec* [] :selector some?
-                   :schemas  (s/map-of any? ::schema)))
-
-(defmethod schema-spec :wrapped [_]
-  (schema-spec* [] :pre    some?
-                   :post   some?
-                   :schema ::schema))
+(defmethod schema-spec :aliased [_]
+  (schema-spec* []))
 
 (defmethod schema-spec :custom [_]
   some?)
 
 (s/def ::schema
-  (s/and #(empty? (descendants compiler.schema/hierarchy %))
+  (s/and #(empty? (descendants hierarchy %))
          (s/multi-spec schema-spec schema-name)))
 
 (s/def ::path
@@ -86,11 +90,11 @@
 (s/def ::schema*-args
   (s/and (s/cat :schema ::schema
                 :ext    (s/keys* :opt-un [::diff ::interp]))
-         (s/conformer (fn [{:keys [schema] :as schema*-args}]
-                        (-> schema*-args
-                            (update-in [:ext :diff] compiler.schema/expand-path schema)
-                            (update-in [:ext :interp] compiler.schema/expand-path schema)
-                            (assoc :dependencies (compiler.schema/dependencies schema)))))))
+         (s/conformer (fn [{:keys [schema ext] :as schema*-args}]
+                        (assoc schema*-args
+                               :diff (compiler.schema/expand-path (:diff ext) schema)
+                               :interp (compiler.schema/expand-path (:interp ext) schema)
+                               :dependencies (compiler.schema/dependencies schema))))))
 
 (s/def ::schema-args
   (s/* any?))

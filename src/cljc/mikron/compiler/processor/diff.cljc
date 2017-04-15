@@ -1,30 +1,35 @@
 (ns mikron.compiler.processor.diff
   "Differ and undiffer generating functions."
-  (:require [mikron.compiler.processor.common :as compiler.common]
+  (:require [mikron.compiler.processor.common :as common]
             [mikron.compiler.schema :as compiler.schema]
             [mikron.compiler.util :as compiler.util]
             ;; Runtime
-            [mikron.util.schema :as util.schema]
-            [mikron.util.coll :as util.coll]))
+            [mikron.runtime.processor.common :as runtime.processor.common]))
 
 (def hierarchy
+  "The default schema hierarchy + groupings for comparability."
   (-> compiler.schema/hierarchy
       (compiler.schema/derive-all :identical?-comparable [:boolean :nil])
       (compiler.schema/derive-all :=-comparable          [:char :string :symbol])
       (compiler.schema/derive-all :keyword-comparable    [:keyword :enum])))
 
-(defmulti diff compiler.schema/schema-name :hierarchy #'hierarchy)
+(defmulti diff
+  "Returns the generated (un)differ code for a given schema."
+  compiler.schema/schema-name
+  :hierarchy #'hierarchy)
 
 (prefer-method diff :=-comparable :aliased)
 
 (prefer-method diff :keyword-comparable :aliased)
 
-(defn diff* [schema path value-1 value-2 {:keys [processor-type] :as opts}]
+(defn diff*
+  "Returns the generated (un)differ code for a given schema."
+  [schema path value-1 value-2 {:keys [processor-type] :as opts}]
   (if-not path
     (diff [:default] path value-1 value-2 opts)
     (case processor-type
       :diff   (diff schema path value-1 value-2 opts)
-      :undiff `(if (util.schema/keyword-identical? :mikron/dnil ~value-2)
+      :undiff `(if (runtime.processor.common/keyword-identical? :mikron/dnil ~value-2)
                  ~value-1
                  ~(diff schema path value-1 value-2 opts)))))
 
@@ -51,10 +56,30 @@
 
 (defmethod diff :keyword-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
-    :diff   `(if (util.schema/keyword-identical? ~value-1 ~value-2)
+    :diff   `(if (runtime.processor.common/keyword-identical? ~value-1 ~value-2)
                :mikron/dnil
                ~value-2)
     :undiff value-2))
+
+(defmethod diff :optional [[_ _ schema'] path value-1 value-2 opts]
+  `(if (and ~value-1 ~value-2)
+     ~(diff schema' path value-1 value-2 opts)
+     ~(diff [:default] nil value-1 value-2 opts)))
+
+(defmethod diff :multi [[_ _ selector schemas'] path value-1 value-2 opts]
+  (compiler.util/with-gensyms [case-1 case-2]
+    (if-not path
+      (diff [:default] nil value-1 value-2 opts)
+      `(let [~case-1 (~selector ~value-1)
+             ~case-2 (~selector ~value-2)]
+         (if (not= ~case-1 ~case-2)
+           ~(diff [:default] nil value-1 value-2 opts)
+           (condp = ~case-1
+             ~@(mapcat (fn [[key' schema']]
+                         [key' (if-let [path' (path key')]
+                                 (diff schema' path' value-1 value-2 opts)
+                                 (diff [:default] nil value-1 value-2 opts))])
+                       schemas')))))))
 
 (defmethod diff :list [[_ options schema'] path value-1 value-2 opts]
   (compiler.util/with-gensyms [value-1-vec value-2-vec]
@@ -67,8 +92,8 @@
     (let [path' (:all path)]
       (if-not path'
         (diff [:default] nil value-1 value-2 opts)
-        `(let [~length-1     (util.coll/count ~value-1)
-               ~length-2     (util.coll/count ~value-2)
+        `(let [~length-1     (runtime.processor.common/count ~value-1)
+               ~length-2     (runtime.processor.common/count ~value-2)
                ~same-length? (== ~length-1 ~length-2)]
            (loop [~value     (transient [])
                   ~index     (long 0)
@@ -77,10 +102,10 @@
                (if (and ~all-dnil? ~same-length?)
                  :mikron/dnil
                  (persistent! ~value))
-               (let [~value-2' (util.coll/nth ~value-2 ~index)
+               (let [~value-2' (runtime.processor.common/nth ~value-2 ~index)
                      ~value'   (if (<= ~length-1 ~index)
                                  ~(diff [:default] nil nil value-2' opts)
-                                 (let [~value-1' (util.coll/nth ~value-1 ~index)]
+                                 (let [~value-1' (runtime.processor.common/nth ~value-1 ~index)]
                                    ~(diff* schema' path' value-1' value-2' opts)))]
                  (recur (conj! ~value ~value')
                         (unchecked-inc ~index)
@@ -92,8 +117,8 @@
     (let [path' (:all path)]
       (if-not path'
         (diff [:default] nil value-1 value-2 opts)
-        `(let [~length-1     (util.coll/count ~value-1)
-               ~length-2     (util.coll/count ~value-2)
+        `(let [~length-1     (runtime.processor.common/count ~value-1)
+               ~length-2     (runtime.processor.common/count ~value-2)
                ~same-length? (== ~length-1 ~length-2)]
            (loop [~value            ~(if sorted-by `(sorted-map-by ~sorted-by) `(transient {}))
                   [~key-2 & ~keys-2] (keys ~value-2)
@@ -116,10 +141,10 @@
   (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (diff [:default] nil value-1 value-2 opts)
-      (let [fields (compiler.util/tuple->fields schemas)]
+      (let [fields (common/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compiler.util/tuple-lookup value-1 key)
-                                          ~value-2' ~(compiler.util/tuple-lookup value-2 key)]
+                           [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
+                                          ~value-2' ~(common/tuple-lookup value-2 key)]
                                       ~(if-let [path' (path key)]
                                          (diff* (schemas key) path' value-1' value-2' opts)
                                          (diff [:default] nil value-1' value-2' opts)))])
@@ -128,16 +153,16 @@
                              `(identical? :mikron/dnil ~value'))
                            fields))
              :mikron/dnil
-             ~(compiler.util/fields->tuple fields)))))))
+             ~(common/fields->tuple fields)))))))
 
 (defmethod diff :record [[_ {:keys [type]} schemas] path value-1 value-2 opts]
   (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (diff [:default] nil value-1 value-2 opts)
-      (let [fields (compiler.util/record->fields schemas)]
+      (let [fields (common/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compiler.util/record-lookup value-1 key type)
-                                          ~value-2' ~(compiler.util/record-lookup value-2 key type)]
+                           [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
+                                          ~value-2' ~(common/record-lookup value-2 key type)]
                                       ~(if-let [path' (path key)]
                                          (diff* (schemas key) path' value-1' value-2' opts)
                                          (diff [:default] nil value-1' value-2' opts)))])
@@ -146,27 +171,7 @@
                              `(identical? :mikron/dnil ~value'))
                            fields))
              :mikron/dnil
-             ~(compiler.util/fields->record fields type)))))))
-
-(defmethod diff :optional [[_ _ schema'] path value-1 value-2 opts]
-  `(if (and ~value-1 ~value-2)
-     ~(diff schema' path value-1 value-2 opts)
-     ~(diff [:default] nil value-1 value-2 opts)))
-
-(defmethod diff :multi [[_ _ selector schemas'] path value-1 value-2 opts]
-  (compiler.util/with-gensyms [case-1 case-2]
-    (if-not path
-      (diff [:default] nil value-1 value-2 opts)
-      `(let [~case-1 (~selector ~value-1)
-             ~case-2 (~selector ~value-2)]
-         (if (not= ~case-1 ~case-2)
-           ~(diff [:default] nil value-1 value-2 opts)
-           (condp = ~case-1
-             ~@(mapcat (fn [[key' schema']]
-                         [key' (if-let [path' (path key')]
-                                 (diff schema' path' value-1 value-2 opts)
-                                 (diff [:default] nil value-1 value-2 opts))])
-                       schemas')))))))
+             ~(common/fields->record fields type)))))))
 
 (defmethod diff :aliased [[schema-name] path value-1 value-2 opts]
   (diff (compiler.schema/aliased-schemas schema-name) path value-1 value-2 opts))
@@ -177,12 +182,12 @@
 (defmethod diff :default [_ _ _ value-2 _]
   value-2)
 
-(defmethod compiler.common/processor :diff [_ {:keys [schema ext] :as opts}]
+(defmethod common/processor :diff [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [_ value-1 value-2]
     `([~value-1 ~value-2]
-      ~(diff* schema (:diff ext) value-1 value-2 (assoc opts :processor-type :diff)))))
+      ~(diff* schema (:diff opts) value-1 value-2 (assoc opts :processor-type :diff)))))
 
-(defmethod compiler.common/processor :undiff [_ {:keys [schema ext] :as opts}]
+(defmethod common/processor :undiff [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [_ value-1 value-2]
     `([~value-1 ~value-2]
-      ~(diff* schema (:diff ext) value-1 value-2 (assoc opts :processor-type :undiff)))))
+      ~(diff* schema (:diff opts) value-1 value-2 (assoc opts :processor-type :undiff)))))

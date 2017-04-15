@@ -1,8 +1,8 @@
-(ns mikron.buffer
+(ns mikron.runtime.buffer
   "Buffer interfaces, implementations, and derived operations."
-  (:require [mikron.util :as util]
-            [mikron.util.math :as math]
-            [mikron.buffer-macros :refer [with-delta with-le definterface+]]
+  (:require [mikron.runtime.util :as util]
+            [mikron.runtime.math :as math]
+            [mikron.runtime.buffer-macros :refer [with-delta with-le definterface+]]
             #?(:cljs [feross.buffer]))
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
@@ -67,7 +67,7 @@
 
 #?(:cljs
    (def NativeJsBuffer
-     (if (= "nodejs" cljs.core/*target*)
+     (if (util/node-env?)
        (.-Buffer (js/require "buffer"))
        feross.buffer/Buffer)))
 
@@ -428,8 +428,8 @@
       (!byte-at buffer bit-pos (?bit-value buffer)))))
 
 (definterface+ IMikronByteBufferFactory
-  (^mikron.buffer.IMikronByteBuffer allocate* [^long size]    "Allocates a buffer with size `size`.")
-  (^mikron.buffer.IMikronByteBuffer wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
+  (^mikron.runtime.buffer.IMikronByteBuffer allocate* [^long size]    "Allocates a buffer with size `size`.")
+  (^mikron.runtime.buffer.IMikronByteBuffer wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 
 (defn byte-buffer-factory?
   "Returns `true` if `value` is an instance of `IMikronByteBufferFactory`, `false` otherwise."

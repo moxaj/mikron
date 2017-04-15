@@ -1,7 +1,7 @@
 (ns mikron.benchmark.schema
   "Benchmark schemas."
   (:refer-clojure :exclude [doubles])
-  (:require [mikron.core :as mikron]
+  (:require [mikron.runtime.core :as mikron]
             [cognitect.transit :as transit]
             [octet.core :as octet]
             #?@(:clj [[abracad.avro :as avro]

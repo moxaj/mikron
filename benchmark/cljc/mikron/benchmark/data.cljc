@@ -1,6 +1,6 @@
 (ns mikron.benchmark.data
   "Benchmark data."
-  (:require [mikron.core :as mikron]
+  (:require [mikron.runtime.core :as mikron]
             [mikron.benchmark.schema :as benchmark.schema])
   #?(:clj (:import [mikron Mikron$Doubles Mikron$Coord Mikron$FixtureUserData Mikron$Fixture
                            Mikron$BodyUserData Mikron$Body Mikron$Snapshot Mikron$Body$BodyType

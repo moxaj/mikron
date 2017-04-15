@@ -1,22 +1,25 @@
 (ns mikron.compiler.processor.interp
   "Linear interpolator generating functions."
-  (:require [mikron.compiler.processor.common :as compiler.common]
+  (:require [mikron.compiler.processor.common :as common]
             [mikron.compiler.schema :as compiler.schema]
             [mikron.compiler.util :as compiler.util]
             ;; Runtime
-            [mikron.util.coll :as util.coll]
-            [mikron.util.math :as util.math]))
+            [mikron.runtime.processor.common :as runtime.processor.common]
+            [mikron.runtime.math :as runtime.math]))
 
-(defmulti interp compiler.schema/schema-name :hierarchy #'compiler.schema/hierarchy)
+(defmulti interp
+  "Returns the generated interpolator code for a given schema."
+  compiler.schema/schema-name
+  :hierarchy #'compiler.schema/hierarchy)
 
 (defmethod interp :char [_ _ value-1 value-2 opts]
   (interp [:default] nil value-1 value-2 char))
 
 (defmethod interp :integer [_ _ value-1 value-2 opts]
-  `(util.math/round ~(interp [:floating] nil value-1 value-2 opts)))
+  `(runtime.math/round ~(interp [:floating] nil value-1 value-2 opts)))
 
 (defmethod interp :floating [_ _ value-1 value-2 {:keys [time-factor]}]
-  `(util.math/interp ~value-1 ~value-2 ~time-factor))
+  `(runtime.math/interp ~value-1 ~value-2 ~time-factor))
 
 (defmethod interp :list [[_ options schema'] path value-1 value-2 opts]
   (compiler.util/with-gensyms [value-1-vec value-2-vec]
@@ -31,16 +34,16 @@
     (let [path' (:all path)]
       (if-not path'
         (interp [:default] nil value-1 value-2 opts)
-        `(let [~length-1 (util.coll/count ~value-1)
-               ~length-2 (util.coll/count ~value-2)]
+        `(let [~length-1 (runtime.processor.common/count ~value-1)
+               ~length-2 (runtime.processor.common/count ~value-2)]
            (loop [~value (transient [])
                   ~index (long 0)]
              (if (== ~index ~length-2)
                (persistent! ~value)
-               (let [~value-2' (util.coll/nth ~value-2 ~index)
+               (let [~value-2' (runtime.processor.common/nth ~value-2 ~index)
                      ~value'   (if (<= ~length-1 ~index)
                                  ~(interp [:default] nil nil value-2' opts)
-                                 (let [~value-1' (util.coll/nth ~value-1 ~index)]
+                                 (let [~value-1' (runtime.processor.common/nth ~value-1 ~index)]
                                    ~(interp schema' path' value-1' value-2' opts)))]
                  (recur (conj! ~value ~value')
                         (unchecked-inc ~index))))))))))
@@ -69,29 +72,29 @@
   (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (interp [:default] nil value-1 value-2 opts)
-      (let [fields (compiler.util/tuple->fields schemas)]
+      (let [fields (common/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compiler.util/tuple-lookup value-1 key)
-                                          ~value-2' ~(compiler.util/tuple-lookup value-2 key)]
+                           [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
+                                          ~value-2' ~(common/tuple-lookup value-2 key)]
                                       ~(if-let [path' (path key)]
                                          (interp (schemas key) path' value-1' value-2' opts)
                                          (interp [:default] nil value-1' value-2' opts)))])
                          fields)]
-           ~(compiler.util/fields->tuple fields))))))
+           ~(common/fields->tuple fields))))))
 
 (defmethod interp :record [[_ {:keys [type]} schemas] path value-1 value-2 opts]
   (compiler.util/with-gensyms [value-1' value-2']
     (if-not path
       (interp [:default] nil value-1 value-2 opts)
-      (let [fields (compiler.util/record->fields schemas)]
+      (let [fields (common/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(compiler.util/record-lookup value-1 key type)
-                                          ~value-2' ~(compiler.util/record-lookup value-2 key type)]
+                           [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
+                                          ~value-2' ~(common/record-lookup value-2 key type)]
                                       ~(if-let [path' (path key)]
                                          (interp (schemas key) path' value-1' value-2' opts)
                                          (interp [:default] nil value-1' value-2' opts)))])
                          fields)]
-           ~(compiler.util/fields->record fields type))))))
+           ~(common/fields->record fields type))))))
 
 (defmethod interp :optional [[_ _ schema'] path value-1 value-2 opts]
   `(if (and ~value-1 ~value-2)
@@ -128,8 +131,8 @@
 (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))
 
-(defmethod compiler.common/processor :interp [_ {:keys [schema ext] :as opts}]
+(defmethod common/processor :interp [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [_ value-1 value-2 prefer-first? time-factor]
     `([~value-1 ~value-2 ~prefer-first? ~time-factor]
-      ~(interp schema (:interp ext) value-1 value-2
+      ~(interp schema (:interp opts) value-1 value-2
                (assoc opts :prefer-first? prefer-first? :time-factor time-factor)))))

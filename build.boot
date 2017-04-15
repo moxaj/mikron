@@ -1,5 +1,5 @@
 (set-env!
-  :resource-paths #{"src/cljc" "src/js"}
+  :resource-paths #{"src/cljc" "src/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha14"]
                     [org.clojure/clojurescript   "1.9.473"]
 
@@ -33,7 +33,7 @@
          '[me.raynes.conch.low-level :as conch]
          '[codox.boot :as boot-codox]
 
-         '[mikron.core :as mikron])
+         '[mikron.runtime.core :as mikron])
 
 (import '[java.util Date])
 
@@ -169,7 +169,7 @@
   [o opt    VAL kw   "The optimization level for the cljs compiler."
    e js-env VAL kw "The js environment."]
   (comp (testing)
-        (boot-cljs-test/test-cljs :js-env        js-env
+        (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
                                   :namespaces    '[mikron.test.core]
                                   :optimizations (or opt :none))))
 

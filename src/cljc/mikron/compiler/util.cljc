@@ -31,52 +31,6 @@
           ~(let [~@(mapcat identity m)]
              ~@body)))))
 
-;; schema destructuring
-
-(defn record-lookup
-  "Generates code for record value lookup."
-  [record key [class]]
-  (if-not class
-    `(~record ~key)
-    `(~(symbol (str ".-" (name key)))
-      ~(with-meta record {:tag class}))))
-
-(defn record->fields
-  "Returns a map from record keys to generated symbols."
-  [schemas]
-  (->> (keys schemas)
-       (map (fn [key]
-              [key (gensym (name key))]))
-       (into (sorted-map))))
-
-(defn fields->record
-  "Generates code which reconstructs a record from its fields."
-  [fields [class & members]]
-  (if-not class
-    fields
-    `(~(symbol (str "->" class))
-      ~@(map (fn [member]
-               (or (fields (keyword member)) 0))
-             members))))
-
-(defn tuple-lookup
-  "Generates code for tuple value lookup."
-  [tuple index]
-  `(mikron.util.coll/nth ~tuple ~index))
-
-(defn tuple->fields
-  "Returns a map from tuple indices to generated symbols."
-  [schemas]
-  (->> schemas
-       (map-indexed (fn [index _]
-                      [index (gensym (str "value'-" index))]))
-       (into (sorted-map))))
-
-(defn fields->tuple
-  "Generates code which reconstructs a tuple from its fields."
-  [fields]
-  (vec (vals fields)))
-
 ;; processor
 
 (def processor-name
