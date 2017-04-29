@@ -24,40 +24,40 @@
            ~(pack schema value opts))))))
 
 (defmethod pack :byte [_ value {:keys [buffer]}]
-  `(runtime.buffer/!byte ~buffer ~value))
+  `(runtime.buffer/put-byte ~buffer ~value))
 
 (defmethod pack :ubyte [_ value {:keys [buffer]}]
-  `(runtime.buffer/!ubyte ~buffer ~value))
+  `(runtime.buffer/put-ubyte ~buffer ~value))
 
 (defmethod pack :short [_ value {:keys [buffer]}]
-  `(runtime.buffer/!short ~buffer ~value))
+  `(runtime.buffer/put-short ~buffer ~value))
 
 (defmethod pack :ushort [_ value {:keys [buffer]}]
-  `(runtime.buffer/!ushort ~buffer ~value))
+  `(runtime.buffer/put-ushort ~buffer ~value))
 
 (defmethod pack :int [_ value {:keys [buffer]}]
-  `(runtime.buffer/!int ~buffer ~value))
+  `(runtime.buffer/put-int ~buffer ~value))
 
 (defmethod pack :uint [_ value {:keys [buffer]}]
-  `(runtime.buffer/!uint ~buffer ~value))
+  `(runtime.buffer/put-uint ~buffer ~value))
 
 (defmethod pack :long [_ value {:keys [buffer]}]
-  `(runtime.buffer/!long ~buffer ~value))
+  `(runtime.buffer/put-long ~buffer ~value))
 
 (defmethod pack :varint [_ value {:keys [buffer]}]
-  `(runtime.buffer/!varint ~buffer ~value))
+  `(runtime.buffer/put-varint ~buffer ~value))
 
 (defmethod pack :float [_ value {:keys [buffer]}]
-  `(runtime.buffer/!float ~buffer ~value))
+  `(runtime.buffer/put-float ~buffer ~value))
 
 (defmethod pack :double [_ value {:keys [buffer]}]
-  `(runtime.buffer/!double ~buffer ~value))
+  `(runtime.buffer/put-double ~buffer ~value))
 
 (defmethod pack :boolean [_ value {:keys [buffer]}]
-  `(runtime.buffer/!boolean ~buffer ~value))
+  `(runtime.buffer/put-boolean ~buffer ~value))
 
 (defmethod pack :binary [_ value {:keys [buffer]}]
-  `(runtime.buffer/!binary ~buffer ~value))
+  `(runtime.buffer/put-binary ~buffer ~value))
 
 (defmethod pack :nil [_ _ _]
   nil)

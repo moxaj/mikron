@@ -1,7 +1,8 @@
 (ns mikron.runtime.buffer-macros
   (:require [clojure.spec :as s]
             [mikron.compiler.spec :as compiler.spec]
-            [mikron.compiler.util :as compiler.util])
+            [mikron.compiler.util :as compiler.util]
+            [clojure.pprint :as p])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
 (defmacro with-delta
@@ -19,42 +20,55 @@
      (~(symbol (str expr "LE")) ~@exprs)
      (~(symbol (str expr "BE")) ~@exprs)))
 
+(defn without-hint
+  "Removes the type hint metadata from `value`."
+  [value]
+  (vary-meta value dissoc :tag))
+
+(defn without-primitive-hint
+  "Removes the primitive type hint metadata from `value`."
+  [value]
+  (vary-meta value (fn [{:keys [tag] :as meta}]
+                     (cond-> meta
+                       (#{'long 'double} tag) (dissoc :tag)))))
+
+(defn with-runtime-hint
+  "Removes the type hint metadata from `value` and returns a piece of code which reapplies it."
+  [value]
+  `(if-not (or (symbol? ~value) (coll? ~value))
+     ~value
+     (vary-meta ~(without-hint value) assoc :tag '~(:tag (meta value)))))
+
 (defmacro definterface+
   "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
-  [name & ops]
-  (let [no-meta    #(with-meta % nil)
-        cljs?      (compiler.util/cljs?)
-        ops        (map (fn [[op-name args doc-string]]
-                          [op-name
-                           args
-                           (vec (cons 'this (map no-meta args)))
-                           (when doc-string [doc-string])])
-                        ops)
-        inner-form `(~(if cljs? `defprotocol `definterface)
-                     ~name
-                     ~@(map (fn [[op-name args args' doc-string]]
-                              (if cljs?
-                                `(~(no-meta op-name)
-                                  ~args'
-                                  ~@doc-string)
-                                `(~(with-meta (munge op-name) (meta op-name))
-                                  ~args
-                                  ~@doc-string)))
-                            ops))]
-    (if cljs?
-      inner-form
-      `(do ~inner-form
-           ~@(map (fn [[op-name args args' doc-string]]
-                    `(defn ~(no-meta op-name)
-                       {:inline         (fn ~args'
-                                          `(~'~(symbol (str "." (munge op-name)))
-                                            ~~@args'))
-                        :inline-arities #{~(count args')}}
-                       ~(with-meta (vec (cons (with-meta 'this {:tag name})
-                                              args))
-                                   (meta op-name))
-                       (~(symbol (str "." (munge op-name)))
-                        ~@args')))
+  [& args]
+  (let [{:keys [name ops] :as args} (compiler.spec/enforce ::compiler.spec/definterface+-args args)
+        interface-name name]
+    (if (compiler.util/cljs?)
+      `(defprotocol ~name
+         ~@(map (fn [{:keys [name args docs]}]
+                  `(~(without-hint name)
+                    ~(into [(gensym "this")] (map without-hint args))
+                    ~@(when docs [docs])))
+                ops))
+      `(do (definterface ~name
+             ~@(map (fn [{:keys [name args docs]}]
+                      `(~(with-meta (munge name) (meta name))
+                        ~args
+                        ~@(when docs [docs])))
+                    ops))
+           ~@(map (fn [{:keys [name args docs]}]
+                    (let [munged-name (symbol (str "." (munge name)))
+                          args        (with-meta (into [(with-meta (gensym "this")
+                                                                   {:tag (symbol (str (ns-name *ns*) "." interface-name))})]
+                                                       args)
+                                                 (meta name))]
+                      `(defn ~(without-hint name)
+                         ~@(when docs [docs])
+                         {:inline-arities #{~(count args)}
+                          :inline         (fn ~(mapv without-hint args)
+                                            `(~'~munged-name
+                                              ~~@(map (comp with-runtime-hint without-primitive-hint) args)))}
+                         ~args
+                         (~munged-name ~@(map without-hint args)))))
                   ops)))))
-
-(s/fdef definterface+ :args ::compiler.spec/definterface+-args)

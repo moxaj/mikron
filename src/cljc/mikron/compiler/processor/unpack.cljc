@@ -22,40 +22,40 @@
        ~(unpack schema opts))))
 
 (defmethod unpack :byte [_ {:keys [buffer]}]
-  `(runtime.buffer/?byte ~buffer))
+  `(runtime.buffer/take-byte ~buffer))
 
 (defmethod unpack :ubyte [_ {:keys [buffer]}]
-  `(runtime.buffer/?ubyte ~buffer))
+  `(runtime.buffer/take-ubyte ~buffer))
 
 (defmethod unpack :short [_ {:keys [buffer]}]
-  `(runtime.buffer/?short ~buffer))
+  `(runtime.buffer/take-short ~buffer))
 
 (defmethod unpack :ushort [_ {:keys [buffer]}]
-  `(runtime.buffer/?ushort ~buffer))
+  `(runtime.buffer/take-ushort ~buffer))
 
 (defmethod unpack :int [_ {:keys [buffer]}]
-  `(runtime.buffer/?int ~buffer))
+  `(runtime.buffer/take-int ~buffer))
 
 (defmethod unpack :uint [_ {:keys [buffer]}]
-  `(runtime.buffer/?uint ~buffer))
+  `(runtime.buffer/take-uint ~buffer))
 
 (defmethod unpack :long [_ {:keys [buffer]}]
-  `(runtime.buffer/?long ~buffer))
+  `(runtime.buffer/take-long ~buffer))
 
 (defmethod unpack :varint [_ {:keys [buffer]}]
-  `(runtime.buffer/?varint ~buffer))
+  `(runtime.buffer/take-varint ~buffer))
 
 (defmethod unpack :float [_ {:keys [buffer]}]
-  `(runtime.buffer/?float ~buffer))
+  `(runtime.buffer/take-float ~buffer))
 
 (defmethod unpack :double [_ {:keys [buffer]}]
-  `(runtime.buffer/?double ~buffer))
+  `(runtime.buffer/take-double ~buffer))
 
 (defmethod unpack :boolean [_ {:keys [buffer]}]
-  `(runtime.buffer/?boolean ~buffer))
+  `(runtime.buffer/take-boolean ~buffer))
 
 (defmethod unpack :binary [_ {:keys [buffer]}]
-  `(runtime.buffer/?binary ~buffer))
+  `(runtime.buffer/take-binary ~buffer))
 
 (defmethod unpack :nil [_ _]
   nil)

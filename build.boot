@@ -16,7 +16,8 @@
                     [com.cemerick/piggieback     "0.2.1"     :scope "test"]
                     [weasel                      "0.7.0"     :scope "test"]
                     [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
-                    [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]])
+                    [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]
+                    [nodisassemble               "0.1.3"     :scope "test"]])
 
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
@@ -159,7 +160,7 @@
                 (proc "lumo"
                       "-c" (System/getProperty "fake.class.path")
                       "-k" "lumo_cache"
-                      "target/mikron/node.cljs"))
+                      "target/mikron/test_runner/node.cljs"))
           (boot-cljs-test/test-cljs :js-env        :node
                                     :namespaces    '[mikron.test.core]
                                     :optimizations (or opt :none)))))
@@ -231,33 +232,6 @@
         (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
-              "-e" (str "\"(require '[mikron.core :as mikron "
+              "-e" (str "\"(require '[mikron.runtime.core :as mikron "
                         ":refer [schema defschema pack unpack gen valid?]])\"")
               "-r")))
-
-(deftask generate-docs
-  "Generates documentation.
-   TODO does not work - waiting on Lumo commonjs modules"
-  []
-  (let [ns-str "(ns mikron.codox
-                  (:require [mikron.core :as mikron
-                             :refer [schema defschema with-buffer pack unpack gen valid? diff diff* undiff undiff* interp allocate-buffer]]))"]
-    (comp (proc "lumo"
-                "-c" (System/getProperty "fake.class.path")
-                "-k" "docs/cache-cljs"
-                "-e" ns-str)
-          (proc "lumo" "scripts/lumo/generate_cljs_cache.cljs")
-          (boot-codox/codox
-            :name         "moxaj/mikron"
-            :metadata     {:doc/format :markdown}
-            :output-path  "docs"
-            ;:namespaces   [#"^mikron\.(?!codegen)"]
-            :exclude-vars #"^((map)?->\p{Upper}|[?!].*\*)"
-            :themes       [:default
-                           [:klipse
-                            #:klipse{:cached-macro-ns-regexp #"/mikron\..*|cljs\..*/"
-                                     :cached-ns-regexp       #"/mikron\..*|cljs\..*/"
-                                     :cached-ns-root         "./cache-cljs"
-                                     :require-statement      ns-str}]])
-          (sift :move {#"docs" "../docs"})
-          (target))))

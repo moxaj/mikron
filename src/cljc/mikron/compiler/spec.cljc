@@ -88,13 +88,8 @@
 (s/def ::interp ::path)
 
 (s/def ::schema*-args
-  (s/and (s/cat :schema ::schema
-                :ext    (s/keys* :opt-un [::diff ::interp]))
-         (s/conformer (fn [{:keys [schema ext] :as schema*-args}]
-                        (assoc schema*-args
-                               :diff (compiler.schema/expand-path (:diff ext) schema)
-                               :interp (compiler.schema/expand-path (:interp ext) schema)
-                               :dependencies (compiler.schema/dependencies schema))))))
+  (s/cat :schema ::schema
+         :ext    (s/keys* :opt-un [::diff ::interp])))
 
 (s/def ::schema-args
   (s/* any?))
@@ -104,10 +99,10 @@
          :args        (s/* any?)))
 
 (s/def ::definterface+-args
-  (s/cat :interface-name simple-symbol?
-         :ops            (s/* (s/spec (s/cat :op-name    simple-symbol?
-                                             :args       (s/coll-of simple-symbol? :kind vector?)
-                                             :doc-string (s/? string?))))))
+  (s/cat :name simple-symbol?
+         :ops  (s/* (s/spec (s/cat :name simple-symbol?
+                                   :args (s/coll-of simple-symbol? :kind vector?)
+                                   :docs (s/? string?))))))
 
 (defn enforce
   "Returns `value` conformed to `spec`, or throws an exception if the conformation fails."

@@ -90,6 +90,11 @@
 
 #?(:clj ;; colfer
    (defmethod pack :colfer ^bytes [_ schema data]
+     (let [count (case schema
+                   ::benchmark.schema/quartet   ^Quartet data
+                   ::benchmark.schema/snapshot  ^Snapshot data
+                   ::benchmark.schema/snapshot2 ^Snapshot data)
+                 colfer-buffer 0])
      (let [count (.marshal (case schema
                              ::benchmark.schema/quartet   ^Quartet data
                              ::benchmark.schema/snapshot  ^Snapshot data
@@ -209,7 +214,7 @@
          (vec))))
 
 (comment
-  (benchmark :stats   [:pack-time :unpack-time]
-             :methods [:mikron :transit]
+  (benchmark :stats   [:pack-time]
+             :methods [:mikron]
              :schema  ::benchmark.schema/snapshot2)
   nil)

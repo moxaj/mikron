@@ -1,6 +1,7 @@
 (ns mikron.runtime.core
   "Core namespace. Contains the public API."
   (:require [clojure.spec :as s]
+            [mikron.compiler.schema :as compiler.schema]
             [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util]
             [mikron.compiler.processor.common :as compiler.processor.common]
@@ -42,8 +43,11 @@
 (defn schema*
   "Given a schema definition, returns the unevaluated code to produce a reified schema."
   [& args]
-  (let [{:keys [dependencies] :as opts} (compiler.spec/enforce ::compiler.spec/schema*-args args)
-        processor-types (keys (methods compiler.processor.common/processor))]
+  (let [{:keys [schema ext] :as opts}   (compiler.spec/enforce ::compiler.spec/schema*-args args)
+        {:keys [dependencies] :as opts} (assoc opts :diff (compiler.schema/expand-path (:diff ext) schema)
+                                                    :interp (compiler.schema/expand-path (:interp ext) schema)
+                                                    :dependencies (compiler.schema/dependencies schema))
+        processor-types                 (keys (methods compiler.processor.common/processor))]
     `(let [~@(->> (for [processor-type processor-types
                         dependency     dependencies]
                     [(compiler.util/processor-name processor-type dependency)
@@ -103,17 +107,17 @@
   (let [buffer    *buffer*
         diffed?   (diffed? value)
         processor ((.-processors ^Schema (resolve-schema schema)) (if diffed? :pack-diffed :pack))]
-    (buffer/!headers buffer diffed?)
+    (buffer/set-headers buffer diffed?)
     (processor (if diffed? (.-value ^DiffedValue value) value) buffer)
-    (buffer/!finalize buffer)
-    (buffer/?bytes-all buffer)))
+    (buffer/finalize buffer)
+    (buffer/take-bytes-all buffer)))
 
 (defn unpack
   "Unpacks a value (which conforms to `schema`) from the binary value `binary`."
   [schema ^bytes binary]
   (util/safe :mikron/invalid
     (let [buffer    (buffer/wrap binary)
-          headers   (buffer/?headers buffer)
+          headers   (buffer/get-headers buffer)
           diffed?   (headers :diffed?)
           processor ((if diffed? :unpack-diffed :unpack) (.-processors ^Schema (resolve-schema schema)))]
       (cond-> (processor buffer)
