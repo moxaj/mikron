@@ -19,3 +19,4 @@ figwheel_server.log
 .hg/
 Clojure REPL
 .nrepl-history
+npm-debug.log

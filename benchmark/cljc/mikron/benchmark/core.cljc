@@ -215,6 +215,6 @@
 
 (comment
   (benchmark :stats   [:pack-time]
-             :methods [:mikron]
+             :methods [:mikron :protobuf :nippy]
              :schema  ::benchmark.schema/snapshot2)
   nil)

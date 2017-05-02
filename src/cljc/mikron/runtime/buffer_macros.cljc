@@ -1,8 +1,7 @@
 (ns mikron.runtime.buffer-macros
   (:require [clojure.spec :as s]
             [mikron.compiler.spec :as compiler.spec]
-            [mikron.compiler.util :as compiler.util]
-            [clojure.pprint :as p])
+            [mikron.compiler.util :as compiler.util])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
 (defmacro with-delta
@@ -33,16 +32,16 @@
                        (#{'long 'double} tag) (dissoc :tag)))))
 
 (defn with-runtime-hint
-  "Removes the type hint metadata from `value` and returns a piece of code which reapplies it."
+  "Takes the metadata of `value` and returns a piece of code which reapplies it to what `value` evaluates to."
   [value]
   `(if-not (or (symbol? ~value) (coll? ~value))
      ~value
-     (vary-meta ~(without-hint value) assoc :tag '~(:tag (meta value)))))
+     (vary-meta ~value assoc :tag '~(:tag (meta value)))))
 
 (defmacro definterface+
   "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
   [& args]
-  (let [{:keys [name ops] :as args} (compiler.spec/enforce ::compiler.spec/definterface+-args args)
+  (let [{:keys [name ops]} (compiler.spec/enforce ::compiler.spec/definterface+-args args)
         interface-name name]
     (if (compiler.util/cljs?)
       `(defprotocol ~name
@@ -65,10 +64,9 @@
                                                  (meta name))]
                       `(defn ~(without-hint name)
                          ~@(when docs [docs])
-                         {:inline-arities #{~(count args)}
-                          :inline         (fn ~(mapv without-hint args)
-                                            `(~'~munged-name
-                                              ~~@(map (comp with-runtime-hint without-primitive-hint) args)))}
+                         {:inline (fn ~(mapv without-hint args)
+                                    `(~'~munged-name
+                                      ~~@(map (comp with-runtime-hint without-primitive-hint) args)))}
                          ~args
                          (~munged-name ~@(map without-hint args)))))
                   ops)))))

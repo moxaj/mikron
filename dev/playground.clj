@@ -60,4 +60,16 @@
 
   (let [s (schema [:vector :byte])
         v (vec (repeat 100 1))]
-    (c! (pack s v))))
+    (c! (pack s v)))
+
+  (let [s (schema [:vector :nil])
+        v (vec (repeat 100 nil))]
+    (c! (pack s v)))
+
+  (->> (schema [:vector :int])
+       :processors
+       :pack
+       (d!))
+
+
+  (d! mikron.runtime.buffer.MikronByteBuffer))
