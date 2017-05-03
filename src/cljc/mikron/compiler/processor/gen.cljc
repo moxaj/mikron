@@ -55,7 +55,7 @@
   nil)
 
 (defmethod gen :string [_ opts]
-  `(apply str (common/into! [] true ~gen-length ~(gen [:char] opts))))
+  `(apply str ~(common/into! [] true gen-length (gen [:char] opts))))
 
 (defmethod gen :binary [_ opts]
   `(runtime.processor.common/byte-seq->binary
