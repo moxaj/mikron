@@ -7,6 +7,7 @@
 
 (defn rand
   "Returns a random double value."
+  #?(:clj {:inline (fn [] `(unchecked-double (Math/random)))})
   ^double []
   (unchecked-double
     #?(:clj  (Math/random)
@@ -14,24 +15,28 @@
 
 (defn pow
   "Raises `x` to `y`."
+  #?(:clj {:inline (fn [x y] `(Math/pow ~x ~y))})
   ^double [^double x ^double y]
   #?(:clj  (Math/pow x y)
      :cljs (.pow js/Math x y)))
 
 (defn floor
   "Returns the floor of `x`."
+  #?(:clj {:inline (fn [x] `(Math/floor ~x))})
   ^double [^double x]
   #?(:clj  (Math/floor x)
      :cljs (.floor js/Math x)))
 
 (defn abs
   "Returns the absolute value of `x`."
+  #?(:clj {:inline (fn [x] `(Math/abs ~x))})
   ^double [^double x]
   #?(:clj  (Math/abs x)
      :cljs (.abs js/Math x)))
 
 (defn round
   "Rounds `x`."
+  #?(:clj {:inline (fn [x] `(Math/round ~x))})
   ^long [^double x]
   #?(:clj  (Math/round x)
      :cljs (.round js/Math x)))
@@ -52,6 +57,7 @@
 
 (defn from
   "Creates a new long value."
+  #?(:clj {:inline (fn [x] x)})
   (^long [^long x]
    #?(:clj  x
       :cljs (.fromNumber goog.math.Long x)))
@@ -80,60 +86,70 @@
 
 (defn to
   "Converts a number `x` to a long."
+  #?(:clj {:inline (fn [x] x)})
   ^long [^long x]
   #?(:clj  x
      :cljs (.toNumber x)))
 
 (defn zero?
   "Returns `true` if a long `x` is zero, `false` otherwise."
+  #?(:clj {:inline (fn [x] `(== 0 ~x))})
   [^long x]
   #?(:clj  (== 0 x)
      :cljs (.isZero x)))
 
 (defn and
   "Performs the bitwise AND operation on two longs `x` and `y`."
+  #?(:clj {:inline (fn [x y] `(bit-and ~x ~y))})
   ^long [^long x ^long y]
   #?(:clj  (bit-and x y)
      :cljs (.and x y)))
 
 (defn or
   "Performs the bitwise OR operation on two longs `x` and `y`."
+  #?(:clj {:inline (fn [x y] `(bit-or ~x ~y))})
   ^long [^long x ^long y]
   #?(:clj  (bit-or x y)
      :cljs (.or x y)))
 
 (defn xor
   "Performs the bitwise XOR operation on two longs `x` and `y`."
+  #?(:clj {:inline (fn [x y] `(bit-xor ~x ~y))})
   ^long [^long x ^long y]
   #?(:clj  (bit-xor x y)
      :cljs (.xor x y)))
 
 (defn not
   "Performs the bitwise NOT operation on a long `x`."
+  #?(:clj {:inline (fn [x] `(bit-not ~x))})
   ^long [^long x]
   #?(:clj  (bit-not x)
      :cljs (.not x)))
 
 (defn negate
   "Negates a long `x`."
+  #?(:clj {:inline (fn [x] `(unchecked-negate ~x))})
   ^long [^long x]
-  #?(:clj  (- x)
+  #?(:clj  (unchecked-negate x)
      :cljs (.negate x)))
 
 (defn shift-left
   "Arithmetically shifts the bits of a long `x` to the left by `n`."
+  #?(:clj {:inline (fn [x n] `(bit-shift-left ~x ~n))})
   ^long [^long x ^long n]
   #?(:clj  (bit-shift-left x n)
      :cljs (.shiftLeft x n)))
 
 (defn shift-right
   "Arithmetically shifts the bits of a long `x` to the right by `n`."
+  #?(:clj {:inline (fn [x n] `(bit-shift-right ~x ~n))})
   ^long [^long x ^long n]
   #?(:clj  (bit-shift-right x n)
      :cljs (.shiftRight x n)))
 
 (defn unsigned-shift-right
   "Logically shifts the bits of a long `x` to the right by `n`."
+  #?(:clj {:inline (fn [x n] `(unsigned-bit-shift-right ~x ~n))})
   ^long [^long x ^long n]
   #?(:clj  (unsigned-bit-shift-right x n)
      :cljs (.shiftRightUnsigned x n)))
