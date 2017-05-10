@@ -1,6 +1,5 @@
 (ns mikron.runtime.buffer-macros
-  (:require [clojure.spec :as s]
-            [mikron.compiler.spec :as compiler.spec]
+  (:require [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
@@ -14,10 +13,10 @@
 
 (defmacro with-le
   "Executes the expressions with the endianness automatically set to `le`."
-  [le [expr & exprs]]
+  [le [method & args]]
   `(if ~le
-     (~(symbol (str expr "LE")) ~@exprs)
-     (~(symbol (str expr "BE")) ~@exprs)))
+     (~(symbol (str method "LE")) ~@args)
+     (~(symbol (str method "BE")) ~@args)))
 
 (defn without-hint
   "Removes the type hint metadata from `value`."
@@ -31,10 +30,15 @@
                      (cond-> meta
                        (#{'long 'double} tag) (dissoc :tag)))))
 
+(defn can-have-metadata?
+  "Returns `true` if `value` can have metadata, `false` otherwise."
+  [value]
+  (or (symbol? value) (coll? value)))
+
 (defn with-runtime-hint
   "Takes the metadata of `value` and returns a piece of code which reapplies it to what `value` evaluates to."
   [value]
-  `(if-not (or (symbol? ~value) (coll? ~value))
+  `(if-not (can-have-metadata? ~value)
      ~value
      (vary-meta ~value assoc :tag '~(:tag (meta value)))))
 
