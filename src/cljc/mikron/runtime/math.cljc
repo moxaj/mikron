@@ -156,15 +156,15 @@
 
 (defn zigzag-encode
   "Zigzag encodes a long `x`."
+  #?(:clj {:inline (fn [x] `(xor (shift-right ~x 63) (shift-left ~x 1)))})
   ^long [^long x]
-  (xor (shift-right x 63)
-       (shift-left x 1)))
+  (xor (shift-right x 63) (shift-left x 1)))
 
 (defn zigzag-decode
   "Zigzag decodes a long `x`."
+  #?(:clj {:inline (fn [x] `(xor (unsigned-bit-shift-right ~x 1) (negate (and ~x c1))))})
   ^long [^long x]
-  (xor (unsigned-shift-right x 1)
-       (negate (and x c1))))
+  (xor (unsigned-shift-right x 1) (negate (and x c1))))
 
 (defn lower-bound
   "Returns the lower bound for an integer type"
