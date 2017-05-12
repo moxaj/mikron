@@ -1,7 +1,7 @@
 (ns playground
   (:refer-clojure :exclude [doubles])
   (:require [clojure.pprint :as p]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.walk :as w]
             [criterium.core :as c]
             [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff interp]]
@@ -56,7 +56,7 @@
   (let [buffer (allocate 2000)]
     (c! (reset buffer)
         (dotimes [_ 100]
-          (put-byte buffer 10))))
+          (put-varint buffer 10))))
 
   (let [s (schema [:vector :byte])
         v (vec (repeat 100 1))]
@@ -69,7 +69,4 @@
   (->> (schema [:vector :int])
        :processors
        :pack
-       (d!))
-
-
-  (d! mikron.runtime.buffer.MikronByteBuffer))
+       (d!)))
