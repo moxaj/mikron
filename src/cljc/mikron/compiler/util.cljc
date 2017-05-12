@@ -1,5 +1,7 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
+  #?(:clj (:refer-clojure :exclude [eval]))
+  (:require [mikron.compiler.util-macros :refer [compile-time]])
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
@@ -30,6 +32,23 @@
        `(let [~~@(mapcat reverse m)]
           ~(let [~@(mapcat identity m)]
              ~@body)))))
+
+(compile-time
+  (defn eval
+    "Evaluates the form."
+    [form]
+    #?(:clj  (clojure.core/eval form)
+       :cljs (let [result (atom nil)]
+               (cljs.js/eval
+                 (cljs.js/empty-state)
+                 form
+                 {:ns      (ns-name *ns*)
+                  :context :expr}
+                 (fn [{:keys [value error]}]
+                   (if error
+                     (throw (js/Error. error))
+                     (reset! result value))))
+               @result))))
 
 ;; processor
 

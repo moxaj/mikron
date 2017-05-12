@@ -1,9 +1,10 @@
 (ns mikron.runtime.core
   "Core namespace. Contains the public API."
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [mikron.compiler.schema :as compiler.schema]
             [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util]
+            [mikron.compiler.util-macros :as compiler.util-macros]
             [mikron.compiler.processor.common :as compiler.processor.common]
             [mikron.compiler.processor.pack]
             [mikron.compiler.processor.unpack]
@@ -25,7 +26,7 @@
 
 (defonce ^:private registry-ref (atom {}))
 
-(defn register-schema
+(defn register-schema!
   "Registers a reified schema with the given name."
   [schema-name schema]
   (swap! registry-ref assoc schema-name schema)
@@ -40,38 +41,39 @@
       schema
       (throw (ex-info "Invalid schema" {:arg arg})))))
 
-(defn schema*
-  "Given a schema definition, returns the unevaluated code to produce a reified schema."
-  [& args]
-  (let [{:keys [schema ext] :as opts}   (compiler.spec/enforce ::compiler.spec/schema*-args args)
-        {:keys [dependencies] :as opts} (assoc opts :diff (compiler.schema/expand-path (:diff ext) schema)
-                                                    :interp (compiler.schema/expand-path (:interp ext) schema)
-                                                    :dependencies (compiler.schema/dependencies schema))
-        processor-types                 (keys (methods compiler.processor.common/processor))]
-    `(let [~@(->> (for [processor-type processor-types
-                        dependency     dependencies]
-                    [(compiler.util/processor-name processor-type dependency)
-                     `(delay (~processor-type (.-processors ^Schema (resolve-schema ~dependency))))])
-                  (apply concat))]
-       (Schema. ~(->> processor-types
-                      (map (fn [processor-type]
-                             [processor-type `(fn ~(compiler.processor.common/processor processor-type opts))]))
-                      (into {}))
-                '~opts))))
+(compiler.util-macros/compile-time
+  (defn schema*
+    "Given a schema definition, returns the unevaluated code to produce a reified schema."
+    [env & args]
+    (let [{:keys [schema ext] :as opts}   (compiler.spec/enforce ::compiler.spec/schema*-args args)
+          {:keys [dependencies] :as opts} (assoc opts :diff (compiler.schema/expand-path (:diff ext) schema)
+                                                      :interp (compiler.schema/expand-path (:interp ext) schema)
+                                                      :dependencies (compiler.schema/dependencies schema))
+          processor-types                 (keys (methods compiler.processor.common/processor))]
+      `(let [~@(->> (for [processor-type processor-types
+                          dependency     dependencies]
+                      [(compiler.util/processor-name processor-type dependency)
+                       `(delay (~processor-type (.-processors ^Schema (resolve-schema ~dependency))))])
+                    (apply concat))]
+         (Schema. ~(->> processor-types
+                        (map (fn [processor-type]
+                               [processor-type `(fn ~(compiler.processor.common/processor processor-type opts))]))
+                        (into {}))
+                  '~opts))))
 
-(defmacro schema
-  "Returns a reified schema for the given schema definition."
-  ^Schema [& args]
-  (apply schema* args))
+  (defmacro schema
+    "Returns a reified schema for the given schema definition."
+    ^Schema [& args]
+    (apply schema* &env args))
 
-(s/fdef schema :args ::compiler.spec/schema-args)
+  (s/fdef schema :args ::compiler.spec/schema-args)
 
-(defmacro defschema
-  "Globally registers a reified schema for the given schema definition, with the given name."
-  [schema-name & args]
-  `(register-schema ~schema-name ~(apply schema* args)))
+  (defmacro defschema
+    "Globally registers a reified schema for the given schema definition, with the given name."
+    [schema-name & args]
+    `(register-schema! ~schema-name ~(apply schema* &env args)))
 
-(s/fdef defschema :args ::compiler.spec/defschema-args)
+  (s/fdef defschema :args ::compiler.spec/defschema-args))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."

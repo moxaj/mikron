@@ -1,5 +1,5 @@
 (ns mikron.compiler.spec-macros
-  (:require [clojure.spec :as s])
+  (:require [clojure.spec.alpha :as s])
   #?(:cljs (:require-macros [mikron.compiler.spec-macros])))
 
 (defmacro schema-spec*

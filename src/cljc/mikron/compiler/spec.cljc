@@ -1,6 +1,6 @@
 (ns mikron.compiler.spec
   "Macro input validation."
-  (:require [clojure.spec :as s]
+  (:require [clojure.spec.alpha :as s]
             [mikron.compiler.schema :as compiler.schema]
             [mikron.compiler.spec-macros :refer [schema-spec*]]))
 
