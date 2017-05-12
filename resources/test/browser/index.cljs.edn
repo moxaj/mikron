@@ -1,1 +1,1 @@
-{:require [mikron.test-runner.browser mikron.benchmark.core]}
+{:require [mikron.test-runner.browser]}
