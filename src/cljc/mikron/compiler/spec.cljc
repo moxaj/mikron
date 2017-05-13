@@ -23,7 +23,7 @@
 
 (def hierarchy
   (-> compiler.schema/hierarchy
-      (compiler.schema/derive-all :simple-schema [:number :boolean :binary :nil])))
+      (compiler.schema/derive-all :simple-schema [:number :boolean :binary :nil :ignored])))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
@@ -33,7 +33,7 @@
   (schema-spec* []))
 
 (defmethod schema-spec :enum [_]
-  (schema-spec* [] :values (s/coll-of keyword? :kind vector?)))
+  (schema-spec* [] :values (s/coll-of keyword? :kind set?)))
 
 (defmethod schema-spec :optional [_]
   (schema-spec* [] :schema ::schema))

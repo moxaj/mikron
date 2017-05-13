@@ -38,17 +38,20 @@
     "Evaluates the form."
     [form]
     #?(:clj  (clojure.core/eval form)
-       :cljs (let [result (atom nil)]
-               (cljs.js/eval
-                 (cljs.js/empty-state)
-                 form
-                 {:ns      (ns-name *ns*)
-                  :context :expr}
-                 (fn [{:keys [value error]}]
-                   (if error
-                     (throw (js/Error. error))
-                     (reset! result value))))
-               @result))))
+       :cljs (binding [ana/*cljs-warnings*
+                       (assoc ana/*cljs-warnings* :undeclared-var false
+                                                  :undeclared-ns  false)]
+               (let [result (atom nil)]
+                 (cljs.js/eval
+                   (cljs.js/empty-state)
+                   form
+                   {:ns      (ns-name *ns*)
+                    :context :expr}
+                   (fn [{:keys [value error]}]
+                     (if error
+                       (throw (js/Error. error))
+                       (reset! result value))))
+                 @result)))))
 
 ;; processor
 

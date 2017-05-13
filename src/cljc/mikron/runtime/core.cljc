@@ -35,25 +35,22 @@
 (defn resolve-schema
   "Returns a resolved schema for the given argument."
   ^Schema [arg]
-  (if (schema? arg)
-    arg
-    (if-let [schema (@registry-ref arg)]
-      schema
-      (throw (ex-info "Invalid schema" {:arg arg})))))
+  (or (and (schema? arg) arg)
+      (@registry-ref arg)
+      (throw (ex-info "Invalid schema" {:arg arg}))))
 
 (compiler.util-macros/compile-time
   (defn schema*
     "Given a schema definition, returns the unevaluated code to produce a reified schema."
     [env & args]
-    (let [{:keys [schema ext] :as opts}   (compiler.spec/enforce ::compiler.spec/schema*-args args)
-          {:keys [dependencies] :as opts} (assoc opts :diff (compiler.schema/expand-path (:diff ext) schema)
-                                                      :interp (compiler.schema/expand-path (:interp ext) schema)
-                                                      :dependencies (compiler.schema/dependencies schema))
-          processor-types                 (keys (methods compiler.processor.common/processor))]
+    (let [{:keys [schema ext] :as opts} (compiler.spec/enforce ::compiler.spec/schema*-args args)
+          opts                          (assoc opts :diff   (compiler.schema/expand-path (:diff ext) schema)
+                                                    :interp (compiler.schema/expand-path (:interp ext) schema))
+          processor-types               (keys (methods compiler.processor.common/processor))]
       `(let [~@(->> (for [processor-type processor-types
-                          dependency     dependencies]
-                      [(compiler.util/processor-name processor-type dependency)
-                       `(delay (~processor-type (.-processors ^Schema (resolve-schema ~dependency))))])
+                          custom-schema  (compiler.schema/custom-schemas schema)]
+                      [(compiler.util/processor-name processor-type custom-schema)
+                       `(delay (~processor-type (.-processors ^Schema (resolve-schema ~custom-schema))))])
                     (apply concat))]
          (Schema. ~(->> processor-types
                         (map (fn [processor-type]

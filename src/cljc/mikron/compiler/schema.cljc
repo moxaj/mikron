@@ -27,7 +27,7 @@
 
 (def schema-names
   #{:byte :ubyte :short :ushort :int :uint :long :varint :float :double :char :boolean
-    :binary :nil :string :keyword :symbol :any :enum :optional :wrapped :multi
+    :binary :nil :ignored :string :keyword :symbol :any :enum :optional :wrapped :multi
     :list :vector :set :map :record :tuple})
 
 (def hierarchy
@@ -113,53 +113,94 @@
 (defmethod expand-path* :default [path _]
   (true? path))
 
-(defmulti schema-seq*
-  "Does a pre-order walk on `schema`, and collects them into a sequence."
+(defmulti schema-children*
+  "Returns the immediate children of `schema`."
   schema-name
   :hierarchy #'hierarchy)
 
-(defn schema-seq
-  "Does a pre-order walk on `schema`, and collects them into a sequence."
-  [schema]
-  (into [schema] (schema-seq* schema)))
+(defmethod schema-children* :optional [[_ _ schema']]
+  [schema'])
 
-(defmethod schema-seq* :coll [[_ _ schema']]
-  (schema-seq schema'))
+(defmethod schema-children* :wrapped [[_ _ _ _ schema']]
+  [schema'])
 
-(defmethod schema-seq* :map [[_ _ key-schema' val-schema']]
-  (into (schema-seq key-schema')
-        (schema-seq val-schema')))
+(defmethod schema-children* :multi [[_ _ _ schemas']]
+  (vals schemas'))
 
-(defmethod schema-seq* :tuple [[_ _ schemas']]
-  (->> schemas'
-       (map schema-seq)
-       (reduce into [])))
+(defmethod schema-children* :coll [[_ _ schema']]
+  [schema'])
 
-(defmethod schema-seq* :record [[_ _ schemas']]
-  (->> schemas'
-       (vals)
-       (map schema-seq)
-       (reduce into [])))
+(defmethod schema-children* :map [[_ _ key-schema' val-schema']]
+  [key-schema' val-schema'])
 
-(defmethod schema-seq* :optional [[_ _ schema']]
-  (schema-seq schema'))
+(defmethod schema-children* :record [[_ _ schemas']]
+  (vals schemas'))
 
-(defmethod schema-seq* :multi [[_ _ _ schemas']]
-  (->> schemas'
-       (vals)
-       (map schema-seq)
-       (reduce into [])))
+(defmethod schema-children* :tuple [[_ _ schemas']]
+  schemas')
 
-(defmethod schema-seq* :wrapped [[_ _ _ _ schema']]
-  (schema-seq schema'))
-
-(defmethod schema-seq* :default [schema]
+(defmethod schema-children* :default [_]
   [])
 
-(defn dependencies
-  "Returns the dependencies of `schema`."
+(defn schema-children
+  "Returns a list consisting of `schema` and all of its children (including transitive ones)."
+  [schema]
+  (loop [children []
+         schemas  [schema]]
+    (if (empty? schemas)
+      children
+      (recur (into children schemas)
+             (mapcat schema-children* schemas)))))
+
+(defn custom-schemas
+  "Returns the custom schemas used by `schema`."
   [schema]
   (->> schema
-       (schema-seq)
-       (filter (complement vector?))
+       (schema-children)
+       (filter (comp #{:custom} schema-name))
        (set)))
+
+;; Unused
+
+(defmulti prewalk-schema*
+  "Maps the function `f` over `schema` and its children."
+  (fn [f schema] (schema-name schema))
+  :hierarchy #'hierarchy)
+
+(defn prewalk-schema [f schema]
+  (prewalk-schema* f (f schema)))
+
+(defmethod prewalk-schema* :optional [f schema]
+  (update schema 2 (partial prewalk-schema f)))
+
+(defmethod prewalk-schema* :wrapped [f schema]
+  (update schema 4 (partial prewalk-schema f)))
+
+(defmethod prewalk-schema* :multi [f [_ _ _ schemas' :as schema]]
+  (update schema 3 (fn [schemas']
+                     (reduce-kv (fn [schemas' key schema']
+                                  (assoc schemas' key (prewalk-schema f schema')))
+                                {}
+                                schemas'))))
+
+(defmethod prewalk-schema* :coll [f schema]
+  (update schema 2 (partial prewalk-schema f)))
+
+(defmethod prewalk-schema* :map [f [_ _ key-schema' val-schema' :as schema]]
+  (-> schema
+      (update 2 (partial prewalk-schema f))
+      (update 3 (partial prewalk-schema f))))
+
+(defmethod prewalk-schema* :record [f [_ _ schemas' :as schema]]
+  (update schema 2 (fn [schemas']
+                     (reduce-kv (fn [schemas' key schema']
+                                  (assoc schemas' key (prewalk-schema f schema')))
+                                {}
+                                schemas'))))
+
+(defmethod prewalk-schema* :tuple [f [_ _ schemas' :as schema]]
+  (update schema 2 (fn [schemas']
+                     (mapv (partial prewalk-schema f) schemas'))))
+
+(defmethod prewalk-schema* :default [_ schema]
+  schema)

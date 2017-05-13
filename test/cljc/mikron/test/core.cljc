@@ -48,6 +48,7 @@
    t-keyword      :keyword
    t-symbol       :symbol
    t-nil          :nil
+   t-ignored      :ignored
    t-binary       :binary
    t-any          :any
    t-list         [:list :byte]
@@ -59,7 +60,7 @@
    t-<-sorted-map [:map {:sorted-by <} :byte :string]
    t->-sorted-map [:map {:sorted-by >} :byte :string]
    t-optional     [:optional :byte]
-   t-enum         [:enum [:cat :dog :measurement :error]]
+   t-enum         [:enum #{:cat :dog :measurement :error}]
    t-tuple        [:tuple [:int :string :double]]
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi number? {true :int false :string}]

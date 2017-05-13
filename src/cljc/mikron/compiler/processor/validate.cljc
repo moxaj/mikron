@@ -52,6 +52,9 @@
 (defmethod valid? :nil [_ value _]
   `(nil? ~value))
 
+(defmethod valid? :ignored [_ _ _]
+  true)
+
 (defmethod valid? :string [_ value _]
   `(string? ~value))
 

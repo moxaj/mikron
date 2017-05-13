@@ -62,10 +62,14 @@
 (defmethod pack :nil [_ _ _]
   nil)
 
+(defmethod pack :ignored [_ _ _]
+  nil)
+
 (defmethod pack :enum [[_ _ enum-values] value opts]
   (pack (compiler.schema/integer-schema (count enum-values))
         `(case ~value
            ~@(->> enum-values
+                  (sort)
                   (map-indexed (fn [index enum-value]
                                  [enum-value index]))
                   (apply concat)))

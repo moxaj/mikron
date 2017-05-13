@@ -54,6 +54,9 @@
 (defmethod gen :nil [_ _]
   nil)
 
+(defmethod gen :ignored [_ _]
+  nil)
+
 (defmethod gen :string [_ opts]
   `(apply str ~(common/into! [] true gen-length (gen [:char] opts))))
 
@@ -67,7 +70,7 @@
   nil)
 
 (defmethod gen :enum [[_ _ enum-values] opts]
-  `(runtime.processor.common/rand-nth ~enum-values))
+  `(runtime.processor.common/rand-nth ~(vec enum-values)))
 
 (defmethod gen :optional [[_ _ schema'] opts]
   `(when ~(gen [:boolean] opts)

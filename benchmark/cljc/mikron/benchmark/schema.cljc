@@ -28,7 +28,7 @@
   [:record {:user-data [:record {:id :int}]
             :position  ::coord
             :angle     :double
-            :body-type [:enum [:dynamic :static :kinetic]]
+            :body-type [:enum #{:dynamic :static :kinetic}]
             :fixtures  [:list ::fixture]}])
 
 (mikron/defschema ::snapshot
@@ -63,7 +63,7 @@
                                 {:id :int}]
             :position  ::coord2
             :angle     :double
-            :body-type [:enum [:dynamic :static :kinetic]]
+            :body-type [:enum #{:dynamic :static :kinetic}]
             :fixtures  [:vector ::fixture2]}])
 
 (mikron/defschema ::snapshot2

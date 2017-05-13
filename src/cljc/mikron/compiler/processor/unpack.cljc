@@ -60,8 +60,11 @@
 (defmethod unpack :nil [_ _]
   nil)
 
+(defmethod unpack :ignored [_ _]
+  nil)
+
 (defmethod unpack :enum [[_ _ enum-values] opts]
-  `(runtime.processor.common/nth ~enum-values
+  `(runtime.processor.common/nth ~(vec (sort enum-values))
                                  ~(unpack (compiler.schema/integer-schema (count enum-values)) opts)))
 
 (defmethod unpack :optional [[_ _ schema'] opts]
