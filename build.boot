@@ -19,6 +19,8 @@
                     [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]
                     [nodisassemble               "0.1.3"     :scope "test"]])
 
+(load-data-readers!)
+
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
          '[clojure.string :as string]
