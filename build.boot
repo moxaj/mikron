@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/cljc" "src/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha16"]
-                    [org.clojure/clojurescript   "1.9.521"]
+                    [org.clojure/clojurescript   "1.9.522"]
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
@@ -18,6 +18,8 @@
                     [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
                     [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]
                     [nodisassemble               "0.1.3"     :scope "test"]])
+
+(load-data-readers!)
 
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
