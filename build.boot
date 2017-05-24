@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/cljc" "src/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha16"]
-                    [org.clojure/clojurescript   "1.9.522"]
+                    [org.clojure/clojurescript   "1.9.542"]
 
                     [adzerk/boot-test            "1.2.0"     :scope "test"]
                     [pandeiro/boot-http          "0.7.6"     :scope "test"]
