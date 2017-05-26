@@ -80,11 +80,18 @@
   [& args]
   (with-pass-thru _ (host-process (apply conch/proc args))))
 
+(deftask with-data-readers []
+  (fn [next-task]
+    (fn [fileset]
+      (#'clojure.core/load-data-readers)
+      (with-bindings {#'*data-readers* (.getRawRoot #'*data-readers*)}
+        (next-task fileset)))))
+
 (deftask testing
   "Adds the test files to the fileset."
   []
   (merge-env! :resource-paths #{"test/cljc" "test/cljs" "resources/test"})
-  identity)
+  (with-data-readers))
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
