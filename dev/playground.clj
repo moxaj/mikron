@@ -4,7 +4,7 @@
             [clojure.spec.alpha :as s]
             [clojure.walk :as w]
             [criterium.core :as c]
-            [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff interp]]
+            [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff diff* undiff* interp]]
             [mikron.runtime.buffer :refer :all]
             [no.disassemble :as d]))
 
@@ -70,3 +70,5 @@
        :processors
        :pack
        (d!)))
+
+(schema* :int :processors #{:pack :unpack})
