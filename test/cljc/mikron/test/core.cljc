@@ -1,6 +1,7 @@
 (ns mikron.test.core
   "Actual unit test cases."
   (:require [clojure.test :as test]
+            [mikron.compiler.template]
             [mikron.runtime.core :as mikron]
             [mikron.test.core-macros :as test-macros :refer [def-mikron-tests]])
   #?(:clj (:import [java.util Arrays])))
@@ -65,3 +66,9 @@
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi number? {true :int false :string}]
    t-wrapped      [:wrapped unchecked-inc-int unchecked-dec-int :int]})
+
+(let [schema-1 (mikron/schema [:record {:a :int}])
+      schema-2 (mikron/schema [:record {:b :string}])
+      schema-3 (mikron/schema [:record {:c [:enum #{:cat :dog}]}])]
+  (def-mikron-tests [:pack :diff :valid? :interp]
+    {t-template #mikron/merged [schema-1 schema-2 schema-3]}))
