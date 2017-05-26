@@ -36,7 +36,8 @@
          '[me.raynes.conch.low-level :as conch]
          '[codox.boot :as boot-codox]
 
-         '[mikron.runtime.core :as mikron])
+         '[mikron.runtime.core :as mikron]
+         '[mikron.compiler.template])
 
 (import '[java.util Date])
 
@@ -56,6 +57,13 @@
   push {:ensure-clean false})
 
 ;; Util
+
+(deftask with-data-readers []
+  (fn [next-task]
+    (fn [fileset]
+      (#'clojure.core/load-data-readers)
+      (binding [*data-readers* (.getRawRoot #'*data-readers*)]
+        (next-task fileset)))))
 
 (def windows?
   (.. (System/getProperty "os.name") (toLowerCase) (startsWith "windows")))
@@ -84,7 +92,7 @@
   "Adds the test files to the fileset."
   []
   (merge-env! :resource-paths #{"test/cljc" "test/cljs" "resources/test"})
-  identity)
+  (with-data-readers))
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
@@ -99,7 +107,7 @@
                                 [com.google.protobuf/protobuf-java "3.2.0"]
                                 [com.taoensso/nippy "2.12.2"]
                                 [criterium "0.4.4"]])
-  identity)
+  (with-data-readers))
 
 (deftask dev
   "Dev task for proto-repl."
