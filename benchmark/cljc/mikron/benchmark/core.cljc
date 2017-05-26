@@ -91,16 +91,10 @@
 #?(:clj ;; colfer
    (defmethod pack :colfer ^bytes [_ schema data]
      (let [count (case schema
-                   ::benchmark.schema/quartet   ^Quartet data
-                   ::benchmark.schema/snapshot  ^Snapshot data
-                   ::benchmark.schema/snapshot2 ^Snapshot data)
-                 colfer-buffer 0])
-     (let [count (.marshal (case schema
-                             ::benchmark.schema/quartet   ^Quartet data
-                             ::benchmark.schema/snapshot  ^Snapshot data
-                             ::benchmark.schema/snapshot2 ^Snapshot data)
-                           colfer-buffer 0)]
-       (Arrays/copyOf colfer-buffer count))))
+                   ::benchmark.schema/quartet   (.marshal ^Quartet data ^bytes colfer-buffer 0)
+                   ::benchmark.schema/snapshot  (.marshal ^Snapshot data ^bytes colfer-buffer 0)
+                   ::benchmark.schema/snapshot2 (.marshal ^Snapshot data ^bytes colfer-buffer 0))]
+       (Arrays/copyOf ^bytes colfer-buffer count))))
 
 ;; Unpackers
 
@@ -163,11 +157,10 @@
 
 #?(:clj ;; colfer
    (defmethod unpack :colfer [_ schema ^bytes binary]
-     (.unmarshal (case schema
-                   ::benchmark.schema/quartet   (Quartet.)
-                   ::benchmark.schema/snapshot  (Snapshot.)
-                   ::benchmark.schema/snapshot2 (Snapshot.))
-                 binary 0)))
+     (case schema
+       ::benchmark.schema/quartet   (.unmarshal (Quartet.) binary 0)
+       ::benchmark.schema/snapshot  (.unmarshal (Snapshot.) binary 0)
+       ::benchmark.schema/snapshot2 (.unmarshal (Snapshot.) binary 0))))
 
 ;; Post process
 
@@ -214,7 +207,7 @@
          (vec))))
 
 (comment
-  (benchmark :stats   [:pack-time]
-             :methods [:mikron :protobuf :nippy]
-             :schema  ::benchmark.schema/snapshot2)
+  (benchmark :stats   [:size]
+             ;:methods [:mikron :protobuf :nippy]
+             :schema  ::benchmark.schema/snapshot)
   nil)
