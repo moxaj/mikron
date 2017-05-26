@@ -2,7 +2,8 @@
   "Unit tests for each processor."
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
-            [mikron.compiler.util :as compiler.util])
+            [mikron.compiler.util :as compiler.util]
+            [mikron.compiler.template])
   #?(:cljs (:require-macros [mikron.test.core-macros])))
 
 (defmulti test-mikron
