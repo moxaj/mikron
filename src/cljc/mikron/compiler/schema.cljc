@@ -72,46 +72,46 @@
 (defmethod schema-keys :default [_]
   nil)
 
-(def expand-path-hierarchy
-  "Modified hierarchy for `expand-path`."
+(def expand-paths-hierarchy
+  "Modified hierarchy for `expand-paths`."
   (derive-all hierarchy :keyed [:tuple :record :multi]))
 
-(defmulti expand-path*
+(defmulti expand-paths*
   "Returns a fully expanded path expression."
-  (fn [path schema]
+  (fn [paths schema]
     (schema-name schema))
-  :hierarchy #'expand-path-hierarchy)
+  :hierarchy #'expand-paths-hierarchy)
 
-(defn expand-path
+(defn expand-paths
   "Returns a fully expanded path expression."
-  [path schema]
-  (if-not path
+  [paths schema]
+  (if-not paths
     false
-    (expand-path* path schema)))
+    (expand-paths* paths schema)))
 
-(defmethod expand-path* :keyed [path schema]
+(defmethod expand-paths* :keyed [paths schema]
   (let [schemas' (peek schema)]
-    (reduce-kv (fn [path key' path']
-                 (assoc path key' (expand-path path' (schemas' key'))))
+    (reduce-kv (fn [paths key' paths']
+                 (assoc paths key' (expand-paths paths' (schemas' key'))))
                {}
-               (if (true? path)
+               (if (true? paths)
                  (zipmap (schema-keys schema) (repeat true))
-                 path))))
+                 paths))))
 
-(defmethod expand-path* :coll [path [_ _ schema']]
-  {:all (expand-path (if (true? path)
+(defmethod expand-paths* :coll [paths [_ _ schema']]
+  {:all (expand-paths (if (true? paths)
                        true
-                       (:all path))
+                       (:all paths))
                      schema')})
 
-(defmethod expand-path* :map [path [_ _ _ val-schema']]
-  {:all (expand-path (if (true? path)
+(defmethod expand-paths* :map [paths [_ _ _ val-schema']]
+  {:all (expand-paths (if (true? paths)
                        true
-                       (:all path))
+                       (:all paths))
                      val-schema')})
 
-(defmethod expand-path* :default [path _]
-  (true? path))
+(defmethod expand-paths* :default [paths _]
+  (true? paths))
 
 (defmulti schema-children*
   "Returns the immediate children of `schema`."

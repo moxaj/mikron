@@ -1,7 +1,7 @@
 (ns mikron.compiler.spec
   "Macro input validation."
   (:require [clojure.spec.alpha :as s]
-            [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.schema :as schema]
             [mikron.compiler.spec-macros :refer [schema-spec*]]))
 
 (s/def ::sorted-by
@@ -22,8 +22,8 @@
     :else                    :custom))
 
 (def hierarchy
-  (-> compiler.schema/hierarchy
-      (compiler.schema/derive-all :simple-schema [:number :boolean :binary :nil :ignored])))
+  (-> schema/hierarchy
+      (schema/derive-all :simple-schema [:number :boolean :binary :nil :ignored])))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
@@ -73,30 +73,39 @@
   (s/and #(empty? (descendants hierarchy %))
          (s/multi-spec schema-spec schema-name)))
 
-(s/def ::path
-  (s/and (s/or :tuple       (s/map-of nat-int? ::path)
-               :record      (s/map-of keyword? ::path)
-               :multi       (s/map-of any? ::path)
-               :coll-or-map (s/keys :req-un [:path/all])
+(s/def ::paths
+  (s/and (s/or :tuple       (s/map-of nat-int? ::paths)
+               :record      (s/map-of keyword? ::paths)
+               :multi       (s/map-of any? ::paths)
+               :coll-or-map (s/keys :req-un [:paths/all])
                :true        true?)
          (s/conformer second)))
 
-(s/def :path/all ::path)
+(s/def :paths/all ::paths)
 
-(s/def ::diff ::path)
+(s/def ::diff-paths ::paths)
 
-(s/def ::interp ::path)
+(s/def ::interp-paths ::paths)
+
+(s/def ::processor-types (s/coll-of keyword? :kind set?))
 
 (s/def ::schema*-args
-  (s/cat :schema ::schema
-         :ext    (s/keys* :opt-un [::diff ::interp])))
+  (s/conformer (s/cat :schema ::schema
+                      :ext    (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
+               (fn [{:keys [ext] :as schema-args}]
+                 (reduce (fn [schema-args ext-key]
+                           (if-some [ext-value (ext ext-key)]
+                             (assoc schema-args ext-key ext-value)
+                             schema-args))
+                         (dissoc schema-args :ext)
+                         #{:diff-paths :interp-paths :processor-types}))))
 
 (s/def ::schema-args
   (s/* any?))
 
 (s/def ::defschema-args
-  (s/cat :schema-name qualified-keyword?
-         :args        (s/* any?)))
+  (s/cat :schema-name  qualified-keyword?
+         :schema*-args (s/* any?)))
 
 (s/def ::definterface+-args
   (s/cat :name simple-symbol?

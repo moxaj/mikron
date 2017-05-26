@@ -1,7 +1,6 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
   #?(:clj (:refer-clojure :exclude [eval]))
-  (:require [mikron.compiler.util-macros :refer [compile-time]])
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
@@ -13,7 +12,7 @@
 
 (defmacro with-gensyms
   "Executes each expression of `body` in the context of each symbol in `syms`
-  bound to a generated symbol."
+   bound to a generated symbol."
   [syms & body]
   `(let [~@(mapcat (fn [sym]
                      [sym `(with-meta (gensym ~(str sym)) ~(meta sym))])
@@ -22,8 +21,8 @@
 
 (defmacro with-evaluated
   "Executes each expression of `body` in the context of each symbol in `syms`
-  bound to an **evaluated** value. Can be used to prevent accidental multiple evaluation
-  in macros."
+   bound to an **evaluated** value. Can be used to prevent accidental multiple evaluation
+   in macros."
   [syms & body]
   (let [m (into {} (map (juxt identity gensym) syms))]
     `(let [~@(mapcat (fn [[sym temp-sym]]
@@ -32,26 +31,6 @@
        `(let [~~@(mapcat reverse m)]
           ~(let [~@(mapcat identity m)]
              ~@body)))))
-
-(compile-time
-  (defn eval
-    "Evaluates the form."
-    [form]
-    #?(:clj  (clojure.core/eval form)
-       :cljs (binding [ana/*cljs-warnings*
-                       (assoc ana/*cljs-warnings* :undeclared-var false
-                                                  :undeclared-ns  false)]
-               (let [result (atom nil)]
-                 (cljs.js/eval
-                   (cljs.js/empty-state)
-                   form
-                   {:ns      (ns-name *ns*)
-                    :context :expr}
-                   (fn [{:keys [value error]}]
-                     (if error
-                       (throw (js/Error. error))
-                       (reset! result value))))
-                 @result)))))
 
 ;; processor
 
