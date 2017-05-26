@@ -8,8 +8,8 @@
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
 (definterface+ IMikronBitBuffer
-  (^long   get-bit-pos* []            "Gets the current position of the buffer.")
-  (^Object set-bit-pos* [^long value] "Sets the current position of the buffer.")
+  (^long   get-bit-position* []            "Gets the current position of the buffer.")
+  (^Object set-bit-position* [^long value] "Sets the current position of the buffer.")
 
   (^long   get-bit-index* []            "Gets the current index of the buffer.")
   (^Object set-bit-index* [^long value] "Sets the current index of the buffer.")
@@ -19,12 +19,12 @@
 
 (deftype MikronBitBuffer [^long ^:unsynchronized-mutable value
                           ^long ^:unsynchronized-mutable index
-                          ^long ^:unsynchronized-mutable pos]
+                          ^long ^:unsynchronized-mutable position]
   IMikronBitBuffer
-  (get-bit-pos* [_]
-    pos)
-  (set-bit-pos* [_ value']
-    (set! pos (unchecked-long value')) nil)
+  (get-bit-position* [_]
+    position)
+  (set-bit-position* [_ value']
+    (set! position (unchecked-long value')) nil)
 
   (get-bit-index* [_]
     index)
@@ -60,8 +60,8 @@
 
   (^bytes  take-bytes-all* [] "Takes all written bytes from the buffer.")
 
-  (^long   get-pos* []          "Gets the current position of the buffer.")
-  (^Object set-pos* [^long pos] "Sets the current position of the buffer.")
+  (^long   get-position* []            "Gets the current positio of the buffer.")
+  (^Object set-position* [^long value] "Sets the current position of the buffer.")
 
   (^Object get-le* []              "Gets the current endianness of the buffer.")
   (^Object set-le* [^Object value] "Sets the current endianness of the buffer."))
@@ -75,29 +75,29 @@
 (deftype MikronByteBuffer
   #?(:clj  [^ByteBuffer buffer]
      :cljs [^NativeJsBuffer buffer
-            ^long ^:unsynchronized-mutable pos
+            ^long ^:unsynchronized-mutable position
             ^boolean ^:unsynchronized-mutable le])
   IMikronByteBuffer
   (take-byte* [_]
     #?(:clj  (unchecked-long (.get buffer))
-       :cljs (with-delta pos 1 (.readInt8 buffer pos true))))
+       :cljs (with-delta position 1 (.readInt8 buffer position true))))
   (put-byte* [_ value]
     #?(:clj  (.put buffer (unchecked-byte value))
-       :cljs (with-delta pos 1 (.writeInt8 buffer value pos true))))
+       :cljs (with-delta position 1 (.writeInt8 buffer value position true))))
 
   (take-short* [_]
     #?(:clj  (unchecked-long (.getShort buffer))
-       :cljs (with-delta pos 2 (with-le le (.readInt16 buffer pos true)))))
+       :cljs (with-delta position 2 (with-le le (.readInt16 buffer position true)))))
   (put-short* [_ value]
     #?(:clj  (.putShort buffer (unchecked-short value))
-       :cljs (with-delta pos 2 (with-le le (.writeInt16 buffer value pos true)))))
+       :cljs (with-delta position 2 (with-le le (.writeInt16 buffer value position true)))))
 
   (take-int* [_]
     #?(:clj  (.getInt buffer)
-       :cljs (with-delta pos 4 (with-le le (.readInt32 buffer pos true)))))
+       :cljs (with-delta position 4 (with-le le (.readInt32 buffer position true)))))
   (put-int* [_ value]
     #?(:clj  (.putInt buffer (unchecked-int value))
-       :cljs (with-delta pos 4 (with-le le (.writeInt32 buffer value pos true)))))
+       :cljs (with-delta position 4 (with-le le (.writeInt32 buffer value position true)))))
 
   (take-long* [this]
     #?(:clj  (.getLong buffer)
@@ -115,44 +115,44 @@
 
   (take-float* [_]
     #?(:clj  (double (.getFloat buffer))
-       :cljs (with-delta pos 4 (with-le le (.readFloat buffer pos true)))))
+       :cljs (with-delta position 4 (with-le le (.readFloat buffer position true)))))
   (put-float* [_ value]
     #?(:clj  (.putFloat buffer (unchecked-float value))
-       :cljs (with-delta pos 4 (with-le le (.writeFloat buffer value pos true)))))
+       :cljs (with-delta position 4 (with-le le (.writeFloat buffer value position true)))))
 
   (take-double* [_]
     #?(:clj  (.getDouble buffer)
-       :cljs (with-delta pos 8 (with-le le (.readDouble buffer pos true)))))
+       :cljs (with-delta position 8 (with-le le (.readDouble buffer position true)))))
   (put-double* [_ value]
     #?(:clj  (.putDouble buffer value)
-       :cljs (with-delta pos 8 (with-le le (.writeDouble buffer value pos true)))))
+       :cljs (with-delta position 8 (with-le le (.writeDouble buffer value position true)))))
 
   (take-bytes* [_ n]
     #?(:clj  (let [value (byte-array n)]
                (.get buffer value)
                value)
-       :cljs (let [from pos
-                   to   (unchecked-add pos n)]
-               (set! pos to)
+       :cljs (let [from position
+                   to   (unchecked-add position n)]
+               (set! position to)
                (.slice (.-buffer buffer) from to))))
   (put-bytes* [_ value]
     #?(:clj  (.put buffer value)
-       :cljs (do (.copy (.from NativeJsBuffer value) buffer pos)
-                 (set! pos (unchecked-add pos (.-byteLength value))))))
+       :cljs (do (.copy (.from NativeJsBuffer value) buffer position)
+                 (set! position (unchecked-add position (.-byteLength value))))))
 
   (take-bytes-all* [_]
     #?(:clj  (let [bytes (byte-array (.position buffer))]
                (.position buffer (unchecked-int 0))
                (.get buffer bytes)
                bytes)
-       :cljs (.slice (.-buffer buffer) 0 pos)))
+       :cljs (.slice (.-buffer buffer) 0 position)))
 
-  (get-pos* [_]
+  (get-position* [_]
     #?(:clj  (.position buffer)
-       :cljs pos))
-  (set-pos* [_ value]
+       :cljs position))
+  (set-position* [_ value]
     #?(:clj  (.position buffer (unchecked-int value))
-       :cljs (set! pos value)))
+       :cljs (set! position value)))
 
   (get-le* [_]
     #?(:clj  (identical? ByteOrder/LITTLE_ENDIAN (.order buffer))
@@ -176,17 +176,17 @@
   ^mikron.runtime.buffer.IMikronByteBuffer [^Buffer buffer]
   (.-byte-buffer buffer))
 
-(defn get-bit-pos
+(defn get-bit-position
   "Gets the bit position of `buffer`."
-  #?(:clj {:inline (fn [buffer] `(get-bit-pos* (get-bit-buffer ~buffer)))})
+  #?(:clj {:inline (fn [buffer] `(get-bit-position* (get-bit-buffer ~buffer)))})
   ^long [^Buffer buffer]
-  (get-bit-pos* (get-bit-buffer buffer)))
+  (get-bit-position* (get-bit-buffer buffer)))
 
-(defn set-bit-pos
+(defn set-bit-position
   "Sets the bit position of `buffer` to `value`."
-  #?(:clj {:inline (fn [buffer value] `(set-bit-pos* (get-bit-buffer ~buffer) ~value))})
+  #?(:clj {:inline (fn [buffer value] `(set-bit-position* (get-bit-buffer ~buffer) ~value))})
   [^Buffer buffer ^long value]
-  (set-bit-pos* (get-bit-buffer buffer) value))
+  (set-bit-position* (get-bit-buffer buffer) value))
 
 (defn get-bit-index
   "Gets the bit index of `buffer`."
@@ -304,17 +304,17 @@
   ^bytes [^Buffer buffer]
   (take-bytes-all* (get-byte-buffer buffer)))
 
-(defn get-pos
+(defn get-position
   "Gets the position of `buffer`."
-  #?(:clj {:inline (fn [buffer] `(get-pos* (get-byte-buffer ~buffer)))})
+  #?(:clj {:inline (fn [buffer] `(get-position* (get-byte-buffer ~buffer)))})
   ^long [^Buffer buffer]
-  (get-pos* (get-byte-buffer buffer)))
+  (get-position* (get-byte-buffer buffer)))
 
-(defn set-pos
+(defn set-position
   "Sets the position of `buffer`."
-  #?(:clj {:inline (fn [buffer value] `(set-pos* (get-byte-buffer ~buffer) ~value))})
+  #?(:clj {:inline (fn [buffer value] `(set-position* (get-byte-buffer ~buffer) ~value))})
   [^Buffer buffer ^long value]
-  (set-pos* (get-byte-buffer buffer) value))
+  (set-position* (get-byte-buffer buffer) value))
 
 (defn get-le
   "Gets the endianness of `buffer`."
@@ -370,12 +370,12 @@
 
 (defn put-byte-at
   "Puts a byte to the given position in `buffer`."
-  [^Buffer buffer ^long pos ^long value]
-  (let [pos' (get-pos buffer)]
+  [^Buffer buffer ^long position ^long value]
+  (let [position' (get-position buffer)]
     (doto buffer
-      (set-pos pos)
+      (set-position position)
       (put-byte value)
-      (set-pos pos'))))
+      (set-position position'))))
 
 (defn take-boolean
   "Takes a boolean from `buffer`."
@@ -392,13 +392,13 @@
   [^Buffer buffer value]
   (let [bit-index (get-bit-index buffer)]
     (when (== 0 bit-index)
-      (let [bit-pos (get-bit-pos buffer)]
-        (when (pos? bit-pos)
-          (put-byte-at buffer bit-pos (get-bit-value buffer))))
-      (let [pos (get-pos buffer)]
-        (set-bit-pos buffer pos)
+      (let [bit-position (get-bit-position buffer)]
+        (when (pos? bit-position)
+          (put-byte-at buffer bit-position (get-bit-value buffer))))
+      (let [position (get-position buffer)]
+        (set-bit-position buffer position)
         (set-bit-value buffer 0)
-        (set-pos buffer (unchecked-inc pos))))
+        (set-position buffer (unchecked-inc position))))
     (let [bit-mask (bit-shift-left 1 bit-index)]
       (set-bit-index buffer (rem (unchecked-inc bit-index) 8))
       (set-bit-value buffer (unchecked-byte (if value
@@ -452,17 +452,17 @@
   "Resets `buffer`."
   ^Buffer [^Buffer buffer]
   (doto buffer
-    (set-pos 0)
-    (set-bit-pos -1)
+    (set-position 0)
+    (set-bit-position -1)
     (set-bit-value 0)
     (set-bit-index 0)))
 
 (defn finalize
   "Finalizes `buffer`."
   ^Buffer [^Buffer buffer]
-  (let [bit-pos (get-bit-pos buffer)]
-    (when-not (== -1 bit-pos)
-      (put-byte-at buffer bit-pos (get-bit-value buffer)))
+  (let [bit-position (get-bit-position buffer)]
+    (when-not (== -1 bit-position)
+      (put-byte-at buffer bit-position (get-bit-value buffer)))
     buffer))
 
 (definterface+ IMikronByteBufferFactory
@@ -477,13 +477,11 @@
 (deftype MikronByteBufferFactory []
   IMikronByteBufferFactory
   (allocate* [_ size]
-    (MikronByteBuffer.
-      #?@(:clj  [(.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder))]
-          :cljs [(.allocUnsafe NativeJsBuffer size) 0 true])))
+    #?(:clj  (MikronByteBuffer. (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder)))
+       :cljs (MikronByteBuffer. (.allocUnsafe NativeJsBuffer size) 0 true)))
   (wrap* [_ binary]
-    (MikronByteBuffer.
-      #?@(:clj  [(ByteBuffer/wrap binary)]
-          :cljs [(.from NativeJsBuffer binary) 0 true]))))
+    #?(:clj  (MikronByteBuffer. (ByteBuffer/wrap binary))
+       :cljs (MikronByteBuffer. (.from NativeJsBuffer binary) 0 true))))
 
 (def ^mikron.runtime.buffer.IMikronByteBufferFactory byte-buffer-factory
   "The default byte buffer factory."
@@ -499,14 +497,12 @@
 (defn allocate
   "Allocates a buffer with the size `size`."
   ^Buffer [^long size]
-  (Buffer. (MikronBitBuffer. 0 0 -1)
-           (allocate* byte-buffer-factory size)))
+  (Buffer. (MikronBitBuffer. 0 0 -1) (allocate* byte-buffer-factory size)))
 
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
   ^Buffer [^bytes binary]
-  (Buffer. (MikronBitBuffer. 0 0 -1)
-           (wrap* byte-buffer-factory binary)))
+  (Buffer. (MikronBitBuffer. 0 0 -1) (wrap* byte-buffer-factory binary)))
 
 (defn set-headers
   "Sets the headers of `buffer`."
