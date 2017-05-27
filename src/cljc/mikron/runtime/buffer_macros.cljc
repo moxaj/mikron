@@ -45,28 +45,27 @@
 (defmacro definterface+
   "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
   [& args]
-  (let [{:keys [name ops]} (compiler.spec/enforce ::compiler.spec/definterface+-args args)
-        interface-name name]
+  (let [{:keys [interface-name ops]} (compiler.spec/enforce ::compiler.spec/definterface+-args args)]
     (if (compiler.util/cljs?)
-      `(defprotocol ~name
-         ~@(map (fn [{:keys [name args docs]}]
-                  `(~(without-hint name)
+      `(defprotocol ~interface-name
+         ~@(map (fn [{:keys [op-name args docs]}]
+                  `(~(without-hint op-name)
                     ~(into [(gensym "this")] (map without-hint args))
                     ~@(when docs [docs])))
                 ops))
-      `(do (definterface ~name
-             ~@(map (fn [{:keys [name args docs]}]
-                      `(~(with-meta (munge name) (meta name))
+      `(do (definterface ~interface-name
+             ~@(map (fn [{:keys [op-name args docs]}]
+                      `(~(with-meta (munge op-name) (meta op-name))
                         ~args
                         ~@(when docs [docs])))
                     ops))
-           ~@(map (fn [{:keys [name args docs]}]
-                    (let [munged-name (symbol (str "." (munge name)))
+           ~@(map (fn [{:keys [op-name args docs]}]
+                    (let [munged-name (symbol (str "." (munge op-name)))
                           args        (with-meta (into [(with-meta (gensym "this")
                                                                    {:tag (symbol (str (ns-name *ns*) "." interface-name))})]
                                                        args)
-                                                 (meta name))]
-                      `(defn ~(without-hint name)
+                                                 (meta op-name))]
+                      `(defn ~(without-hint op-name)
                          ~@(when docs [docs])
                          {:inline (fn ~(mapv without-hint args)
                                     `(~'~munged-name
