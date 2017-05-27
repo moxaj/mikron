@@ -90,15 +90,16 @@
 (s/def ::processor-types (s/coll-of keyword? :kind set?))
 
 (s/def ::schema*-args
-  (s/conformer (s/cat :schema ::schema
-                      :ext    (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
-               (fn [{:keys [ext] :as schema-args}]
-                 (reduce (fn [schema-args ext-key]
-                           (if-some [ext-value (ext ext-key)]
-                             (assoc schema-args ext-key ext-value)
-                             schema-args))
-                         (dissoc schema-args :ext)
-                         #{:diff-paths :interp-paths :processor-types}))))
+  (s/and (s/cat :schema ::schema
+                :ext    (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
+         (s/conformer 
+           (fn [{:keys [ext] :as schema-args}]
+             (reduce (fn [schema-args ext-key]
+                       (if-some [ext-value (ext ext-key)]
+                         (assoc schema-args ext-key ext-value)
+                         schema-args))
+                     (dissoc schema-args :ext)
+                     #{:diff-paths :interp-paths :processor-types})))))
 
 (s/def ::schema-args
   (s/* any?))
@@ -108,10 +109,10 @@
          :schema*-args (s/* any?)))
 
 (s/def ::definterface+-args
-  (s/cat :name simple-symbol?
-         :ops  (s/* (s/spec (s/cat :name simple-symbol?
-                                   :args (s/coll-of simple-symbol? :kind vector?)
-                                   :docs (s/? string?))))))
+  (s/cat :interface-name simple-symbol?
+         :ops            (s/* (s/spec (s/cat :op-name simple-symbol?
+                                             :args    (s/coll-of simple-symbol? :kind vector?)
+                                             :docs    (s/? string?))))))
 
 (defn enforce
   "Returns `value` conformed to `spec`, or throws an exception if the conformation fails."
