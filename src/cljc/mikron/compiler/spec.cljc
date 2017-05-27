@@ -92,10 +92,10 @@
 (s/def ::schema*-args
   (s/and (s/cat :schema ::schema
                 :ext    (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
-         (s/conformer 
+         (s/conformer
            (fn [{:keys [ext] :as schema-args}]
              (reduce (fn [schema-args ext-key]
-                       (if-some [ext-value (ext ext-key)]
+                       (if-some [ext-value (get ext ext-key)]
                          (assoc schema-args ext-key ext-value)
                          schema-args))
                      (dissoc schema-args :ext)
