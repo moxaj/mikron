@@ -22,8 +22,7 @@
     :else                    :custom))
 
 (def hierarchy
-  (-> schema/hierarchy
-      (schema/derive-all :simple-schema [:number :boolean :binary :nil :ignored])))
+  (schema/derive-all schema/hierarchy :simple-schema [:number :boolean :binary :nil :ignored]))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
@@ -91,14 +90,12 @@
 
 (s/def ::schema*-args
   (s/and (s/cat :schema ::schema
-                :ext    (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
+                :exts   (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
          (s/conformer
-           (fn [{:keys [ext] :as schema-args}]
-             (reduce (fn [schema-args ext-key]
-                       (if-some [ext-value (get ext ext-key)]
-                         (assoc schema-args ext-key ext-value)
-                         schema-args))
-                     (dissoc schema-args :ext)
+           (fn [{:keys [exts] :as schema-args}]
+             (reduce (fn [schema-args ext]
+                       (assoc schema-args ext (get exts ext)))
+                     (dissoc schema-args :exts)
                      #{:diff-paths :interp-paths :processor-types})))))
 
 (s/def ::schema-args
