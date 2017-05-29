@@ -18,13 +18,13 @@
      (~(symbol (str method "LE")) ~@args)
      (~(symbol (str method "BE")) ~@args)))
 
-(defn without-hint
-  "Removes the type hint metadata from `value`."
+(defn without-tag
+  "Removes the `tag` metadata from `value`."
   [value]
   (vary-meta value dissoc :tag))
 
-(defn without-primitive-hint
-  "Removes the primitive type hint metadata from `value`."
+(defn without-primitive-tag
+  "Removes the primitive `tag` metadata from `value`."
   [value]
   (vary-meta value (fn [{:keys [tag] :as meta}]
                      (cond-> meta
@@ -35,8 +35,8 @@
   [value]
   (or (symbol? value) (coll? value)))
 
-(defn with-runtime-hint
-  "Takes the metadata of `value` and returns a piece of code which reapplies it to what `value` evaluates to."
+(defn with-runtime-tag
+  "Takes the `tag` metadata of `value` and returns a piece of code which reapplies it to what `value` evaluates to."
   [value]
   `(if-not (can-have-metadata? ~value)
      ~value
@@ -49,8 +49,8 @@
     (if (compiler.util/cljs?)
       `(defprotocol ~interface-name
          ~@(map (fn [{:keys [op-name args docs]}]
-                  `(~(without-hint op-name)
-                    ~(into [(gensym "this")] (map without-hint args))
+                  `(~(without-tag op-name)
+                    ~(into [(gensym "this")] (map without-tag args))
                     ~@(when docs [docs])))
                 ops))
       `(do (definterface ~interface-name
@@ -65,11 +65,11 @@
                                                                    {:tag (symbol (str (ns-name *ns*) "." interface-name))})]
                                                        args)
                                                  (meta op-name))]
-                      `(defn ~(without-hint op-name)
+                      `(defn ~(without-tag op-name)
                          ~@(when docs [docs])
-                         {:inline (fn ~(mapv without-hint args)
+                         {:inline (fn ~(mapv without-tag args)
                                     `(~'~munged-name
-                                      ~~@(map (comp with-runtime-hint without-primitive-hint) args)))}
+                                      ~~@(map (comp with-runtime-tag without-primitive-tag) args)))}
                          ~args
-                         (~munged-name ~@(map without-hint args)))))
+                         (~munged-name ~@(map without-tag args)))))
                   ops)))))
