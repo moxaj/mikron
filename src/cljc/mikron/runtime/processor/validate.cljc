@@ -39,6 +39,7 @@
 
 (defn valid-binary?
   "Returns `true` if `value` is a binary value, `false` otherwise."
+  #?(:clj {:inline (fn [value] `(bytes? ~value))})
   [value]
   #?(:clj  (bytes? value)
      :cljs (instance? js/ArrayBuffer value)))
