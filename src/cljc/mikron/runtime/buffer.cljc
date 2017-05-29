@@ -338,7 +338,7 @@
 
 (defn put-ubyte
   "Puts an unsigned byte `value` to `buffer`."
-  #?(:clj {:inline (fn [buffer value] `(put-byte ~buffer (unchecked-byte (bit-and ~(with-meta value {:tag 'long}) 0xFF))))})
+  #?(:clj {:inline (fn [buffer value] `(put-byte ~buffer (unchecked-byte (bit-and ~(vary-meta value assoc :tag 'long) 0xFF))))})
   [^Buffer buffer ^long value]
   (put-byte buffer (unchecked-byte (bit-and value 0xFF))))
 
@@ -350,7 +350,7 @@
 
 (defn put-ushort
   "Puts an unsigned short `value` to `buffer`."
-  #?(:clj {:inline (fn [buffer value] `(put-short ~buffer (unchecked-short (bit-and ~(with-meta value {:tag 'long}) 0xFFFF))))})
+  #?(:clj {:inline (fn [buffer value] `(put-short ~buffer (unchecked-short (bit-and ~(vary-meta value assoc :tag 'long) 0xFFFF))))})
   [^Buffer buffer ^long value]
   (put-short buffer (unchecked-short (bit-and value 0xFFFF))))
 
@@ -364,7 +364,7 @@
 
 (defn put-uint
   "Puts an unsigned int `value` to `buffer`."
-  #?(:clj {:inline (fn [buffer value] `(put-int ~buffer (unchecked-int (bit-and ~(with-meta value {:tag 'long}) 0xFFFFFFFF))))})
+  #?(:clj {:inline (fn [buffer value] `(put-int ~buffer (unchecked-int (bit-and ~(vary-meta value assoc :tag 'long) 0xFFFFFFFF))))})
   [^Buffer buffer ^long value]
   (put-int buffer (unchecked-int (bit-and value 0xFFFFFFFF))))
 
