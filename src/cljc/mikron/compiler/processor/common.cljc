@@ -10,7 +10,7 @@
   (if-not class
     `(~record ~key)
     `(~(symbol (str ".-" (name key)))
-      ~(with-meta record {:tag class}))))
+      ~(vary-meta record assoc :tag class))))
 
 (defn record->fields
   "Returns a map from record keys to generated symbols."

@@ -11,12 +11,14 @@
 
 (defn count
   "Returns the length of a vector `coll`."
+  #?(:clj {:inline (fn [coll] `(.count ~(vary-meta coll assoc :tag `Counted)))})
   ^long [coll]
   #?(:clj  (.count ^Counted coll)
      :cljs (cljs.core/-count coll)))
 
 (defn nth
   "Returns the value of a vector `coll` at the position `index`."
+  #?(:clj {:inline (fn [coll index] `(.nth ~(vary-meta coll assoc :tag `Indexed) (unchecked-int ~index)))})
   [coll ^long index]
   #?(:clj  (.nth ^Indexed coll (unchecked-int index))
      :cljs (cljs.core/-nth coll (unchecked-int index))))
@@ -27,8 +29,7 @@
   (nth coll (math/rand-long (count coll))))
 
 (defn every?
-  "Returns `true` if `pred` returns `true` for each element of a
-  vector `coll`, `false` otherwise."
+  "Returns `true` if `pred` returns `true` for each element of a vector `coll`, `false` otherwise."
   [pred coll]
   (let [length (count coll)]
     (loop [index (long 0)]
@@ -40,38 +41,45 @@
 
 (defn any->string
   "Converts an edn value `value` to a string."
+  #?(:clj {:inline (fn [value] `(pr-str ~value))})
   [value]
   (pr-str value))
 
 (defn string->any
   "Converts a string `value` to an edn value."
+  #?(:clj {:inline (fn [value] `(edn/read-string ~value))})
   [^String value]
   (edn/read-string value))
 
 (defn keyword->string
   "Converts a keyword `value` to a string."
+  #?(:clj {:inline (fn [value] `(.substring (str ~value) 1))})
   ^String [value]
   (.substring (str value) 1))
 
 (defn string->keyword
   "Converts a string `value` to a keyword."
+  #?(:clj {:inline (fn [value] `(keyword ~value))})
   [^String value]
   (keyword value))
 
 (defn char->int
   "Converts a character `value` to an int."
+  #?(:clj {:inline (fn [value] `(unchecked-int ~value))})
   ^long [value]
   #?(:clj  (unchecked-int value)
      :cljs (.charCodeAt value 0)))
 
 (defn int->char
   "Converts an int `value` to a char."
+  #?(:clj {:inline (fn [value] `(char ~value))})
   [^long value]
   #?(:clj  (char value)
      :cljs (.fromCharCode js/String value)))
 
 (defn string->binary
   "Converts a string `value` to a binary value."
+  #?(:clj {:inline (fn [value] `(.getBytes ~(vary-meta value assoc :tag `String) StandardCharsets/UTF_8))})
   ^bytes [^String value]
   #?(:clj  (.getBytes value StandardCharsets/UTF_8)
      :cljs (let [chars (-> value (js/encodeURIComponent) (js/unescape) (.split ""))
@@ -82,6 +90,7 @@
 
 (defn binary->string
   "Converts a binary value `value` to a string."
+  #?(:clj {:inline (fn [value] `(String. ~(vary-meta value assoc :tag 'bytes) StandardCharsets/UTF_8))})
   ^String [^bytes value]
   #?(:clj  (String. value StandardCharsets/UTF_8)
      :cljs (-> (js/String.fromCharCode.apply nil (js/Uint8Array. value))
@@ -90,18 +99,23 @@
 
 (defn double->float
   "Converts a double `value` to a float."
+  #?(:clj {:inline (fn [value] `(unchecked-float ~value))})
   [^double value]
   #?(:clj  (unchecked-float value)
      :cljs (.fround js/Math value)))
 
 (defn byte-seq->binary
   "Converts a byte sequence to a binary value."
+  #?(:clj {:inline (fn [value] `(byte-array ~value))})
   [value]
   #?(:clj  (byte-array value)
      :cljs (.-buffer (js/Int8Array. (apply array value)))))
 
 ;; diff
 
-(defn keyword-identical? [value-1 value-2]
+(defn keyword-identical?
+  "Returns `true` if the two keywords are identical, `false` otherwise."
+  #?(:clj {:inline (fn [value-1 value-2] `(identical? ~value-1 ~value-2))})
+  [value-1 value-2]
   #?(:clj  (identical? value-1 value-2)
      :cljs (clojure.core/keyword-identical? value-1 value-2)))
