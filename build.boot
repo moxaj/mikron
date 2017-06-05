@@ -1,47 +1,50 @@
 (set-env!
   :resource-paths #{"src/cljc" "src/js/foreign"}
-  :dependencies   '[[org.clojure/clojure         "1.9.0-alpha16"]
-                    [org.clojure/clojurescript   "1.9.542"]
+  :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
+                    [org.clojure/clojurescript   "1.9.562"]
 
-                    [adzerk/boot-test            "1.2.0"     :scope "test"]
-                    [pandeiro/boot-http          "0.7.6"     :scope "test"]
-                    [adzerk/boot-reload          "0.5.1"     :scope "test"]
-                    [adzerk/boot-cljs            "1.7.228-2" :scope "test"]
-                    [adzerk/boot-cljs-repl       "0.3.3"     :scope "test"]
-                    [crisptrutski/boot-cljs-test "0.3.0"     :scope "test"]
-                    [boot-codox                  "0.10.3"    :scope "test"]
-                    [adzerk/bootlaces            "0.1.13"    :scope "test"]
+                    [adzerk/boot-test            "1.2.0"  :scope "test"]
+                    [adzerk/boot-reload          "0.5.1"  :scope "test"]
+                    [adzerk/boot-cljs            "2.0.0"  :scope "test"]
+                    [adzerk/boot-cljs-repl       "0.3.3"  :scope "test"]
+                    [adzerk/bootlaces            "0.1.13" :scope "test"]
+                    [pandeiro/boot-http          "0.8.3"  :scope "test"]
+                    [crisptrutski/boot-cljs-test "0.3.1"  :scope "test"]
+                    [boot-codox                  "0.10.3" :scope "test"]
 
-                    [me.raynes/conch             "0.8.0"     :scope "test"]
-                    [com.cemerick/piggieback     "0.2.1"     :scope "test"]
-                    [weasel                      "0.7.0"     :scope "test"]
-                    [org.clojure/tools.nrepl     "0.2.12"    :scope "test"]
-                    [viebel/codox-klipse-theme   "0.0.4"     :scope "test"]
-                    [nodisassemble               "0.1.3"     :scope "test"]])
+                    [me.raynes/conch             "0.8.0"  :scope "test"]
+                    [com.cemerick/piggieback     "0.2.1"  :scope "test"]
+                    [weasel                      "0.7.0"  :scope "test"]
+                    [org.clojure/tools.nrepl     "0.2.13" :scope "test"]
+                    [viebel/codox-klipse-theme   "0.0.5"  :scope "test"]
+                    [nodisassemble               "0.1.3"  :scope "test"]])
 
-(load-data-readers!)
+(merge-env!
+  :repositories [["clojars" {:url      "https://clojars.org/repo"
+                             :username (System/getenv "CLOJARS_USER")
+                             :password (System/getenv "CLOJARS_PASS")}]])
 
 (require '[clojure.java.io :as io]
          '[clojure.pprint :as pprint]
          '[clojure.string :as string]
 
+         '[mikron.runtime.core :as mikron]
+         '[mikron.compiler.template]
+
          '[boot.util :as util]
          '[adzerk.boot-test :as boot-test]
-         '[pandeiro.boot-http :as boot-http]
          '[adzerk.boot-reload :as boot-reload]
          '[adzerk.boot-cljs :as boot-cljs]
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
          '[adzerk.bootlaces :as bootlaces]
+         '[pandeiro.boot-http :as boot-http]
          '[crisptrutski.boot-cljs-test :as boot-cljs-test]
-         '[me.raynes.conch.low-level :as conch]
          '[codox.boot :as boot-codox]
+         '[me.raynes.conch.low-level :as conch])
 
-         '[mikron.runtime.core :as mikron]
-         '[mikron.compiler.template])
+(load-data-readers!)
 
-(import '[java.util Date])
-
-(def +version+ "0.6.1-SNAPSHOT")
+(def +version+ "0.6.2-SNAPSHOT")
 
 (task-options!
   pom {:project     'moxaj/mikron
@@ -54,21 +57,16 @@
   :dont-modify-paths? true)
 
 (task-options!
-  push {:ensure-clean false})
+  push {:ensure-clean false
+        :repo         "clojars"})
 
 ;; Util
-
-(deftask with-data-readers []
-  (fn [next-task]
-    (fn [fileset]
-      (#'clojure.core/load-data-readers)
-      (binding [*data-readers* (.getRawRoot #'*data-readers*)]
-        (next-task fileset)))))
 
 (def windows?
   (.. (System/getProperty "os.name") (toLowerCase) (startsWith "windows")))
 
 (defn fix-slashes
+  "Replaces all forward slashes with backwards slashes in the given string."
   [^String s]
   (if windows?
     (.replaceAll s "/" "\\\\")
@@ -92,22 +90,22 @@
   "Adds the test files to the fileset."
   []
   (merge-env! :resource-paths #{"test/cljc" "test/cljs" "resources/test"})
-  (with-data-readers))
+  identity)
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
   []
   (merge-env! :resource-paths #{"benchmark/cljc" "benchmark/java" "resources/benchmark"}
-              :dependencies   '[[com.cognitect/transit-clj "0.8.297"]
-                                [com.cognitect/transit-cljs "0.8.239"]
-                                [com.damballa/abracad "0.4.13"]
-                                [gloss "0.2.6"]
-                                [cheshire "5.7.0"]
-                                [funcool/octet "1.0.1"]
-                                [com.google.protobuf/protobuf-java "3.2.0"]
-                                [com.taoensso/nippy "2.12.2"]
-                                [criterium "0.4.4"]])
-  (with-data-readers))
+              :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
+                                [com.cognitect/transit-cljs        "0.8.239"]
+                                [com.damballa/abracad              "0.4.14-alpha2"]
+                                [gloss                             "0.2.6"]
+                                [cheshire                          "5.7.1"]
+                                [funcool/octet                     "1.0.1"]
+                                [com.google.protobuf/protobuf-java "3.3.1"]
+                                [com.taoensso/nippy                "2.14.0-alpha1"]
+                                [criterium                         "0.4.4"]])
+  identity)
 
 (deftask dev
   "Dev task for proto-repl."
@@ -115,44 +113,12 @@
   (merge-env! :init-ns        'user
               :resource-paths #{"dev"}
               :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
-                                [proto-repl "0.3.1" :exclusions [org.clojure/core.async]]])
+                                [proto-repl                  "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
   (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
   (comp (testing)
         (benchmarking)
         (javac)))
-
-(deftask benchmark-clj
-  "Runs the benchmarks on JVM."
-  [s stats  VAL #{kw} "The stat(s) to measure."
-   S schema VAL kw    "The schema to benchmark. One of #{:doubles :quartet :snapshot :snapshot2}"]
-  (let [stats  (or stats (do (util/info "No :stats specified, using [:pack-time :unpack-time].\n")
-                             [:pack-time :unpack-time]))
-        schema (keyword "mikron.benchmark.schema"
-                        (name (or schema (do (util/info "No :schema specified, using :snapshot.\n")
-                                             :snapshot))))
-        tmp    (tmp-dir!)]
-    (comp (benchmarking)
-          (javac)
-          (with-pre-wrap fileset
-            (let [in-file (->> (output-files fileset) (by-name ["results.edn"]) (first))]
-              (spit (io/file tmp (tmp-path in-file))
-                    (let [results (do (require '[mikron.benchmark.core :as benchmark])
-                                      ((resolve 'benchmark/benchmark) :stats stats :schema schema))]
-                      (-> (tmp-file in-file)
-                          (slurp)
-                          (read-string)
-                          (conj {:stats   (vec stats)
-                                 :schema  schema
-                                 :results results
-                                 :time    (.getTime (Date.))})
-                          (pprint/pprint)
-                          (with-out-str))))
-              (-> fileset
-                  (add-resource tmp)
-                  (commit!))))
-          (sift :move {#"results.edn" "../resources/benchmark/results.edn"})
-          (target))))
 
 (deftask test-clj
   "Runs the tests on JVM."
@@ -166,11 +132,10 @@
    s self-hosted?     bool "True if self-hosted."]
   (comp (testing)
         (if self-hosted?
-          (comp (target)
-                (proc "lumo"
-                      "-c" (System/getProperty "fake.class.path")
-                      "-k" "lumo_cache"
-                      "target/mikron/test_runner/node.cljs"))
+          (proc "lumo"
+                "-c" (System/getProperty "fake.class.path")
+                "-k" "lumo_cache"
+                "target/mikron/test_runner/node.cljs")
           (boot-cljs-test/test-cljs :js-env        :node
                                     :namespaces    '[mikron.test.core]
                                     :optimizations (or opt :none)))))
@@ -190,14 +155,13 @@
    t target       VAL kw   "The target for the cljs compiler."
    o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
-  (comp (testing)
-        (case (or platform :clj)
-          :clj  (test-clj)
-          :cljs (case (or target :browser)
-                  :browser (test-browser :opt    opt
-                                         :js-env :slimer)
-                  :nodejs  (test-node :opt          opt
-                                      :self-hosted? self-hosted?)))))
+  (case (or platform :clj)
+    :clj  (test-clj)
+    :cljs (case (or target :browser)
+            :browser (test-browser :opt    opt
+                                   :js-env :slimer)
+            :nodejs  (test-node :opt          opt
+                                :self-hosted? self-hosted?))))
 
 
 (deftask compile-cljs
@@ -236,12 +200,29 @@
   []
   (comp (testing)
         (benchmarking)
-        (target)
-        (with-pass-thru _
-          (run! println (string/split (System/getProperty "fake.class.path") #";")))
         (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
               "-e" (str "\"(require '[mikron.runtime.core :as mikron "
                         ":refer [schema defschema pack unpack gen valid?]])\"")
               "-r")))
+
+(deftask generate-docs
+  "Generates the documentation using codox."
+  []
+  (comp (boot-codox/codox
+          :name         "moxaj/mikron"
+          :metadata     {:doc/format :markdown}
+          :output-path  "docs"
+          ;:namespaces   [#"^mikron\.(?!codegen)"]
+          :exclude-vars #"^((map)?->\p{Upper}|(get|set|put|take).*\*)")
+        (sift :move {#"docs" "../docs"})
+        (target)))
+
+(deftask deploy
+  "Installs the artifact into the local maven repo and pushes to clojars."
+  []
+  (comp (pom)
+        (jar)
+        (install)
+        (push)))
