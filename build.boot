@@ -9,7 +9,7 @@
                     [adzerk/boot-cljs-repl       "0.3.3"  :scope "test"]
                     [adzerk/bootlaces            "0.1.13" :scope "test"]
                     [pandeiro/boot-http          "0.8.3"  :scope "test"]
-                    [crisptrutski/boot-cljs-test "0.3.1"  :scope "test"]
+                    [crisptrutski/boot-cljs-test "0.3.0"  :scope "test"]
                     [boot-codox                  "0.10.3" :scope "test"]
 
                     [me.raynes/conch             "0.8.0"  :scope "test"]
