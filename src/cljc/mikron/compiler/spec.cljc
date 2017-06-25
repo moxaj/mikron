@@ -63,9 +63,6 @@
 (defmethod schema-spec :record [_]
   (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
-(defmethod schema-spec :aliased [_]
-  (schema-spec* []))
-
 (defmethod schema-spec :custom [_]
   some?)
 
