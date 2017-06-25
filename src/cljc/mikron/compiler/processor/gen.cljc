@@ -57,14 +57,20 @@
 (defmethod gen :ignored [_ _]
   nil)
 
-(defmethod gen :string [_ opts]
-  `(apply str ~(common/into! [] true gen-length (gen [:char] opts))))
-
 (defmethod gen :binary [_ opts]
   `(runtime.processor.common/byte-seq->binary
      ~(common/into! [] true
                     (unchecked-add 2 (runtime.math/rand-long 30))
                     (gen [:ubyte] opts))))
+
+(defmethod gen :string [_ opts]
+  `(apply str ~(common/into! [] true gen-length (gen [:char] opts))))
+
+(defmethod gen :keyword [_ opts]
+  `(runtime.processor.common/string->keyword ~(gen [:string] opts)))
+
+(defmethod gen :symbol [_ opts]
+  `(symbol ~(gen [:string] opts)))
 
 (defmethod gen :any [_ _]
   nil)
@@ -115,9 +121,6 @@
                        [value' (gen (schemas key') opts)])
                      fields)]
        ~(common/fields->record fields type))))
-
-(defmethod gen :aliased [[schema-name] opts]
-  (gen (compiler.schema/aliased-schemas schema-name) opts))
 
 (defmethod gen :custom [schema opts]
   `((deref ~(compiler.util/processor-name :gen schema))))

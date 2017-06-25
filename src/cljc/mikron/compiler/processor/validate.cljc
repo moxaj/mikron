@@ -46,14 +46,14 @@
 (defmethod valid? :boolean [_ value _]
   `(any? ~value))
 
-(defmethod valid? :binary [_ value _]
-  `(runtime.processor.validate/valid-binary? ~value))
-
 (defmethod valid? :nil [_ value _]
   `(nil? ~value))
 
 (defmethod valid? :ignored [_ _ _]
   true)
+
+(defmethod valid? :binary [_ value _]
+  `(runtime.processor.validate/valid-binary? ~value))
 
 (defmethod valid? :string [_ value _]
   `(string? ~value))
@@ -134,9 +134,6 @@
                  `(let [~value' ~(common/record-lookup value key' type)]
                     ~(valid? (schemas key') value' opts)))
                (common/record->fields schemas))))
-
-(defmethod valid? :aliased [[schema-name] value opts]
-  (valid? (compiler.schema/aliased-schemas schema-name) value opts))
 
 (defmethod valid? :custom [schema value _]
   `((deref ~(compiler.util/processor-name :valid? schema)) ~value))

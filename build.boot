@@ -29,7 +29,6 @@
          '[clojure.string :as string]
 
          '[mikron.runtime.core :as mikron]
-         '[mikron.compiler.template]
 
          '[boot.util :as util]
          '[adzerk.boot-test :as boot-test]

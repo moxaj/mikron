@@ -63,6 +63,18 @@
   [^String value]
   (keyword value))
 
+(defn symbol->string
+  "Converts a symbol `value` to a string."
+  #?(:clj {:inline (fn [value] `(str ~value))})
+  ^String [value]
+  (str value))
+
+(defn string->symbol
+  "Converts a string `value` to a symbol."
+  #?(:clj {:inline (fn [value] `(symbol ~value))})
+  [^String value]
+  (symbol value))
+
 (defn char->int
   "Converts a character `value` to an int."
   #?(:clj {:inline (fn [value] `(unchecked-int ~value))})

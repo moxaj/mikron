@@ -51,17 +51,32 @@
 (defmethod unpack :double [_ {:keys [buffer]}]
   `(runtime.buffer/take-double ~buffer))
 
+(defmethod unpack :char [_ opts]
+  `(runtime.processor.common/int->char ~(unpack [:int] opts)))
+
 (defmethod unpack :boolean [_ {:keys [buffer]}]
   `(runtime.buffer/take-boolean ~buffer))
-
-(defmethod unpack :binary [_ {:keys [buffer]}]
-  `(runtime.buffer/take-binary ~buffer))
 
 (defmethod unpack :nil [_ _]
   nil)
 
 (defmethod unpack :ignored [_ _]
   nil)
+
+(defmethod unpack :binary [_ {:keys [buffer]}]
+  `(runtime.buffer/take-binary ~buffer))
+
+(defmethod unpack :string [_ opts]
+  `(runtime.processor.common/binary->string ~(unpack [:binary] opts)))
+
+(defmethod unpack :keyword [_ opts]
+  `(runtime.processor.common/string->keyword ~(unpack [:string] opts)))
+
+(defmethod unpack :symbol [_ opts]
+  `(runtime.processor.common/string->symbol ~(unpack [:string] opts)))
+
+(defmethod unpack :any [_ opts]
+  `(runtime.processor.common/string->any ~(unpack [:string] opts)))
 
 (defmethod unpack :enum [[_ _ enum-values] opts]
   `(runtime.processor.common/nth ~(vec (sort enum-values))
@@ -112,9 +127,6 @@
                        [value' (unpack* (schemas key') opts)])
                      fields)]
        ~(common/fields->record fields type))))
-
-(defmethod unpack :aliased [[schema-name] opts]
-  (unpack (compiler.schema/aliased-schemas schema-name) opts))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
   `((deref ~(compiler.util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))

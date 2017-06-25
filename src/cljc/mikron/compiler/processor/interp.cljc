@@ -12,14 +12,14 @@
   compiler.schema/schema-name
   :hierarchy #'compiler.schema/hierarchy)
 
-(defmethod interp :char [_ _ value-1 value-2 opts]
-  (interp [:default] nil value-1 value-2 char))
-
 (defmethod interp :integer [_ _ value-1 value-2 opts]
   `(runtime.math/round ~(interp [:floating] nil value-1 value-2 opts)))
 
 (defmethod interp :floating [_ _ value-1 value-2 {:keys [time-factor]}]
   `(runtime.math/interp ~value-1 ~value-2 ~time-factor))
+
+(defmethod interp :char [_ _ value-1 value-2 opts]
+  (interp [:default] nil value-1 value-2 char))
 
 (defmethod interp :list [[_ options schema'] paths value-1 value-2 opts]
   (compiler.util/with-gensyms [value-1-vec value-2-vec]
@@ -121,9 +121,6 @@
     `(let [~value-1' (~pre ~value-1)
            ~value-2' (~pre ~value-2)]
        (~post ~(interp schema' paths value-1' value-2' opts)))))
-
-(defmethod interp :aliased [[schema-name] paths value-1 value-2 opts]
-  (interp (compiler.schema/aliased-schemas schema-name) paths value-1 value-2 opts))
 
 (defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor]}]
   `((deref ~(compiler.util/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))

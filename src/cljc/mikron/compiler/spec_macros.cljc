@@ -10,5 +10,7 @@
                 :complex (s/and (s/cat :type    keyword?
                                        :options (s/? (s/nilable (s/keys :opt-un ~options)))
                                        ~@fields)
-                                (s/conformer (juxt :type :options ~@(take-nth 2 fields)))))
+                                (s/conformer (juxt :type
+                                                   #(or (:options %) {})
+                                                   ~@(take-nth 2 fields)))))
           (s/conformer second)))

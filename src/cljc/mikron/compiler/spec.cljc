@@ -8,25 +8,26 @@
   some?)
 
 (s/def ::type
-  (s/and (s/cat :class   symbol?
-                :members (s/* symbol?))
-         (s/conformer (fn [{:keys [class members]}]
-                        (into [class] members)))))
+  (s/+ symbol?))
 
-(defn schema-name
-  "Returns the name part of a schema definition."
+(defn raw-schema-name
+  "Returns the name of `schema`."
   [schema]
-  (cond
-    (simple-keyword? schema) schema
-    (vector? schema)         (first schema)
-    :else                    :custom))
+  (let [schema-name (if (vector? schema)
+                      (first schema)
+                      schema)]
+    (if (schema/schema-names schema-name)
+      schema-name
+      :custom)))
 
 (def hierarchy
-  (schema/derive-all schema/hierarchy :simple-schema [:number :boolean :binary :nil :ignored]))
+  (schema/derive-all schema/hierarchy
+                     :simple-schema
+                     [:number :char :boolean :nil :ignored :binary :string :keyword :symbol :any]))
 
 (defmulti schema-spec
   "Returns a spec for a schema definition."
-  schema-name :hierarchy #'hierarchy)
+  raw-schema-name :hierarchy #'hierarchy)
 
 (defmethod schema-spec :simple-schema [_]
   (schema-spec* []))
@@ -70,7 +71,7 @@
 
 (s/def ::schema
   (s/and #(empty? (descendants hierarchy %))
-         (s/multi-spec schema-spec schema-name)))
+         (s/multi-spec schema-spec raw-schema-name)))
 
 (s/def ::paths
   (s/and (s/or :tuple       (s/map-of nat-int? ::paths)

@@ -53,17 +53,32 @@
 (defmethod pack :double [_ value {:keys [buffer]}]
   `(runtime.buffer/put-double ~buffer ~value))
 
+(defmethod pack :char [_ value opts]
+  (pack [:int] `(runtime.processor.common/char->int ~value) opts))
+
 (defmethod pack :boolean [_ value {:keys [buffer]}]
   `(runtime.buffer/put-boolean ~buffer ~value))
-
-(defmethod pack :binary [_ value {:keys [buffer]}]
-  `(runtime.buffer/put-binary ~buffer ~value))
 
 (defmethod pack :nil [_ _ _]
   nil)
 
 (defmethod pack :ignored [_ _ _]
   nil)
+
+(defmethod pack :binary [_ value {:keys [buffer]}]
+  `(runtime.buffer/put-binary ~buffer ~value))
+
+(defmethod pack :string [_ value opts]
+  (pack [:binary] `(runtime.processor.common/string->binary ~value) opts))
+
+(defmethod pack :keyword [_ value opts]
+  (pack [:string] `(runtime.processor.common/keyword->string ~value) opts))
+
+(defmethod pack :symbol [_ value opts]
+  (pack [:string] `(runtime.processor.common/symbol->string ~value) opts))
+
+(defmethod pack :any [_ value opts]
+  (pack [:string] `(runtime.processor.common/any->string ~value) opts))
 
 (defmethod pack :enum [[_ _ enum-values] value opts]
   (pack (compiler.schema/integer-schema (count enum-values))
@@ -133,9 +148,6 @@
                 `(let [~value' ~(common/record-lookup value key' type)]
                    ~(pack* (schemas key') value' opts)))
               (common/record->fields schemas))))
-
-(defmethod pack :aliased [[schema-name] value opts]
-  (pack (compiler.schema/aliased-schemas schema-name) value opts))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
   `((deref ~(compiler.util/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))

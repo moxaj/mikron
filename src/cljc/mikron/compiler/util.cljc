@@ -1,6 +1,5 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
-  #?(:clj (:refer-clojure :exclude [eval]))
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper

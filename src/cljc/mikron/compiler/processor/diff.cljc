@@ -10,17 +10,13 @@
   "The default schema hierarchy + groupings for comparability."
   (-> compiler.schema/hierarchy
       (compiler.schema/derive-all :identical?-comparable [:boolean :nil])
-      (compiler.schema/derive-all :=-comparable          [:char :string :symbol])
+      (compiler.schema/derive-all :=-comparable          [:char :string :symbol :any])
       (compiler.schema/derive-all :keyword-comparable    [:keyword :enum])))
 
 (defmulti diff
   "Returns the generated (un)differ code for a given schema."
   compiler.schema/schema-name
   :hierarchy #'hierarchy)
-
-(prefer-method diff :=-comparable :aliased)
-
-(prefer-method diff :keyword-comparable :aliased)
 
 (defn diff*
   "Returns the generated (un)differ code for a given schema."
@@ -172,9 +168,6 @@
                            fields))
              :mikron/dnil
              ~(common/fields->record fields type)))))))
-
-(defmethod diff :aliased [[schema-name] paths value-1 value-2 opts]
-  (diff (compiler.schema/aliased-schemas schema-name) paths value-1 value-2 opts))
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type]}]
   `((deref ~(compiler.util/processor-name processor-type schema)) ~value-1 ~value-2))
