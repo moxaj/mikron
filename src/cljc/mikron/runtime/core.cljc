@@ -3,6 +3,7 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.set :as set]
             [mikron.compiler.schema :as compiler.schema]
+            [mikron.compiler.template :as compiler.template]
             [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util]
             [mikron.compiler.processor.common :as compiler.processor.common]
@@ -39,9 +40,18 @@
       (@registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
 
+#?(:clj
+   (defn load-calling-clj-ns
+     "Tries to load the calling namespace (`*ns*`) as a clojure namespace."
+     []
+     (try
+       (require (ns-name *ns*))
+       (catch Exception e))))
+
 (defn schema*
   "Given a schema definition, returns the unevaluated code to produce a reified schema."
   [& args]
+  #?(:clj (load-calling-clj-ns))
   (let [{:keys [schema processor-types] :as opts}
         (compiler.spec/enforce ::compiler.spec/schema*-args args)
 
@@ -78,6 +88,16 @@
   [& args]
   (let [{:keys [schema-name schema*-args]} (compiler.spec/enforce ::compiler.spec/defschema-args args)]
     `(register-schema! ~schema-name ~(apply schema* schema*-args))))
+
+(defmacro deftemplate
+  "Registers a template resolver function with the given name."
+  [& args]
+  (let [{:keys [template-name template-resolver]}
+        (compiler.spec/enforce ::compiler.spec/deftemplate-args args)]
+    (compiler.util/with-gensyms [args]
+      (compiler.util/with-evaluated [template-resolver]
+        `(defmethod compiler.template/resolve-template ~template-name [[~'_ ~'& ~args]]
+           (apply ~template-resolver ~args))))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."

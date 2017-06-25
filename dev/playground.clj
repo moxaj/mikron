@@ -71,4 +71,6 @@
        :pack
        (d!)))
 
-(schema* :int :processors #{:pack :unpack})
+(defschema ::foo :int)
+
+(defschema ::bar [:tuple [:foo]])

@@ -2,6 +2,7 @@
   "Macro input validation."
   (:require [clojure.spec.alpha :as s]
             [mikron.compiler.schema :as schema]
+            [mikron.compiler.template :as template]
             [mikron.compiler.spec-macros :refer [schema-spec*]]))
 
 (s/def ::sorted-by
@@ -16,8 +17,18 @@
   (let [schema-name (if (vector? schema)
                       (first schema)
                       schema)]
-    (if (schema/schema-names schema-name)
+    (cond
+      (-> template/resolve-template
+          (methods)
+          (keys)
+          (set)
+          (contains? schema-name))
+      :template
+
+      (schema/schema-names schema-name)
       schema-name
+
+      :else
       :custom)))
 
 (def hierarchy
@@ -63,6 +74,14 @@
 (defmethod schema-spec :record [_]
   (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
 
+(defmethod schema-spec :template [_]
+  (s/and (s/conformer
+           (fn [template]
+             (template/resolve-template (if (vector? template)
+                                          template
+                                          (vector template)))))
+         ::schema))
+
 (defmethod schema-spec :custom [_]
   some?)
 
@@ -102,6 +121,10 @@
 (s/def ::defschema-args
   (s/cat :schema-name  qualified-keyword?
          :schema*-args (s/* any?)))
+
+(s/def ::deftemplate-args
+  (s/cat :template-name     qualified-keyword?
+         :template-resolver some?))
 
 (s/def ::definterface+-args
   (s/cat :interface-name simple-symbol?
