@@ -136,7 +136,7 @@
                (common/record->fields schemas))))
 
 (defmethod valid? :custom [schema value _]
-  `((deref ~(compiler.util/processor-name :valid? schema)) ~value))
+  `((deref ~(common/processor-name :valid? schema)) ~value))
 
 (defmethod common/processor :valid? [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [value]

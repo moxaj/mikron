@@ -170,7 +170,7 @@
              ~(common/fields->record fields type)))))))
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type]}]
-  `((deref ~(compiler.util/processor-name processor-type schema)) ~value-1 ~value-2))
+  `((deref ~(common/processor-name processor-type schema)) ~value-1 ~value-2))
 
 (defmethod diff :default [_ _ _ value-2 _]
   value-2)

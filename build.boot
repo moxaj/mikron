@@ -1,5 +1,5 @@
 (set-env!
-  :resource-paths #{"src/main/cljc" "src/main/js/foreign"}
+  :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.562"]
 
@@ -15,11 +15,12 @@
                     [com.cemerick/piggieback     "0.2.1"  :scope "test"]
                     [weasel                      "0.7.0"  :scope "test"]
                     [org.clojure/tools.nrepl     "0.2.13" :scope "test"]
-                    [viebel/codox-klipse-theme   "0.0.5"  :scope "test"]
-                    [nodisassemble               "0.1.3"  :scope "test"]]
-  :repositories     [["clojars" {:url      "https://clojars.org/repo"
-                                 :username (System/getenv "CLOJARS_USER")
-                                 :password (System/getenv "CLOJARS_PASS")}]])
+                    [nodisassemble               "0.1.3"  :scope "test"]])
+
+(merge-env!
+  :repositories [["clojars" {:url      "https://clojars.org/repo"
+                             :username (System/getenv "CLOJARS_USER")
+                             :password (System/getenv "CLOJARS_PASS")}]])
 
 (require '[adzerk.boot-test :as boot-test]
          '[adzerk.boot-reload :as boot-reload]

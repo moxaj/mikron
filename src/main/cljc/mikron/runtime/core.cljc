@@ -1,18 +1,10 @@
 (ns mikron.runtime.core
   "Core namespace. Contains the public API."
   (:require [clojure.spec.alpha :as s]
-            [clojure.set :as set]
-            [mikron.compiler.schema :as compiler.schema]
+            [mikron.runtime.core-specs :as core-specs]
+            [mikron.compiler.core :as compiler]
             [mikron.compiler.template :as compiler.template]
-            [mikron.compiler.spec :as compiler.spec]
             [mikron.compiler.util :as compiler.util]
-            [mikron.compiler.processor.common :as compiler.processor.common]
-            [mikron.compiler.processor.pack]
-            [mikron.compiler.processor.unpack]
-            [mikron.compiler.processor.validate]
-            [mikron.compiler.processor.gen]
-            [mikron.compiler.processor.diff]
-            [mikron.compiler.processor.interp]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.util :as util]
             [mikron.runtime.math :as math])
@@ -52,48 +44,28 @@
   "Given a schema definition, returns the unevaluated code to produce a reified schema."
   [& args]
   #?(:clj (load-calling-clj-ns))
-  (let [{:keys [schema processor-types] :as opts}
-        (compiler.spec/enforce ::compiler.spec/schema*-args args)
-
-        all-processor-types
-        (->> compiler.processor.common/processor (methods) (keys) (set))
-
-        processor-types
-        (if-not (some? processor-types)
-          all-processor-types
-          (set/intersection processor-types all-processor-types))
-
-        opts
-        (-> opts
-            (update :diff-paths   compiler.schema/expand-paths schema)
-            (update :interp-paths compiler.schema/expand-paths schema))]
-    `(let [~@(->> (for [processor-type processor-types
-                        custom-schema  (compiler.schema/custom-schemas schema)]
-                    [(compiler.util/processor-name processor-type custom-schema)
-                     `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
-                  (apply concat))]
-       (Schema. ~(->> processor-types
-                      (map (fn [processor-type]
-                             [processor-type `(fn ~(compiler.processor.common/processor processor-type opts))]))
-                      (into {}))
-                '~opts))))
+  (let [{:keys [custom-processors processors opts]} (apply compiler/compile-schema args)]
+    `(let [~@(mapcat (fn [{:keys [processor-name processor-type custom-schema]}]
+                       [processor-name `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
+                     custom-processors)]
+       (Schema. ~processors '~opts))))
 
 (defmacro schema
   "Returns a reified schema for the given schema definition."
   ^Schema [& args]
-  (apply schema* (compiler.spec/enforce ::compiler.spec/schema-args args)))
+  (apply schema* args))
 
 (defmacro defschema
   "Globally registers a reified schema for the given schema definition, with the given name."
   [& args]
-  (let [{:keys [schema-name schema*-args]} (compiler.spec/enforce ::compiler.spec/defschema-args args)]
-    `(register-schema! ~schema-name ~(apply schema* schema*-args))))
+  (let [{:keys [schema-name schema+opts]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
+    `(register-schema! ~schema-name ~(apply schema* schema+opts))))
 
 (defmacro deftemplate
   "Registers a template resolver function with the given name."
   [& args]
   (let [{:keys [template-name template-resolver]}
-        (compiler.spec/enforce ::compiler.spec/deftemplate-args args)]
+        (compiler.util/enforce-spec ::core-specs/deftemplate-args args)]
     (compiler.util/with-gensyms [args]
       (compiler.util/with-evaluated [template-resolver]
         `(defmethod compiler.template/resolve-template ~template-name [[~'_ ~'& ~args]]

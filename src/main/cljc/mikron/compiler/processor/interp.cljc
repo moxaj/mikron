@@ -123,7 +123,7 @@
        (~post ~(interp schema' paths value-1' value-2' opts)))))
 
 (defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor]}]
-  `((deref ~(compiler.util/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))
+  `((deref ~(common/processor-name :interp schema)) ~value-1 ~value-2 ~prefer-first? ~time-factor))
 
 (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
   `(if ~prefer-first? ~value-1 ~value-2))

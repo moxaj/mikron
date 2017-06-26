@@ -1,9 +1,9 @@
-(ns mikron.compiler.spec
-  "Macro input validation."
+(ns mikron.compiler.core-specs
+  "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
+            [mikron.compiler.core-specs-macros :refer [schema-spec*]]
             [mikron.compiler.schema :as schema]
-            [mikron.compiler.template :as template]
-            [mikron.compiler.spec-macros :refer [schema-spec*]]))
+            [mikron.compiler.template :as template]))
 
 (s/def ::sorted-by
   some?)
@@ -105,7 +105,7 @@
 
 (s/def ::processor-types (s/coll-of keyword? :kind set?))
 
-(s/def ::schema*-args
+(s/def ::schema+opts
   (s/and (s/cat :schema ::schema
                 :exts   (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
          (s/conformer
@@ -114,28 +114,3 @@
                        (assoc schema-args ext (get exts ext)))
                      (dissoc schema-args :exts)
                      #{:diff-paths :interp-paths :processor-types})))))
-
-(s/def ::schema-args
-  (s/* any?))
-
-(s/def ::defschema-args
-  (s/cat :schema-name  qualified-keyword?
-         :schema*-args (s/* any?)))
-
-(s/def ::deftemplate-args
-  (s/cat :template-name     qualified-keyword?
-         :template-resolver some?))
-
-(s/def ::definterface+-args
-  (s/cat :interface-name simple-symbol?
-         :ops            (s/* (s/spec (s/cat :op-name simple-symbol?
-                                             :args    (s/coll-of simple-symbol? :kind vector?)
-                                             :docs    (s/? string?))))))
-
-(defn enforce
-  "Returns `value` conformed to `spec`, or throws an exception if the conformation fails."
-  [spec value]
-  (let [value' (s/conform spec value)]
-    (if (s/invalid? value')
-      (throw (ex-info "Value does not conform to spec" (s/explain-data spec value)))
-      value')))

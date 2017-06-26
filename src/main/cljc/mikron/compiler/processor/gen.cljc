@@ -123,7 +123,7 @@
        ~(common/fields->record fields type))))
 
 (defmethod gen :custom [schema opts]
-  `((deref ~(compiler.util/processor-name :gen schema))))
+  `((deref ~(common/processor-name :gen schema))))
 
 (defmethod common/processor :gen [_ {:keys [schema] :as opts}]
   `([]

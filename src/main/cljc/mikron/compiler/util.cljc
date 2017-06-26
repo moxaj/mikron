@@ -1,6 +1,6 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
-  (:require [clojure.walk :as walk])
+  (:require [clojure.spec.alpha :as s])
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
@@ -32,35 +32,10 @@
           ~(let [~@(mapcat identity m)]
              ~@body)))))
 
-(defmacro macro-context
-  "A single macro which is equivalent to `with-gensyms` + `with-evaluated`."
-  [{:keys [gen-syms eval-syms]} & body]
-  (let [body' `(do ~@body)
-        body' (if (seq gen-syms)
-                `(with-gensyms ~gen-syms
-                   ~body')
-                 body')
-        body' (if (seq eval-syms)
-                `(with-evaluated ~eval-syms
-                   ~body')
-                body')]
-    body'))
-
-(defmacro syntax-cond->
-  [expr alias & cond+exprs]
-  `(let [~alias ~expr
-         ~@(->> cond+exprs
-                (partition 2)
-                (mapcat (fn [[cond expr]]
-                          [alias `(if ~cond
-                                    ~expr
-                                    ~alias)])))]
-     ~alias))
-
-;; processor
-
-(def processor-name
-  "Returns a memoized processor name."
-  (memoize
-    (fn [processor-type schema-name]
-      (gensym (str (name processor-type) "-" (name schema-name))))))
+(defn enforce-spec
+  "Returns `value` conformed to `spec`, or throws an exception if the conformation fails."
+  [spec value]
+  (let [value' (s/conform spec value)]
+    (if (s/invalid? value')
+      (throw (ex-info "Value does not conform to spec" (s/explain-data spec value)))
+      value')))

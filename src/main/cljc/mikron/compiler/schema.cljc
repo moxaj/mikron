@@ -1,7 +1,5 @@
 (ns mikron.compiler.schema
-  "Schema definition related functions."
-  (:require ;; Runtime
-            [mikron.runtime.processor.common :as runtime.processor.common]))
+  "Schema definition related functions.")
 
 (defn schema-name
   "Returns the name of `schema`."

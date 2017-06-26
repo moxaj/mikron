@@ -6,6 +6,7 @@
             [criterium.core :as c]
             [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff diff* undiff* interp]]
             [mikron.runtime.buffer :refer :all]
+            [mikron.compiler.core :as compiler]
             [no.disassemble :as d]))
 
 (set! *warn-on-reflection* true)
@@ -70,19 +71,3 @@
        :processors
        :pack
        (d!)))
-
-(defschema ::foo :int)
-
-(defschema ::bar [:tuple [:foo]])
-
-(defn foo [schemas]
-  (let [value  (gensym)
-        values (gensym)
-        n      (count schemas)]
-    `[:wrapped (fn [~value]
-                 [~@(repeat n value)])
-               (fn [~values]
-                 (merge ~@(map (fn [index]
-                                 `(nth ~values ~index))
-                               (range n))))
-               [:tuple [~@schemas]]]))

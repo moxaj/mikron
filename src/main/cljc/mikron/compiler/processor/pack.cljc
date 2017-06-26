@@ -150,7 +150,7 @@
               (common/record->fields schemas))))
 
 (defmethod pack :custom [schema value {:keys [diffed? buffer]}]
-  `((deref ~(compiler.util/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))
+  `((deref ~(common/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))
 
 (defmethod common/processor :pack [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [value buffer]

@@ -75,3 +75,9 @@
 (defmulti processor
   "Generates processor code."
   (fn [processor-type opts] processor-type))
+
+(def processor-name
+  "Returns a memoized processor name."
+  (memoize
+    (fn [processor-type schema-name]
+      (gensym (str (name processor-type) "-" (name schema-name))))))

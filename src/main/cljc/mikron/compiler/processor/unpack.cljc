@@ -129,7 +129,7 @@
        ~(common/fields->record fields type))))
 
 (defmethod unpack :custom [schema {:keys [diffed? buffer]}]
-  `((deref ~(compiler.util/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
+  `((deref ~(common/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
 
 (defmethod common/processor :unpack [_ {:keys [schema] :as opts}]
   (compiler.util/with-gensyms [buffer]
