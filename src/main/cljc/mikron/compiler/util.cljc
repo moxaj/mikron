@@ -1,5 +1,6 @@
 (ns mikron.compiler.util
   "Compile time utility functions."
+  (:require [clojure.walk :as walk])
   #?(:cljs (:require-macros [mikron.compiler.util])))
 
 ;; macro helper
@@ -30,6 +31,31 @@
        `(let [~~@(mapcat reverse m)]
           ~(let [~@(mapcat identity m)]
              ~@body)))))
+
+(defmacro macro-context
+  "A single macro which is equivalent to `with-gensyms` + `with-evaluated`."
+  [{:keys [gen-syms eval-syms]} & body]
+  (let [body' `(do ~@body)
+        body' (if (seq gen-syms)
+                `(with-gensyms ~gen-syms
+                   ~body')
+                 body')
+        body' (if (seq eval-syms)
+                `(with-evaluated ~eval-syms
+                   ~body')
+                body')]
+    body'))
+
+(defmacro syntax-cond->
+  [expr alias & cond+exprs]
+  `(let [~alias ~expr
+         ~@(->> cond+exprs
+                (partition 2)
+                (mapcat (fn [[cond expr]]
+                          [alias `(if ~cond
+                                    ~expr
+                                    ~alias)])))]
+     ~alias))
 
 ;; processor
 

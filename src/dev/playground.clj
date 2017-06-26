@@ -74,3 +74,15 @@
 (defschema ::foo :int)
 
 (defschema ::bar [:tuple [:foo]])
+
+(defn foo [schemas]
+  (let [value  (gensym)
+        values (gensym)
+        n      (count schemas)]
+    `[:wrapped (fn [~value]
+                 [~@(repeat n value)])
+               (fn [~values]
+                 (merge ~@(map (fn [index]
+                                 `(nth ~values ~index))
+                               (range n))))
+               [:tuple [~@schemas]]]))

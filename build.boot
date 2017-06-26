@@ -1,5 +1,5 @@
 (set-env!
-  :resource-paths #{"src/cljc" "src/js/foreign"}
+  :resource-paths #{"src/main/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.562"]
 
@@ -7,7 +7,6 @@
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]
                     [adzerk/boot-cljs            "2.0.0"  :scope "test"]
                     [adzerk/boot-cljs-repl       "0.3.3"  :scope "test"]
-                    [adzerk/bootlaces            "0.1.13" :scope "test"]
                     [pandeiro/boot-http          "0.8.3"  :scope "test"]
                     [crisptrutski/boot-cljs-test "0.3.0"  :scope "test"]
                     [boot-codox                  "0.10.3" :scope "test"]
@@ -24,18 +23,10 @@
                              :username (System/getenv "CLOJARS_USER")
                              :password (System/getenv "CLOJARS_PASS")}]])
 
-(require '[clojure.java.io :as io]
-         '[clojure.pprint :as pprint]
-         '[clojure.string :as string]
-
-         '[mikron.runtime.core :as mikron]
-
-         '[boot.util :as util]
-         '[adzerk.boot-test :as boot-test]
+(require '[adzerk.boot-test :as boot-test]
          '[adzerk.boot-reload :as boot-reload]
          '[adzerk.boot-cljs :as boot-cljs]
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
-         '[adzerk.bootlaces :as bootlaces]
          '[pandeiro.boot-http :as boot-http]
          '[crisptrutski.boot-cljs-test :as boot-cljs-test]
          '[codox.boot :as boot-codox]
@@ -46,18 +37,14 @@
 (def +version+ "0.6.3-SNAPSHOT")
 
 (task-options!
-  pom {:project     'moxaj/mikron
-       :version     +version+
-       :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
-       :url         "http://github.com/moxaj/mikron"
-       :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}})
-
-(bootlaces/bootlaces! +version+
-  :dont-modify-paths? true)
-
-(task-options!
-  push {:ensure-clean false
-        :repo         "clojars"})
+  pom  {:project     'moxaj/mikron
+        :version     +version+
+        :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
+        :url         "http://github.com/moxaj/mikron"
+        :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
+  push {:ensure-clean  false
+        :ensure-branch "master"
+        :repo          "clojars"})
 
 ;; Util
 
@@ -88,13 +75,13 @@
 (deftask testing
   "Adds the test files to the fileset."
   []
-  (merge-env! :resource-paths #{"test/cljc" "test/cljs" "resources/test"})
+  (merge-env! :resource-paths #{"src/test/cljc" "src/test/cljs" "resources/test"})
   identity)
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
   []
-  (merge-env! :resource-paths #{"benchmark/cljc" "benchmark/java" "resources/benchmark"}
+  (merge-env! :resource-paths #{"src/benchmark/cljc" "src/benchmark/java" "resources/benchmark"}
               :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
                                 [com.cognitect/transit-cljs        "0.8.239"]
                                 [com.damballa/abracad              "0.4.14-alpha2"]
@@ -110,7 +97,7 @@
   "Dev task for proto-repl."
   []
   (merge-env! :init-ns        'user
-              :resource-paths #{"dev"}
+              :resource-paths #{"src/dev"}
               :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
                                 [proto-repl                  "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
@@ -141,7 +128,7 @@
 
 (deftask test-browser
   "Runs the tests in a browser environment."
-  [o opt    VAL kw   "The optimization level for the cljs compiler."
+  [o opt    VAL kw "The optimization level for the cljs compiler."
    e js-env VAL kw "The js environment."]
   (comp (testing)
         (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
