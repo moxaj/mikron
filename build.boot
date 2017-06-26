@@ -16,12 +16,10 @@
                     [weasel                      "0.7.0"  :scope "test"]
                     [org.clojure/tools.nrepl     "0.2.13" :scope "test"]
                     [viebel/codox-klipse-theme   "0.0.5"  :scope "test"]
-                    [nodisassemble               "0.1.3"  :scope "test"]])
-
-(merge-env!
-  :repositories [["clojars" {:url      "https://clojars.org/repo"
-                             :username (System/getenv "CLOJARS_USER")
-                             :password (System/getenv "CLOJARS_PASS")}]])
+                    [nodisassemble               "0.1.3"  :scope "test"]]
+  :repositories     [["clojars" {:url      "https://clojars.org/repo"
+                                 :username (System/getenv "CLOJARS_USER")
+                                 :password (System/getenv "CLOJARS_PASS")}]])
 
 (require '[adzerk.boot-test :as boot-test]
          '[adzerk.boot-reload :as boot-reload]
@@ -32,13 +30,9 @@
          '[codox.boot :as boot-codox]
          '[me.raynes.conch.low-level :as conch])
 
-(load-data-readers!)
-
-(def +version+ "0.6.3-SNAPSHOT")
-
 (task-options!
   pom  {:project     'moxaj/mikron
-        :version     +version+
+        :version     "0.6.3-SNAPSHOT"
         :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
         :url         "http://github.com/moxaj/mikron"
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
@@ -148,7 +142,6 @@
                                    :js-env :slimer)
             :nodejs  (test-node :opt          opt
                                 :self-hosted? self-hosted?))))
-
 
 (deftask compile-cljs
   "Compiles the cljs source files."
