@@ -43,7 +43,7 @@
 
 (load-data-readers!)
 
-(def +version+ "0.6.2-SNAPSHOT")
+(def +version+ "0.6.3-SNAPSHOT")
 
 (task-options!
   pom {:project     'moxaj/mikron
