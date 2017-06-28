@@ -9,7 +9,7 @@
   schema/schema-name)
 
 (defmethod resolve-template :merged [[_ schemas]]
-  (util/with-gensyms [value values]
+  (util/macro-context {:gen-syms [value values]}
     (let [n (count schemas)]
       `[:wrapped (fn [~value]
                    [~@(repeat n value)])

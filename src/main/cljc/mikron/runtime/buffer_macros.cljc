@@ -7,7 +7,7 @@
 (defmacro with-delta
   "Executes `body` and updates the position `pos` with the delta `delta`."
   [pos delta body]
-  (compiler.util/with-gensyms [value]
+  (compiler.util/macro-context {:gen-syms [value]}
     `(let [~value ~body]
        (set! ~pos (unchecked-add ~pos ~delta))
        ~value)))

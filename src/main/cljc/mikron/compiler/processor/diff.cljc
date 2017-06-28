@@ -63,7 +63,7 @@
      ~(diff [:default] nil value-1 value-2 opts)))
 
 (defmethod diff :multi [[_ _ selector schemas'] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [case-1 case-2]
+  (compiler.util/macro-context {:gen-syms [case-1 case-2]}
     (if-not paths
       (diff [:default] nil value-1 value-2 opts)
       `(let [~case-1 (~selector ~value-1)
@@ -78,13 +78,13 @@
                        schemas')))))))
 
 (defmethod diff :list [[_ options schema'] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [value-1-vec value-2-vec]
+  (compiler.util/macro-context {:gen-syms [value-1-vec value-2-vec]}
     `(let [~value-1-vec (vec ~value-1)
            ~value-2-vec (vec ~value-2)]
        ~(diff [:vector options schema'] paths value-1-vec value-2-vec opts))))
 
 (defmethod diff :vector [[_ _ schema'] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]
+  (compiler.util/macro-context {:gen-syms [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]}
     (let [paths' (:all paths)]
       (if-not paths'
         (diff [:default] nil value-1 value-2 opts)
@@ -108,8 +108,8 @@
                         (and ~all-dnil? (identical? :mikron/dnil ~value')))))))))))
 
 (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [value-1' value-2' entry-1 key-2 keys-2 value value'
-                               length-1 length-2 same-length? all-dnil?]
+  (compiler.util/macro-context {:gen-syms [value-1' value-2' entry-1 key-2 keys-2 value value'
+                                           length-1 length-2 same-length? all-dnil?]}
     (let [paths' (:all paths)]
       (if-not paths'
         (diff [:default] nil value-1 value-2 opts)
@@ -134,7 +134,7 @@
                         (and ~all-dnil? ~entry-1 (identical? :mikron/dnil ~value')))))))))))
 
 (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [value-1' value-2']
+  (compiler.util/macro-context {:gen-syms [value-1' value-2']}
     (if-not paths
       (diff [:default] nil value-1 value-2 opts)
       (let [fields (common/tuple->fields schemas)]
@@ -152,7 +152,7 @@
              ~(common/fields->tuple fields)))))))
 
 (defmethod diff :record [[_ {:keys [type]} schemas] paths value-1 value-2 opts]
-  (compiler.util/with-gensyms [value-1' value-2']
+  (compiler.util/macro-context {:gen-syms [value-1' value-2']}
     (if-not paths
       (diff [:default] nil value-1 value-2 opts)
       (let [fields (common/record->fields schemas)]
@@ -176,11 +176,11 @@
   value-2)
 
 (defmethod common/processor :diff [_ {:keys [schema diff-paths] :as opts}]
-  (compiler.util/with-gensyms [_ value-1 value-2]
+  (compiler.util/macro-context {:gen-syms [_ value-1 value-2]}
     `([~value-1 ~value-2]
       ~(diff* schema diff-paths value-1 value-2 (assoc opts :processor-type :diff)))))
 
 (defmethod common/processor :undiff [_ {:keys [schema diff-paths] :as opts}]
-  (compiler.util/with-gensyms [_ value-1 value-2]
+  (compiler.util/macro-context {:gen-syms [_ value-1 value-2]}
     `([~value-1 ~value-2]
       ~(diff* schema diff-paths value-1 value-2 (assoc opts :processor-type :undiff)))))

@@ -105,7 +105,7 @@
 
 (s/def ::processor-types (s/coll-of keyword? :kind set?))
 
-(s/def ::schema+opts
+(s/def ::compile-schema-args
   (s/and (s/cat :schema ::schema
                 :exts   (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
          (s/conformer

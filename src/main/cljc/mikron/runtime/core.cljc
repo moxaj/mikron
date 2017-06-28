@@ -66,10 +66,9 @@
   [& args]
   (let [{:keys [template-name template-resolver]}
         (compiler.util/enforce-spec ::core-specs/deftemplate-args args)]
-    (compiler.util/with-gensyms [args]
-      (compiler.util/with-evaluated [template-resolver]
-        `(defmethod compiler.template/resolve-template ~template-name [[~'_ ~'& ~args]]
-           (apply ~template-resolver ~args))))))
+    (compiler.util/macro-context {:gen-syms [args] :eval-syms [template-resolver]}
+      `(defmethod compiler.template/resolve-template ~template-name [[~'_ ~'& ~args]]
+         (apply ~template-resolver ~args)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."

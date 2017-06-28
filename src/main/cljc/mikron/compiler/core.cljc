@@ -15,7 +15,7 @@
 (defn compile-schema
   [& args]
   (let [{:keys [schema processor-types] :as opts}
-        (util/enforce-spec ::core-specs/schema+opts args)
+        (util/enforce-spec ::core-specs/compile-schema-args args)
 
         all-processor-types
         (->> processor.common/processor (methods) (keys) (set))

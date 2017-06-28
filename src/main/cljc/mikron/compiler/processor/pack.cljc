@@ -17,7 +17,7 @@
   [schema value {:keys [diffed?] :as opts}]
   (if-not diffed?
     (pack schema value opts)
-    (compiler.util/with-gensyms [value-dnil?]
+    (compiler.util/macro-context {:gen-syms [value-dnil?]}
       `(let [~value-dnil? (identical? :mikron/dnil ~value)]
          ~(pack [:boolean] value-dnil? opts)
          (when-not ~value-dnil?
@@ -96,7 +96,7 @@
          ~(pack schema' value opts))))
 
 (defmethod pack :wrapped [[_ _ pre _ schema'] value opts]
-  (compiler.util/with-gensyms [value']
+  (compiler.util/macro-context {:gen-syms [value']}
     `(let [~value' (~pre ~value)]
        ~(pack schema' value' opts))))
 
@@ -111,7 +111,7 @@
             (apply concat))))
 
 (defmethod pack :vector [[_ _ schema'] value opts]
-  (compiler.util/with-gensyms [length value' index]
+  (compiler.util/macro-context {:gen-syms [length value' index]}
     `(let [~length (runtime.processor.common/count ~value)]
        ~(pack [:varint] length opts)
        (dotimes [~index ~length]
@@ -119,7 +119,7 @@
            ~(pack* schema' value' opts))))))
 
 (defmethod pack :coll [[_ options schema'] value opts]
-  (compiler.util/with-gensyms [length value']
+  (compiler.util/macro-context {:gen-syms [length value']}
     `(let [~length (count ~value)]
        (do ~(pack [:varint] length opts)
            (run! (fn [~value']
@@ -127,7 +127,7 @@
                  ~value)))))
 
 (defmethod pack :map [[_ _ key-schema val-schema] value opts]
-  (compiler.util/with-gensyms [length entry' key' value']
+  (compiler.util/macro-context {:gen-syms [length entry' key' value']}
     `(let [~length (runtime.processor.common/count ~value)]
        (do ~(pack [:varint] length opts)
            (run! (fn [~entry']
@@ -153,11 +153,11 @@
   `((deref ~(common/processor-name (if diffed? :pack-diffed :pack) schema)) ~value ~buffer))
 
 (defmethod common/processor :pack [_ {:keys [schema] :as opts}]
-  (compiler.util/with-gensyms [value buffer]
+  (compiler.util/macro-context {:gen-syms [value buffer]}
     `([~value ~buffer]
       ~(pack* schema value (assoc opts :buffer buffer :diffed? false)))))
 
 (defmethod common/processor :pack-diffed [_ {:keys [schema] :as opts}]
-  (compiler.util/with-gensyms [value buffer]
+  (compiler.util/macro-context {:gen-syms [value buffer]}
     `([~value ~buffer]
       ~(pack* schema value (assoc opts :buffer buffer :diffed? true)))))

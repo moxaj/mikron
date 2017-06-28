@@ -23,7 +23,10 @@
   [& args]
   (let [{:keys [syms body]} (enforce-spec ::util-specs/with-gensyms-args args)]
     `(let [~@(mapcat (fn [sym]
-                       [sym `(with-meta (gensym ~(str sym)) ~(meta sym))])
+                       (let [gensym-expr `(gensym ~(str sym))]
+                         [sym (if-some [sym-meta (meta sym)]
+                                `(vary-meta ~gensym-expr merge ~(meta sym))
+                                gensym-expr)]))
                      syms)]
        ~@body)))
 
@@ -41,11 +44,21 @@
             ~(let [~@(mapcat identity sym-map)]
                ~@body))))))
 
+(defmacro syntax-cond->
+  "Combination of `cond->` and `as->`."
+  [& args]
+  (let [{:keys [expr alias cond+exprs]} (enforce-spec ::util-specs/syntax-cond->-args args)]
+    `(let [~alias ~expr
+           ~@(mapcat (fn [{:keys [cond expr]}]
+                       [alias `(if ~cond ~expr ~alias)])
+                     cond+exprs)]
+       ~alias)))
+
 (defmacro macro-context
   "Macro helper function, the equivalent of `with-gensyms` + `with-evaluated`."
   [& args]
   (let [{:keys [context body]}       (enforce-spec ::util-specs/macro-context-args args)
         {:keys [gen-syms eval-syms]} context]
-    `(with-gensyms ~gen-syms
-       (with-evaluated ~eval-syms
-         ~@body))))
+    (syntax-cond-> `(do ~@body) expr
+      (not (empty? gen-syms))  `(with-gensyms ~gen-syms ~expr)
+      (not (empty? eval-syms)) `(with-evaluated ~eval-syms ~expr))))

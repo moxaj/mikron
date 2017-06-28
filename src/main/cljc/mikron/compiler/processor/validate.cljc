@@ -75,7 +75,7 @@
        ~(valid? schema' value opts)))
 
 (defmethod valid? :wrapped [[_ _ pre _ schema'] value opts]
-  (compiler.util/with-gensyms [value']
+  (compiler.util/macro-context {:gen-syms [value']}
     `(let [~value' (runtime.util/safe :mikron/invalid (~pre ~value))]
        (and (not= :mikron/invalid ~value')
             ~(valid? schema' value' opts)))))
@@ -88,28 +88,28 @@
      false))
 
 (defmethod valid? :list [[_ _ schema'] value opts]
-  (compiler.util/with-gensyms [value']
+  (compiler.util/macro-context {:gen-syms [value']}
     `(and (sequential? ~value)
           (every? (fn [~value']
                     ~(valid? schema' value' opts))
                   ~value))))
 
 (defmethod valid? :vector [[_ _ schema'] value opts]
-  (compiler.util/with-gensyms [value']
+  (compiler.util/macro-context {:gen-syms [value']}
     `(and (vector? ~value)
           (runtime.processor.common/every? (fn [~value']
                                              ~(valid? schema' value' opts))
                                            ~value))))
 
 (defmethod valid? :set [[_ _ schema'] value opts]
-  (compiler.util/with-gensyms [value']
+  (compiler.util/macro-context {:gen-syms [value']}
     `(and (set? ~value)
           (every? (fn [~value']
                     ~(valid? schema' value' opts))
                   ~value))))
 
 (defmethod valid? :map [[_ _ key-schema val-schema] value opts]
-  (compiler.util/with-gensyms [entry' key' value']
+  (compiler.util/macro-context {:gen-syms [entry' key' value']}
     `(and (map? ~value)
           (every? (fn [~entry']
                     (let [~key'   (key ~entry')
@@ -139,6 +139,6 @@
   `((deref ~(common/processor-name :valid? schema)) ~value))
 
 (defmethod common/processor :valid? [_ {:keys [schema] :as opts}]
-  (compiler.util/with-gensyms [value]
+  (compiler.util/macro-context {:gen-syms [value]}
     `([~value]
       ~(valid? schema value opts))))

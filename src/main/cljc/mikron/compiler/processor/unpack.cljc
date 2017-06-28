@@ -132,11 +132,11 @@
   `((deref ~(common/processor-name (if diffed? :unpack-diffed :unpack) schema)) ~buffer))
 
 (defmethod common/processor :unpack [_ {:keys [schema] :as opts}]
-  (compiler.util/with-gensyms [buffer]
+  (compiler.util/macro-context {:gen-syms [buffer]}
     `([~buffer]
       ~(unpack* schema (assoc opts :diffed? false :buffer buffer)))))
 
 (defmethod common/processor :unpack-diffed [_ {:keys [schema] :as opts}]
-  (compiler.util/with-gensyms [buffer]
+  (compiler.util/macro-context {:gen-syms [buffer]}
     `([~buffer]
       ~(unpack* schema (assoc opts :diffed? true :buffer buffer)))))

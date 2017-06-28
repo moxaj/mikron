@@ -6,7 +6,7 @@
 (defmacro gen-integer
   "Generates an integer."
   [bytes signed?]
-  (compiler.util/with-gensyms [r]
+  (compiler.util/macro-context {:gen-syms [r]}
     `(let [~r (math/rand)]
        (-> (* ~r ~(math/upper-bound bytes signed?))
            (+ (* (- 1 ~r) ~(math/lower-bound bytes signed?)))

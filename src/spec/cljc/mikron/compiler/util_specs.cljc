@@ -12,6 +12,12 @@
   (s/cat :syms ::symbols
          :body (s/* any?)))
 
+(s/def ::syntax-cond->-args
+  (s/cat :expr       any?
+         :alias      simple-symbol?
+         :cond+exprs (s/* (s/cat :cond any?
+                                 :expr any?))))
+
 (s/def ::gen-syms ::symbols)
 
 (s/def ::eval-syms ::symbols)
