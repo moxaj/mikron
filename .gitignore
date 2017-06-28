@@ -4,6 +4,7 @@
 /node
 /node_modules
 /lumo_cache
+/out
 .repl*
 **/*.exe
 **/*.bat
