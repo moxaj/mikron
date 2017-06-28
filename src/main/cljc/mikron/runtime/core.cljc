@@ -117,7 +117,7 @@
     (let [buffer    (buffer/wrap binary)
           headers   (buffer/get-headers buffer)
           diffed?   (headers :diffed?)
-          processor ((if diffed? :unpack-diffed :unpack) (.-processors (resolve-schema schema)))]
+          processor ((.-processors (resolve-schema schema)) (if diffed? :unpack-diffed :unpack))]
       (cond-> (processor buffer)
         diffed? (DiffedValue.)))))
 
