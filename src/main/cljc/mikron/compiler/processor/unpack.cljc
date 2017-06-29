@@ -18,7 +18,7 @@
   (if-not diffed?
     (unpack schema global-options)
     `(if ~(unpack [:boolean] global-options)
-       :mikron/dnil
+       :mikron/nil
        ~(unpack schema global-options))))
 
 (defmethod unpack :byte [_ {:keys [buffer]}]

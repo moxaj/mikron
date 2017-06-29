@@ -25,7 +25,7 @@
     (diff [:default] paths value-1 value-2 global-options)
     (case processor-type
       :diff   (diff schema paths value-1 value-2 global-options)
-      :undiff `(if (runtime.processor.common/keyword-identical? :mikron/dnil ~value-2)
+      :undiff `(if (runtime.processor.common/keyword-identical? :mikron/nil ~value-2)
                  ~value-1
                  ~(diff schema paths value-1 value-2 global-options)))))
 
@@ -33,7 +33,7 @@
   (case processor-type
     :diff   `(if (== ~(vary-meta value-1 assoc :tag 'double)
                      ~(vary-meta value-2 assoc :tag 'double))
-               :mikron/dnil
+               :mikron/nil
                ~value-2)
     :undiff value-2))
 
@@ -41,28 +41,28 @@
   (case processor-type
     :diff   `(if (== ~(vary-meta value-1 assoc :tag 'long)
                      ~(vary-meta value-2 assoc :tag 'long))
-               :mikron/dnil
+               :mikron/nil
                ~value-2)
     :undiff value-2))
 
 (defmethod diff :=-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
     :diff   `(if (= ~value-1 ~value-2)
-               :mikron/dnil
+               :mikron/nil
                ~value-2)
     :undiff value-2))
 
 (defmethod diff :identical?-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
     :diff   `(if (identical? ~value-1 ~value-2)
-               :mikron/dnil
+               :mikron/nil
                ~value-2)
     :undiff value-2))
 
 (defmethod diff :keyword-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
     :diff   `(if (runtime.processor.common/keyword-identical? ~value-1 ~value-2)
-               :mikron/dnil
+               :mikron/nil
                ~value-2)
     :undiff value-2))
 
@@ -105,7 +105,7 @@
                   ~all-dnil? true]
              (if (== ~index ~length-2)
                (if (and ~all-dnil? ~same-length?)
-                 :mikron/dnil
+                 :mikron/nil
                  (persistent! ~value))
                (let [~value-2' (runtime.processor.common/nth ~value-2 ~index)
                      ~value'   (if (<= ~length-1 ~index)
@@ -114,7 +114,7 @@
                                    ~(diff* schema' paths' value-1' value-2' global-options)))]
                  (recur (conj! ~value ~value')
                         (unchecked-inc ~index)
-                        (and ~all-dnil? (identical? :mikron/dnil ~value')))))))))))
+                        (and ~all-dnil? (identical? :mikron/nil ~value')))))))))))
 
 (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] paths value-1 value-2 global-options]
   (compiler.util/macro-context {:gen-syms [value-1' value-2' entry-1 key-2 keys-2 value value'
@@ -130,7 +130,7 @@
                   ~all-dnil?         true]
              (if-not ~key-2
                (if (and ~all-dnil? ~same-length?)
-                 :mikron/dnil
+                 :mikron/nil
                  ~(if sorted-by value `(persistent! ~value)))
                (let [~value-2' (~value-2 ~key-2)
                      ~entry-1  (find ~value-1 ~key-2)
@@ -140,7 +140,7 @@
                                  ~(diff [:default] nil nil value-2' global-options))]
                  (recur (~(if sorted-by `assoc `assoc!) ~value ~key-2 ~value')
                         ~keys-2
-                        (and ~all-dnil? ~entry-1 (identical? :mikron/dnil ~value')))))))))))
+                        (and ~all-dnil? ~entry-1 (identical? :mikron/nil ~value')))))))))))
 
 (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 global-options]
   (compiler.util/macro-context {:gen-syms [value-1' value-2']}
@@ -155,9 +155,9 @@
                                          (diff [:default] nil value-1' value-2' global-options)))])
                          fields)]
            (if (and ~@(map (fn [[_ value']]
-                             `(identical? :mikron/dnil ~value'))
+                             `(identical? :mikron/nil ~value'))
                            fields))
-             :mikron/dnil
+             :mikron/nil
              ~(common/fields->tuple fields)))))))
 
 (defmethod diff :record [[_ {:keys [type]} schemas] paths value-1 value-2 global-options]
@@ -173,9 +173,9 @@
                                          (diff [:default] nil value-1' value-2' global-options)))])
                          fields)]
            (if (and ~@(map (fn [[_ value']]
-                             `(identical? :mikron/dnil ~value'))
+                             `(identical? :mikron/nil ~value'))
                            fields))
-             :mikron/dnil
+             :mikron/nil
              ~(common/fields->record fields type)))))))
 
 (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type custom-processors]}]

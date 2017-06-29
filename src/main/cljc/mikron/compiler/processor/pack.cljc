@@ -18,7 +18,7 @@
   (if-not diffed?
     (pack schema value global-options)
     (compiler.util/macro-context {:gen-syms [value-dnil?]}
-      `(let [~value-dnil? (identical? :mikron/dnil ~value)]
+      `(let [~value-dnil? (identical? :mikron/nil ~value)]
          ~(pack [:boolean] value-dnil? global-options)
          (when-not ~value-dnil?
            ~(pack schema value global-options))))))
