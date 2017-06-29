@@ -13,6 +13,7 @@
             [mikron.compiler.processor.interp]))
 
 (defn compile-schema
+  "Returns a compiled schema for the given args."
   [& args]
   (let [{:keys [schema processor-types] :as opts}
         (util/enforce-spec ::core-specs/compile-schema-args args)
