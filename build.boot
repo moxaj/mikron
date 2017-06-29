@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
-                    [org.clojure/clojurescript   "1.9.562"]
+                    [org.clojure/clojurescript   "1.9.660"]
 
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]
@@ -150,8 +150,9 @@
    i id  VAL str "The id of the build."]
   (boot-cljs/cljs
     :ids              [(fix-slashes (or id "browser/index"))]
-    :compiler-options {:static-fns    true
-                       :optimizations (or opt :none)}))
+    :compiler-options {:static-fns       true
+                       :fn-invoke-direct true
+                       :optimizations    (or opt :none)}))
 
 (deftask run-browser-repl
   "Compiles the cljs sources, serves them on localhost:3000, and sets up
