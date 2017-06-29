@@ -114,7 +114,7 @@
                                    ~(diff* schema' paths' value-1' value-2' global-options)))]
                  (recur (conj! ~value ~value')
                         (unchecked-inc ~index)
-                        (and ~all-dnil? (identical? :mikron/nil ~value')))))))))))
+                        (and ~all-dnil? (runtime.processor.common/keyword-identical? :mikron/nil ~value')))))))))))
 
 (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] paths value-1 value-2 global-options]
   (compiler.util/macro-context {:gen-syms [value-1' value-2' entry-1 key-2 keys-2 value value'
@@ -140,7 +140,7 @@
                                  ~(diff [:default] nil nil value-2' global-options))]
                  (recur (~(if sorted-by `assoc `assoc!) ~value ~key-2 ~value')
                         ~keys-2
-                        (and ~all-dnil? ~entry-1 (identical? :mikron/nil ~value')))))))))))
+                        (and ~all-dnil? ~entry-1 (runtime.processor.common/keyword-identical? :mikron/nil ~value')))))))))))
 
 (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 global-options]
   (compiler.util/macro-context {:gen-syms [value-1' value-2']}
@@ -155,7 +155,7 @@
                                          (diff [:default] nil value-1' value-2' global-options)))])
                          fields)]
            (if (and ~@(map (fn [[_ value']]
-                             `(identical? :mikron/nil ~value'))
+                             `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
                            fields))
              :mikron/nil
              ~(common/fields->tuple fields)))))))
@@ -173,7 +173,7 @@
                                          (diff [:default] nil value-1' value-2' global-options)))])
                          fields)]
            (if (and ~@(map (fn [[_ value']]
-                             `(identical? :mikron/nil ~value'))
+                             `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
                            fields))
              :mikron/nil
              ~(common/fields->record fields type)))))))
