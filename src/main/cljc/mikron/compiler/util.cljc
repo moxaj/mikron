@@ -44,21 +44,16 @@
             ~(let [~@(mapcat identity sym-map)]
                ~@body))))))
 
-(defmacro syntax-cond->
-  "Combination of `cond->` and `as->`."
-  [& args]
-  (let [{:keys [expr alias cond+exprs]} (enforce-spec ::util-specs/syntax-cond->-args args)]
-    `(let [~alias ~expr
-           ~@(mapcat (fn [{:keys [cond expr]}]
-                       [alias `(if ~cond ~expr ~alias)])
-                     cond+exprs)]
-       ~alias)))
-
 (defmacro macro-context
   "Macro helper function, the equivalent of `with-gensyms` + `with-evaluated`."
   [& args]
   (let [{:keys [context body]}       (enforce-spec ::util-specs/macro-context-args args)
-        {:keys [gen-syms eval-syms]} context]
-    (syntax-cond-> `(do ~@body) expr
-      (not (empty? gen-syms))  `(with-gensyms ~gen-syms ~expr)
-      (not (empty? eval-syms)) `(with-evaluated ~eval-syms ~expr))))
+        {:keys [gen-syms eval-syms]} context
+        expr `(do ~@body)
+        expr (if-not (empty? gen-syms)
+               `(with-gensyms ~gen-syms ~expr)
+               expr)
+        expr (if-not (empty? eval-syms)
+               `(with-evaluated ~eval-syms ~expr)
+               expr)]
+    expr))
