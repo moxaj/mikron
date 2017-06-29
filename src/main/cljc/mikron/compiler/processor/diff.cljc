@@ -29,9 +29,18 @@
                  ~value-1
                  ~(diff schema paths value-1 value-2 global-options)))))
 
-(defmethod diff :number [_ _ value-1 value-2 {:keys [processor-type]}]
+(defmethod diff :floating [_ _ value-1 value-2 {:keys [processor-type]}]
   (case processor-type
-    :diff   `(if (== ~value-1 ~value-2)
+    :diff   `(if (== ~(vary-meta value-1 assoc :tag 'double)
+                     ~(vary-meta value-2 assoc :tag 'double))
+               :mikron/dnil
+               ~value-2)
+    :undiff value-2))
+
+(defmethod diff :integer [_ _ value-1 value-2 {:keys [processor-type]}]
+  (case processor-type
+    :diff   `(if (== ~(vary-meta value-1 assoc :tag 'long)
+                     ~(vary-meta value-2 assoc :tag 'long))
                :mikron/dnil
                ~value-2)
     :undiff value-2))
