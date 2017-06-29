@@ -14,7 +14,7 @@
   [test-methods test-cases]
   (compiler.util/macro-context {:gen-syms [schema dataset]}
     `(do ~@(for [[schema-name schema-def] test-cases]
-             `(let [~schema  (mikron/schema ~schema-def :diff true :interp true)
+             `(let [~schema  (mikron/schema ~schema-def :diff-paths true :interp-paths true)
                     ~dataset (repeatedly 100 #(mikron/gen ~schema))]
                 ~@(for [method test-methods]
                     `(test/deftest ~(gensym (str (name method) "-" (name schema-name)))
