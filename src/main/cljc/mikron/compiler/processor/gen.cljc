@@ -36,8 +36,8 @@
 (defmethod gen :long [_ _]
   `(runtime.processor.gen/gen-long))
 
-(defmethod gen :varint [_ opts]
-  (gen [:long] opts))
+(defmethod gen :varint [_ global-options]
+  (gen [:long] global-options))
 
 (defmethod gen :float [_ _]
   `(runtime.processor.common/double->float (runtime.math/rand)))
@@ -57,74 +57,74 @@
 (defmethod gen :ignored [_ _]
   nil)
 
-(defmethod gen :binary [_ opts]
+(defmethod gen :binary [_ global-options]
   `(runtime.processor.common/byte-seq->binary
      ~(common/into! [] true
                     (unchecked-add 2 (runtime.math/rand-long 30))
-                    (gen [:ubyte] opts))))
+                    (gen [:ubyte] global-options))))
 
-(defmethod gen :string [_ opts]
-  `(apply str ~(common/into! [] true gen-length (gen [:char] opts))))
+(defmethod gen :string [_ global-options]
+  `(apply str ~(common/into! [] true gen-length (gen [:char] global-options))))
 
-(defmethod gen :keyword [_ opts]
-  `(runtime.processor.common/string->keyword ~(gen [:string] opts)))
+(defmethod gen :keyword [_ global-options]
+  `(runtime.processor.common/string->keyword ~(gen [:string] global-options)))
 
-(defmethod gen :symbol [_ opts]
-  `(symbol ~(gen [:string] opts)))
+(defmethod gen :symbol [_ global-options]
+  `(symbol ~(gen [:string] global-options)))
 
 (defmethod gen :any [_ _]
   nil)
 
-(defmethod gen :enum [[_ _ enum-values] opts]
+(defmethod gen :enum [[_ _ enum-values] global-options]
   `(runtime.processor.common/rand-nth ~(vec enum-values)))
 
-(defmethod gen :optional [[_ _ schema'] opts]
-  `(when ~(gen [:boolean] opts)
-     ~(gen schema' opts)))
+(defmethod gen :optional [[_ _ schema'] global-options]
+  `(when ~(gen [:boolean] global-options)
+     ~(gen schema' global-options)))
 
-(defmethod gen :wrapped [[_ _ _ post schema'] opts]
-  `(~post ~(gen schema' opts)))
+(defmethod gen :wrapped [[_ _ _ post schema'] global-options]
+  `(~post ~(gen schema' global-options)))
 
-(defmethod gen :multi [[_ _ _ schemas'] opts]
+(defmethod gen :multi [[_ _ _ schemas'] global-options]
   `(case (runtime.math/rand-long ~(count schemas'))
      ~@(->> schemas'
             (map-indexed (fn [index [_ schema']]
-                           [index (gen schema' opts)]))
+                           [index (gen schema' global-options)]))
             (apply concat))))
 
-(defmethod gen :coll [[_ _ schema'] opts]
-  (common/into! [] true gen-length (gen schema' opts)))
+(defmethod gen :coll [[_ _ schema'] global-options]
+  (common/into! [] true gen-length (gen schema' global-options)))
 
-(defmethod gen :set [[_ {:keys [sorted-by]} schema'] opts]
+(defmethod gen :set [[_ {:keys [sorted-by]} schema'] global-options]
   (common/into! (if sorted-by `(sorted-set-by ~sorted-by) #{})
                 (nil? sorted-by)
                 gen-length
-                (gen schema' opts)))
+                (gen schema' global-options)))
 
-(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] opts]
+(defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
   (common/into-kv! (if sorted-by `(sorted-map-by ~sorted-by) {})
                    (nil? sorted-by)
                    gen-length
-                   (gen key-schema opts)
-                   (gen val-schema opts)))
+                   (gen key-schema global-options)
+                   (gen val-schema global-options)))
 
-(defmethod gen :tuple [[_ _ schemas] opts]
+(defmethod gen :tuple [[_ _ schemas] global-options]
   (let [fields (common/tuple->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
-                       [value' (gen (schemas key') opts)])
+                       [value' (gen (schemas key') global-options)])
                      fields)]
        ~(common/fields->tuple fields))))
 
-(defmethod gen :record [[_ {:keys [type]} schemas] opts]
+(defmethod gen :record [[_ {:keys [type]} schemas] global-options]
   (let [fields (common/record->fields schemas)]
     `(let [~@(mapcat (fn [[key' value']]
-                       [value' (gen (schemas key') opts)])
+                       [value' (gen (schemas key') global-options)])
                      fields)]
        ~(common/fields->record fields type))))
 
-(defmethod gen :custom [schema opts]
-  `((deref ~(common/processor-name :gen schema))))
+(defmethod gen :custom [schema {:keys [custom-processors]}]
+  `((deref ~(custom-processors [:gen schema]))))
 
-(defmethod common/processor :gen [_ {:keys [schema] :as opts}]
+(defmethod common/processor :gen [_ {:keys [schema] :as global-options}]
   `([]
-    ~(gen schema opts)))
+    ~(gen schema global-options)))

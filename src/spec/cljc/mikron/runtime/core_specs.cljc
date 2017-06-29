@@ -3,8 +3,8 @@
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::defschema-args
-  (s/cat :schema-name qualified-keyword?
-         :schema+opts (s/* any?)))
+  (s/cat :schema-name           qualified-keyword?
+         :schema+global-options (s/* any?)))
 
 (s/def ::deftemplate-args
   (s/cat :template-name     qualified-keyword?

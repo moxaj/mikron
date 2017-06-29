@@ -34,8 +34,8 @@
 (defmethod valid? :long [_ value _]
   `(runtime.processor.validate/valid-long? ~value))
 
-(defmethod valid? :varint [_ value opts]
-  (valid? [:long] value opts))
+(defmethod valid? :varint [_ value global-options]
+  (valid? [:long] value global-options))
 
 (defmethod valid? :number [_ value _]
   `(number? ~value))
@@ -70,75 +70,75 @@
 (defmethod valid? :enum [[_ _ enum-values] value _]
   `(~(set enum-values) ~value))
 
-(defmethod valid? :optional [[_ _ schema'] value opts]
+(defmethod valid? :optional [[_ _ schema'] value global-options]
   `(or (nil? ~value)
-       ~(valid? schema' value opts)))
+       ~(valid? schema' value global-options)))
 
-(defmethod valid? :wrapped [[_ _ pre _ schema'] value opts]
+(defmethod valid? :wrapped [[_ _ pre _ schema'] value global-options]
   (compiler.util/macro-context {:gen-syms [value']}
     `(let [~value' (runtime.util/safe :mikron/invalid (~pre ~value))]
        (and (not= :mikron/invalid ~value')
-            ~(valid? schema' value' opts)))))
+            ~(valid? schema' value' global-options)))))
 
-(defmethod valid? :multi [[_ _ selector schemas'] value opts]
+(defmethod valid? :multi [[_ _ selector schemas'] value global-options]
   `(case (runtime.util/safe :mikron/invalid (~selector ~value))
      ~@(mapcat (fn [[key' schema']]
-                 [key' (valid? schema' value opts)])
+                 [key' (valid? schema' value global-options)])
                schemas')
      false))
 
-(defmethod valid? :list [[_ _ schema'] value opts]
+(defmethod valid? :list [[_ _ schema'] value global-options]
   (compiler.util/macro-context {:gen-syms [value']}
     `(and (sequential? ~value)
           (every? (fn [~value']
-                    ~(valid? schema' value' opts))
+                    ~(valid? schema' value' global-options))
                   ~value))))
 
-(defmethod valid? :vector [[_ _ schema'] value opts]
+(defmethod valid? :vector [[_ _ schema'] value global-options]
   (compiler.util/macro-context {:gen-syms [value']}
     `(and (vector? ~value)
           (runtime.processor.common/every? (fn [~value']
-                                             ~(valid? schema' value' opts))
+                                             ~(valid? schema' value' global-options))
                                            ~value))))
 
-(defmethod valid? :set [[_ _ schema'] value opts]
+(defmethod valid? :set [[_ _ schema'] value global-options]
   (compiler.util/macro-context {:gen-syms [value']}
     `(and (set? ~value)
           (every? (fn [~value']
-                    ~(valid? schema' value' opts))
+                    ~(valid? schema' value' global-options))
                   ~value))))
 
-(defmethod valid? :map [[_ _ key-schema val-schema] value opts]
+(defmethod valid? :map [[_ _ key-schema val-schema] value global-options]
   (compiler.util/macro-context {:gen-syms [entry' key' value']}
     `(and (map? ~value)
           (every? (fn [~entry']
                     (let [~key'   (key ~entry')
                           ~value' (val ~entry')]
-                      (and ~(valid? key-schema key' opts)
-                           ~(valid? val-schema value' opts))))
+                      (and ~(valid? key-schema key' global-options)
+                           ~(valid? val-schema value' global-options))))
                   ~value))))
 
-(defmethod valid? :tuple [[_ _ schemas] value opts]
+(defmethod valid? :tuple [[_ _ schemas] value global-options]
   `(and (vector? ~value)
         (== (runtime.processor.common/count ~value) ~(count schemas))
         ~@(map (fn [[key' value']]
                  `(let [~value' ~(common/tuple-lookup value key')]
-                    ~(valid? (schemas key') value' opts)))
+                    ~(valid? (schemas key') value' global-options)))
                (common/tuple->fields schemas))))
 
-(defmethod valid? :record [[_ {:keys [type]} schemas] value opts]
+(defmethod valid? :record [[_ {:keys [type]} schemas] value global-options]
   `(and ~(if type
            `(instance? ~(first type) ~value)
            `(map? ~value))
         ~@(map (fn [[key' value']]
                  `(let [~value' ~(common/record-lookup value key' type)]
-                    ~(valid? (schemas key') value' opts)))
+                    ~(valid? (schemas key') value' global-options)))
                (common/record->fields schemas))))
 
-(defmethod valid? :custom [schema value _]
-  `((deref ~(common/processor-name :valid? schema)) ~value))
+(defmethod valid? :custom [schema value {:keys [custom-processors]}]
+  `((deref ~(custom-processors [:valid? schema])) ~value))
 
-(defmethod common/processor :valid? [_ {:keys [schema] :as opts}]
+(defmethod common/processor :valid? [_ {:keys [schema] :as global-options}]
   (compiler.util/macro-context {:gen-syms [value]}
     `([~value]
-      ~(valid? schema value opts))))
+      ~(valid? schema value global-options))))

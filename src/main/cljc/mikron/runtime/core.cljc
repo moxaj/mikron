@@ -10,7 +10,7 @@
             [mikron.runtime.math :as math])
   #?(:cljs (:require-macros [mikron.runtime.core])))
 
-(defrecord Schema [processors opts])
+(defrecord Schema [processors global-options])
 
 (defn schema?
   "Returns `true` if `arg` is an instance of `Schema`, `false` otherwise."
@@ -44,11 +44,12 @@
   "Given a schema definition, returns the unevaluated code to produce a reified schema."
   [& args]
   #?(:clj (load-calling-clj-ns))
-  (let [{:keys [custom-processors processors opts]} (apply compiler/compile-schema args)]
-    `(let [~@(mapcat (fn [{:keys [processor-name processor-type custom-schema]}]
+  (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
+        {:keys [custom-processors]}         global-options]
+    `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
                        [processor-name `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
                      custom-processors)]
-       (Schema. ~processors '~opts))))
+       (Schema. ~processors '~global-options))))
 
 (defmacro schema
   "Returns a reified schema for the given schema definition."
@@ -58,8 +59,8 @@
 (defmacro defschema
   "Globally registers a reified schema for the given schema definition, with the given name."
   [& args]
-  (let [{:keys [schema-name schema+opts]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
-    `(register-schema! ~schema-name ~(apply schema* schema+opts))))
+  (let [{:keys [schema-name schema+global-options]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
+    `(register-schema! ~schema-name ~(apply schema* schema+global-options))))
 
 (defmacro deftemplate
   "Registers a template resolver function with the given name."
