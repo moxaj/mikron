@@ -1,7 +1,7 @@
 (set-env!
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
-                    [org.clojure/clojurescript   "1.9.660"]
+                    [org.clojure/clojurescript   "1.9.671"]
 
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]
@@ -107,6 +107,11 @@
   (comp (testing)
         (boot-test/test :namespaces ['mikron.test.core])))
 
+(def cljs-compiler-opts
+  {:static-fns       true
+   :fn-invoke-direct true
+   :parallel-build   true})
+
 (deftask test-node
   "Runs the tests in a Node.js environment."
   [o opt          VAL kw   "The optimization level for the cljs compiler."
@@ -119,7 +124,8 @@
                 "target/mikron/test_runner/node.cljs")
           (boot-cljs-test/test-cljs :js-env        :node
                                     :namespaces    '[mikron.test.core]
-                                    :optimizations (or opt :none)))))
+                                    :optimizations (or opt :none)
+                                    :cljs-otps     cljs-compiler-opts))))
 
 (deftask test-browser
   "Runs the tests in a browser environment."
@@ -128,7 +134,8 @@
   (comp (testing)
         (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
                                   :namespaces    '[mikron.test.core]
-                                  :optimizations (or opt :none))))
+                                  :optimizations (or opt :none)
+                                  :cljs-otps     cljs-compiler-opts)))
 
 (deftask test
   "Runs the specified tests."
@@ -150,9 +157,8 @@
    i id  VAL str "The id of the build."]
   (boot-cljs/cljs
     :ids              [(fix-slashes (or id "browser/index"))]
-    :compiler-options {:static-fns       true
-                       :fn-invoke-direct true
-                       :optimizations    (or opt :none)}))
+    :compiler-options (assoc cljs-compiler-opts
+                        :optimizations (or opt :none))))
 
 (deftask run-browser-repl
   "Compiles the cljs sources, serves them on localhost:3000, and sets up
