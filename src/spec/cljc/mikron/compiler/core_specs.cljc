@@ -2,8 +2,7 @@
   "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
             [mikron.compiler.core-specs-macros :refer [schema-spec*]]
-            [mikron.compiler.schema :as schema]
-            [mikron.compiler.template :as template]))
+            [mikron.compiler.schema :as schema]))
 
 (s/def ::sorted-by
   some?)
@@ -18,13 +17,6 @@
                       (first schema)
                       schema)]
     (cond
-      (-> template/resolve-template
-          (methods)
-          (keys)
-          (set)
-          (contains? schema-name))
-      :template
-
       (schema/schema-names schema-name)
       schema-name
 
@@ -73,14 +65,6 @@
 
 (defmethod schema-spec :record [_]
   (schema-spec* [::type] :schemas (s/map-of keyword? ::schema)))
-
-(defmethod schema-spec :template [_]
-  (s/and (s/conformer
-           (fn [template]
-             (template/resolve-template (if (vector? template)
-                                          template
-                                          (vector template)))))
-         ::schema))
 
 (defmethod schema-spec :custom [_]
   some?)

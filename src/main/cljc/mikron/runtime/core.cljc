@@ -3,7 +3,6 @@
   (:require [clojure.spec.alpha :as s]
             [mikron.runtime.core-specs :as core-specs]
             [mikron.compiler.core :as compiler]
-            [mikron.compiler.template :as compiler.template]
             [mikron.compiler.util :as compiler.util]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.util :as util]
@@ -61,15 +60,6 @@
   [& args]
   (let [{:keys [schema-name schema+global-options]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
     `(register-schema! ~schema-name ~(apply schema* schema+global-options))))
-
-(defmacro deftemplate
-  "Registers a template resolver function with the given name."
-  [& args]
-  (let [{:keys [template-name template-resolver]}
-        (compiler.util/enforce-spec ::core-specs/deftemplate-args args)]
-    (compiler.util/macro-context {:gen-syms [args] :eval-syms [template-resolver]}
-      `(defmethod compiler.template/resolve-template ~template-name [[~'_ ~'& ~args]]
-         (apply ~template-resolver ~args)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."
