@@ -18,28 +18,25 @@
   (let [{:keys [schema processor-types] :as global-options}
         (util/enforce-spec ::core-specs/compile-schema-args args)
 
-        all-processor-types
-        (->> processor.common/processor (methods) (keys) (set))
-
         processor-types
-        (if-not (some? processor-types)
-          all-processor-types
-          (set/intersection processor-types all-processor-types))
+        (cond-> (->> processor.common/processor (methods) (keys) (set))
+          (some? processor-types) (set/intersection processor-types))
 
-        custom-schemas
-        (schema/custom-schemas schema)
+        custom-processors
+        (->> (for [processor-type processor-types
+                   custom-schema  (schema/custom-schemas schema)]
+               [[processor-type custom-schema]
+                (processor.common/processor-name processor-type custom-schema)])
+             (into {}))
 
         global-options
         (-> global-options
-            (assoc :custom-processors (->> (for [processor-type processor-types
-                                                 custom-schema  custom-schemas]
-                                             [[processor-type custom-schema]
-                                              (processor.common/processor-name processor-type custom-schema)])
-                                           (into {})))
+            (assoc :custom-processors custom-processors)
             (update :diff-paths schema/expand-paths schema)
             (update :interp-paths schema/expand-paths schema))]
     {:processors     (->> processor-types
                           (map (fn [processor-type]
-                                 [processor-type `(fn ~(processor.common/processor processor-type global-options))]))
+                                 [processor-type
+                                  `(fn ~(processor.common/processor processor-type global-options))]))
                           (into {}))
      :global-options global-options}))
