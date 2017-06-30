@@ -31,35 +31,27 @@
       (@registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
 
-#?(:clj
-   (defn load-calling-clj-ns
-     "Tries to load the calling namespace (`*ns*`) as a clojure namespace."
-     []
-     (try
-       (require (ns-name *ns*))
-       (catch Exception e))))
+(compiler.util/compile-time
+  (defn schema*
+    "Given a schema definition, returns the unevaluated code to produce a reified schema."
+    [& args]
+    (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
+          {:keys [custom-processors]}         global-options]
+      `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
+                         [processor-name `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
+                       custom-processors)]
+         (Schema. ~processors '~global-options))))
 
-(defn schema*
-  "Given a schema definition, returns the unevaluated code to produce a reified schema."
-  [& args]
-  #?(:clj (load-calling-clj-ns))
-  (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
-        {:keys [custom-processors]}         global-options]
-    `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
-                       [processor-name `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
-                     custom-processors)]
-       (Schema. ~processors '~global-options))))
+  (defmacro schema
+    "Returns a reified schema for the given schema definition."
+    ^Schema [& args]
+    (apply schema* args))
 
-(defmacro schema
-  "Returns a reified schema for the given schema definition."
-  ^Schema [& args]
-  (apply schema* args))
-
-(defmacro defschema
-  "Globally registers a reified schema for the given schema definition, with the given name."
-  [& args]
-  (let [{:keys [schema-name schema+global-options]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
-    `(register-schema! ~schema-name ~(apply schema* schema+global-options))))
+  (defmacro defschema
+    "Globally registers a reified schema for the given schema definition, with the given name."
+    [& args]
+    (let [{:keys [schema-name schema+global-options]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
+      `(register-schema! ~schema-name ~(apply schema* schema+global-options)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."
