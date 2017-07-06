@@ -393,7 +393,8 @@
   (let [bit-index (get-bit-index buffer)]
     (when (== 0 bit-index)
       (let [bit-position (get-bit-position buffer)]
-        (when (pos? bit-position)
+        (if (neg? bit-position)
+          (set-bit-position buffer 0)
           (put-byte-at buffer bit-position (get-bit-value buffer))))
       (let [position (get-position buffer)]
         (set-bit-position buffer position)
