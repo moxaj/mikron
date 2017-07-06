@@ -1,8 +1,8 @@
-(ns mikron.test.core
+(ns mikron.runtime.core-tests
   "Actual unit test cases."
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
-            [mikron.test.core-macros :as test-macros :refer [def-mikron-tests]])
+            [mikron.runtime.core-tests-macros :as tests-macros :refer [def-mikron-tests]])
   #?(:clj (:import [java.util Arrays])))
 
 (defn equal?
@@ -15,19 +15,19 @@
        :cljs (= (seq (.from js/Array (js/Int8Array. x)))
                 (seq (.from js/Array (js/Int8Array. y)))))))
 
-(defmethod test-macros/test-mikron :pack [_ schema dataset]
+(defmethod tests-macros/test-mikron :pack [_ schema dataset]
   (doseq [value dataset]
     (test/is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema))))))
 
-(defmethod test-macros/test-mikron :diff [_ schema dataset]
+(defmethod tests-macros/test-mikron :diff [_ schema dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (test/is (= value-2 (->> value-2 (mikron/diff schema value-1) (mikron/undiff schema value-1))))))
 
-(defmethod test-macros/test-mikron :valid? [_ schema dataset]
+(defmethod tests-macros/test-mikron :valid? [_ schema dataset]
   (doseq [value dataset]
     (test/is (mikron/valid? schema value))))
 
-(defmethod test-macros/test-mikron :interp [_ schema dataset]
+(defmethod tests-macros/test-mikron :interp [_ schema dataset]
   (doseq [[value-1 value-2] (partition 2 dataset)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 

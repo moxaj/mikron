@@ -1,9 +1,9 @@
-(ns mikron.test.core-macros
+(ns mikron.runtime.core-tests-macros
   "Unit tests for each processor."
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
             [mikron.compiler.util :as compiler.util])
-  #?(:cljs (:require-macros [mikron.test.core-macros])))
+  #?(:cljs (:require-macros [mikron.runtime.core-tests-macros])))
 
 (defmulti test-mikron
   "Test function for :pack, :diff, :valid? and :interp processors."

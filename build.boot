@@ -2,6 +2,7 @@
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.671"]
+                    [org.clojure/test.check      "0.10.0-alpha2" :scope "test"]
 
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]
@@ -123,7 +124,8 @@
                 "-k" "lumo_cache"
                 "target/mikron/test_runner/node.cljs")
           (boot-cljs-test/test-cljs :js-env        :node
-                                    :namespaces    '[mikron.test.core]
+                                    :namespaces    '[mikron.runtime.core-tests
+                                                     mikron.runtime.buffer-tests]
                                     :optimizations (or opt :none)
                                     :cljs-otps     cljs-compiler-opts))))
 
@@ -133,7 +135,8 @@
    e js-env VAL kw "The js environment."]
   (comp (testing)
         (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
-                                  :namespaces    '[mikron.test.core]
+                                  :namespaces    '[mikron.runtime.core-tests
+                                                   mikron.runtime.buffer-tests]
                                   :optimizations (or opt :none)
                                   :cljs-otps     cljs-compiler-opts)))
 
