@@ -106,7 +106,8 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test :namespaces ['mikron.test.core])))
+        (boot-test/test :namespaces '[mikron.runtime.core-tests
+                                      mikron.runtime.buffer-tests])))
 
 (def cljs-compiler-opts
   {:static-fns       true
