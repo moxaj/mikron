@@ -10,7 +10,7 @@
    :short   (runtime.core/schema :short   :processor-types #{:gen})
    :int     (runtime.core/schema :int     :processor-types #{:gen})
    :long    (runtime.core/schema :long    :processor-types #{:gen})
-   :float   (runtime.core/schema :float   :processor-types #{:gen})
+   #?@(:clj [:float (runtime.core/schema :float   :processor-types #{:gen})]) ;; js. me meh)
    :double  (runtime.core/schema :double  :processor-types #{:gen})
    :ubyte   (runtime.core/schema :ubyte   :processor-types #{:gen})
    :ushort  (runtime.core/schema :ushort  :processor-types #{:gen})
@@ -40,7 +40,7 @@
     (packer buffer)))
 
 (tc.test/defspec buffer-prop-test 500
-  (tc.prop/for-all [schema-names (tc.gen/vector (tc.gen/elements (keys schemas)) 20 500)]
+  (tc.prop/for-all [schema-names (tc.gen/vector (tc.gen/elements (keys schemas)) 1 100)]
     (let [n      (count schema-names)
           values (mapv (comp runtime.core/gen schemas) schema-names)
           buffer (runtime.buffer/allocate 10000)]

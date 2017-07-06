@@ -114,7 +114,7 @@
   #?(:clj {:inline (fn [value] `(unchecked-float ~value))})
   [^double value]
   #?(:clj  (unchecked-float value)
-     :cljs (.fround js/Math value)))
+     :cljs value))
 
 (defn byte-seq->binary
   "Converts a byte sequence to a binary value."
