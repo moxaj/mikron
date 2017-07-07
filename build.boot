@@ -128,7 +128,7 @@
                                     :namespaces    '[mikron.runtime.core-tests
                                                      mikron.runtime.buffer-tests]
                                     :optimizations (or opt :none)
-                                    :cljs-otps     cljs-compiler-opts))))
+                                    :cljs-opts     cljs-compiler-opts))))
 
 (deftask test-browser
   "Runs the tests in a browser environment."
@@ -139,7 +139,7 @@
                                   :namespaces    '[mikron.runtime.core-tests
                                                    mikron.runtime.buffer-tests]
                                   :optimizations (or opt :none)
-                                  :cljs-otps     cljs-compiler-opts)))
+                                  :cljs-opts     cljs-compiler-opts)))
 
 (deftask test
   "Runs the specified tests."
