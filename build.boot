@@ -2,7 +2,8 @@
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.671"]
-                    [org.clojure/test.check      "0.10.0-alpha2" :scope "test"]
+
+                    [com.gfredericks/test.chuck  "0.2.7"  :scope "test"]
 
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]

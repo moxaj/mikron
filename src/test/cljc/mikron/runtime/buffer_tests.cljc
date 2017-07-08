@@ -1,55 +1,70 @@
 (ns mikron.runtime.buffer-tests
-  (:require [clojure.test.check.generators :as tc.gen]
-            [clojure.test.check.properties :as tc.prop #?@(:cljs [:include-macros true])]
-            [clojure.test.check.clojure-test :as tc.test #?@(:cljs [:include-macros true])]
-            [mikron.runtime.core :as runtime.core]
-            [mikron.runtime.buffer :as runtime.buffer]))
+  (:require [clojure.test :as test]
+            [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
+            [com.gfredericks.test.chuck.clojure-test :as chuck #?@(:cljs [:include-macros true])]
+            [mikron.test-util :as test-util]
+            [mikron.runtime.buffer :as buffer]
+            [mikron.runtime.math :as math]
+            [mikron.runtime.processor.common :as processor.common]))
 
-(def schemas
-  {:byte    (runtime.core/schema :byte    :processor-types #{:gen})
-   :short   (runtime.core/schema :short   :processor-types #{:gen})
-   :int     (runtime.core/schema :int     :processor-types #{:gen})
-   :long    (runtime.core/schema :long    :processor-types #{:gen})
-   #?@(:clj [:float (runtime.core/schema :float   :processor-types #{:gen})]) ;; js. me meh)
-   :double  (runtime.core/schema :double  :processor-types #{:gen})
-   :ubyte   (runtime.core/schema :ubyte   :processor-types #{:gen})
-   :ushort  (runtime.core/schema :ushort  :processor-types #{:gen})
-   :uint    (runtime.core/schema :uint    :processor-types #{:gen})
-   :varint  (runtime.core/schema :varint  :processor-types #{:gen})
-   :boolean (runtime.core/schema :boolean :processor-types #{:gen})})
+(defn bounds [bytes signed?]
+  {:min (math/lower-bound bytes signed?)
+   :max (dec (math/upper-bound bytes signed?))})
 
-(def packers
-  {:byte    [runtime.buffer/put-byte    runtime.buffer/take-byte]
-   :short   [runtime.buffer/put-short   runtime.buffer/take-short]
-   :int     [runtime.buffer/put-int     runtime.buffer/take-int]
-   :long    [runtime.buffer/put-long    runtime.buffer/take-long]
-   :float   [runtime.buffer/put-float   runtime.buffer/take-float]
-   :double  [runtime.buffer/put-double  runtime.buffer/take-double]
-   :ubyte   [runtime.buffer/put-ubyte   runtime.buffer/take-ubyte]
-   :ushort  [runtime.buffer/put-ushort  runtime.buffer/take-ushort]
-   :uint    [runtime.buffer/put-uint    runtime.buffer/take-uint]
-   :varint  [runtime.buffer/put-varint  runtime.buffer/take-varint]
-   :boolean [runtime.buffer/put-boolean runtime.buffer/take-boolean]})
+(def processors
+  {:byte    {:packer    buffer/put-byte
+             :unpacker  buffer/take-byte
+             :generator (tc.gen/large-integer* (bounds 1 true))}
+   :short   {:packer    buffer/put-short
+             :unpacker  buffer/take-short
+             :generator (tc.gen/large-integer* (bounds 2 true))}
+   :int     {:packer    buffer/put-int
+             :unpacker  buffer/take-int
+             :generator (tc.gen/large-integer* (bounds 4 true))}
+   :long    {:packer    buffer/put-long
+             :unpacker  buffer/take-long
+             :generator (tc.gen/large-integer* (bounds 8 true))}
+   :ubyte   {:packer    buffer/put-ubyte
+             :unpacker  buffer/take-ubyte
+             :generator (tc.gen/large-integer* (bounds 1 false))}
+   :ushort  {:packer    buffer/put-ushort
+             :unpacker  buffer/take-ushort
+             :generator (tc.gen/large-integer* (bounds 2 false))}
+   :uint    {:packer    buffer/put-uint
+             :unpacker  buffer/take-uint
+             :generator (tc.gen/large-integer* (bounds 4 false))}
+   :varint  {:packer    buffer/put-varint
+             :unpacker  buffer/take-varint
+             :generator (tc.gen/large-integer* (bounds 8 false))}
+   #?@(:clj
+       [:float {:packer    buffer/put-float
+                :unpacker  buffer/take-float
+                :generator (tc.gen/fmap unchecked-float (tc.gen/double* {:infinite? true :NaN? false}))}])
+   :double  {:packer    buffer/put-double
+             :unpacker  buffer/take-double
+             :generator (tc.gen/double* {:infinite? true :NaN? false})}
+   :boolean {:packer    buffer/put-boolean
+             :unpacker  buffer/take-boolean
+             :generator tc.gen/boolean}
+   :binary  {:packer    buffer/put-binary
+             :unpacker  buffer/take-binary
+             :generator (tc.gen/fmap processor.common/byte-seq->binary
+                                     (tc.gen/vector (tc.gen/large-integer* (bounds 1 true))))}})
 
-(defn pack [schema buffer value]
-  (let [[packer _] (packers schema)]
-    (packer buffer value)))
-
-(defn unpack [schema buffer]
-  (let [[_ packer] (packers schema)]
-    (packer buffer)))
-
-(tc.test/defspec buffer-prop-test 500
-  (tc.prop/for-all [schema-names (tc.gen/vector (tc.gen/elements (keys schemas)) 1 100)]
-    (let [n      (count schema-names)
-          values (mapv (comp runtime.core/gen schemas) schema-names)
-          buffer (runtime.buffer/allocate 10000)]
-      (run! (fn [index]
-              (pack (schema-names index) buffer (values index)))
-            (range n))
-      (runtime.buffer/finalize buffer)
-      (runtime.buffer/reset buffer)
-      (let [values' (mapv (fn [index]
-                            (unpack (schema-names index) buffer))
-                          (range n))]
-        (= values values')))))
+(test/deftest buffer-test
+  (chuck/checking "Low-level buffer operations work correctly" 500
+    [schemas (tc.gen/vector (tc.gen/elements (keys processors)) 1 100)
+     values  (apply tc.gen/tuple (map (comp :generator processors) schemas))]
+    (let [buffer (buffer/allocate 10000)]
+      (doall (map (fn [schema-name value]
+                    ((:packer (processors schema-name)) buffer value))
+                  schemas
+                  values))
+      (buffer/finalize buffer)
+      (buffer/reset buffer)
+      (let [values' (map (fn [schema-name]
+                           ((:unpacker (processors schema-name)) buffer))
+                         schemas)]
+        (test/is (every? (fn [[value value']]
+                           (test-util/equal? value value'))
+                         (map vector values values')))))))

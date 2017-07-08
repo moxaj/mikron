@@ -1,34 +1,30 @@
 (ns mikron.runtime.core-tests
   "Actual unit test cases."
   (:require [clojure.test :as test]
+            [mikron.test-util :as test-util]
             [mikron.runtime.core :as mikron]
-            [mikron.runtime.core-tests-macros :as tests-macros :refer [def-mikron-tests]])
-  #?(:clj (:import [java.util Arrays])))
+            [mikron.runtime.core-tests-macros :as tests-macros :refer [def-mikron-tests]]))
 
-(defn equal?
-  "Extended equality checker for byte[] and ArrayBuffer."
-  [x y]
-  (if (not= (type x) #?(:clj  (Class/forName "[B")
-                        :cljs js/ArrayBuffer))
-    (= x y)
-    #?(:clj  (Arrays/equals ^bytes x ^bytes y)
-       :cljs (= (seq (.from js/Array (js/Int8Array. x)))
-                (seq (.from js/Array (js/Int8Array. y)))))))
+(defmethod tests-macros/test-mikron :pack [_ schema values]
+  (doseq [value values]
+    (test/is (test-util/equal? value
+                               (->> value
+                                    (mikron/pack schema)
+                                    (mikron/unpack schema))))))
 
-(defmethod tests-macros/test-mikron :pack [_ schema dataset]
-  (doseq [value dataset]
-    (test/is (equal? value (->> value (mikron/pack schema) (mikron/unpack schema))))))
+(defmethod tests-macros/test-mikron :diff [_ schema values]
+  (doseq [[value-1 value-2] (partition 2 values)]
+    (test/is (test-util/equal? value-2
+                               (->> value-2
+                                    (mikron/diff schema value-1)
+                                    (mikron/undiff schema value-1))))))
 
-(defmethod tests-macros/test-mikron :diff [_ schema dataset]
-  (doseq [[value-1 value-2] (partition 2 dataset)]
-    (test/is (= value-2 (->> value-2 (mikron/diff schema value-1) (mikron/undiff schema value-1))))))
-
-(defmethod tests-macros/test-mikron :valid? [_ schema dataset]
-  (doseq [value dataset]
+(defmethod tests-macros/test-mikron :valid? [_ schema values]
+  (doseq [value values]
     (test/is (mikron/valid? schema value))))
 
-(defmethod tests-macros/test-mikron :interp [_ schema dataset]
-  (doseq [[value-1 value-2] (partition 2 dataset)]
+(defmethod tests-macros/test-mikron :interp [_ schema values]
+  (doseq [[value-1 value-2] (partition 2 values)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
 (def-mikron-tests [:pack :diff :valid? :interp]
@@ -36,7 +32,7 @@
    t-short        :short
    t-int          :int
    t-long         :long
-   #?@(:clj [t-float :float]) ;; js, meh
+   #?@(:clj [t-float :float])
    t-double       :double
    t-boolean      :boolean
    t-char         :char
