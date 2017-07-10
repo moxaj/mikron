@@ -39,7 +39,8 @@
    #?@(:clj
        [:float {:packer    buffer/put-float
                 :unpacker  buffer/take-float
-                :generator (tc.gen/fmap unchecked-float (tc.gen/double* {:infinite? true :NaN? false}))}])
+                :generator (tc.gen/fmap unchecked-float
+                                        (tc.gen/double* {:infinite? true :NaN? false}))}])
    :double  {:packer    buffer/put-double
              :unpacker  buffer/take-double
              :generator (tc.gen/double* {:infinite? true :NaN? false})}
@@ -52,10 +53,10 @@
                                      (tc.gen/vector (tc.gen/large-integer* (bounds 1 true))))}})
 
 (test/deftest buffer-test
-  (chuck/checking "Low-level buffer operations work correctly" 500
-    [schemas (tc.gen/vector (tc.gen/elements (keys processors)) 1 100)
+  (chuck/checking "Low-level buffer operations work correctly" 100
+    [schemas (tc.gen/vector (tc.gen/elements (keys processors)) 1 1000)
      values  (apply tc.gen/tuple (map (comp :generator processors) schemas))]
-    (let [buffer (buffer/allocate 10000)]
+    (let [buffer (buffer/allocate 100000)]
       (doall (map (fn [schema-name value]
                     ((:packer (processors schema-name)) buffer value))
                   schemas
