@@ -58,9 +58,9 @@
           expr (if-not (empty? eval-syms)
                  `(with-evaluated ~eval-syms ~expr)
                  expr)]
-      expr))
+      expr)))
 
-  (defmacro compile-time
-    "Emits the body only at compile time."
-    [& body]
-    `(util-macros/compile-time ~@body)))
+(defmacro compile-time
+  "Emits the body only at compile time."
+  [& body]
+  `(util-macros/compile-time ~@body))
