@@ -13,7 +13,6 @@
                     [crisptrutski/boot-cljs-test "0.3.0"  :scope "test"]
                     [boot-codox                  "0.10.3" :scope "test"]
 
-                    [me.raynes/conch             "0.8.0"  :scope "test"]
                     [com.cemerick/piggieback     "0.2.1"  :scope "test"]
                     [weasel                      "0.7.0"  :scope "test"]
                     [org.clojure/tools.nrepl     "0.2.13" :scope "test"]
@@ -28,8 +27,7 @@
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
          '[pandeiro.boot-http :as boot-http]
          '[crisptrutski.boot-cljs-test :as boot-cljs-test]
-         '[codox.boot :as boot-codox]
-         '[me.raynes.conch.low-level :as conch])
+         '[codox.boot :as boot-codox])
 
 (task-options!
   pom  {:project     'moxaj/mikron
@@ -53,19 +51,16 @@
     (.replaceAll s "/" "\\\\")
     s))
 
-(defn host-process
-  "Connects the stdin and stdout to a process."
-  [process]
-  (future (conch/feed-from process System/in))
-  (future (while true (conch/flush process) (Thread/sleep 100)))
-  (conch/stream-to-out process :out))
-
-;; Tasks
-
 (defn proc
   "Returns a task which runs the args as a shell command."
   [& args]
-  (with-pass-thru _ (host-process (apply conch/proc args))))
+  (with-pass-thru _
+    (-> (ProcessBuilder. args)
+        (.inheritIO)
+        (.start)
+        (.waitFor))))
+
+;; Tasks
 
 (deftask testing
   "Adds the test files to the fileset."
