@@ -60,7 +60,8 @@
 
   (defmethod gen :binary [_ global-options]
     `(runtime.processor.common/byte-seq->binary
-       ~(common/into! [] true
+       ~(common/into! []
+                      true
                       (unchecked-add 2 (runtime.math/rand-long 30))
                       (gen [:ubyte] global-options))))
 
@@ -76,7 +77,7 @@
   (defmethod gen :any [_ _]
     nil)
 
-  (defmethod gen :enum [[_ _ enum-values] global-options]
+  (defmethod gen :enum [[_ _ enum-values] _]
     `(runtime.processor.common/rand-nth ~(vec enum-values)))
 
   (defmethod gen :optional [[_ _ schema'] global-options]
@@ -97,13 +98,17 @@
     (common/into! [] true gen-length (gen schema' global-options)))
 
   (defmethod gen :set [[_ {:keys [sorted-by]} schema'] global-options]
-    (common/into! (if sorted-by `(sorted-set-by ~sorted-by) #{})
+    (common/into! (if (some? sorted-by)
+                    `(sorted-set-by ~sorted-by)
+                    #{})
                   (nil? sorted-by)
                   gen-length
                   (gen schema' global-options)))
 
   (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
-    (common/into-kv! (if sorted-by `(sorted-map-by ~sorted-by) {})
+    (common/into-kv! (if (some? sorted-by)
+                       `(sorted-map-by ~sorted-by)
+                       {})
                      (nil? sorted-by)
                      gen-length
                      (gen key-schema global-options)

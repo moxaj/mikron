@@ -100,16 +100,23 @@
               (apply concat))))
 
   (defmethod unpack :coll [[_ _ schema'] global-options]
-    (common/into! [] true (unpack [:varint] global-options) (unpack* schema' global-options)))
+    (common/into! []
+                  true
+                  (unpack [:varint] global-options)
+                  (unpack* schema' global-options)))
 
   (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] global-options]
-    (common/into! (if sorted-by `(sorted-set-by ~sorted-by) #{})
+    (common/into! (if sorted-by
+                    `(sorted-set-by ~sorted-by)
+                    #{})
                   (nil? sorted-by)
                   (unpack [:varint] global-options)
                   (unpack* schema' global-options)))
 
   (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
-    (common/into-kv! (if sorted-by `(sorted-map-by ~sorted-by) {})
+    (common/into-kv! (if sorted-by
+                       `(sorted-map-by ~sorted-by)
+                       {})
                      (nil? sorted-by)
                      (unpack [:varint] global-options)
                      (unpack key-schema global-options)
