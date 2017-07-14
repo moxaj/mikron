@@ -4,6 +4,5 @@
 (defmacro compile-time
   "Emits the body only at compile time."
   [& body]
-  (when #?(:clj  (not (:ns &env))
-           :cljs (re-matches #".*\$macros" (name (ns-name *ns*))))
+  (when #?(:clj (not (:ns &env)))         
     `(do ~@body)))
