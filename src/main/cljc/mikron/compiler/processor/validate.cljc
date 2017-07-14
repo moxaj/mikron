@@ -141,5 +141,5 @@
 
   (defmethod common/processor :valid? [_ {:keys [schema] :as global-options}]
     (compiler.util/macro-context {:gen-syms [value]}
-      `([~value]
-        (boolean ~(valid? schema value global-options))))))
+      {:args [value]
+       :body [`(boolean ~(valid? schema value global-options))]})))

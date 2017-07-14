@@ -130,7 +130,7 @@
     `(if ~prefer-first? ~value-1 ~value-2))
 
   (defmethod common/processor :interp [_ {:keys [schema interp-paths] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [_ value-1 value-2 prefer-first? time-factor]}
-      `([~value-1 ~value-2 ~prefer-first? ~time-factor]
-        ~(interp schema interp-paths value-1 value-2
-                 (assoc global-options :prefer-first? prefer-first? :time-factor time-factor))))))
+    (compiler.util/macro-context {:gen-syms [value-1 value-2 prefer-first? time-factor]}
+      {:args [value-1 value-2 prefer-first? time-factor]
+       :body [(interp schema interp-paths value-1 value-2
+                      (assoc global-options :prefer-first? prefer-first? :time-factor time-factor))]})))

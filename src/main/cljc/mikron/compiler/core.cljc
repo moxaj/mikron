@@ -60,10 +60,13 @@
           (-> global-options
               (assoc :custom-processors custom-processors)
               (update :diff-paths schema/expand-paths schema)
-              (update :interp-paths schema/expand-paths schema))]
-      {:processors     (->> processor-types
-                            (map (fn [processor-type]
-                                   [processor-type
-                                    `(fn ~(processor.common/processor processor-type global-options))]))
-                            (into {}))
+              (update :interp-paths schema/expand-paths schema))
+
+          processors
+          (->> processor-types
+               (map (fn [processor-type]
+                      [processor-type
+                       (processor.common/processor processor-type global-options)]))
+               (into {}))]
+      {:processors     processors
        :global-options global-options})))

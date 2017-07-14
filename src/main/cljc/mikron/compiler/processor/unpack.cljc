@@ -134,10 +134,10 @@
 
   (defmethod common/processor :unpack [_ {:keys [schema] :as global-options}]
     (compiler.util/macro-context {:gen-syms [buffer]}
-      `([~buffer]
-        ~(unpack* schema (assoc global-options :diffed? false :buffer buffer)))))
+      {:args [buffer]
+       :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
 
   (defmethod common/processor :unpack-diffed [_ {:keys [schema] :as global-options}]
     (compiler.util/macro-context {:gen-syms [buffer]}
-      `([~buffer]
-        ~(unpack* schema (assoc global-options :diffed? true :buffer buffer))))))
+      {:args [buffer]
+       :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))

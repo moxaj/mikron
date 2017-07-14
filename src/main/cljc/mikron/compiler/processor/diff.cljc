@@ -187,10 +187,10 @@
 
   (defmethod common/processor :diff [_ {:keys [schema diff-paths] :as global-options}]
     (compiler.util/macro-context {:gen-syms [_ value-1 value-2]}
-      `([~value-1 ~value-2]
-        ~(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :diff)))))
+      {:args [value-1 value-2]
+       :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :diff))]}))
 
   (defmethod common/processor :undiff [_ {:keys [schema diff-paths] :as global-options}]
     (compiler.util/macro-context {:gen-syms [_ value-1 value-2]}
-      `([~value-1 ~value-2]
-        ~(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :undiff))))))
+      {:args [value-1 value-2]
+       :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :undiff))]})))

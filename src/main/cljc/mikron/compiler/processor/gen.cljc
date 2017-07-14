@@ -127,5 +127,5 @@
     `((deref ~(custom-processors [:gen schema]))))
 
   (defmethod common/processor :gen [_ {:keys [schema] :as global-options}]
-    `([]
-      ~(gen schema global-options))))
+    {:args []
+     :body [(gen schema global-options)]}))

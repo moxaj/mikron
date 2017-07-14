@@ -38,9 +38,18 @@
     (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
           {:keys [custom-processors]}         global-options]
       `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
-                         [processor-name `(delay (~processor-type (.-processors (resolve-schema ~custom-schema))))])
+                         [processor-name
+                          `(->> ~custom-schema
+                                (resolve-schema)
+                                (.-processors)
+                                (~processor-type)
+                                (delay))])
                        custom-processors)]
-         (Schema. ~processors '~global-options))))
+         (Schema. ~(->> processors
+                        (map (fn [[processor-type {:keys [args body]}]]
+                               [processor-type `(fn ~args ~@body)]))
+                        (into {}))
+                  '~global-options))))
 
   (defmacro schema
     "Returns a reified schema for the given schema definition."
