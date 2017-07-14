@@ -25,7 +25,7 @@
     [& args]
     (let [{:keys [syms body]} (enforce-spec ::util-specs/with-gensyms-args args)]
       `(let [~@(mapcat (fn [sym]
-                         (let [gensym-expr `(gensym ~(str sym))]
+                         (let [gensym-expr `(gensym ~(str sym "-"))]
                            [sym (if-some [sym-meta (meta sym)]
                                   `(vary-meta ~gensym-expr merge ~(meta sym))
                                   gensym-expr)]))
