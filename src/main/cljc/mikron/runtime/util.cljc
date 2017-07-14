@@ -15,5 +15,5 @@
   [ex-value & body]
   `(try
      (do ~@body)
-     (catch ~(if (compiler.util/cljs?) `js/Object `Throwable) e#
+     (catch ~(if (compiler.util/cljs?) :default `Throwable) e#
        ~ex-value)))
