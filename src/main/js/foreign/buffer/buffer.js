@@ -8,8 +8,12 @@
 
 'use strict'
 
-var base64 = require('../base64-js/base64-js')
-var ieee754 = require('../ieee754/ieee754')
+goog.provide('feross.buffer')
+goog.require('feross.base64_js')
+goog.require('feross.ieee754')
+
+var base64 = feross.base64_js
+var ieee754 = feross.ieee754
 
 /**
  * The Buffer constructor returns instances of `Uint8Array` that have their
@@ -34,12 +38,12 @@ function Buffer (arg, encodingOrOffset, length) {
   return from(arg, encodingOrOffset, length)
 }
 
-exports.Buffer = Buffer
-exports.SlowBuffer = SlowBuffer
-exports.INSPECT_MAX_BYTES = 50
+feross.buffer.Buffer = Buffer
+feross.buffer.SlowBuffer = SlowBuffer
+feross.buffer.INSPECT_MAX_BYTES = 50
 
 var K_MAX_LENGTH = 0x7fffffff
-exports.kMaxLength = K_MAX_LENGTH
+feross.buffer.kMaxLength = K_MAX_LENGTH
 
 /**
  * If `Buffer.TYPED_ARRAY_SUPPORT`:
@@ -540,7 +544,7 @@ Buffer.prototype.equals = function equals (b) {
 
 Buffer.prototype.inspect = function inspect () {
   var str = ''
-  var max = exports.INSPECT_MAX_BYTES
+  var max = feross.buffer.INSPECT_MAX_BYTES
   if (this.length > 0) {
     str = this.toString('hex', 0, max).match(/.{2}/g).join(' ')
     if (this.length > max) str += ' ... '

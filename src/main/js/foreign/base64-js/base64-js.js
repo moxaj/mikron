@@ -1,8 +1,8 @@
-'use strict'
+goog.provide('feross.base64_js');
 
-exports.byteLength = byteLength
-exports.toByteArray = toByteArray
-exports.fromByteArray = fromByteArray
+feross.base64_js.byteLength = byteLength
+feross.base64_js.toByteArray = toByteArray
+feross.base64_js.fromByteArray = fromByteArray
 
 var lookup = []
 var revLookup = []

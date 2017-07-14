@@ -1,4 +1,6 @@
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+goog.provide('feross.ieee754');
+
+feross.ieee754.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
@@ -31,7 +33,7 @@ exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
 }
 
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+feross.ieee754.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   var e, m, c
   var eLen = nBytes * 8 - mLen - 1
   var eMax = (1 << eLen) - 1
