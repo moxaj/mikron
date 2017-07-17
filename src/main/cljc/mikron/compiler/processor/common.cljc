@@ -28,7 +28,7 @@
       fields
       `(~(symbol (str "->" class))
         ~@(map (fn [member]
-                 (or (fields (keyword member)) 0))
+                 (get fields (keyword member) 0))
                members))))
 
   (defn tuple-lookup

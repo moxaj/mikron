@@ -117,19 +117,20 @@
   (defmethod gen :tuple [[_ _ schemas] global-options]
     (let [fields (common/tuple->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (gen (schemas key') global-options)])
+                         [value' (gen (get schemas key') global-options)])
                        fields)]
          ~(common/fields->tuple fields))))
 
   (defmethod gen :record [[_ {:keys [type]} schemas] global-options]
     (let [fields (common/record->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (gen (schemas key') global-options)])
+                         [value' (gen (get schemas key') global-options)])
                        fields)]
          ~(common/fields->record fields type))))
 
   (defmethod gen :custom [schema {:keys [custom-processors]}]
-    `((deref ~(custom-processors [:gen schema]))))
+    `((runtime.processor.common/deref-processor-handle
+        ~(get custom-processors [:gen schema]))))
 
   (defmethod common/processor :gen [_ {:keys [schema] :as global-options}]
     {:args []

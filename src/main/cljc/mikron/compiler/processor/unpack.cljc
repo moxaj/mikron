@@ -96,7 +96,7 @@
               (keys)
               (sort)
               (map-indexed (fn [index key']
-                             [index (unpack (schemas' key') global-options)]))
+                             [index (unpack (get schemas' key') global-options)]))
               (apply concat))))
 
   (defmethod unpack :coll [[_ _ schema'] global-options]
@@ -125,19 +125,21 @@
   (defmethod unpack :tuple [[_ _ schemas] global-options]
     (let [fields (common/tuple->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (unpack* (schemas key') global-options)])
+                         [value' (unpack* (get schemas key') global-options)])
                        fields)]
          ~(common/fields->tuple fields))))
 
   (defmethod unpack :record [[_ {:keys [type]} schemas] global-options]
     (let [fields (common/record->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (unpack* (schemas key') global-options)])
+                         [value' (unpack* (get schemas key') global-options)])
                        fields)]
          ~(common/fields->record fields type))))
 
   (defmethod unpack :custom [schema {:keys [diffed? buffer custom-processors]}]
-    `((deref ~(custom-processors [(if diffed? :unpack-diffed :unpack) schema])) ~buffer))
+    `((runtime.processor.common/deref-processor-handle
+        ~(get custom-processors [(if diffed? :unpack-diffed :unpack) schema]))
+      ~buffer))
 
   (defmethod common/processor :unpack [_ {:keys [schema] :as global-options}]
     (compiler.util/macro-context {:gen-syms [buffer]}

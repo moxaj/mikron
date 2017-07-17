@@ -13,6 +13,13 @@
     compiler.schema/schema-name
     :hierarchy #'compiler.schema/hierarchy)
 
+  (defn interp*
+    "Returns the generated interpolator code for a given schema."
+    [schema paths value-1 value-2 global-options]
+    (if-not paths
+      (interp [:default] nil value-1 value-2 global-options)
+      (interp schema paths value-1 value-2 global-options)))
+
   (defmethod interp :integer [_ _ value-1 value-2 global-options]
     `(runtime.math/round ~(interp [:floating] nil value-1 value-2 global-options)))
 
@@ -45,13 +52,13 @@
                        ~value'   (if (<= ~length-1 ~index)
                                    ~(interp [:default] nil nil value-2' global-options)
                                    (let [~value-1' (runtime.processor.common/nth ~value-1 ~index)]
-                                     ~(interp schema' paths' value-1' value-2' global-options)))]
+                                     ~(interp* schema' paths' value-1' value-2' global-options)))]
                    (recur (conj! ~value ~value')
                           (unchecked-inc ~index))))))))))
 
   (defmethod interp :map [[_ {:keys [sorted-by]} key-schema val-schema] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [value-1' value-2' key-2 keys-2 value value']}
-      (let [paths' (:all paths)]
+      (let [paths'     (:all paths)]
         (if-not paths'
           (interp [:default] nil value-1 value-2 global-options)
           `(loop [~value            ~(if sorted-by
@@ -64,7 +71,7 @@
                   `(persistent! ~value))
                (let [~value-2' (~value-2 ~key-2)
                      ~value'   (if-let [~value-1' (~value-1 ~key-2)]
-                                 ~(interp val-schema paths' value-1' value-2' global-options)
+                                 ~(interp* val-schema paths' value-1' value-2' global-options)
                                  ~(interp [:default] nil nil value-2' global-options))]
                  (recur (~(if sorted-by `assoc `assoc!) ~value ~key-2 ~value')
                         ~keys-2))))))))
@@ -124,7 +131,12 @@
          (~post ~(interp schema' paths value-1' value-2' global-options)))))
 
   (defmethod interp :custom [schema _ value-1 value-2 {:keys [prefer-first? time-factor custom-processors]}]
-    `((deref ~(custom-processors [:interp schema])) ~value-1 ~value-2 ~prefer-first? ~time-factor))
+    `((runtime.processor.common/deref-processor-handle
+        ~(get custom-processors [:interp schema]))
+      ~value-1
+      ~value-2
+      ~prefer-first?
+      ~time-factor))
 
   (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
     `(if ~prefer-first? ~value-1 ~value-2))

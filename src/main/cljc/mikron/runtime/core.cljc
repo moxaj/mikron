@@ -6,7 +6,8 @@
             [mikron.compiler.util :as compiler.util]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.util :as util]
-            [mikron.runtime.math :as math])
+            [mikron.runtime.math :as math]
+            [mikron.runtime.processor.common :as processor.common])
   #?(:cljs (:require-macros [mikron.runtime.core])))
 
 (defrecord Schema [processors global-options])
@@ -43,7 +44,7 @@
                                 (resolve-schema)
                                 (.-processors)
                                 (~processor-type)
-                                (delay))])
+                                (processor.common/create-processor-handle))])
                        custom-processors)]
          (Schema. ~(->> processors
                         (map (fn [[processor-type {:keys [args body]}]]

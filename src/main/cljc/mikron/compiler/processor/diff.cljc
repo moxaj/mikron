@@ -10,9 +10,9 @@
   (def hierarchy
     "The default schema hierarchy + groupings for comparability."
     (-> compiler.schema/hierarchy
-        (compiler.schema/derive-all :identical?-comparable [:boolean :nil])
-        (compiler.schema/derive-all :=-comparable          [:char :string :symbol :any])
-        (compiler.schema/derive-all :keyword-comparable    [:keyword :enum])))
+        (compiler.schema/derive-all :identity-comparable [:boolean :nil])
+        (compiler.schema/derive-all :=-comparable        [:char :string :symbol :any])
+        (compiler.schema/derive-all :keyword-comparable  [:keyword :enum])))
 
   (defmulti diff
     "Returns the generated (un)differ code for a given schema."
@@ -30,18 +30,9 @@
                    ~value-1
                    ~(diff schema paths value-1 value-2 global-options)))))
 
-  (defmethod diff :floating [_ _ value-1 value-2 {:keys [processor-type]}]
+  (defmethod diff :number [_ _ value-1 value-2 {:keys [processor-type]}]
     (case processor-type
-      :diff   `(if (== ~(vary-meta value-1 assoc :tag 'double)
-                       ~(vary-meta value-2 assoc :tag 'double))
-                 :mikron/nil
-                 ~value-2)
-      :undiff value-2))
-
-  (defmethod diff :integer [_ _ value-1 value-2 {:keys [processor-type]}]
-    (case processor-type
-      :diff   `(if (== ~(vary-meta value-1 assoc :tag 'long)
-                       ~(vary-meta value-2 assoc :tag 'long))
+      :diff   `(if (== ~value-1 ~value-2)
                  :mikron/nil
                  ~value-2)
       :undiff value-2))
@@ -53,7 +44,7 @@
                  ~value-2)
       :undiff value-2))
 
-  (defmethod diff :identical?-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
+  (defmethod diff :identity-comparable [_ _ value-1 value-2 {:keys [processor-type]}]
     (case processor-type
       :diff   `(if (identical? ~value-1 ~value-2)
                  :mikron/nil
@@ -74,18 +65,16 @@
 
   (defmethod diff :multi [[_ _ selector schemas'] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [case-1 case-2]}
-      (if-not paths
-        (diff [:default] nil value-1 value-2 global-options)
-        `(let [~case-1 (~selector ~value-1)
-               ~case-2 (~selector ~value-2)]
-           (if (not= ~case-1 ~case-2)
-             ~(diff [:default] nil value-1 value-2 global-options)
-             (condp = ~case-1
-               ~@(mapcat (fn [[key' schema']]
-                           [key' (if-let [paths' (paths key')]
-                                   (diff schema' paths' value-1 value-2 global-options)
-                                   (diff [:default] nil value-1 value-2 global-options))])
-                         schemas')))))))
+      `(let [~case-1 (~selector ~value-1)
+             ~case-2 (~selector ~value-2)]
+         (if (not= ~case-1 ~case-2)
+           ~(diff [:default] nil value-1 value-2 global-options)
+           (condp = ~case-1
+             ~@(mapcat (fn [[key' schema']]
+                         [key' (if-let [paths' (get paths key')]
+                                 (diff schema' paths' value-1 value-2 global-options)
+                                 (diff [:default] nil value-1 value-2 global-options))])
+                       schemas'))))))
 
   (defmethod diff :list [[_ options schema'] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [value-1-vec value-2-vec]}
@@ -145,42 +134,41 @@
 
   (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [value-1' value-2']}
-      (if-not paths
-        (diff [:default] nil value-1 value-2 global-options)
-        (let [fields (common/tuple->fields schemas)]
-          `(let [~@(mapcat (fn [[key value']]
-                             [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
-                                            ~value-2' ~(common/tuple-lookup value-2 key)]
-                                        ~(if-let [paths' (paths key)]
-                                           (diff* (schemas key) paths' value-1' value-2' global-options)
-                                           (diff [:default] nil value-1' value-2' global-options)))])
-                           fields)]
-             (if (and ~@(map (fn [[_ value']]
-                               `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
-                             fields))
-               :mikron/nil
-               ~(common/fields->tuple fields)))))))
+      (let [fields (common/tuple->fields schemas)]
+        `(let [~@(mapcat (fn [[key value']]
+                           [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
+                                          ~value-2' ~(common/tuple-lookup value-2 key)]
+                                      ~(if-let [paths' (get paths key)]
+                                         (diff* (get schemas key) paths' value-1' value-2' global-options)
+                                         (diff [:default] nil value-1' value-2' global-options)))])
+                         fields)]
+           (if (and ~@(map (fn [[_ value']]
+                             `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
+                           fields))
+             :mikron/nil
+             ~(common/fields->tuple fields))))))
 
   (defmethod diff :record [[_ {:keys [type]} schemas] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [value-1' value-2']}
-      (if-not paths
-        (diff [:default] nil value-1 value-2 global-options)
-        (let [fields (common/record->fields schemas)]
-          `(let [~@(mapcat (fn [[key value']]
-                             [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
-                                            ~value-2' ~(common/record-lookup value-2 key type)]
-                                        ~(if-let [paths' (paths key)]
-                                           (diff* (schemas key) paths' value-1' value-2' global-options)
-                                           (diff [:default] nil value-1' value-2' global-options)))])
-                           fields)]
-             (if (and ~@(map (fn [[_ value']]
-                               `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
-                             fields))
-               :mikron/nil
-               ~(common/fields->record fields type)))))))
+      (let [fields (common/record->fields schemas)]
+        `(let [~@(mapcat (fn [[key value']]
+                           [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
+                                          ~value-2' ~(common/record-lookup value-2 key type)]
+                                      ~(if-let [paths' (get paths key)]
+                                         (diff* (get schemas key) paths' value-1' value-2' global-options)
+                                         (diff [:default] nil value-1' value-2' global-options)))])
+                         fields)]
+           (if (and ~@(map (fn [[_ value']]
+                             `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
+                           fields))
+             :mikron/nil
+             ~(common/fields->record fields type))))))
 
   (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type custom-processors]}]
-    `((deref ~(custom-processors [processor-type schema])) ~value-1 ~value-2))
+    `((runtime.processor.common/deref-processor-handle
+        ~(get custom-processors [processor-type schema]))
+      ~value-1
+      ~value-2))
 
   (defmethod diff :default [_ _ _ value-2 _]
     value-2)

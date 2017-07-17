@@ -78,7 +78,7 @@
   (defmethod valid? :wrapped [[_ _ pre _ schema'] value global-options]
     (compiler.util/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.util/safe :mikron/invalid (~pre ~value))]
-         (and (not= :mikron/invalid ~value')
+         (and (not (runtime.processor.common/keyword-identical? :mikron/invalid ~value'))
               ~(valid? schema' value' global-options)))))
 
   (defmethod valid? :multi [[_ _ selector schemas'] value global-options]
@@ -124,7 +124,7 @@
           (== (runtime.processor.common/count ~value) ~(count schemas))
           ~@(map (fn [[key' value']]
                    `(let [~value' ~(common/tuple-lookup value key')]
-                      ~(valid? (schemas key') value' global-options)))
+                      ~(valid? (get schemas key') value' global-options)))
                  (common/tuple->fields schemas))))
 
   (defmethod valid? :record [[_ {:keys [type]} schemas] value global-options]
@@ -133,11 +133,13 @@
              `(map? ~value))
           ~@(map (fn [[key' value']]
                    `(let [~value' ~(common/record-lookup value key' type)]
-                      ~(valid? (schemas key') value' global-options)))
+                      ~(valid? (get schemas key') value' global-options)))
                  (common/record->fields schemas))))
 
   (defmethod valid? :custom [schema value {:keys [custom-processors]}]
-    `((deref ~(custom-processors [:valid? schema])) ~value))
+    `((runtime.processor.common/deref-processor-handle
+        ~(get custom-processors [:valid? schema]))
+      ~value))
 
   (defmethod common/processor :valid? [_ {:keys [schema] :as global-options}]
     (compiler.util/macro-context {:gen-syms [value]}
