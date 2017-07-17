@@ -20,7 +20,7 @@
     `(runtime.math/interp ~value-1 ~value-2 ~time-factor))
 
   (defmethod interp :char [_ _ value-1 value-2 global-options]
-    (interp [:default] nil value-1 value-2 char))
+    (interp [:default] nil value-1 value-2 global-options))
 
   (defmethod interp :list [[_ options schema'] paths value-1 value-2 global-options]
     (compiler.util/macro-context {:gen-syms [value-1-vec value-2-vec]}
