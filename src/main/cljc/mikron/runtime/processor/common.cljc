@@ -89,25 +89,37 @@
   #?(:clj  (char value)
      :cljs (.fromCharCode js/String value)))
 
+#?(:cljs (def ^:const ^boolean supports-text-encoder-api? (exists? js/TextEncoder)))
+
+#?(:cljs (def text-encoder (when supports-text-encoder-api?
+                             (js/TextEncoder.))))
+
+#?(:cljs (def text-decoder (when supports-text-encoder-api?
+                             (js/TextDecoder.))))
+
 (defn string->binary
   "Converts a string `value` to a binary value."
   #?(:clj {:inline (fn [value] `(.getBytes ~(vary-meta value assoc :tag `String) StandardCharsets/UTF_8))})
   ^bytes [^String value]
   #?(:clj  (.getBytes value StandardCharsets/UTF_8)
-     :cljs (let [chars (-> value (js/encodeURIComponent) (js/unescape) (.split ""))
-                 array (array)]
-             (dotimes [i (.-length chars)]
-               (.push array (-> chars (aget i) (.charCodeAt 0))))
-             (.-buffer (js/Uint8Array. array)))))
+     :cljs (if supports-text-encoder-api?
+             (.-buffer (.encode text-encoder value))
+             (let [chars (-> value (js/encodeURIComponent) (js/unescape) (.split ""))
+                   array (array)]
+               (dotimes [i (.-length chars)]
+                 (.push array (-> chars (aget i) (.charCodeAt 0))))
+               (.-buffer (js/Uint8Array. array))))))
 
 (defn binary->string
   "Converts a binary value `value` to a string."
   #?(:clj {:inline (fn [value] `(String. ~(vary-meta value assoc :tag 'bytes) StandardCharsets/UTF_8))})
   ^String [^bytes value]
   #?(:clj  (String. value StandardCharsets/UTF_8)
-     :cljs (-> (js/String.fromCharCode.apply nil (js/Uint8Array. value))
+     :cljs (if supports-text-encoder-api?
+             (.decode text-decoder value)
+             (-> (js/String.fromCharCode.apply nil (js/Uint8Array. value))
                (js/escape)
-               (js/decodeURIComponent))))
+               (js/decodeURIComponent)))))
 
 (defn double->float
   "Converts a double `value` to a float."
