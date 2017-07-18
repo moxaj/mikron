@@ -478,11 +478,11 @@
 (deftype MikronByteBufferFactory []
   IMikronByteBufferFactory
   (allocate* [_ size]
-    #?(:clj  (MikronByteBuffer. (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder)))
-       :cljs (MikronByteBuffer. (.allocUnsafe NativeJsBuffer size) 0 true)))
+    #?(:clj  (->MikronByteBuffer (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder)))
+       :cljs (->MikronByteBuffer (.allocUnsafe NativeJsBuffer size) 0 true)))
   (wrap* [_ binary]
-    #?(:clj  (MikronByteBuffer. (ByteBuffer/wrap binary))
-       :cljs (MikronByteBuffer. (.from NativeJsBuffer binary) 0 true))))
+    #?(:clj  (->MikronByteBuffer (ByteBuffer/wrap binary))
+       :cljs (->MikronByteBuffer (.from NativeJsBuffer binary) 0 true))))
 
 (def ^mikron.runtime.buffer.IMikronByteBufferFactory byte-buffer-factory
   "The default byte buffer factory."
@@ -498,12 +498,12 @@
 (defn allocate
   "Allocates a buffer with the size `size`."
   ^Buffer [^long size]
-  (Buffer. (MikronBitBuffer. 0 0 -1) (allocate* byte-buffer-factory size)))
+  (->Buffer (->MikronBitBuffer 0 0 -1) (allocate* byte-buffer-factory size)))
 
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
   ^Buffer [^bytes binary]
-  (Buffer. (MikronBitBuffer. 0 0 -1) (wrap* byte-buffer-factory binary)))
+  (->Buffer (->MikronBitBuffer 0 0 -1) (wrap* byte-buffer-factory binary)))
 
 (defn set-headers
   "Sets the headers of `buffer`."

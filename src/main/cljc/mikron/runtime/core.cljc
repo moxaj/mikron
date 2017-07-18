@@ -46,11 +46,12 @@
                                 (~processor-type)
                                 (processor.common/create-processor-handle))])
                        custom-processors)]
-         (Schema. ~(->> processors
-                        (map (fn [[processor-type {:keys [args body]}]]
-                               [processor-type `(fn ~args ~@body)]))
-                        (into {}))
-                  '~global-options))))
+         (->Schema
+           ~(->> processors
+                 (map (fn [[processor-type {:keys [args body]}]]
+                        [processor-type `(fn ~args ~@body)]))
+                 (into {}))
+           '~global-options))))
 
   (defmacro schema
     "Returns a reified schema for the given schema definition."
