@@ -5,29 +5,33 @@
             [mikron.runtime.core :as mikron]
             [mikron.runtime.core-tests-macros :as tests-macros :refer [def-mikron-tests]]))
 
-(defmethod tests-macros/test-mikron :pack [_ schema values]
+(defmulti test-mikron
+  "Test function for :pack, :diff, :valid? and :interp processors."
+  (fn [method schema values] method))
+
+(defmethod test-mikron :pack [_ schema values]
   (doseq [value values]
     (test/is (test-util/equal? value
                                (->> value
                                     (mikron/pack schema)
                                     (mikron/unpack schema))))))
 
-(defmethod tests-macros/test-mikron :diff [_ schema values]
+(defmethod test-mikron :diff [_ schema values]
   (doseq [[value-1 value-2] (partition 2 values)]
     (test/is (test-util/equal? value-2
                                (->> value-2
                                     (mikron/diff schema value-1)
                                     (mikron/undiff schema value-1))))))
 
-(defmethod tests-macros/test-mikron :valid? [_ schema values]
+(defmethod test-mikron :valid? [_ schema values]
   (doseq [value values]
     (test/is (mikron/valid? schema value))))
 
-(defmethod tests-macros/test-mikron :interp [_ schema values]
+(defmethod test-mikron :interp [_ schema values]
   (doseq [[value-1 value-2] (partition 2 values)]
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
-(def-mikron-tests [:pack :diff :valid? :interp]
+(def-mikron-tests test-mikron [:pack :diff :valid? :interp]
   {t-byte         :byte
    t-short        :short
    t-int          :int
