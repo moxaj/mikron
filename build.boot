@@ -1,5 +1,5 @@
 (merge-env!
-  :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js/foreign"}
+  :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.671"]
 
