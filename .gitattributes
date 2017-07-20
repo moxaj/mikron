@@ -1,5 +1,5 @@
-docs/* linguist-vendored=false
-scripts/* linguist-vendored=false
-src/benchmark/* linguist-vendored=false
-src/main/js/* linguist-vendored=false
+docs/* linguist-vendored
+scripts/* linguist-vendored
+src/benchmark/* linguist-vendored
+src/main/js/* linguist-vendored
 
