@@ -60,6 +60,20 @@
         (.start)
         (.waitFor))))
 
+;; Config
+
+(def cljs-compiler-opts
+  {:static-fns         true
+   :fn-invoke-direct   true
+   :parallel-build     true
+   :optimize-constants true
+   :compiler-stats     true
+   :elide-asserts      true})
+
+(def test-namespaces
+  '[mikron.runtime.core-tests
+    mikron.runtime.buffer-tests])
+
 ;; Tasks
 
 (deftask testing
@@ -100,13 +114,7 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test :namespaces '[mikron.runtime.core-tests
-                                      mikron.runtime.buffer-tests])))
-
-(def cljs-compiler-opts
-  {:static-fns       true
-   :fn-invoke-direct true
-   :parallel-build   true})
+        (boot-test/test :namespaces 'test-namespaces)))
 
 (deftask test-node
   "Runs the tests in a Node.js environment."
@@ -119,8 +127,7 @@
                 "-k" "lumo_cache"
                 "target/mikron/test_runner/node.cljs")
           (boot-cljs-test/test-cljs :js-env        :node
-                                    :namespaces    '[mikron.runtime.core-tests
-                                                     mikron.runtime.buffer-tests]
+                                    :namespaces    test-namespaces
                                     :optimizations (or opt :none)
                                     :cljs-opts     cljs-compiler-opts))))
 
@@ -130,8 +137,7 @@
    e js-env VAL kw "The js environment."]
   (comp (testing)
         (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
-                                  :namespaces    '[mikron.runtime.core-tests
-                                                   mikron.runtime.buffer-tests]
+                                  :namespaces    test-namespaces
                                   :optimizations (or opt :none)
                                   :cljs-opts     cljs-compiler-opts)))
 
@@ -199,7 +205,7 @@
           :name         "moxaj/mikron"
           :metadata     {:doc/format :markdown}
           :output-path  "docs"
-          ;:namespaces   [#"^mikron\.(?!codegen)"]
+          :source-paths (get-env :resource-paths)
           :exclude-vars #"^((map)?->\p{Upper}|(get|set|put|take).*\*)")
         (sift :move {#"docs" "../docs"})
         (target)))
