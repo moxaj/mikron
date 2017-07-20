@@ -1,5 +1,3 @@
-docs/* linguist-vendored
-scripts/* linguist-vendored
-src/benchmark/* linguist-vendored
-src/main/js/* linguist-vendored
+docs/**/* linguist-documentation
+src/main/js/**/* linguist-vendored
 
