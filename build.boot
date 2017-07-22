@@ -117,7 +117,7 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test :namespaces 'test-namespaces)))
+        (boot-test/test :namespaces test-namespaces)))
 
 (deftask test-node
   "Runs the tests in a Node.js environment."
