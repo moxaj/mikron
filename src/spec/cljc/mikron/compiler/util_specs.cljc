@@ -1,8 +1,8 @@
 (ns mikron.compiler.util-specs
   (:require [clojure.spec.alpha :as s]
-            [mikron.compiler.util-macros :as util]))
+            [macrowbar.core :as macrowbar]))
 
-(util/compile-time
+(macrowbar/compile-time
   (s/def ::symbols
     (s/coll-of symbol? :kind vector?))
 

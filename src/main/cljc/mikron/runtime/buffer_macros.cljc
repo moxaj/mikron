@@ -1,14 +1,14 @@
 (ns mikron.runtime.buffer-macros
   "`mikron.runtime.buffer` macros namespace."
-  (:require [mikron.runtime.buffer-specs :as buffer-specs]
-            [mikron.compiler.util :as compiler.util])
+  (:require [macrowbar.core :as macrowbar]
+            [mikron.runtime.buffer-specs :as buffer-specs])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defmacro with-delta
     "Executes `body` and updates the position `pos` with the delta `delta`."
     [pos delta body]
-    (compiler.util/macro-context {:gen-syms [value]}
+    (macrowbar/macro-context {:gen-syms [value]}
       `(let [~value ~body]
          (set! ~pos (unchecked-add ~pos ~delta))
          ~value)))
@@ -47,8 +47,8 @@
   (defmacro definterface+
     "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
     [& args]
-    (let [{:keys [interface-name ops]} (compiler.util/enforce-spec ::buffer-specs/definterface+-args args)]
-      (if (compiler.util/cljs?)
+    (let [{:keys [interface-name ops]} (macrowbar/enforce-spec ::buffer-specs/definterface+-args args)]
+      (if (macrowbar/cljs? &env)
         `(defprotocol ~interface-name
            ~@(map (fn [{:keys [op-name args docs]}]
                     `(~(without-tag op-name)

@@ -1,14 +1,14 @@
 (ns mikron.runtime.core-tests-macros
   "Unit tests for each processor."
   (:require [clojure.test :as test]
-            [mikron.runtime.core :as mikron]
-            [mikron.compiler.util :as compiler.util])
+            [macrowbar.core :as macrowbar]
+            [mikron.runtime.core :as mikron])
   #?(:cljs (:require-macros [mikron.runtime.core-tests-macros])))
 
 (defmacro def-mikron-tests
   "Generates test methods for all the test cases."
   [test-fn test-methods test-cases]
-  (compiler.util/macro-context {:gen-syms [schema values]}
+  (macrowbar/macro-context {:gen-syms [schema values]}
     `(do ~@(for [[schema-name schema-def] test-cases]
              `(let [~schema (mikron/schema ~schema-def :diff-paths true :interp-paths true)
                     ~values (repeatedly 100 #(mikron/gen ~schema))]

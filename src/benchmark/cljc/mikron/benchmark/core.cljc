@@ -7,7 +7,7 @@
             [mikron.benchmark.schema :as benchmark.schema]
             [cognitect.transit :as transit]
             [octet.core :as octet]
-            #?@(:clj [[mikron.compiler.util :as compiler-util]
+            #?@(:clj [[macrowbar.core :as macrowbar]
                       [criterium.core :as crit]
                       [taoensso.nippy :as nippy]
                       [cheshire.core :as cheshire]
@@ -173,7 +173,7 @@
 
 #?(:clj
    (defmacro bench [expr]
-     (if-not (compiler-util/cljs?)
+     (if-not (macrowbar/cljs? &env)
        `(->> (crit/quick-benchmark ~expr {}) :mean (first) (double) (* 1000 1000))
        `(do (dotimes [_# 1000] ~expr)
             (let [t# (now)]

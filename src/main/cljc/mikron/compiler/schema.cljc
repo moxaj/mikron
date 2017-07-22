@@ -1,8 +1,8 @@
 (ns mikron.compiler.schema
   "Schema definition related functions."
-  (:require [mikron.compiler.util :as util]))
+  (:require [macrowbar.core :as macrowbar]))
 
-(util/compile-time
+(macrowbar/compile-time
   (defn schema-name
     "Returns the name of `schema`."
     [schema & _]

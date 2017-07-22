@@ -1,11 +1,11 @@
 (ns mikron.compiler.core-specs
   "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
+            [macrowbar.core :as macrowbar]
             [mikron.compiler.core-specs-macros :refer [schema-spec*]]
-            [mikron.compiler.util :as util]
             [mikron.compiler.schema :as schema]))
 
-(util/compile-time
+(macrowbar/compile-time
   (s/def ::sorted-by
     some?)
 

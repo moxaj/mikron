@@ -1,10 +1,10 @@
 (ns mikron.compiler.processor.common
   "Common functions for the compilers."
-  (:require [mikron.compiler.util :as compiler.util]
+  (:require [macrowbar.core :as macrowbar]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defn record-lookup
     "Generates code for record value lookup."
     [record key [class]]
@@ -53,7 +53,7 @@
     "Repeatedly evaluates `expr` `n` times, collecting the results into
     a collection `coll`. Uses transient operations if `transient?` is `true`."
     [coll transient? n expr]
-    (compiler.util/macro-context {:eval-syms [coll n]}
+    (macrowbar/macro-context {:eval-syms [coll n]}
       `(loop [~n    (long ~n)
               ~coll ~(if transient? `(transient ~coll) coll)]
          (if (== 0 ~n)
@@ -65,7 +65,7 @@
     "Repeatedly evaluates `key-expr` and `value-expr` `n` times, collecting the results into
     a map `coll`. Uses transient operations if `transient?` is `true`."
     [coll transient? n key-expr value-expr]
-    (compiler.util/macro-context {:eval-syms [coll n]}
+    (macrowbar/macro-context {:eval-syms [coll n]}
       `(loop [~n    (long ~n)
               ~coll ~(if transient? `(transient ~coll) coll)]
          (if (== 0 ~n)

@@ -1,13 +1,13 @@
 (ns mikron.compiler.processor.pack
   "Packer generating functions."
-  (:require [mikron.compiler.processor.common :as common]
+  (:require [macrowbar.core :as macrowbar]
+            [mikron.compiler.processor.common :as common]
             [mikron.compiler.schema :as compiler.schema]
-            [mikron.compiler.util :as compiler.util]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.runtime.buffer :as runtime.buffer]))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defmulti pack
     "Returns the generated packer code for a given schema."
     compiler.schema/schema-name
@@ -16,7 +16,7 @@
   (defn pack*
     "Returns the generated packer code for a given schema."
     [schema value {:keys [diffed?] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [value-dnil?]}
+    (macrowbar/macro-context {:gen-syms [value-dnil?]}
       (if-not diffed?
         (pack schema value global-options)
         `(let [~value-dnil? (identical? :mikron/nil ~value)]
@@ -55,7 +55,7 @@
     `(runtime.buffer/put-double ~buffer ~value))
 
   (defmethod pack :char [_ value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.processor.common/char->int ~value)]
          ~(pack [:int] value' global-options))))
 
@@ -72,22 +72,22 @@
     `(runtime.buffer/put-binary ~buffer ~value))
 
   (defmethod pack :string [_ value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.processor.common/string->binary ~value)]
          ~(pack [:binary] value' global-options))))
 
   (defmethod pack :keyword [_ value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.processor.common/keyword->string ~value)]
          ~(pack [:string] value' global-options))))
 
   (defmethod pack :symbol [_ value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.processor.common/symbol->string ~value)]
          ~(pack [:string] value' global-options))))
 
   (defmethod pack :any [_ value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.processor.common/any->string ~value)]
          ~(pack [:string] value' global-options))))
 
@@ -107,7 +107,7 @@
            ~(pack schema' value global-options))))
 
   (defmethod pack :wrapped [[_ _ pre _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (~pre ~value)]
          ~(pack schema' value' global-options))))
 
@@ -122,7 +122,7 @@
               (apply concat))))
 
   (defmethod pack :vector [[_ _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [length value' index]}
+    (macrowbar/macro-context {:gen-syms [length value' index]}
       `(let [~length (runtime.processor.common/count ~value)]
          ~(pack [:varint] length global-options)
          (dotimes [~index ~length]
@@ -130,7 +130,7 @@
              ~(pack* schema' value' global-options))))))
 
   (defmethod pack :coll [[_ options schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [length value']}
+    (macrowbar/macro-context {:gen-syms [length value']}
       `(let [~length (count ~value)]
          (do ~(pack [:varint] length global-options)
              (run! (fn [~value']
@@ -138,7 +138,7 @@
                    ~value)))))
 
   (defmethod pack :map [[_ _ key-schema val-schema] value global-options]
-    (compiler.util/macro-context {:gen-syms [length entry' key' value']}
+    (macrowbar/macro-context {:gen-syms [length entry' key' value']}
       `(let [~length (runtime.processor.common/count ~value)]
          (do ~(pack [:varint] length global-options)
              (run! (fn [~entry']
@@ -167,11 +167,11 @@
       ~buffer))
 
   (defmethod common/processor :pack [_ {:keys [schema] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [value buffer]}
+    (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? false))]}))
 
   (defmethod common/processor :pack-diffed [_ {:keys [schema] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [value buffer]}
+    (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? true))]})))

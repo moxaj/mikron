@@ -1,14 +1,14 @@
 (ns mikron.compiler.processor.validate
   "Validator generating functions."
-  (:require [mikron.compiler.processor.common :as common]
+  (:require [macrowbar.core :as macrowbar]
+            [mikron.compiler.processor.common :as common]
             [mikron.compiler.schema :as compiler.schema]
-            [mikron.compiler.util :as compiler.util]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.runtime.processor.validate :as runtime.processor.validate]
             [mikron.runtime.util :as runtime.util]))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defmulti valid?
     "Returns the generated validator code for a given schema."
     compiler.schema/schema-name
@@ -76,7 +76,7 @@
          ~(valid? schema' value global-options)))
 
   (defmethod valid? :wrapped [[_ _ pre _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(let [~value' (runtime.util/safe :mikron/invalid (~pre ~value))]
          (and (not (runtime.processor.common/keyword-identical? :mikron/invalid ~value'))
               ~(valid? schema' value' global-options)))))
@@ -89,28 +89,28 @@
        false))
 
   (defmethod valid? :list [[_ _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(and (sequential? ~value)
             (every? (fn [~value']
                       ~(valid? schema' value' global-options))
                     ~value))))
 
   (defmethod valid? :vector [[_ _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(and (vector? ~value)
             (runtime.processor.common/every? (fn [~value']
                                                ~(valid? schema' value' global-options))
                                              ~value))))
 
   (defmethod valid? :set [[_ _ schema'] value global-options]
-    (compiler.util/macro-context {:gen-syms [value']}
+    (macrowbar/macro-context {:gen-syms [value']}
       `(and (set? ~value)
             (every? (fn [~value']
                       ~(valid? schema' value' global-options))
                     ~value))))
 
   (defmethod valid? :map [[_ _ key-schema val-schema] value global-options]
-    (compiler.util/macro-context {:gen-syms [entry' key' value']}
+    (macrowbar/macro-context {:gen-syms [entry' key' value']}
       `(and (map? ~value)
             (every? (fn [~entry']
                       (let [~key'   (key ~entry')
@@ -142,6 +142,6 @@
       ~value))
 
   (defmethod common/processor :valid? [_ {:keys [schema] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [value]}
+    (macrowbar/with-gensyms [value]
       {:args [value]
        :body [`(boolean ~(valid? schema value global-options))]})))

@@ -1,7 +1,8 @@
 (ns mikron.runtime.processor.common
   "Common runtime functions."
   (:refer-clojure :exclude [count nth every? rand-nth #?(:cljs keyword-identical?)])
-  (:require [clojure.tools.reader :as edn]
+  (:require #?(:clj  [clojure.tools.reader :as edn]
+               :cljs [cljs.tools.reader :as edn])
             [mikron.runtime.math :as math])
   #?(:clj (:import [java.nio.charset StandardCharsets]
                    [clojure.lang Indexed Counted]))

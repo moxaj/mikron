@@ -1,9 +1,9 @@
 (ns mikron.runtime.core
   "Core namespace. Contains the public API."
   (:require [clojure.spec.alpha :as s]
+            [macrowbar.core :as macrowbar]
             [mikron.runtime.core-specs :as core-specs]
             [mikron.compiler.core :as compiler]
-            [mikron.compiler.util :as compiler.util]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.util :as util]
             [mikron.runtime.math :as math]
@@ -32,7 +32,7 @@
       (@registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defn schema*
     "Given a schema definition, returns the unevaluated code to produce a reified schema."
     [& args]
@@ -61,7 +61,7 @@
   (defmacro defschema
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
-    (let [{:keys [schema-name schema+global-options]} (compiler.util/enforce-spec ::core-specs/defschema-args args)]
+    (let [{:keys [schema-name schema+global-options]} (macrowbar/enforce-spec ::core-specs/defschema-args args)]
       `(register-schema! ~schema-name ~(apply schema* schema+global-options)))))
 
 (def ^:dynamic ^:private *buffer*

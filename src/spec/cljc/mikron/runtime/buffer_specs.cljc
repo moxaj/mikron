@@ -1,9 +1,9 @@
 (ns mikron.runtime.buffer-specs
   "`mikron.runtime.buffer` spec namespace."
   (:require [clojure.spec.alpha :as s]
-            [mikron.compiler.util :as util]))
+            [macrowbar.core :as macrowbar]))
 
-(util/compile-time
+(macrowbar/compile-time
   (s/def ::definterface+-args
     (s/cat :interface-name simple-symbol?
            :ops            (s/* (s/spec (s/cat :op-name simple-symbol?

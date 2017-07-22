@@ -1,13 +1,13 @@
  (ns mikron.compiler.processor.unpack
   "Unpacker generating functions."
-  (:require [mikron.compiler.processor.common :as common]
+  (:require [macrowbar.core :as macrowbar]
+            [mikron.compiler.processor.common :as common]
             [mikron.compiler.schema :as compiler.schema]
-            [mikron.compiler.util :as compiler.util]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.runtime.buffer :as runtime.buffer]))
 
-(compiler.util/compile-time
+(macrowbar/compile-time
   (defmulti unpack
     "Returns the generated unpacker code for a given schema."
     compiler.schema/schema-name
@@ -142,11 +142,11 @@
       ~buffer))
 
   (defmethod common/processor :unpack [_ {:keys [schema] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [buffer]}
+    (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
 
   (defmethod common/processor :unpack-diffed [_ {:keys [schema] :as global-options}]
-    (compiler.util/macro-context {:gen-syms [buffer]}
+    (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))

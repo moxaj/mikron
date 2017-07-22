@@ -1,6 +1,6 @@
 (ns mikron.runtime.util
   "Generic utility functions."
-  (:require [mikron.compiler.util :as compiler.util])
+  (:require [macrowbar.core :as macrowbar])
   #?(:cljs (:require-macros [mikron.runtime.util])))
 
 #?(:cljs
@@ -15,5 +15,5 @@
   [ex-value & body]
   `(try
      (do ~@body)
-     (catch ~(if (compiler.util/cljs?) :default `Throwable) e#
+     (catch ~(if (macrowbar/cljs? &env) :default `Throwable) e#
        ~ex-value)))

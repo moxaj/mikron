@@ -2,9 +2,12 @@
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.671"]
+                    [moxaj/macrowbar             "0.1.0"]
 
+                    ;; test
                     [com.gfredericks/test.chuck  "0.2.7"  :scope "test"]
 
+                    ;; script
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
                     [adzerk/boot-reload          "0.5.1"  :scope "test"]
                     [adzerk/boot-cljs            "2.0.0"  :scope "test"]
@@ -187,7 +190,7 @@
 
 (deftask run-node-repl
   "Runs a node repl.
-   TODO does not work - waiting on Lumo commonjs modules"
+   TODO does not work - waiting on Lumo closure libs support."
   []
   (comp (testing)
         (benchmarking)

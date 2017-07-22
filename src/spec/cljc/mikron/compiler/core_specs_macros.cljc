@@ -1,10 +1,10 @@
 (ns mikron.compiler.core-specs-macros
   "`mikron.compiler.core-specs` macro namespace."
   (:require [clojure.spec.alpha :as s]
-            [mikron.compiler.util :as util])
+            [macrowbar.core :as macrowbar])
   #?(:cljs (:require-macros [mikron.compiler.core-specs-macros])))
 
-(util/compile-time
+(macrowbar/compile-time
   (defmacro schema-spec*
     "Helper macro for shorthand schema spec definition."
     [options & fields]
