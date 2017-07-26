@@ -2,7 +2,7 @@
   "Main compiler namespace."
   (:require [clojure.set :as set]
             [macrowbar.core :as macrowbar]
-            [mikron.compiler.core-specs :as core-specs]
+            [mikron.compiler.core.spec :as core.spec]
             [mikron.compiler.schema :as schema]
             [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.processor.pack]
@@ -18,7 +18,7 @@
     [& args]
     #?(:clj (macrowbar/try-loading-compiling-ns))
     (let [{:keys [schema processor-types] :as global-options}
-          (macrowbar/enforce-spec ::core-specs/compile-schema-args (macrowbar/eval (vec args)))
+          (macrowbar/enforce-spec ::core.spec/compile-schema-args (macrowbar/eval (vec args)))
 
           processor-types
           (cond-> (->> processor.common/processor (methods) (keys) (set))

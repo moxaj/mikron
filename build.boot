@@ -74,8 +74,8 @@
    :elide-asserts      true})
 
 (def test-namespaces
-  '[mikron.runtime.core-tests
-    mikron.runtime.buffer-tests])
+  '[mikron.runtime.core.test
+    mikron.runtime.buffer.test])
 
 ;; Tasks
 

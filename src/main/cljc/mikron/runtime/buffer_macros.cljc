@@ -1,7 +1,7 @@
 (ns mikron.runtime.buffer-macros
   "`mikron.runtime.buffer` macros namespace."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.runtime.buffer-specs :as buffer-specs])
+            [mikron.runtime.buffer.spec :as buffer.spec])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macros])))
 
 (macrowbar/compile-time
@@ -47,7 +47,7 @@
   (defmacro definterface+
     "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
     [& args]
-    (let [{:keys [interface-name ops]} (macrowbar/enforce-spec ::buffer-specs/definterface+-args args)]
+    (let [{:keys [interface-name ops]} (macrowbar/enforce-spec ::buffer.spec/definterface+-args args)]
       (if (macrowbar/cljs? &env)
         `(defprotocol ~interface-name
            ~@(map (fn [{:keys [op-name args docs]}]

@@ -1,8 +1,8 @@
-(ns mikron.compiler.core-specs
+(ns mikron.compiler.core.spec
   "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]
-            [mikron.compiler.core-specs-macros :refer [schema-spec*]]
+            [mikron.compiler.core.spec-macros :refer [schema-spec*]]
             [mikron.compiler.schema :as schema]))
 
 (macrowbar/compile-time
@@ -25,26 +25,11 @@
         :else
         :custom)))
 
-  (def hierarchy
-    (schema/derive-all schema/hierarchy
-                       :simple-schema
-                       [:number :char :boolean :nil :ignored :binary :string :keyword :symbol :any]))
-
-  (defn leaf-children
-    "Returns the leaf children of the given tag in the hierarchy, or the tag if it has no leaf children."
-    [hierarchy tag]
-    (let [children (descendants hierarchy tag)]
-      (if (empty? children)
-        [tag]
-        (filter (fn [tag']
-                  (empty? (descendants hierarchy tag')))
-                children))))
-
   (defmulti schema-spec
     "Returns a spec for a schema definition."
-    raw-schema-name :hierarchy #'hierarchy)
+    raw-schema-name :hierarchy #'schema/extended-hierarchy)
 
-  (defmethod schema-spec :simple-schema [_]
+  (defmethod schema-spec :simple [_]
     (schema-spec* []))
 
   (defmethod schema-spec :enum [_]
@@ -82,14 +67,15 @@
     some?)
 
   (s/def ::schema
-    (s/and (s/multi-spec schema-spec (fn [schema tag]
-                                       (if (= :custom tag)
-                                         schema
-                                         (let [tag' (rand-nth (leaf-children hierarchy tag))]
-                                           (if (= :simple-schema tag)
-                                             tag'
-                                             (into [tag'] (rest schema)))))))
-           #(empty? (descendants hierarchy %))))
+    (s/and (s/multi-spec schema-spec
+                         (fn [schema tag]
+                           (if (= :custom tag)
+                             schema
+                             (let [tag' (rand-nth (schema/leaf-children schema/extended-hierarchy tag))]
+                               (if (keyword? schema)
+                                 tag'
+                                 (into [tag'] (rest schema)))))))
+           #(empty? (descendants schema/extended-hierarchy %))))
 
   (s/def ::paths
     (s/and (s/or :tuple       (s/map-of nat-int? ::paths)

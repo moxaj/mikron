@@ -1,9 +1,12 @@
-(ns mikron.runtime.core-tests
+(ns mikron.runtime.core.test
   "Actual unit test cases."
   (:require [clojure.test :as test]
-            [mikron.test-util :as test-util]
+            [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
+            [com.gfredericks.test.chuck.clojure-test :as chuck #?@(:cljs [:include-macros true])]
             [mikron.runtime.core :as mikron]
-            [mikron.runtime.core-tests-macros :as tests-macros :refer [def-mikron-tests]]))
+            [mikron.runtime.core.test-macros :refer [def-mikron-tests]]
+            [mikron.runtime.generators :as generators]
+            [mikron.test-util :as test-util]))
 
 (defmulti test-mikron
   "Test function for :pack, :diff, :valid? and :interp processors."
@@ -65,3 +68,12 @@
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi 'number? {true :int false :string}]
    t-wrapped      [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})
+
+(test/deftest schema-test
+  (chuck/checking "It just works" 100
+    [schema generators/schema-generator
+     value  (generators/value-generator schema)]
+    (let [s (eval `(mikron/schema ~schema))]
+      (test/is (= value
+                  (->> value (mikron/pack s)
+                             (mikron/unpack s)))))))

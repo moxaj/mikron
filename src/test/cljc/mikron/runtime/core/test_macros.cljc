@@ -1,9 +1,9 @@
-(ns mikron.runtime.core-tests-macros
+(ns mikron.runtime.core.test-macros
   "Unit tests for each processor."
   (:require [clojure.test :as test]
             [macrowbar.core :as macrowbar]
             [mikron.runtime.core :as mikron])
-  #?(:cljs (:require-macros [mikron.runtime.core-tests-macros])))
+  #?(:cljs (:require-macros [mikron.runtime.core.test-macros])))
 
 (defmacro def-mikron-tests
   "Generates test methods for all the test cases."

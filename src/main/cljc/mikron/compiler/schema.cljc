@@ -22,13 +22,21 @@
       :list :vector :set :map :record :tuple})
 
   (def hierarchy
-    "The default schema hierarchy."
+    "The semantic schema hierarchy."
     (reduce-kv derive-all
                (make-hierarchy)
                {:integer  [:byte :ubyte :short :ushort :int :uint :long :varint]
                 :floating [:float :double]
                 :number   [:integer :floating]
                 :coll     [:list :vector :set]}))
+
+  (def extended-hierarchy
+    "The schema hierarchy extended with syntactic groupings."
+    (reduce-kv derive-all
+               hierarchy
+               {:simple   [:number :char :boolean :nil :ignored :binary :string :keyword :symbol :any]
+                :scalar   [:simple :enum]
+                :compound [:optional :wrapped :multi :coll :map :record :tuple]}))
 
   (defn integer-schema
     "Returns an integer schema into which `size` can fit."
@@ -140,6 +148,16 @@
     "Returns the custom schemas used by `schema`."
     [schema]
     (->> schema
-         (schema-children)
-         (filter (comp #{:custom} schema-name))
-         (set))))
+       (schema-children)
+       (filter (comp #{:custom} schema-name))
+       (set)))
+
+  (defn leaf-children
+    "Returns the leaf children of the given tag in the hierarchy, or the tag if it has no leaf children."
+    [hierarchy tag]
+    (let [children (descendants hierarchy tag)]
+      (if (empty? children)
+        [tag]
+        (filter (fn [tag']
+                  (empty? (descendants hierarchy tag')))
+                children)))))

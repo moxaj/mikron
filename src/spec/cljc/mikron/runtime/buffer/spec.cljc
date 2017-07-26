@@ -1,4 +1,4 @@
-(ns mikron.runtime.buffer-specs
+(ns mikron.runtime.buffer.spec
   "`mikron.runtime.buffer` spec namespace."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]))

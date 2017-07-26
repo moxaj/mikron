@@ -1,4 +1,4 @@
-(ns mikron.runtime.core-specs
+(ns mikron.runtime.core.spec
   "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]))

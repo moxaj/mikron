@@ -1,56 +1,49 @@
-(ns mikron.runtime.buffer-tests
+(ns mikron.runtime.buffer.test
   (:require [clojure.test :as test]
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
             [com.gfredericks.test.chuck.clojure-test :as chuck #?@(:cljs [:include-macros true])]
-            [mikron.test-util :as test-util]
             [mikron.runtime.buffer :as buffer]
-            [mikron.runtime.math :as math]
-            [mikron.runtime.processor.common :as processor.common]))
-
-(defn bounds [bytes signed?]
-  {:min (math/lower-bound bytes signed?)
-   :max (dec (math/upper-bound bytes signed?))})
+            [mikron.runtime.generators :as generators]
+            [mikron.test-util :as test-util]))
 
 (def processors
   {:byte    {:packer    buffer/put-byte
              :unpacker  buffer/take-byte
-             :generator (tc.gen/large-integer* (bounds 1 true))}
+             :generator (generators/value-generator [:byte])}
    :short   {:packer    buffer/put-short
              :unpacker  buffer/take-short
-             :generator (tc.gen/large-integer* (bounds 2 true))}
+             :generator (generators/value-generator [:short])}
    :int     {:packer    buffer/put-int
              :unpacker  buffer/take-int
-             :generator (tc.gen/large-integer* (bounds 4 true))}
+             :generator (generators/value-generator [:int])}
    :long    {:packer    buffer/put-long
              :unpacker  buffer/take-long
-             :generator (tc.gen/large-integer* (bounds 8 true))}
+             :generator (generators/value-generator [:long])}
    :ubyte   {:packer    buffer/put-ubyte
              :unpacker  buffer/take-ubyte
-             :generator (tc.gen/large-integer* (bounds 1 false))}
+             :generator (generators/value-generator [:ubyte])}
    :ushort  {:packer    buffer/put-ushort
              :unpacker  buffer/take-ushort
-             :generator (tc.gen/large-integer* (bounds 2 false))}
+             :generator (generators/value-generator [:ushort])}
    :uint    {:packer    buffer/put-uint
              :unpacker  buffer/take-uint
-             :generator (tc.gen/large-integer* (bounds 4 false))}
+             :generator (generators/value-generator [:uint])}
    :varint  {:packer    buffer/put-varint
              :unpacker  buffer/take-varint
-             :generator (tc.gen/large-integer* (bounds 8 false))}
+             :generator (generators/value-generator [:varint])}
    #?@(:clj
        [:float {:packer    buffer/put-float
                 :unpacker  buffer/take-float
-                :generator (tc.gen/fmap unchecked-float
-                                        (tc.gen/double* {:infinite? true :NaN? false}))}])
+                :generator (generators/value-generator [:float])}])
    :double  {:packer    buffer/put-double
              :unpacker  buffer/take-double
-             :generator (tc.gen/double* {:infinite? true :NaN? false})}
+             :generator (generators/value-generator [:double])}
    :boolean {:packer    buffer/put-boolean
              :unpacker  buffer/take-boolean
-             :generator tc.gen/boolean}
+             :generator (generators/value-generator [:boolean])}
    :binary  {:packer    buffer/put-binary
              :unpacker  buffer/take-binary
-             :generator (tc.gen/fmap processor.common/byte-seq->binary
-                                     (tc.gen/vector (tc.gen/large-integer* (bounds 1 true))))}})
+             :generator (generators/value-generator [:binary])}})
 
 (test/deftest buffer-test
   (chuck/checking "Low-level buffer operations work correctly" 100
