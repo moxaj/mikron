@@ -5,7 +5,7 @@
                     [moxaj/macrowbar             "0.1.0"]
 
                     ;; test
-                    [com.gfredericks/test.chuck  "0.2.7"  :scope "test"]
+                    [com.gfredericks/test.chuck  "0.2.8"  :scope "test"]
 
                     ;; script
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
