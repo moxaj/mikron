@@ -21,13 +21,14 @@
   (condp contains? (type value)
     #{runtime.processor.validate/binary-type}
     [:mikron/binary #?(:clj  (seq value)
-                       :cljs (arraybuffer->seq x))]
+                       :cljs (arraybuffer->seq value))]
 
     #?(:clj  #{java.lang.Double java.lang.Float}
        :cljs #{js/Number})
     (if (nan? value)
       :mikron/nan
       (double value))
+
     value))
 
 (defn fix-for-equality
