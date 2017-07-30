@@ -8,6 +8,19 @@
 [:optional :wrapped :multi :list :vector :set :map :record :tuple]
 
 (macrowbar/compile-time
+  (def simple-string-generator
+    (tc.gen/fmap (fn [string]
+                   (if (> (count string) 5)
+                     (.substring string 0 5)
+                     string))
+                 tc.gen/string-alphanumeric))
+
+  (def simple-symbol-generator
+    (tc.gen/fmap symbol simple-string-generator))
+
+  (def simple-keyword-generator
+    (tc.gen/fmap keyword simple-string-generator))
+
   (defn bounds [bytes signed?]
     {:min (math/lower-bound bytes signed?)
      :max (dec (math/upper-bound bytes signed?))})
@@ -22,7 +35,7 @@
   (defmethod scalar-schema-generator :enum [_]
     (tc.gen/fmap (fn [enum-values]
                    [:enum {} enum-values])
-                 (tc.gen/not-empty (tc.gen/set tc.gen/keyword))))
+                 (tc.gen/not-empty (tc.gen/set simple-keyword-generator))))
 
   (defmulti compound-schema-generator
     (fn [schema-name inner-generator] schema-name)
@@ -52,7 +65,7 @@
   (defmethod compound-schema-generator :record [_ inner-generator]
     (tc.gen/fmap (fn [schemas]
                    [:record {} schemas])
-                 (tc.gen/map tc.gen/keyword inner-generator)))
+                 (tc.gen/map simple-keyword-generator inner-generator)))
 
   (defmethod compound-schema-generator :tuple [_ inner-generator]
     (tc.gen/fmap (fn [schemas]
@@ -70,12 +83,48 @@
            (map scalar-schema-generator)
            (tc.gen/one-of))))
 
+  (def ^:const scalar-schema-size 1)
+  (def ^:const max-schema-size 1000)
+  (def ^:const coll-schema-size-multiplier 30)
+
+  (defmulti schema-size
+    compiler.schema/schema-name
+    :hierarchy #'compiler.schema/extended-hierarchy)
+
+  (defmethod schema-size :scalar [_]
+    scalar-schema-size)
+
+  (defmethod schema-size :optional [[_ _ schema']]
+    (schema-size schema'))
+
+  (defmethod schema-size :wrapped [[_ _ _ _ schema']]
+    (schema-size schema'))
+
+  (defmethod schema-size :multi [[_ _ _ schema']]
+    (schema-size schema'))
+
+  (defmethod schema-size :coll [[_ _ schema']]
+    (* coll-schema-size-multiplier (schema-size schema')))
+
+  (defmethod schema-size :map [[_ _ key-schema' value-schema']]
+    (* coll-schema-size-multiplier (+ (schema-size key-schema')
+                                      (schema-size value-schema'))))
+
+  (defmethod schema-size :record [[_ _ schemas']]
+    (->> schemas'
+         (vals)
+         (map schema-size)
+         (reduce +)))
+
+  (defmethod schema-size :tuple [[_ _ schemas']]
+    (->> schemas'
+         (map schema-size)
+         (reduce +)))
+
   (def schema-generator
     (tc.gen/such-that (fn [schema]
-                        true) ;; TODO
+                        (< (schema-size schema) max-schema-size))
                       schema-generator*))
-
-  (tc.gen/sample schema-generator)
 
   (defmulti value-generator
     compiler.schema/schema-name
@@ -106,13 +155,15 @@
     (value-generator [:long {}]))
 
   (defmethod value-generator :float [_]
-    (tc.gen/fmap unchecked-float (tc.gen/double* {:infinite? true :NaN? false})))
+    (tc.gen/fmap unchecked-float
+                 (tc.gen/double* {:infinite? true :NaN? false})))
 
   (defmethod value-generator :double [_]
     (tc.gen/double* {:infinite? true :NaN? false}))
 
   (defmethod value-generator :char [_]
-    (tc.gen/large-integer* (bounds 1 true)))
+    (tc.gen/fmap processor.common/int->char
+                 (tc.gen/large-integer* (bounds 2 false))))
 
   (defmethod value-generator :boolean [_]
     tc.gen/boolean)
@@ -124,16 +175,17 @@
     (tc.gen/return nil))
 
   (defmethod value-generator :binary [_]
-    (tc.gen/fmap processor.common/byte-seq->binary (tc.gen/vector (tc.gen/large-integer* (bounds 1 true)))))
+    (tc.gen/fmap processor.common/byte-seq->binary
+                 (tc.gen/vector (tc.gen/large-integer* (bounds 1 true)))))
 
   (defmethod value-generator :string [_]
-    tc.gen/string-alphanumeric)
+    simple-string-generator)
 
   (defmethod value-generator :keyword [_]
-    (tc.gen/fmap keyword tc.gen/string-alphanumeric))
+    simple-keyword-generator)
 
   (defmethod value-generator :symbol [_]
-    (tc.gen/fmap symbol tc.gen/string-alphanumeric))
+    simple-symbol-generator)
 
   (defmethod value-generator :any [_]
     (tc.gen/return nil))
@@ -174,11 +226,3 @@
 
   (defmethod value-generator :tuple [[_ _ schemas]]
     (apply tc.gen/tuple (map value-generator schemas))))
-
-
-(require '[clojure.test.check :as tc]
-         '[clojure.test.check.properties :as tc.prop])
-
-(tc/quick-check 100
-  (tc.prop/for-all [value (tc.gen/recursive-gen tc.gen/vector tc.gen/boolean)]
-    (every? true? (flatten value))))
