@@ -61,9 +61,6 @@
   (defmethod unpack :nil [_ _]
     nil)
 
-  (defmethod unpack :ignored [_ _]
-    nil)
-
   (defmethod unpack :binary [_ {:keys [buffer]}]
     `(runtime.buffer/take-binary ~buffer))
 
@@ -77,7 +74,7 @@
     `(runtime.processor.common/string->symbol ~(unpack [:string] global-options)))
 
   (defmethod unpack :any [_ global-options]
-    `(runtime.processor.common/string->any ~(unpack [:string] global-options)))
+    nil)
 
   (defmethod unpack :enum [[_ _ enum-values] global-options]
     `(runtime.processor.common/nth ~(vec (sort enum-values))

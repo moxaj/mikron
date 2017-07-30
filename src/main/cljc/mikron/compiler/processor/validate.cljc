@@ -45,13 +45,10 @@
     `(char? ~value))
 
   (defmethod valid? :boolean [_ value _]
-    `(any? ~value))
+    true)
 
   (defmethod valid? :nil [_ value _]
     `(nil? ~value))
-
-  (defmethod valid? :ignored [_ _ _]
-    true)
 
   (defmethod valid? :binary [_ value _]
     `(runtime.processor.validate/valid-binary? ~value))
@@ -66,7 +63,7 @@
     `(symbol? ~value))
 
   (defmethod valid? :any [_ value _]
-    `(any? ~value))
+    true)
 
   (defmethod valid? :enum [[_ _ enum-values] value _]
     `(~(set enum-values) ~value))

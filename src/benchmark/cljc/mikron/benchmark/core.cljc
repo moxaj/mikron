@@ -1,6 +1,9 @@
 (ns mikron.benchmark.core
   "Benchmarks."
-  (:require [mikron.runtime.core :as mikron]
+  (:require [#?(:clj  clojure.tools.reader ;; TODO jira issue
+                :cljs cljs.tools.reader)
+             :as edn]
+            [mikron.runtime.core :as mikron]
             [mikron.runtime.util :as runtime.util]
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.benchmark.data :as benchmark.data]
@@ -33,7 +36,7 @@
 (defmulti pack (fn [method _ _] method))
 
 (defmethod pack :edn ^bytes [_ _ data]
-  (runtime.processor.common/string->binary (runtime.processor.common/any->string data)))
+  (runtime.processor.common/string->binary (pr-str data)))
 
 (defmethod pack :mikron ^bytes [_ schema data]
   (mikron/pack schema data))
@@ -101,7 +104,7 @@
 (defmulti unpack (fn [method _ _] method))
 
 (defmethod unpack :edn [_ _ ^bytes binary]
-  (runtime.processor.common/string->any (runtime.processor.common/binary->string binary)))
+  (edn/read-string (runtime.processor.common/binary->string binary)))
 
 (defmethod unpack :mikron [_ schema ^bytes binary]
   (mikron/unpack schema binary))

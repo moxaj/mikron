@@ -65,9 +65,6 @@
   (defmethod pack :nil [_ _ _]
     nil)
 
-  (defmethod pack :ignored [_ _ _]
-    nil)
-
   (defmethod pack :binary [_ value {:keys [buffer]}]
     `(runtime.buffer/put-binary ~buffer ~value))
 
@@ -87,9 +84,7 @@
          ~(pack [:string] value' global-options))))
 
   (defmethod pack :any [_ value global-options]
-    (macrowbar/macro-context {:gen-syms [value']}
-      `(let [~value' (runtime.processor.common/any->string ~value)]
-         ~(pack [:string] value' global-options))))
+    nil)
 
   (defmethod pack :enum [[_ _ enum-values] value global-options]
     (pack (compiler.schema/integer-schema (count enum-values))

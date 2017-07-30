@@ -1,9 +1,7 @@
 (ns mikron.runtime.processor.common
   "Common runtime functions."
   (:refer-clojure :exclude [count nth every? rand-nth #?(:cljs keyword-identical?)])
-  (:require #?(:clj  [clojure.tools.reader :as edn]
-               :cljs [cljs.tools.reader :as edn])
-            [mikron.runtime.math :as math])
+  (:require [mikron.runtime.math :as math])
   #?(:clj (:import [java.nio.charset StandardCharsets]
                    [clojure.lang Indexed Counted]))
   #?(:cljs (:require-macros [mikron.runtime.processor.common])))
@@ -39,18 +37,6 @@
                (recur (unchecked-inc index)))))))
 
 ;; converters
-
-(defn any->string
-  "Converts an edn value `value` to a string."
-  #?(:clj {:inline (fn [value] `(pr-str ~value))})
-  [value]
-  (pr-str value))
-
-(defn string->any
-  "Converts a string `value` to an edn value."
-  #?(:clj {:inline (fn [value] `(edn/read-string ~value))})
-  [^String value]
-  (edn/read-string value))
 
 (defn keyword->string
   "Converts a keyword `value` to a string."

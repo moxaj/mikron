@@ -11,7 +11,7 @@
     "The default schema hierarchy + groupings for comparability."
     (-> compiler.schema/hierarchy
         (compiler.schema/derive-all :identity-comparable [:boolean :nil])
-        (compiler.schema/derive-all :=-comparable        [:char :string :symbol :any])
+        (compiler.schema/derive-all :=-comparable        [:char :string :symbol])
         (compiler.schema/derive-all :keyword-comparable  [:keyword :enum])))
 
   (defmulti diff

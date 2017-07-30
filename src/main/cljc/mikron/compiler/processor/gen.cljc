@@ -55,9 +55,6 @@
   (defmethod gen :nil [_ _]
     nil)
 
-  (defmethod gen :ignored [_ _]
-    nil)
-
   (defmethod gen :binary [_ global-options]
     `(runtime.processor.common/byte-seq->binary
        ~(common/into! []

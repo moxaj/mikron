@@ -18,7 +18,7 @@
   (def schema-names
     "The set of built-in schema names."
     #{:byte :ubyte :short :ushort :int :uint :long :varint :float :double :char :boolean
-      :nil :ignored :binary :string :keyword :symbol :any :enum :optional :wrapped :multi
+      :nil :binary :string :keyword :symbol :any :enum :optional :wrapped :multi
       :list :vector :set :map :record :tuple})
 
   (def hierarchy
@@ -34,7 +34,7 @@
     "The schema hierarchy extended with syntactic groupings."
     (reduce-kv derive-all
                hierarchy
-               {:simple   [:number :char :boolean :nil :ignored :binary :string :keyword :symbol :any]
+               {:simple   [:number :char :boolean :nil :binary :string :keyword :symbol :any]
                 :scalar   [:simple :enum]
                 :compound [:optional :wrapped :multi :coll :map :record :tuple]}))
 
