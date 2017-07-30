@@ -102,9 +102,11 @@
           global-options))
 
   (defmethod pack :optional [[_ _ schema'] value global-options]
-    `(do ~(pack [:boolean] value global-options)
-         (when ~value
-           ~(pack schema' value global-options))))
+    (macrowbar/macro-context {:gen-syms [value-some?]}
+      `(let [~value-some? (some? ~value)]
+         ~(pack [:boolean] value-some? global-options)
+         (when ~value-some?
+           ~(pack schema' value global-options)))))
 
   (defmethod pack :wrapped [[_ _ pre _ schema'] value global-options]
     (macrowbar/macro-context {:gen-syms [value']}
