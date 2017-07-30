@@ -56,9 +56,7 @@
                   values))
       (buffer/finalize buffer)
       (buffer/reset buffer)
-      (let [values' (map (fn [schema-name]
-                           ((:unpacker (processors schema-name)) buffer))
-                         schemas)]
-        (test/is (every? (fn [[value value']]
-                           (test-util/equal? value value'))
-                         (map vector values values')))))))
+      (test/is (test-util/equal? values
+                                 (map (fn [schema-name]
+                                        ((:unpacker (processors schema-name)) buffer))
+                                      schemas))))))
