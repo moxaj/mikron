@@ -5,7 +5,55 @@
             [mikron.runtime.math :as math]
             [mikron.runtime.processor.common :as processor.common]))
 
-[:optional :wrapped :multi :list :vector :set :map :record :tuple]
+;; Primitive value generators
+
+(defn bounds [bytes signed?]
+  {:min (math/lower-bound bytes signed?)
+   :max (dec (math/upper-bound bytes signed?))})
+
+(defmulti primitive-value-generator
+  (fn [[schema-name & _]]
+    schema-name))
+
+(defmethod primitive-value-generator :byte [_]
+  (tc.gen/large-integer* (bounds 1 true)))
+
+(defmethod primitive-value-generator :ubyte [_]
+  (tc.gen/large-integer* (bounds 1 false)))
+
+(defmethod primitive-value-generator :short [_]
+  (tc.gen/large-integer* (bounds 2 true)))
+
+(defmethod primitive-value-generator :ushort [_]
+  (tc.gen/large-integer* (bounds 2 false)))
+
+(defmethod primitive-value-generator :int [_]
+  (tc.gen/large-integer* (bounds 4 true)))
+
+(defmethod primitive-value-generator :uint [_]
+  (tc.gen/large-integer* (bounds 4 false)))
+
+(defmethod primitive-value-generator :long [_]
+  (tc.gen/large-integer* (bounds 8 true)))
+
+(defmethod primitive-value-generator :varint [_]
+  (primitive-value-generator [:long {}]))
+
+(defmethod primitive-value-generator :float [_]
+  (tc.gen/fmap unchecked-float
+               (tc.gen/double* {:infinite? true :NaN? false})))
+
+(defmethod primitive-value-generator :double [_]
+  (tc.gen/double* {:infinite? true :NaN? false}))
+
+(defmethod primitive-value-generator :boolean [_]
+  tc.gen/boolean)
+
+(defmethod primitive-value-generator :binary [_]
+  (tc.gen/fmap processor.common/byte-seq->binary
+               (tc.gen/vector (tc.gen/large-integer* (bounds 1 true)))))
+
+;; Schema and arbitrary value generators
 
 (macrowbar/compile-time
   (def simple-string-generator
@@ -20,10 +68,6 @@
 
   (def simple-keyword-generator
     (tc.gen/fmap keyword simple-string-generator))
-
-  (defn bounds [bytes signed?]
-    {:min (math/lower-bound bytes signed?)
-     :max (dec (math/upper-bound bytes signed?))})
 
   (defmulti scalar-schema-generator
     (fn [schema-name] schema-name)
@@ -130,43 +174,42 @@
     compiler.schema/schema-name
     :hierarchy #'compiler.schema/extended-hierarchy)
 
-  (defmethod value-generator :byte [_]
-    (tc.gen/large-integer* (bounds 1 true)))
+  (defmethod value-generator :byte [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :ubyte [_]
-    (tc.gen/large-integer* (bounds 1 false)))
+  (defmethod value-generator :ubyte [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :short [_]
-    (tc.gen/large-integer* (bounds 2 true)))
+  (defmethod value-generator :short [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :ushort [_]
-    (tc.gen/large-integer* (bounds 2 false)))
+  (defmethod value-generator :ushort [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :int [_]
-    (tc.gen/large-integer* (bounds 4 true)))
+  (defmethod value-generator :int [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :uint [_]
-    (tc.gen/large-integer* (bounds 4 false)))
+  (defmethod value-generator :uint [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :long [_]
-    (tc.gen/large-integer* (bounds 8 true)))
+  (defmethod value-generator :long [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :varint [_]
-    (value-generator [:long {}]))
+  (defmethod value-generator :varint [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :float [_]
-    (tc.gen/fmap unchecked-float
-                 (tc.gen/double* {:infinite? true :NaN? false})))
+  (defmethod value-generator :float [schema]
+    (primitive-value-generator schema))
 
-  (defmethod value-generator :double [_]
-    (tc.gen/double* {:infinite? true :NaN? false}))
+  (defmethod value-generator :double [schema]
+    (primitive-value-generator schema))
 
   (defmethod value-generator :char [_]
     (tc.gen/fmap processor.common/int->char
                  (tc.gen/large-integer* (bounds 2 false))))
 
-  (defmethod value-generator :boolean [_]
-    tc.gen/boolean)
+  (defmethod value-generator :boolean [schema]
+    (primitive-value-generator schema))
 
   (defmethod value-generator :nil [_]
     (tc.gen/return nil))
@@ -174,9 +217,8 @@
   (defmethod value-generator :ignored [_]
     (tc.gen/return nil))
 
-  (defmethod value-generator :binary [_]
-    (tc.gen/fmap processor.common/byte-seq->binary
-                 (tc.gen/vector (tc.gen/large-integer* (bounds 1 true)))))
+  (defmethod value-generator :binary [schema]
+    (primitive-value-generator schema))
 
   (defmethod value-generator :string [_]
     simple-string-generator)
