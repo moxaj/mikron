@@ -32,7 +32,7 @@
       (@registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
 
-(macrowbar/compile-time
+(macrowbar/compile-time-strict
   (defn schema*
     "Given a schema definition, returns the unevaluated code to produce a reified schema."
     [& args]

@@ -2,7 +2,7 @@
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
                     [org.clojure/clojurescript   "1.9.671"]
-                    [moxaj/macrowbar             "0.1.0"]
+                    [moxaj/macrowbar             "0.1.1"]
 
                     ;; test
                     [com.gfredericks/test.chuck  "0.2.8"  :scope "test"]
@@ -71,7 +71,8 @@
    :parallel-build     true
    :optimize-constants true
    :compiler-stats     true
-   :elide-asserts      true})
+   :elide-asserts      true
+   :closure-defines    {'macrowbar.util/DEBUG true}})
 
 (def test-namespaces
   '[mikron.runtime.core.test

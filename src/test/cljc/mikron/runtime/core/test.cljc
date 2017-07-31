@@ -77,7 +77,7 @@
 
 ;; Property based testing
 
-(macrowbar/compile-time
+(macrowbar/compile-time-strict
   (test/deftest pack-roundtrip-test
     (chuck/checking "Pack / unpack roundtrip returns the same value" 50
       [[schema value]

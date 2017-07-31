@@ -12,7 +12,7 @@
             [mikron.compiler.processor.diff]
             [mikron.compiler.processor.interp]))
 
-(macrowbar/compile-time
+(macrowbar/compile-time-strict
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [& args]
