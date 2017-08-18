@@ -134,7 +134,7 @@
           (if self-hosted?
             (proc "lumo"
                   "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-                  "-k" "lumo_cache"
+                  ;"-k" "lumo_cache"
                   "-v"
                   "src/test/cljs/mikron/test_runner/node.cljs")
             (boot-cljs-test/test-cljs :js-env        :node
