@@ -72,10 +72,12 @@
            (map (fn [schema]
                   (compound-schema-generator schema inner-generator)))
            (tc.gen/one-of)))
-    (->> (compiler.schema/leaf-children compiler.schema/extended-hierarchy :scalar)
-         #?(:cljs (remove #{:float}))
-         (map scalar-schema-generator)
-         (tc.gen/one-of))))
+    (let [scalar-schemas (disj (compiler.schema/leaf-children compiler.schema/extended-hierarchy :scalar)
+                               :binary
+                               #?(:cljs :float))]
+      (->> scalar-schemas
+           (map scalar-schema-generator)
+           (tc.gen/one-of)))))
 
 (def ^:const scalar-schema-size 1)
 (def ^:const max-schema-size 1000)

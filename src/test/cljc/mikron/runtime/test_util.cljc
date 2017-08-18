@@ -9,20 +9,10 @@
   #?(:clj  (Double/isNaN value)
      :cljs (js/isNaN value)))
 
-#?(:cljs
-   (defn arraybuffer->seq
-     "Converts an ArrayBuffer `value` to a sequence."
-     [value]
-     (seq (.from js/Array (js/Int8Array. value)))))
-
 (defn fix-for-equality*
   "Returns a more 'equal friendly' value, if necessary."
   [value]
   (condp contains? (type value)
-    #{runtime.processor.validate/binary-type}
-    [:mikron/binary #?(:clj  (seq value)
-                       :cljs (arraybuffer->seq value))]
-
     #?(:clj  #{java.lang.Double java.lang.Float}
        :cljs #{js/Number})
     (if (nan? value)
