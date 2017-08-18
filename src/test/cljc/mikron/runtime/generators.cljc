@@ -73,6 +73,7 @@
                   (compound-schema-generator schema inner-generator)))
            (tc.gen/one-of)))
     (->> (compiler.schema/leaf-children compiler.schema/extended-hierarchy :scalar)
+         #?(:cljs (remove #{:float}))
          (map scalar-schema-generator)
          (tc.gen/one-of))))
 
