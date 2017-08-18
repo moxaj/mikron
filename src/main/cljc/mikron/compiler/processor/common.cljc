@@ -18,7 +18,7 @@
     [schemas]
     (->> (keys schemas)
          (map (fn [key]
-                [key (gensym (name key))]))
+                [key (gensym (str "value'-" (name key)))]))
          (into (sorted-map))))
 
   (defn fields->record
