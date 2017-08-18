@@ -10,7 +10,7 @@
                  (if (> (count string) 5)
                    (.substring string 0 5)
                    string))
-               tc.gen/string-alphanumeric))
+               (tc.gen/not-empty tc.gen/string-alphanumeric)))
 
 (def simple-symbol-generator
   (tc.gen/fmap symbol simple-string-generator))
