@@ -25,6 +25,7 @@ before_script:
   - boot -u
 script:
   - sh -e /etc/init.d/xvfb start
+  - boot show -d
   - boot test -p $PLATFORM -t $TARGET -o $OPT ${SELF_HOSTED:+ -s}
 cache:
   directories:
