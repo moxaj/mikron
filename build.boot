@@ -5,7 +5,7 @@
                     [moxaj/macrowbar             "0.1.2"]
 
                     ;; test
-                    [org.clojure/test.check      "0.10.0-alpha2" :scope "test"]
+                    [org.clojure/test.check      "0.10.0-alpha1" :scope "test"]
 
                     ;; script
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
