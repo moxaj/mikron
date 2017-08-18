@@ -157,7 +157,7 @@
     [hierarchy tag]
     (let [children (descendants hierarchy tag)]
       (if (empty? children)
-        [tag]
-        (filter (fn [tag']
-                  (empty? (descendants hierarchy tag')))
-                children)))))
+        #{tag}
+        (set (filter (fn [tag']
+                       (empty? (descendants hierarchy tag')))
+                     children))))))
