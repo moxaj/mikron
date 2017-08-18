@@ -4,7 +4,7 @@
             [macrowbar.core :as macrowbar])
   #?(:cljs (:require-macros [mikron.compiler.core-spec-macro])))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defmacro schema-spec*
     "Helper macro for shorthand schema spec definition."
     [options & fields]

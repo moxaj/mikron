@@ -8,7 +8,7 @@
             [mikron.runtime.processor.validate :as runtime.processor.validate]
             [mikron.runtime.util :as runtime.util]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defmulti valid?
     "Returns the generated validator code for a given schema."
     compiler.schema/schema-name

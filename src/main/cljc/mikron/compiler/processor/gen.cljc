@@ -8,7 +8,7 @@
             [mikron.runtime.processor.gen :as runtime.processor.gen]
             [mikron.runtime.math :as runtime.math]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (def ^:const gen-length 4)
 
   (defmulti gen

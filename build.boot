@@ -1,8 +1,8 @@
 (merge-env!
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
-                    [moxaj/macrowbar             "0.1.1"]
                     [org.clojure/clojurescript   "1.9.908"]
+                    [moxaj/macrowbar             "0.1.2"]
 
                     ;; test
                     [org.clojure/test.check      "0.10.0-alpha2" :scope "test"]

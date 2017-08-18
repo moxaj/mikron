@@ -6,7 +6,7 @@
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (def hierarchy
     "The default schema hierarchy + groupings for comparability."
     (-> compiler.schema/hierarchy

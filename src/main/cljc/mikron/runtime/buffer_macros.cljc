@@ -4,7 +4,7 @@
             [mikron.runtime.buffer-spec :as buffer-spec])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macro])))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defmacro with-delta
     "Executes `body` and updates the position `pos` with the delta `delta`."
     [pos delta body]

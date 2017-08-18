@@ -7,7 +7,7 @@
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.runtime.buffer :as runtime.buffer]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defmulti pack
     "Returns the generated packer code for a given schema."
     compiler.schema/schema-name

@@ -7,7 +7,7 @@
             [mikron.runtime.processor.common :as runtime.processor.common]
             [mikron.runtime.math :as runtime.math]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defmulti interp
     "Returns the generated interpolator code for a given schema."
     compiler.schema/schema-name

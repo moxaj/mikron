@@ -5,7 +5,7 @@
             [mikron.compiler.core-spec-macro :refer [schema-spec*]]
             [mikron.compiler.schema :as schema]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (s/def ::sorted-by
     some?)
 

@@ -3,7 +3,7 @@
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (s/def ::definterface+-args
     (s/cat :interface-name simple-symbol?
            :ops            (s/* (s/spec (s/cat :op-name simple-symbol?

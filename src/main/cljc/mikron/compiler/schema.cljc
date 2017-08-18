@@ -2,7 +2,7 @@
   "Schema definition related functions."
   (:require [macrowbar.core :as macrowbar]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defn schema-name
     "Returns the name of `schema`."
     [schema & _]

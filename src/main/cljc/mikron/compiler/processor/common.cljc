@@ -4,7 +4,7 @@
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
 
-(macrowbar/compile-time
+(macrowbar/emit :debug
   (defn record-lookup
     "Generates code for record value lookup."
     [record key [class]]
