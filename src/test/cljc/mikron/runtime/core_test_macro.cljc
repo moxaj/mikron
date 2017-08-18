@@ -3,7 +3,7 @@
   (:require [clojure.test :as test]
             [macrowbar.core :as macrowbar]
             [mikron.runtime.core :as mikron])
-  #?(:cljs (:require-macros [mikron.runtime.core.test-macro])))
+  #?(:cljs (:require-macros [mikron.runtime.core-test-macro])))
 
 (defmacro def-mikron-tests
   "Generates test methods for all the test cases."
