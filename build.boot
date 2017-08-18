@@ -133,7 +133,9 @@
           (target)
           (if self-hosted?
             (proc "lumo"
-                  "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+                  "-c" (let [classpath (str "\"" (System/getProperty "fake.class.path") "\"")]
+                         (println "Classpath is: \n" classpath "\n\n")
+                         classpath)
                   ;"-k" "lumo_cache"
                   "-v"
                   "src/test/cljs/mikron/test_runner/node2.cljs")
