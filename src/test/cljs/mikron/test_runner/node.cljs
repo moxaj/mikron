@@ -2,6 +2,8 @@
   "Node test runner."
   (:require [cljs.nodejs :as nodejs]
             [clojure.test :as test]
+            [cljs.js]
+            [cljs.env]
             [mikron.runtime.core-test]
             [mikron.runtime.core-test2]
             [mikron.runtime.buffer-test]))
