@@ -4,14 +4,15 @@
             [clojure.test.check.clojure-test :as tc.test #?@(:cljs [:include-macros true])]
             [clojure.test.check.properties :as tc.prop #?@(:cljs [:include-macros true])]
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
-            [macrowbar.core :as macrowbar]
-            [mikron.runtime.core :as mikron]
-            [mikron.runtime.test-generators :as test-generators]
-            [mikron.runtime.test-util :as test-util]
 
             ;; Load these for macrowbar
             [cljs.js]
-            [cljs.env]))
+            [cljs.env]
+
+            [macrowbar.core :as macrowbar]
+            [mikron.runtime.core :as mikron]
+            [mikron.runtime.test-generators :as test-generators]
+            [mikron.runtime.test-util :as test-util]))
 
 ;; Property based testing
 
