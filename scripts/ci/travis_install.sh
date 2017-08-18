@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -d $CACHE_DIR/lumo ]; then
-  wget https://github.com/anmonteiro/lumo/releases/download/1.1.0/lumo_linux64.zip
+  wget https://github.com/anmonteiro/lumo/releases/download/1.7.0/lumo_linux64.zip
   unzip lumo_linux64.zip
   chmod a+x lumo
   mkdir -p $CACHE_DIR/lumo
