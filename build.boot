@@ -134,8 +134,8 @@
           (if self-hosted?
             (proc "lumo"
                   "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-                  ;"-k" "lumo_cache"
-                  "target/mikron/test_runner/node.cljs")
+                  "-k" "lumo_cache"
+                  "src/test/cljs/mikron/test_runner/node.cljs")
             (boot-cljs-test/test-cljs :js-env        :node
                                       :namespaces    cljs-test-namespaces
                                       :optimizations opt
@@ -207,6 +207,7 @@
               "-k" "lumo_cache"
               "-e" (str "\"(require '[mikron.runtime.core :as mikron "
                         ":refer [schema defschema pack unpack gen valid?]])\"")
+              "-v"
               "-r")))
 
 (deftask generate-docs
