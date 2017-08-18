@@ -1,11 +1,11 @@
 (merge-env!
   :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
   :dependencies   '[[org.clojure/clojure         "1.9.0-alpha17"]
-                    [org.clojure/clojurescript   "1.9.671"]
                     [moxaj/macrowbar             "0.1.1"]
+                    [org.clojure/clojurescript   "1.9.908"]
 
                     ;; test
-                    [com.gfredericks/test.chuck  "0.2.8"  :scope "test"]
+                    [org.clojure/test.check      "0.10.0-alpha2" :scope "test"]
 
                     ;; script
                     [adzerk/boot-test            "1.2.0"  :scope "test"]
@@ -72,11 +72,15 @@
    :optimize-constants true
    :compiler-stats     true
    :elide-asserts      true
+   :process-shim       false
    :closure-defines    {'macrowbar.util/DEBUG true}})
 
-(def test-namespaces
-  '[mikron.runtime.core.test
-    mikron.runtime.buffer.test])
+(def cljs-test-namespaces
+  '[mikron.runtime.core-test
+    mikron.runtime.buffer-test])
+
+(def clj-test-namespaces
+  (conj cljs-test-namespaces 'mikron.runtime.core-test2))
 
 ;; Tasks
 
@@ -118,32 +122,35 @@
   "Runs the tests on JVM."
   []
   (comp (testing)
-        (boot-test/test :namespaces test-namespaces)))
+        (boot-test/test :namespaces clj-test-namespaces)))
 
 (deftask test-node
   "Runs the tests in a Node.js environment."
   [o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
-  (comp (testing)
-        (if self-hosted?
-          (proc "lumo"
-                "-c" (System/getProperty "fake.class.path")
-                "-k" "lumo_cache"
-                "target/mikron/test_runner/node.cljs")
-          (boot-cljs-test/test-cljs :js-env        :node
-                                    :namespaces    test-namespaces
-                                    :optimizations (or opt :none)
-                                    :cljs-opts     cljs-compiler-opts))))
+  (let [opt (or opt :none)]
+    (comp (testing)
+          (target)
+          (if self-hosted?
+            (proc "lumo"
+                  "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+                  ;"-k" "lumo_cache"
+                  "target/mikron/test_runner/node.cljs")
+            (boot-cljs-test/test-cljs :js-env        :node
+                                      :namespaces    cljs-test-namespaces
+                                      :optimizations opt
+                                      :cljs-opts     cljs-compiler-opts)))))
 
 (deftask test-browser
   "Runs the tests in a browser environment."
   [o opt    VAL kw "The optimization level for the cljs compiler."
    e js-env VAL kw "The js environment."]
-  (comp (testing)
-        (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
-                                  :namespaces    test-namespaces
-                                  :optimizations (or opt :none)
-                                  :cljs-opts     cljs-compiler-opts)))
+  (let [opt (or opt :none)]
+    (comp (testing)
+          (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
+                                    :namespaces    cljs-test-namespaces
+                                    :optimizations opt
+                                    :cljs-opts     cljs-compiler-opts))))
 
 (deftask test
   "Runs the specified tests."
@@ -163,10 +170,10 @@
   "Compiles the cljs source files."
   [o opt VAL kw  "The compiler optimization level."
    i id  VAL str "The id of the build."]
-  (boot-cljs/cljs
-    :ids              [(fix-slashes (or id "browser/index"))]
-    :compiler-options (assoc cljs-compiler-opts
-                        :optimizations (or opt :none))))
+  (let [opt (or opt :none)]
+    (boot-cljs/cljs
+      :ids              [(fix-slashes (or id "browser/index"))]
+      :compiler-options (assoc cljs-compiler-opts :optimizations opt))))
 
 (deftask run-browser-repl
   "Compiles the cljs sources, serves them on localhost:3000, and sets up

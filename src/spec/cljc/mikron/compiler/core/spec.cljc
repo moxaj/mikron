@@ -1,8 +1,8 @@
-(ns mikron.compiler.core.spec
+(ns mikron.compiler.core-spec
   "`mikron.compiler.core` spec namespace."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]
-            [mikron.compiler.core.spec-macros :refer [schema-spec*]]
+            [mikron.compiler.core-spec-macro :refer [schema-spec*]]
             [mikron.compiler.schema :as schema]))
 
 (macrowbar/compile-time

@@ -3,7 +3,7 @@
   (:refer-clojure :exclude [reset])
   (:require [mikron.runtime.util :as util]
             [mikron.runtime.math :as math]
-            [mikron.runtime.buffer-macros :refer [with-delta with-le definterface+]]
+            [mikron.runtime.buffer-macro :refer [with-delta with-le definterface+]]
             #?(:cljs [feross.buffer]))
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 

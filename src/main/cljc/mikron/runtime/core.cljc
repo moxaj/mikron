@@ -2,7 +2,7 @@
   "Core namespace. Contains the public API."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]
-            [mikron.runtime.core.spec :as core.spec]
+            [mikron.runtime.core-spec :as core-spec]
             [mikron.compiler.core :as compiler]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.util :as util]
@@ -61,7 +61,7 @@
   (defmacro defschema
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
-    (let [{:keys [schema-name schema+global-options]} (macrowbar/enforce-spec ::core.spec/defschema-args args)]
+    (let [{:keys [schema-name schema+global-options]} (macrowbar/enforce-spec ::core-spec/defschema-args args)]
       `(register-schema! ~schema-name ~(apply schema* schema+global-options)))))
 
 (def ^:dynamic ^:private *buffer*

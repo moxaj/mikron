@@ -1,10 +1,12 @@
-(ns mikron.runtime.buffer.test
+(ns mikron.runtime.buffer-test
   (:require [clojure.test :as test]
+            [clojure.test.check.clojure-test :as tc.test #?@(:cljs [:include-macros true])]
+            [clojure.test.check.properties :as tc.prop #?@(:cljs [:include-macros true])]
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
-            [com.gfredericks.test.chuck.clojure-test :as chuck #?@(:cljs [:include-macros true])]
             [mikron.runtime.buffer :as buffer]
             [mikron.runtime.generators :as generators]
             [mikron.test-util :as test-util]))
+
 
 (def processors
   {:byte    {:packer    buffer/put-byte
@@ -45,8 +47,8 @@
              :unpacker  buffer/take-binary
              :generator (generators/value-generator [:binary])}})
 
-(test/deftest buffer-test
-  (chuck/checking "Low-level buffer operations work correctly" 100
+(tc.test/defspec buffer-test 100
+  (tc.prop/for-all
     [[schemas values]
      (tc.gen/bind (tc.gen/vector (tc.gen/elements (keys processors)) 1 1000)
                   (fn [schemas]
@@ -59,7 +61,7 @@
                   values))
       (buffer/finalize buffer)
       (buffer/reset buffer)
-      (test/is (test-util/equal? values
-                                 (map (fn [schema-name]
-                                        ((:unpacker (processors schema-name)) buffer))
-                                      schemas))))))
+      (test-util/equal? values
+                        (mapv (fn [schema-name]
+                                ((:unpacker (processors schema-name)) buffer))
+                              schemas)))))

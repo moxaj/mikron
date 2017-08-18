@@ -1,24 +1,18 @@
-(ns mikron.runtime.core.test
-  "Actual unit test cases."
+(ns mikron.runtime.core-test
+  "Generative testing namespace."
   (:require [clojure.test :as test]
-            [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
-            [com.gfredericks.test.chuck.clojure-test :as chuck #?@(:cljs [:include-macros true])]
-            [macrowbar.core :as macrowbar]
             [mikron.runtime.core :as mikron]
-            [mikron.runtime.core.test-macros :refer [def-mikron-tests]]
-            [mikron.runtime.generators :as generators]
+            [mikron.runtime.core-test-macro :refer [def-mikron-tests]]
             [mikron.test-util :as test-util]))
 
-;; Tests may be run in parallel
-(def buffer-1 (mikron/allocate-buffer 100000))
-(def buffer-2 (mikron/allocate-buffer 100000))
+(def buffer (mikron/allocate-buffer 100000))
 
 (defmulti test-mikron
   "Test function for :pack, :diff, :valid? and :interp processors."
   (fn [method schema values] method))
 
 (defmethod test-mikron :pack [_ schema values]
-  (mikron/with-buffer buffer-1
+  (mikron/with-buffer buffer
     (doseq [value values]
       (test/is (test-util/equal? value (->> value
                                             (mikron/pack schema)
@@ -74,20 +68,3 @@
    t-record       [:record {:a :int :b :string :c :byte}]
    t-multi        [:multi 'number? {true :int false :string}]
    t-wrapped      [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})
-
-;; Property based testing
-
-(macrowbar/compile-time-strict
-  (test/deftest pack-roundtrip-test
-    (chuck/checking "Pack / unpack roundtrip returns the same value" 50
-      [[schema value]
-       (tc.gen/bind
-         generators/schema-generator
-         (fn [schema]
-           (tc.gen/tuple (tc.gen/return (macrowbar/eval `(mikron/schema
-                                                           ~schema
-                                                           :processor-types #{:pack :unpack})))
-                         (generators/value-generator schema))))]
-      (test/is (test-util/equal? value (mikron/with-buffer buffer-2
-                                         (->> value (mikron/pack schema)
-                                                    (mikron/unpack schema))))))))
