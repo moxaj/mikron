@@ -3,7 +3,7 @@
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
             [mikron.runtime.core-test-macro :refer [def-mikron-tests]]
-            [mikron.test-util :as test-util]))
+            [mikron.runtime.test-util :as test-util]))
 
 (def buffer (mikron/allocate-buffer 100000))
 

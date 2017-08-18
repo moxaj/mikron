@@ -4,48 +4,48 @@
             [clojure.test.check.properties :as tc.prop #?@(:cljs [:include-macros true])]
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
             [mikron.runtime.buffer :as buffer]
-            [mikron.runtime.generators :as generators]
-            [mikron.test-util :as test-util]))
+            [mikron.runtime.test-generators :as test-generators]
+            [mikron.runtime.test-util :as test-util]))
 
 
 (def processors
   {:byte    {:packer    buffer/put-byte
              :unpacker  buffer/take-byte
-             :generator (generators/value-generator [:byte])}
+             :generator (test-generators/value-generator [:byte])}
    :short   {:packer    buffer/put-short
              :unpacker  buffer/take-short
-             :generator (generators/value-generator [:short])}
+             :generator (test-generators/value-generator [:short])}
    :int     {:packer    buffer/put-int
              :unpacker  buffer/take-int
-             :generator (generators/value-generator [:int])}
+             :generator (test-generators/value-generator [:int])}
    :long    {:packer    buffer/put-long
              :unpacker  buffer/take-long
-             :generator (generators/value-generator [:long])}
+             :generator (test-generators/value-generator [:long])}
    :ubyte   {:packer    buffer/put-ubyte
              :unpacker  buffer/take-ubyte
-             :generator (generators/value-generator [:ubyte])}
+             :generator (test-generators/value-generator [:ubyte])}
    :ushort  {:packer    buffer/put-ushort
              :unpacker  buffer/take-ushort
-             :generator (generators/value-generator [:ushort])}
+             :generator (test-generators/value-generator [:ushort])}
    :uint    {:packer    buffer/put-uint
              :unpacker  buffer/take-uint
-             :generator (generators/value-generator [:uint])}
+             :generator (test-generators/value-generator [:uint])}
    :varint  {:packer    buffer/put-varint
              :unpacker  buffer/take-varint
-             :generator (generators/value-generator [:varint])}
+             :generator (test-generators/value-generator [:varint])}
    #?@(:clj
        [:float {:packer    buffer/put-float
                 :unpacker  buffer/take-float
-                :generator (generators/value-generator [:float])}])
+                :generator (test-generators/value-generator [:float])}])
    :double  {:packer    buffer/put-double
              :unpacker  buffer/take-double
-             :generator (generators/value-generator [:double])}
+             :generator (test-generators/value-generator [:double])}
    :boolean {:packer    buffer/put-boolean
              :unpacker  buffer/take-boolean
-             :generator (generators/value-generator [:boolean])}
+             :generator (test-generators/value-generator [:boolean])}
    :binary  {:packer    buffer/put-binary
              :unpacker  buffer/take-binary
-             :generator (generators/value-generator [:binary])}})
+             :generator (test-generators/value-generator [:binary])}})
 
 (tc.test/defspec buffer-test 100
   (tc.prop/for-all

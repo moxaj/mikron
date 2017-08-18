@@ -1,4 +1,4 @@
-(ns mikron.runtime.generators
+(ns mikron.runtime.test-generators
   (:require [clojure.test.check.generators :as tc.gen]
             [macrowbar.core :as macrowbar]
             [mikron.compiler.schema :as compiler.schema]

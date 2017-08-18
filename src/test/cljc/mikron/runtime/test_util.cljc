@@ -1,4 +1,4 @@
-(ns mikron.test-util
+(ns mikron.runtime.test-util
   (:require [mikron.runtime.processor.validate :as runtime.processor.validate]
             [clojure.walk :as walk])
   #?(:clj (:import [java.util Arrays])))
