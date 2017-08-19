@@ -1,8 +1,11 @@
-(ns mikron.test-runner.node
+(ns mikron.test-runner.node-self-hosted
   "Node test runner."
   (:require [clojure.test :as test]
             [cljs.nodejs :as nodejs]
+            [cljs.js]
+            [cljs.env]
             [mikron.runtime.core-test]
+            [mikron.runtime.core-test2]
             [mikron.runtime.buffer-test]))
 
 (nodejs/enable-util-print!)
@@ -12,4 +15,5 @@
   (.exit nodejs/process (if (= 0 fail error) 0 1)))
 
 (test/run-tests 'mikron.runtime.core-test
+                'mikron.runtime.core-test2
                 'mikron.runtime.buffer-test)

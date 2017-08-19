@@ -141,7 +141,7 @@
                     (->> fileset
                          (input-files)
                          (map tmp-file)
-                         (by-re [#"mikron[\\/]test_runner[\\/]node.cljs"])
+                         (by-re [#"mikron[\\/]test_runner[\\/]node_self_hosted.cljs"])
                          (first)
                          (.getAbsolutePath))))
             (boot-cljs-test/test-cljs :js-env        :node
