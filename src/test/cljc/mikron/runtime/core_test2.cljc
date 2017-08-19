@@ -20,8 +20,11 @@
          (fn [schema]
            (tc.gen/tuple (tc.gen/return (macrowbar/eval `(mikron/schema
                                                            ~schema
-                                                           :processor-types #{:pack :unpack})))
+                                                           :processor-types #{:pack :unpack :valid?})))
                          (test-generators/value-generator schema))))]
-      (test-util/equal? value (mikron/with-buffer buffer
-                                (->> value (mikron/pack schema)
-                                           (mikron/unpack schema)))))))
+      (let [value' (mikron/with-buffer buffer
+                     (->> value (mikron/pack schema)
+                                (mikron/unpack schema)))]
+        (and (mikron/valid? schema value)
+             (mikron/valid? schema value')
+             (test-util/equal? value value'))))))
