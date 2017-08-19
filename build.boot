@@ -45,6 +45,7 @@
 ;; Util
 
 (def windows?
+  "True if running on windows."
   (.. (System/getProperty "os.name") (toLowerCase) (startsWith "windows")))
 
 (defn fix-slashes
@@ -55,7 +56,7 @@
     s))
 
 (defn proc
-  "Returns a task which runs the args as a shell command."
+  "Runs the args as a shell command."
   [& args]
   (with-pass-thru _
     (-> (ProcessBuilder. args)
@@ -66,6 +67,7 @@
 ;; Config
 
 (def cljs-compiler-opts
+  "Default ClojureScript compiler options."
   {:static-fns         true
    :fn-invoke-direct   true
    :parallel-build     true
@@ -76,10 +78,12 @@
    :closure-defines    {'macrowbar.util/DEBUG true}})
 
 (def cljs-test-namespaces
+  "Default ClojureScript test namespaces."
   '[mikron.runtime.core-test
     mikron.runtime.buffer-test])
 
 (def clj-test-namespaces
+  "Default Clojure test namespaces."
   (conj cljs-test-namespaces 'mikron.runtime.core-test2))
 
 ;; Tasks
@@ -197,8 +201,7 @@
         (speak)))
 
 (deftask run-node-repl
-  "Runs a node repl.
-   TODO does not work - waiting on Lumo closure libs support."
+  "Runs a node repl."
   []
   (comp (testing)
         (benchmarking)
