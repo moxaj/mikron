@@ -162,13 +162,14 @@
    t target       VAL kw   "The target for the cljs compiler."
    o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
-  (case (or platform :clj)
-    :clj  (test-clj)
-    :cljs (case (or target :browser)
-            :browser (test-browser :opt    opt
-                                   :js-env :slimer)
-            :nodejs  (test-node :opt          opt
-                                :self-hosted? self-hosted?))))
+  (let [platform (or platform :clj)]
+    (case platform
+      :clj  (test-clj)
+      :cljs (case (or target :browser)
+              :browser (test-browser :opt    opt
+                                     :js-env :slimer)
+              :nodejs  (test-node :opt          opt
+                                  :self-hosted? self-hosted?)))))
 
 (deftask compile-cljs
   "Compiles the cljs source files."
