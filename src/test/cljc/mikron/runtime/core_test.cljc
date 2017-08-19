@@ -33,8 +33,6 @@
     ;; We don't actually test anything here
     (mikron/interp schema value-1 value-2 0 1 0.5)))
 
-;; Simple generative testing
-
 (def-mikron-tests test-mikron [:pack :diff :valid? :interp]
   {t-byte         :byte
    t-short        :short

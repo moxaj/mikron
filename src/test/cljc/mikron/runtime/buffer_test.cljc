@@ -7,7 +7,6 @@
             [mikron.runtime.test-generators :as test-generators]
             [mikron.runtime.test-util :as test-util]))
 
-
 (def processors
   {:byte    {:packer    buffer/put-byte
              :unpacker  buffer/take-byte
@@ -33,10 +32,9 @@
    :varint  {:packer    buffer/put-varint
              :unpacker  buffer/take-varint
              :generator (test-generators/value-generator [:varint])}
-   #?@(:clj
-       [:float {:packer    buffer/put-float
-                :unpacker  buffer/take-float
-                :generator (test-generators/value-generator [:float])}])
+   :float   {:packer    buffer/put-float
+             :unpacker  buffer/take-float
+             :generator (test-generators/value-generator [:float])}
    :double  {:packer    buffer/put-double
              :unpacker  buffer/take-double
              :generator (test-generators/value-generator [:double])}
@@ -50,7 +48,9 @@
 (tc.test/defspec buffer-test 100
   (tc.prop/for-all
     [[schemas values]
-     (tc.gen/bind (tc.gen/vector (tc.gen/elements (keys processors)) 1 1000)
+     (tc.gen/bind (tc.gen/vector (tc.gen/elements (keys #?(:clj  processors
+                                                           :cljs (dissoc processors :float))))
+                                 1 1000)
                   (fn [schemas]
                     (tc.gen/tuple (tc.gen/return schemas)
                                   (apply tc.gen/tuple (map (comp :generator processors) schemas)))))]
