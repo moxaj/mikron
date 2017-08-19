@@ -58,11 +58,10 @@
 (defn proc
   "Runs the args as a shell command."
   [& args]
-  (with-pass-thru _
-    (-> (ProcessBuilder. args)
-        (.inheritIO)
-        (.start)
-        (.waitFor))))
+  (-> (ProcessBuilder. args)
+      (.inheritIO)
+      (.start)
+      (.waitFor)))
 
 ;; Config
 
@@ -134,12 +133,17 @@
    s self-hosted?     bool "True if self-hosted."]
   (let [opt (or opt :none)]
     (comp (testing)
-          (target)
           (if self-hosted?
-            (proc "lumo"
-                  "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
-                  "-k" "lumo_cache"
-                  "src/test/cljs/mikron/test_runner/node.cljs")
+            (with-pass-thru fileset
+              (proc "lumo"
+                    "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
+                    "-k" "lumo_cache"
+                    (->> fileset
+                         (input-files)
+                         (map tmp-file)
+                         (by-re [#"mikron[\\/]test_runner[\\/]node.cljs"])
+                         (first)
+                         (.getAbsolutePath))))
             (boot-cljs-test/test-cljs :js-env        :node
                                       :namespaces    cljs-test-namespaces
                                       :optimizations opt
@@ -211,7 +215,6 @@
               "-k" "lumo_cache"
               "-e" (str "\"(require '[mikron.runtime.core :as mikron "
                         ":refer [schema defschema pack unpack gen valid?]])\"")
-              "-v"
               "-r")))
 
 (deftask generate-docs
