@@ -24,7 +24,8 @@
                                :username (System/getenv "CLOJARS_USER")
                                :password (System/getenv "CLOJARS_PASS")}]])
 
-(require '[adzerk.boot-test :as boot-test]
+(require '[boot.util :as boot-util]
+         '[adzerk.boot-test :as boot-test]
          '[adzerk.boot-reload :as boot-reload]
          '[adzerk.boot-cljs :as boot-cljs]
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
@@ -58,10 +59,12 @@
 (defn proc
   "Runs the args as a shell command."
   [& args]
-  (-> (ProcessBuilder. args)
-      (.inheritIO)
-      (.start)
-      (.waitFor)))
+  (let [exit-value (-> (ProcessBuilder. args)
+                       (.inheritIO)
+                       (.start)
+                       (.waitFor))]
+    (when-not (zero? exit-value)
+      (boot-util/exit-error))))
 
 ;; Config
 
