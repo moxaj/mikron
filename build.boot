@@ -77,12 +77,12 @@
    :closure-defines    {'macrowbar.util/DEBUG true}})
 
 (def cljs-test-namespaces
-  "Default ClojureScript test namespaces."
+  "ClojureScript test namespaces."
   '[mikron.runtime.core-test
     mikron.runtime.buffer-test])
 
 (def clj-test-namespaces
-  "Default Clojure test namespaces."
+  "Clojure test namespaces."
   (conj cljs-test-namespaces 'mikron.runtime.core-test2))
 
 ;; Tasks
