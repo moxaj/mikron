@@ -190,9 +190,9 @@
 (defmethod value-generator :enum [[_ _ enum-values]]
   (tc.gen/elements enum-values))
 
-(defmethod value-generator :optional [[_ _ schema]]
+(defmethod value-generator :optional [[_ _ schema']]
   (tc.gen/one-of [(value-generator [:nil {}])
-                  (value-generator schema)]))
+                  (value-generator schema')]))
 
 (defmethod value-generator :wrapped [_]
   (tc.gen/return "Not value-generator implemented for :wrapped"))
@@ -200,14 +200,14 @@
 (defmethod value-generator :multi [_]
   (tc.gen/return "Not value-generator implemented for :multi"))
 
-(defmethod value-generator :list [[_ _ schema]]
-  (tc.gen/list (value-generator schema)))
+(defmethod value-generator :list [[_ _ schema']]
+  (tc.gen/list (value-generator schema')))
 
-(defmethod value-generator :vector [[_ _ schema]]
-  (tc.gen/vector (value-generator schema)))
+(defmethod value-generator :vector [[_ _ schema']]
+  (tc.gen/vector (value-generator schema')))
 
-(defmethod value-generator :set [[_ _ schema]]
-  (tc.gen/set (value-generator schema)))
+(defmethod value-generator :set [[_ _ schema']]
+  (tc.gen/set (value-generator schema')))
 
 (defmethod value-generator :map [[_ _ key-schema value-schema]]
   (tc.gen/map (value-generator key-schema)
