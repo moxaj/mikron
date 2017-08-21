@@ -12,13 +12,26 @@
             [mikron.compiler.processor.diff]
             [mikron.compiler.processor.interp]))
 
+(macrowbar/emit :debug
+  (defn literal?
+    "Returns `true` if the given value is a literal (evaluates to itself), `false` otherwise."
+    [value]
+    (or (not (or (sequential? value) (map? value)))
+        (and (not (seq? value))
+             (every? literal? value)))))
+
 (macrowbar/emit :debug-self-hosted
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [& args]
     #?(:clj (macrowbar/try-loading-compiling-ns))
-    (let [{:keys [schema processor-types] :as global-options}
-          (macrowbar/enforce-spec ::core-spec/compile-schema-args (macrowbar/eval (vec args)))
+    (let [args
+          (vec args)
+
+          {:keys [schema processor-types] :as global-options}
+          (macrowbar/enforce-spec ::core-spec/compile-schema-args
+                                  (cond-> args
+                                    (not (literal? args)) (macrowbar/eval)))
 
           processor-types
           (cond-> (->> processor.common/processor (methods) (keys) (set))
