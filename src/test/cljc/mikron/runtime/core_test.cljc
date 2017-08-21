@@ -31,7 +31,7 @@
 (defmethod test-mikron :interp [_ schema values]
   (doseq [[value-1 value-2] (partition 2 values)]
     ;; We don't actually test anything here
-    (mikron/interp schema value-1 value-2 0 1 0.5)))
+    (test/is (any? (mikron/interp schema value-1 value-2 0 1 0.5)))))
 
 (def-mikron-tests test-mikron [:pack :diff :valid? :interp]
   {t-byte         :byte
