@@ -25,10 +25,11 @@
     "The semantic schema hierarchy."
     (reduce-kv derive-all
                (make-hierarchy)
-               {:integer  [:byte :ubyte :short :ushort :int :uint :long :varint]
-                :floating [:float :double]
-                :number   [:integer :floating]
-                :coll     [:list :vector :set]}))
+               {:integer   [:byte :ubyte :short :ushort :int :uint :long :varint]
+                :floating  [:float :double]
+                :number    [:integer :floating]
+                :primitive [:number :boolean :binary]
+                :coll      [:list :vector :set]}))
 
   (def extended-hierarchy
     "The schema hierarchy extended with syntactic groupings."
