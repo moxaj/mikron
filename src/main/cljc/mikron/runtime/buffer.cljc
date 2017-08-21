@@ -3,7 +3,8 @@
   (:refer-clojure :exclude [reset])
   (:require [mikron.runtime.util :as util]
             [mikron.runtime.math :as math]
-            [mikron.runtime.buffer-macro :refer [with-delta with-le definterface+]]
+            [mikron.runtime.buffer-macro :refer [with-delta with-le definterface+
+                                                 def-put-abstractions def-take-abstractions]]
             #?(:cljs [feross.buffer]))
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
@@ -518,3 +519,17 @@
   [^Buffer buffer]
   (set-le buffer (take-boolean buffer))
   {:diffed? (take-boolean buffer)})
+
+;; Multimethod abstractions for other consumers (e.g. tests)
+
+(defmulti put-value
+  "Puts a value into the buffer."
+  (fn [schema buffer value] schema))
+
+(def-put-abstractions put-value)
+
+(defmulti take-value
+  "Takes a value from the buffer."
+  (fn [schema buffer] schema))
+
+(def-take-abstractions take-value)

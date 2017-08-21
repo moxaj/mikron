@@ -1,6 +1,7 @@
 (ns mikron.runtime.buffer-macro
   "`mikron.runtime.buffer` macro namespace."
   (:require [macrowbar.core :as macrowbar]
+            [mikron.compiler.schema :as compiler.schema]
             [mikron.runtime.buffer-spec :as buffer-spec])
   #?(:cljs (:require-macros [mikron.runtime.buffer-macro])))
 
@@ -74,4 +75,25 @@
                                         ~~@(map (comp with-runtime-tag without-primitive-tag) args)))}
                            ~args
                            (~munged-name ~@(map without-tag args)))))
-                    ops))))))
+                    ops)))))
+
+  (defmacro def-put-abstractions
+    "Syntactic macro to define and abstraction layer above `put-*` functions."
+    [multi-fn]
+    (macrowbar/macro-context {:gen-syms [_ buffer value]}
+      `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
+               `(defmethod ~multi-fn ~schema
+                  [~_ ~buffer ~value]
+                  (~(symbol (str "put-" (name schema)))
+                   ~buffer
+                   ~value))))))
+
+  (defmacro def-take-abstractions
+    "Syntactic macro to define and abstraction layer above `take-*` functions."
+    [multi-fn]
+    (macrowbar/macro-context {:gen-syms [_ buffer]}
+      `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
+               `(defmethod ~multi-fn ~schema
+                  [~_ ~buffer]
+                  (~(symbol (str "take-" (name schema)))
+                   ~buffer)))))))
