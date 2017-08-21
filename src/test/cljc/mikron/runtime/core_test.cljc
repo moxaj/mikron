@@ -2,7 +2,7 @@
   "Generative testing namespace."
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
-            [mikron.runtime.core-test-macro :refer [def-mikron-tests]]
+            [mikron.runtime.core-test-macro :refer [core-test-cases]]
             [mikron.runtime.test-util :as test-util]))
 
 (def buffer (mikron/allocate-buffer 100000))
@@ -33,36 +33,37 @@
     ;; We don't actually test anything here
     (test/is (any? (mikron/interp schema value-1 value-2 0 1 0.5)))))
 
-(def-mikron-tests test-mikron [:pack :diff :valid? :interp]
-  {t-byte         :byte
-   t-short        :short
-   t-int          :int
-   t-long         :long
-   #?@(:clj [t-float :float])
-   t-double       :double
-   t-boolean      :boolean
-   t-char         :char
-   t-ubyte        :ubyte
-   t-ushort       :ushort
-   t-uint         :uint
-   t-varint       :varint
-   t-string       :string
-   t-keyword      :keyword
-   t-symbol       :symbol
-   t-nil          :nil
-   t-binary       :binary
-   t-any          :any
-   t-list         [:list :byte]
-   t-vector       [:vector :int]
-   t-set          [:set :short]
-   t-<-sorted-set [:set {:sorted-by '<} :short]
-   t->-sorted-set [:set {:sorted-by '>} :int]
-   t-map          [:map :byte :string]
-   t-<-sorted-map [:map {:sorted-by '<} :byte :string]
-   t->-sorted-map [:map {:sorted-by '>} :byte :string]
-   t-optional     [:optional :byte]
-   t-enum         [:enum #{:cat :dog :measurement :error}]
-   t-tuple        [:tuple [:int :string :double]]
-   t-record       [:record {:a :int :b :string :c :byte}]
-   t-multi        [:multi 'number? {true :int false :string}]
-   t-wrapped      [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})
+(test/deftest core-test-generative
+  (core-test-cases test-mikron [:pack :diff :valid? :interp]
+    {t-byte         :byte
+     t-short        :short
+     t-int          :int
+     t-long         :long
+     #?@(:clj [t-float :float])
+     t-double       :double
+     t-boolean      :boolean
+     t-char         :char
+     t-ubyte        :ubyte
+     t-ushort       :ushort
+     t-uint         :uint
+     t-varint       :varint
+     t-string       :string
+     t-keyword      :keyword
+     t-symbol       :symbol
+     t-nil          :nil
+     t-binary       :binary
+     t-any          :any
+     t-list         [:list :byte]
+     t-vector       [:vector :int]
+     t-set          [:set :short]
+     t-<-sorted-set [:set {:sorted-by '<} :short]
+     t->-sorted-set [:set {:sorted-by '>} :int]
+     t-map          [:map :byte :string]
+     t-<-sorted-map [:map {:sorted-by '<} :byte :string]
+     t->-sorted-map [:map {:sorted-by '>} :byte :string]
+     t-optional     [:optional :byte]
+     t-enum         [:enum #{:cat :dog :measurement :error}]
+     t-tuple        [:tuple [:int :string :double]]
+     t-record       [:record {:a :int :b :string :c :byte}]
+     t-multi        [:multi 'number? {true :int false :string}]
+     t-wrapped      [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]}))

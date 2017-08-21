@@ -5,13 +5,13 @@
             [mikron.runtime.core :as mikron])
   #?(:cljs (:require-macros [mikron.runtime.core-test-macro])))
 
-(defmacro def-mikron-tests
-  "Generates test methods for all the test cases."
-  [test-fn test-methods test-cases]
+(defmacro core-test-cases
+  "Syntactic macro to generate test methods for all the test cases."
+  [test-fn test-methods schema-defs]
   (macrowbar/macro-context {:gen-syms [schema values]}
-    `(do ~@(for [[schema-name schema-def] test-cases]
+    `(do ~@(for [[schema-name schema-def] schema-defs]
              `(let [~schema (mikron/schema ~schema-def :diff-paths true :interp-paths true)
                     ~values (repeatedly 100 #(mikron/gen ~schema))]
-                ~@(for [method test-methods]
-                    `(test/deftest ~(gensym (str (name method) "-" (name schema-name)))
-                       (~test-fn ~method ~schema ~values))))))))
+                (test/testing ~(str schema-name)
+                  ~@(for [test-method test-methods]
+                      `(~test-fn ~test-method ~schema ~values))))))))
