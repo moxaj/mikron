@@ -153,7 +153,7 @@
        (filter (comp #{:custom} schema-name))
        (set)))
 
-  (defn leaf-children
+  (defn leaf-descendants
     "Returns the leaf children of the given tag in the hierarchy, or the tag if it has no leaf children."
     [hierarchy tag]
     (let [children (descendants hierarchy tag)]

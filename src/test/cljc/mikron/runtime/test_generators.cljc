@@ -68,11 +68,11 @@
 (def schema-generator*
   (tc.gen/recursive-gen
     (fn [inner-generator]
-      (->> (compiler.schema/leaf-children compiler.schema/extended-hierarchy :compound)
+      (->> (compiler.schema/leaf-descendants compiler.schema/extended-hierarchy :compound)
            (map (fn [schema]
                   (compound-schema-generator schema inner-generator)))
            (tc.gen/one-of)))
-    (let [scalar-schemas (disj (compiler.schema/leaf-children compiler.schema/extended-hierarchy :scalar)
+    (let [scalar-schemas (disj (compiler.schema/leaf-descendants compiler.schema/extended-hierarchy :scalar)
                                :binary
                                #?(:cljs :float))]
       (->> scalar-schemas

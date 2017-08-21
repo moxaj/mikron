@@ -71,7 +71,7 @@
                          (fn [schema tag]
                            (if (= :custom tag)
                              schema
-                             (let [tag' (rand-nth (schema/leaf-children schema/extended-hierarchy tag))]
+                             (let [tag' (rand-nth (schema/leaf-descendants schema/extended-hierarchy tag))]
                                (if (keyword? schema)
                                  tag'
                                  (into [tag'] (rest schema)))))))
