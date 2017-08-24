@@ -78,7 +78,7 @@
                     ops)))))
 
   (defmacro def-put-abstractions
-    "Syntactic macro to define and abstraction layer above `put-*` functions."
+    "Syntactic macro to define an abstraction layer above `put-*` functions."
     [multi-fn]
     (macrowbar/macro-context {:gen-syms [_ buffer value]}
       `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
@@ -89,7 +89,7 @@
                    ~value))))))
 
   (defmacro def-take-abstractions
-    "Syntactic macro to define and abstraction layer above `take-*` functions."
+    "Syntactic macro to define an abstraction layer above `take-*` functions."
     [multi-fn]
     (macrowbar/macro-context {:gen-syms [_ buffer]}
       `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
