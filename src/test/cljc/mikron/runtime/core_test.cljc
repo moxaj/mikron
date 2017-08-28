@@ -2,7 +2,7 @@
   "Generative testing namespace."
   (:require [clojure.test :as test]
             [mikron.runtime.core :as mikron]
-            [mikron.runtime.core-test-macro :refer [core-test-cases]]
+            [mikron.runtime.core-test-macro :refer [compile-schemas]]
             [mikron.runtime.test-util :as test-util]))
 
 (def buffer (mikron/allocate-buffer 100000))
@@ -34,36 +34,41 @@
     (test/is (any? (mikron/interp schema value-1 value-2 0 1 0.5)))))
 
 (test/deftest core-test-generative
-  (core-test-cases test-mikron [:pack :diff :valid? :interp]
-    {t-byte         :byte
-     t-short        :short
-     t-int          :int
-     t-long         :long
-     #?@(:clj [t-float :float])
-     t-double       :double
-     t-boolean      :boolean
-     t-char         :char
-     t-ubyte        :ubyte
-     t-ushort       :ushort
-     t-uint         :uint
-     t-varint       :varint
-     t-string       :string
-     t-keyword      :keyword
-     t-symbol       :symbol
-     t-nil          :nil
-     t-binary       :binary
-     t-any          :any
-     t-list         [:list :byte]
-     t-vector       [:vector :int]
-     t-set          [:set :short]
-     t-<-sorted-set [:set {:sorted-by '<} :short]
-     t->-sorted-set [:set {:sorted-by '>} :int]
-     t-map          [:map :byte :string]
-     t-<-sorted-map [:map {:sorted-by '<} :byte :string]
-     t->-sorted-map [:map {:sorted-by '>} :byte :string]
-     t-optional     [:optional :byte]
-     t-enum         [:enum #{:cat :dog :measurement :error}]
-     t-tuple        [:tuple [:int :string :double]]
-     t-record       [:record {:a :int :b :string :c :byte}]
-     t-multi        [:multi 'number? {true :int false :string}]
-     t-wrapped      [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]}))
+  (doseq [[schema-name schema]
+          (compile-schemas
+            {"Byte test"     :byte
+             "Short test"    :short
+             "Int test"      :int
+             "Long test"     :long
+             #?@(:clj ["Float test" :float])
+             "Double test"   :double
+             "Boolean test"  :boolean
+             "Char test"     :char
+             "Ubyte test"    :ubyte
+             "Ushort test"   :ushort
+             "Uint test"     :uint
+             "Varint test"   :varint
+             "String test"   :string
+             "Keyword test"  :keyword
+             "Symbol test"   :symbol
+             "Nil test"      :nil
+             "Binary test"   :binary
+             "Any test"      :any
+             "List test"     [:list :byte]
+             "Vector test"   [:vector :int]
+             "Set test"      [:set :short]
+             "Set < test"    [:set {:sorted-by '<} :short]
+             "Set > test"    [:set {:sorted-by '>} :int]
+             "Map test"      [:map :byte :string]
+             "Map < test"    [:map {:sorted-by '<} :byte :string]
+             "Map > test"    [:map {:sorted-by '>} :byte :string]
+             "Optional test" [:optional :byte]
+             "Enum test"     [:enum #{:cat :dog :measurement :error}]
+             "Tuple test"    [:tuple [:int :string :double]]
+             "Record test"   [:record {:a :int :b :string :c :byte}]
+             "Multi test"    [:multi 'number? {true :int false :string}]
+             "Wrapped test"  [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})]
+    (let [values (repeatedly 100 #(mikron/gen schema))]
+      (test/testing schema-name
+        (doseq [test-method (keys (methods test-mikron))]
+          (test-mikron test-method schema values))))))
