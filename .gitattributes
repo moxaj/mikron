@@ -1,2 +1,3 @@
-docs/**/* linguist-documentation
-src/main/js/**/* linguist-vendored
+docs/* linguist-documentation
+src/main/js/* linguist-vendored
+src/benchmark/java/mikron/* linguist-generated
