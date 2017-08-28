@@ -181,6 +181,26 @@
               :nodejs  (test-node :opt          opt
                                   :self-hosted? self-hosted?)))))
 
+(deftask test-all
+  "Runs all test."
+  []
+  (comp (with-pass-thru _ (println "======= Testing clj"))
+        (test :platform     :clj)
+        (with-pass-thru _ (println "======= Testing cljs browser"))
+        (test :platform     :cljs
+              :target       :browser)
+        (with-pass-thru _ (println "======= Testing cljs browser advanced"))
+        (test :platform     :cljs
+              :target       :browser
+              :opt          :advanced)
+        (with-pass-thru _ (println "======= Testing cljs node"))
+        (test :platform     :cljs
+              :target       :nodejs)
+        (with-pass-thru _ (println "======= Testing cljs node self-hosted"))
+        (test :platform     :cljs
+              :target       :nodejs
+              :self-hosted? true)))
+
 (deftask compile-cljs
   "Compiles the cljs source files."
   [o opt VAL kw  "The compiler optimization level."
