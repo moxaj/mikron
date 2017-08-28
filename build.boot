@@ -157,9 +157,10 @@
   "Runs the tests in a browser environment."
   [o opt    VAL kw "The optimization level for the cljs compiler."
    e js-env VAL kw "The js environment."]
-  (let [opt (or opt :none)]
+  (let [opt    (or opt :none)
+        js-env (or js-env :slimer)]
     (comp (testing)
-          (boot-cljs-test/test-cljs :js-env        (or js-env :slimer)
+          (boot-cljs-test/test-cljs :js-env        js-env
                                     :namespaces    cljs-test-namespaces
                                     :optimizations opt
                                     :cljs-opts     cljs-compiler-opts))))
@@ -170,10 +171,11 @@
    t target       VAL kw   "The target for the cljs compiler."
    o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
-  (let [platform (or platform :clj)]
+  (let [platform (or platform :clj)
+        target   (or target :browser)]
     (case platform
       :clj  (test-clj)
-      :cljs (case (or target :browser)
+      :cljs (case target
               :browser (test-browser :opt    opt
                                      :js-env :slimer)
               :nodejs  (test-node :opt          opt
@@ -183,9 +185,10 @@
   "Compiles the cljs source files."
   [o opt VAL kw  "The compiler optimization level."
    i id  VAL str "The id of the build."]
-  (let [opt (or opt :none)]
+  (let [opt (or opt :none)
+        id  (or id "browser/index")]
     (boot-cljs/cljs
-      :ids              [(fix-slashes (or id "browser/index"))]
+      :ids              [(fix-slashes id)]
       :compiler-options (assoc cljs-compiler-opts :optimizations opt))))
 
 (deftask run-browser-repl
