@@ -98,7 +98,4 @@
                   :exts   (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
            (s/conformer
              (fn [{:keys [exts] :as schema-args}]
-               (reduce (fn [schema-args ext]
-                         (assoc schema-args ext (get exts ext)))
-                       (dissoc schema-args :exts)
-                       #{:diff-paths :interp-paths :processor-types}))))))
+               (dissoc (merge schema-args exts) :exts))))))
