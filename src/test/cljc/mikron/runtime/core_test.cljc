@@ -34,7 +34,7 @@
     (test/is (any? (mikron/interp schema value-1 value-2 0 1 0.5)))))
 
 (test/deftest core-test-generative
-  (doseq [[schema-name schema]
+  (doseq [[test-name schema]
           (compile-schemas
             {"Byte test"     :byte
              "Short test"    :short
@@ -69,6 +69,6 @@
              "Multi test"    [:multi 'number? {true :int false :string}]
              "Wrapped test"  [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})]
     (let [values (repeatedly 100 #(mikron/gen schema))]
-      (test/testing schema-name
+      (test/testing test-name
         (doseq [test-method (keys (methods test-mikron))]
           (test-mikron test-method schema values))))))

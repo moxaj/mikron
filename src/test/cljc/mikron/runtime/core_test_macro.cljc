@@ -9,6 +9,6 @@
   "Syntactic macro to compile multiple schemas at once."
   [schemas]
   (->> schemas
-       (map (fn [[schema-name schema-def]]
-              [schema-name `(mikron/schema ~schema-def :diff-paths true :interp-paths true)]))
+       (map (fn [[test-name schema-def]]
+              [test-name `(mikron/schema ~schema-def :diff-paths true :interp-paths true)]))
        (into {})))
