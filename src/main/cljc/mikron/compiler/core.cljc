@@ -30,6 +30,7 @@
 
           {:keys [schema processor-types] :as global-options}
           (macrowbar/enforce-spec ::core-spec/compile-schema-args
+                                  ;; TODO is this a good idea? Edge cases (aot, cache)?
                                   (cond-> args
                                     (not (literal? args)) (macrowbar/eval)))
 
