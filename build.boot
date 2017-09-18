@@ -94,13 +94,13 @@
 (deftask testing
   "Adds the test files to the fileset."
   []
-  (merge-env! :resource-paths #{"src/test/cljc" "src/test/cljs" "resources/test"})
+  (merge-env! :resource-paths #{"src/test/cljc" "src/test/cljs" "src/test/resources"})
   identity)
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
   []
-  (merge-env! :resource-paths #{"src/benchmark/cljc" "src/benchmark/java" "resources/benchmark"}
+  (merge-env! :resource-paths #{"src/benchmark/cljc" "src/benchmark/java" "src/benchmark/resources"}
               :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
                                 [com.cognitect/transit-cljs        "0.8.239"]
                                 [com.damballa/abracad              "0.4.14-alpha2"]
