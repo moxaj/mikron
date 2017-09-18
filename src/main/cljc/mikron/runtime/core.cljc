@@ -21,7 +21,7 @@
 
 (defn register-schema!
   "Registers a reified schema with the given name."
-  [schema-name schema]
+  [schema-name ^Schema schema]
   (swap! registry-ref assoc schema-name schema)
   schema-name)
 
