@@ -26,7 +26,7 @@
   schema-name)
 
 (defn resolve-schema
-  "Returns a resolved schema for the given argument."
+  "Returns a reified schema for the given argument."
   ^Schema [arg]
   (or (and (schema? arg) arg)
       (@registry-ref arg)
