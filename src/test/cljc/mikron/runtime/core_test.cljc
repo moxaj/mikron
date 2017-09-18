@@ -71,4 +71,9 @@
     (let [values (repeatedly 100 #(mikron/gen schema))]
       (test/testing test-name
         (doseq [test-method (keys (methods test-mikron))]
-          (test-mikron test-method schema values))))))
+          (test-mikron test-method schema values)))))
+  (test/testing "Self-referential test"
+    (let [schema (mikron/schema ::s [:tuple [:byte [:optional ::s]]])
+          values (repeatedly 100 #(mikron/gen schema))]
+      (doseq [test-method (keys (methods test-mikron))]
+        (test-mikron test-method schema values)))))

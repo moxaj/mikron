@@ -25,22 +25,31 @@
   (swap! registry-ref assoc schema-name schema)
   schema-name)
 
+(defonce ^:private local-registry-ref (atom {}))
+
+(defn register-local-schema!
+  "Registers a local, reified schema with the given name."
+  [schema-name ^Schema schema]
+  (swap! local-registry-ref assoc schema-name schema)
+  schema-name)
+
 (defn resolve-schema
   "Returns a reified schema for the given argument."
   ^Schema [arg]
   (or (and (schema? arg) arg)
       (@registry-ref arg)
+      (@local-registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
 
 (macrowbar/emit :debug-self-hosted
   (defn schema*
     "Given a schema definition, returns the unevaluated code to produce a reified schema."
-    [& args]
+    [schema-name-aliases & args]
     (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
           {:keys [custom-processors]}         global-options]
       `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
                          [processor-name
-                          `(->> ~custom-schema
+                          `(->> ~(get schema-name-aliases custom-schema custom-schema)
                                 (resolve-schema)
                                 (.-processors)
                                 (~processor-type)
@@ -56,13 +65,22 @@
   (defmacro schema
     "Returns a reified schema for the given schema definition."
     ^Schema [& args]
-    (apply schema* args))
+    (macrowbar/macro-context {:gen-syms [schema]}
+      (let [{:keys [schema-name schema+global-options]}
+            (macrowbar/enforce-spec ::core-spec/schema-args args)]
+        (if-not schema-name
+          (apply schema* {} schema+global-options)
+          (let [schema-name' (keyword (str (namespace schema-name))
+                                      (str (gensym (name schema-name))))]
+            `(let [~schema ~(apply schema* {schema-name schema-name'} schema+global-options)]
+               (register-local-schema! ~schema-name' ~schema)
+               ~schema))))))
 
   (defmacro defschema
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
     (let [{:keys [schema-name schema+global-options]} (macrowbar/enforce-spec ::core-spec/defschema-args args)]
-      `(register-schema! ~schema-name ~(apply schema* schema+global-options)))))
+      `(register-schema! ~schema-name ~(apply schema* {} schema+global-options)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with 10Kb size."
