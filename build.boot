@@ -186,17 +186,17 @@
   []
   (comp (with-pass-thru _ (println "======= Testing clj"))
         (test :platform     :clj)
-        (with-pass-thru _ (println "======= Testing cljs browser"))
+        (with-pass-thru _ (println "======= Testing cljs | browser"))
         (test :platform     :cljs
               :target       :browser)
-        (with-pass-thru _ (println "======= Testing cljs browser advanced"))
+        (with-pass-thru _ (println "======= Testing cljs | browser | advanced"))
         (test :platform     :cljs
               :target       :browser
               :opt          :advanced)
-        (with-pass-thru _ (println "======= Testing cljs node"))
+        (with-pass-thru _ (println "======= Testing cljs | node"))
         (test :platform     :cljs
               :target       :nodejs)
-        (with-pass-thru _ (println "======= Testing cljs node self-hosted"))
+        (with-pass-thru _ (println "======= Testing cljs | node | self-hosted"))
         (test :platform     :cljs
               :target       :nodejs
               :self-hosted? true)))
