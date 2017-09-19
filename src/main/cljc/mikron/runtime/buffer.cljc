@@ -487,7 +487,7 @@
 
 (def ^mikron.runtime.buffer.IMikronByteBufferFactory byte-buffer-factory
   "The default byte buffer factory."
-  (MikronByteBufferFactory.))
+  (->MikronByteBufferFactory))
 
 (defn set-byte-buffer-factory!
   "Sets the byte buffer factory."
