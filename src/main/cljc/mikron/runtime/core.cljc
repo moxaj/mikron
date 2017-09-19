@@ -83,7 +83,7 @@
       `(register-schema! ~schema-name ~(apply schema* {} schema+global-options)))))
 
 (def ^:dynamic ^:private *buffer*
-  "The default buffer with 10Kb size."
+  "The default buffer with a 10Kb size."
   (buffer/allocate 10000))
 
 (defn allocate-buffer
