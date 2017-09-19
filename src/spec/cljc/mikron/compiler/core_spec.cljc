@@ -85,13 +85,17 @@
                  :true        true?)
            (s/conformer second)))
 
-  (s/def :paths/all ::paths)
+  (s/def :paths/all
+    ::paths)
 
-  (s/def ::diff-paths ::paths)
+  (s/def ::diff-paths
+    ::paths)
 
-  (s/def ::interp-paths ::paths)
+  (s/def ::interp-paths
+    ::paths)
 
-  (s/def ::processor-types (s/coll-of keyword? :kind set?))
+  (s/def ::processor-types
+    (s/coll-of keyword? :kind set?))
 
   (s/def ::compile-schema-args
     (s/and (s/cat :schema ::schema
