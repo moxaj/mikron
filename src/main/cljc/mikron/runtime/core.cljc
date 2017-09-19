@@ -43,44 +43,43 @@
 
 (macrowbar/emit :debug-self-hosted
   (defn schema*
-    "Given a schema definition, returns the unevaluated code to produce a reified schema."
-    [schema-name-aliases & args]
-    (let [{:keys [processors global-options]} (apply compiler/compile-schema args)
-          {:keys [custom-processors]}         global-options]
-      `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
-                         [processor-name
-                          `(->> ~(get schema-name-aliases custom-schema custom-schema)
-                                (resolve-schema)
-                                (.-processors)
-                                (~processor-type)
-                                (processor.common/create-processor-handle))])
-                       custom-processors)]
-         (->Schema
-           ~(->> processors
-                 (map (fn [[processor-type {:keys [args body]}]]
-                        [processor-type `(fn ~args ~@body)]))
-                 (into {}))
-           '~global-options))))
+    "Returns the unevaluated code to produce a reified schema given a schema definition."
+    ([schema global-options]
+     (schema* schema global-options {}))
+    ([schema global-options schema-name-aliases]
+     (let [{:keys [processors custom-processors global-options]} (compiler/compile-schema schema global-options)]
+       `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
+                          [processor-name
+                           `(processor.common/create-processor-handle
+                              (->> ~(get schema-name-aliases custom-schema custom-schema)
+                                   (resolve-schema)
+                                   (.-processors)
+                                   (~processor-type)))])
+                        custom-processors)]
+          (->Schema ~(->> processors
+                          (map (fn [[processor-type {:keys [args body]}]]
+                                 [processor-type `(fn ~args ~@body)]))
+                          (into {}))
+                    '~global-options)))))
 
   (defmacro schema
     "Returns a reified schema for the given schema definition."
-    ^Schema [& args]
-    (macrowbar/macro-context {:gen-syms [schema]}
-      (let [{:keys [schema-name schema+global-options]}
-            (macrowbar/enforce-spec ::core-spec/schema-args args)]
+    [& args]
+    (macrowbar/macro-context {:gen-syms [rschema]}
+      (let [{:keys [schema-name schema global-options]} (macrowbar/enforce-spec ::core-spec/schema-args args)]
         (if-not schema-name
-          (apply schema* {} schema+global-options)
+          (schema* schema global-options)
           (let [schema-name' (keyword (str (namespace schema-name))
                                       (str (gensym (name schema-name))))]
-            `(let [~schema ~(apply schema* {schema-name schema-name'} schema+global-options)]
-               (register-local-schema! ~schema-name' ~schema)
-               ~schema))))))
+            `(let [~rschema ~(schema* schema global-options {schema-name schema-name'})]
+               (register-local-schema! ~schema-name' ~rschema)
+               ~rschema))))))
 
   (defmacro defschema
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
-    (let [{:keys [schema-name schema+global-options]} (macrowbar/enforce-spec ::core-spec/defschema-args args)]
-      `(register-schema! ~schema-name ~(apply schema* {} schema+global-options)))))
+    (let [{:keys [schema-name schema global-options]} (macrowbar/enforce-spec ::core-spec/defschema-args args)]
+      `(register-schema! ~schema-name ~(schema* schema global-options)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with a 10Kb size."

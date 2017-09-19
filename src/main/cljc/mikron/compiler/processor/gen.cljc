@@ -129,6 +129,6 @@
     `((runtime.processor.common/deref-processor-handle
         ~(get custom-processors [:gen schema]))))
 
-  (defmethod common/processor :gen [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :gen [_ schema global-options]
     {:args []
      :body [(gen schema global-options)]}))

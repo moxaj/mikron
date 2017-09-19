@@ -141,7 +141,7 @@
   (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
     `(if ~prefer-first? ~value-1 ~value-2))
 
-  (defmethod common/processor :interp [_ {:keys [schema interp-paths] :as global-options}]
+  (defmethod common/processor :interp [_ schema {:keys [interp-paths] :as global-options}]
     (macrowbar/with-gensyms [value-1 value-2 prefer-first? time-factor]
       {:args [value-1 value-2 prefer-first? time-factor]
        :body [(interp schema interp-paths value-1 value-2

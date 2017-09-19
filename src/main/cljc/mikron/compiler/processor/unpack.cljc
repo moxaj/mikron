@@ -138,12 +138,12 @@
         ~(get custom-processors [(if diffed? :unpack-diffed :unpack) schema]))
       ~buffer))
 
-  (defmethod common/processor :unpack [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :unpack [_ schema global-options]
     (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
 
-  (defmethod common/processor :unpack-diffed [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :unpack-diffed [_ schema global-options]
     (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))

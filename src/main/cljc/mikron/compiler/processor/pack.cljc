@@ -163,12 +163,12 @@
       ~value
       ~buffer))
 
-  (defmethod common/processor :pack [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :pack [_ schema global-options]
     (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? false))]}))
 
-  (defmethod common/processor :pack-diffed [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :pack-diffed [_ schema global-options]
     (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? true))]})))

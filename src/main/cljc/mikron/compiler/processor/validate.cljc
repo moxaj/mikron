@@ -138,7 +138,7 @@
         ~(get custom-processors [:valid? schema]))
       ~value))
 
-  (defmethod common/processor :valid? [_ {:keys [schema] :as global-options}]
+  (defmethod common/processor :valid? [_ schema global-options]
     (macrowbar/with-gensyms [value]
       {:args [value]
        :body [`(boolean ~(valid? schema value global-options))]})))

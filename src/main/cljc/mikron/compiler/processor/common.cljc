@@ -75,7 +75,7 @@
 
   (defmulti processor
     "Generates processor code."
-    (fn [processor-type global-options] processor-type))
+    (fn [processor-type schema global-options] processor-type))
 
   (defn processor-name
     "Generates a symbol for a processor name."

@@ -173,12 +173,12 @@
   (defmethod diff :default [_ _ _ value-2 _]
     value-2)
 
-  (defmethod common/processor :diff [_ {:keys [schema diff-paths] :as global-options}]
+  (defmethod common/processor :diff [_ schema {:keys [diff-paths] :as global-options}]
     (macrowbar/with-gensyms [_ value-1 value-2]
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :diff))]}))
 
-  (defmethod common/processor :undiff [_ {:keys [schema diff-paths] :as global-options}]
+  (defmethod common/processor :undiff [_ schema {:keys [diff-paths] :as global-options}]
     (macrowbar/with-gensyms [_ value-1 value-2]
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :undiff))]})))

@@ -97,9 +97,5 @@
   (s/def ::processor-types
     (s/coll-of keyword? :kind set?))
 
-  (s/def ::compile-schema-args
-    (s/and (s/cat :schema ::schema
-                  :exts   (s/keys* :opt-un [::diff-paths ::interp-paths ::processor-types]))
-           (s/conformer
-             (fn [{:keys [exts] :as schema-args}]
-               (dissoc (merge schema-args exts) :exts))))))
+  (s/def ::global-options
+    (s/nilable (s/keys :opt-un [::diff-paths ::interp-paths ::processor-types]))))

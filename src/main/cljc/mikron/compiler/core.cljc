@@ -21,18 +21,21 @@
              (every? literal? value)))))
 
 (macrowbar/emit :debug-self-hosted
+  (defn eval-if-not-literal
+    "If the argument is a literal, returns it, otherwise returns what it evaluates to."
+    [arg]
+    (cond-> arg
+      (not (literal? arg)) (macrowbar/eval)))
+
   (defn compile-schema
     "Returns a compiled schema for the given args."
-    [& args]
+    [schema global-options]
     #?(:clj (macrowbar/try-loading-compiling-ns))
-    (let [args
-          (vec args)
+    (let [schema
+          (macrowbar/enforce-spec ::core-spec/schema (eval-if-not-literal schema))
 
-          {:keys [schema processor-types] :as global-options}
-          (macrowbar/enforce-spec ::core-spec/compile-schema-args
-                                  ;; TODO is this a good idea? Edge cases (aot, cache)?
-                                  (cond-> args
-                                    (not (literal? args)) (macrowbar/eval)))
+          {:keys [processor-types] :as global-options}
+          (macrowbar/enforce-spec ::core-spec/global-options (eval-if-not-literal global-options))
 
           processor-types
           (cond-> (->> processor.common/processor (methods) (keys) (set))
@@ -55,7 +58,8 @@
           (->> processor-types
                (map (fn [processor-type]
                       [processor-type
-                       (processor.common/processor processor-type global-options)]))
+                       (processor.common/processor processor-type schema global-options)]))
                (into {}))]
-      {:processors     processors
-       :global-options global-options})))
+      {:processors        processors
+       :custom-processors custom-processors
+       :global-options    global-options})))

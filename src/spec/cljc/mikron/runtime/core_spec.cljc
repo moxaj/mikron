@@ -5,9 +5,11 @@
 
 (macrowbar/emit :debug
   (s/def ::schema-args
-    (s/cat :schema-name           (s/? qualified-keyword?)
-           :schema+global-options (s/* any?)))
+    (s/cat :schema-name    (s/? qualified-keyword?)
+           :schema         any?
+           :global-options (s/keys*)))
 
   (s/def ::defschema-args
-    (s/cat :schema-name           qualified-keyword?
-           :schema+global-options (s/* any?))))
+    (s/cat :schema-name    qualified-keyword?
+           :schema         any?
+           :global-options (s/keys*))))
