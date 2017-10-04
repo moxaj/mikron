@@ -1,25 +1,33 @@
 (merge-env!
-  :resource-paths #{"src/main/cljc" "src/spec/cljc" "src/main/js"}
-  :dependencies   '[[org.clojure/clojure         "1.9.0-alpha19"]
+  :resource-paths #{"src/main/cljc"
+                    "src/spec/cljc"
+                    "src/main/js"}
+  :dependencies   '[;; Clojure and ClojureScript
+                    [org.clojure/clojure         "1.9.0-alpha19"]
                     [org.clojure/clojurescript   "1.9.908"]
+
+                    ;; utility
                     [moxaj/macrowbar             "0.1.2"]
 
-                    ;; test
+                    ;; testing
                     [org.clojure/test.check      "0.10.0-alpha1" :scope "test"]
 
-                    ;; script
-                    [adzerk/boot-test            "1.2.0"  :scope "test"]
-                    [adzerk/boot-reload          "0.5.1"  :scope "test"]
-                    [adzerk/boot-cljs            "2.0.0"  :scope "test"]
-                    [adzerk/boot-cljs-repl       "0.3.3"  :scope "test"]
-                    [pandeiro/boot-http          "0.8.3"  :scope "test"]
-                    [crisptrutski/boot-cljs-test "0.3.0"  :scope "test"]
+                    ;; dev
+                    [nodisassemble               "0.1.3" :scope "test"]
+
+                    ;; documentation
                     [boot-codox                  "0.10.3" :scope "test"]
 
-                    [com.cemerick/piggieback     "0.2.1"  :scope "test"]
-                    [weasel                      "0.7.0"  :scope "test"]
-                    [org.clojure/tools.nrepl     "0.2.13" :scope "test"]
-                    [nodisassemble               "0.1.3"  :scope "test"]]
+                    ;; build script
+                    [adzerk/boot-test            "1.2.0" :scope "test"]
+                    [adzerk/boot-reload          "0.5.1" :scope "test"]
+                    [adzerk/boot-cljs            "2.0.0" :scope "test"]
+                    [adzerk/boot-cljs-repl       "0.3.3" :scope "test"]
+                    [pandeiro/boot-http          "0.8.3" :scope "test"]
+                    [crisptrutski/boot-cljs-test "0.3.0" :scope "test"]
+                    [com.cemerick/piggieback     "0.2.1" :scope "test"]
+                    [weasel                      "0.7.0" :scope "test"]
+                    [org.clojure/tools.nrepl     "0.2.13" :scope "test"]]
   :repositories   [["clojars" {:url      "https://clojars.org/repo"
                                :username (System/getenv "CLOJARS_USER")
                                :password (System/getenv "CLOJARS_PASS")}]])
@@ -94,13 +102,17 @@
 (deftask testing
   "Adds the test files to the fileset."
   []
-  (merge-env! :resource-paths #{"src/test/cljc" "src/test/cljs" "src/test/resources"})
+  (merge-env! :resource-paths #{"src/test/cljc"
+                                "src/test/cljs"
+                                "src/test/resources"})
   identity)
 
 (deftask benchmarking
   "Adds the benchmark files to the fileset."
   []
-  (merge-env! :resource-paths #{"src/benchmark/cljc" "src/benchmark/java" "src/benchmark/resources"}
+  (merge-env! :resource-paths #{"src/benchmark/cljc"
+                                "src/benchmark/java"
+                                "src/benchmark/resources"}
               :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
                                 [com.cognitect/transit-cljs        "0.8.239"]
                                 [com.damballa/abracad              "0.4.14-alpha2"]
@@ -116,7 +128,7 @@
   "Dev task for proto-repl."
   []
   (merge-env! :init-ns        'user
-              :resource-paths #{"src/dev"}
+              :resource-paths #{"src/dev/clj"}
               :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
                                 [proto-repl                  "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
