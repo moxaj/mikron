@@ -2,12 +2,12 @@
   "Core namespace. Contains the public API."
   (:require [clojure.spec.alpha :as s]
             [macrowbar.core :as macrowbar]
-            [mikron.runtime.core-spec :as core-spec]
+            [mikron.math :as math]
+            [mikron.util :as util]
+            [mikron.buffer :as buffer]
             [mikron.compiler.core :as compiler]
-            [mikron.runtime.buffer :as buffer]
-            [mikron.runtime.util :as util]
-            [mikron.runtime.math :as math]
-            [mikron.runtime.processor.common :as processor.common])
+            [mikron.runtime.core-spec :as runtime.core-spec]
+            [mikron.runtime.processor.common :as runtime.processor.common])
   #?(:cljs (:require-macros [mikron.runtime.core])))
 
 (defrecord Schema [processors global-options])
@@ -50,7 +50,7 @@
      (let [{:keys [processors custom-processors global-options]} (compiler/compile-schema schema global-options)]
        `(let [~@(mapcat (fn [[[processor-type custom-schema] processor-name]]
                           [processor-name
-                           `(processor.common/create-processor-handle
+                           `(runtime.processor.common/create-processor-handle
                               (->> ~(get schema-name-aliases custom-schema custom-schema)
                                    (resolve-schema)
                                    (.-processors)
@@ -66,7 +66,7 @@
     "Returns a reified schema for the given schema definition."
     [& args]
     (macrowbar/macro-context {:gen-syms [rschema]}
-      (let [{:keys [schema-name schema global-options]} (macrowbar/enforce-spec ::core-spec/schema-args args)]
+      (let [{:keys [schema-name schema global-options]} (util/enforce-spec ::runtime.core-spec/schema-args args)]
         (if-not schema-name
           (schema* schema global-options)
           (let [schema-name' (keyword (str (namespace schema-name))
@@ -78,7 +78,7 @@
   (defmacro defschema
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
-    (let [{:keys [schema-name schema global-options]} (macrowbar/enforce-spec ::core-spec/defschema-args args)]
+    (let [{:keys [schema-name schema global-options]} (util/enforce-spec ::runtime.core-spec/defschema-args args)]
       `(register-schema! ~schema-name ~(schema* schema global-options)))))
 
 (def ^:dynamic ^:private *buffer*

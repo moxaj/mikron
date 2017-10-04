@@ -1,12 +1,12 @@
 (ns mikron.compiler.processor.validate
   "Validator generating functions."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.processor.common :as common]
+            [mikron.util :as util]
+            [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.runtime.processor.validate :as runtime.processor.validate]
-            [mikron.runtime.util :as runtime.util]))
+            [mikron.runtime.processor.validate :as runtime.processor.validate]))
 
 (macrowbar/emit :debug
   (defmulti valid?
@@ -74,12 +74,12 @@
 
   (defmethod valid? :wrapped [[_ _ pre _ schema'] value global-options]
     (macrowbar/macro-context {:gen-syms [value']}
-      `(let [~value' (runtime.util/safe :mikron/invalid (~pre ~value))]
+      `(let [~value' (util/safe :mikron/invalid (~pre ~value))]
          (and (not (runtime.processor.common/keyword-identical? :mikron/invalid ~value'))
               ~(valid? schema' value' global-options)))))
 
   (defmethod valid? :multi [[_ _ selector schemas'] value global-options]
-    `(case (runtime.util/safe :mikron/invalid (~selector ~value))
+    `(case (util/safe :mikron/invalid (~selector ~value))
        ~@(mapcat (fn [[key' schema']]
                    [key' (valid? schema' value global-options)])
                  schemas')
@@ -120,25 +120,25 @@
     `(and (vector? ~value)
           (== (runtime.processor.common/count ~value) ~(count schemas))
           ~@(map (fn [[key' value']]
-                   `(let [~value' ~(common/tuple-lookup value key')]
+                   `(let [~value' ~(processor.common/tuple-lookup value key')]
                       ~(valid? (get schemas key') value' global-options)))
-                 (common/tuple->fields schemas))))
+                 (processor.common/tuple->fields schemas))))
 
   (defmethod valid? :record [[_ {:keys [type]} schemas] value global-options]
     `(and ~(if type
              `(instance? ~(first type) ~value)
              `(map? ~value))
           ~@(map (fn [[key' value']]
-                   `(let [~value' ~(common/record-lookup value key' type)]
+                   `(let [~value' ~(processor.common/record-lookup value key' type)]
                       ~(valid? (get schemas key') value' global-options)))
-                 (common/record->fields schemas))))
+                 (processor.common/record->fields schemas))))
 
   (defmethod valid? :custom [schema value {:keys [custom-processors]}]
     `((runtime.processor.common/deref-processor-handle
         ~(get custom-processors [:valid? schema]))
       ~value))
 
-  (defmethod common/processor :valid? [_ schema global-options]
+  (defmethod processor.common/processor :valid? [_ schema global-options]
     (macrowbar/with-gensyms [value]
       {:args [value]
        :body [`(boolean ~(valid? schema value global-options))]})))

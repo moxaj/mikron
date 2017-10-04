@@ -1,11 +1,11 @@
 (ns mikron.compiler.processor.interp
   "Linear interpolator generating functions."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.processor.common :as common]
+            [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.runtime.math :as runtime.math]))
+            [mikron.math :as math]))
 
 (macrowbar/emit :debug
   (defmulti interp
@@ -21,10 +21,10 @@
       (interp schema paths value-1 value-2 global-options)))
 
   (defmethod interp :integer [_ _ value-1 value-2 global-options]
-    `(runtime.math/round ~(interp [:floating] nil value-1 value-2 global-options)))
+    `(math/round ~(interp [:floating] nil value-1 value-2 global-options)))
 
   (defmethod interp :floating [_ _ value-1 value-2 {:keys [time-factor]}]
-    `(runtime.math/interp ~value-1 ~value-2 ~time-factor))
+    `(math/interp ~value-1 ~value-2 ~time-factor))
 
   (defmethod interp :char [_ _ value-1 value-2 global-options]
     (interp [:default] nil value-1 value-2 global-options))
@@ -80,29 +80,29 @@
     (macrowbar/macro-context {:gen-syms [value-1' value-2']}
       (if-not paths
         (interp [:default] nil value-1 value-2 global-options)
-        (let [fields (common/tuple->fields schemas)]
+        (let [fields (processor.common/tuple->fields schemas)]
           `(let [~@(mapcat (fn [[key value']]
-                             [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
-                                            ~value-2' ~(common/tuple-lookup value-2 key)]
+                             [value' `(let [~value-1' ~(processor.common/tuple-lookup value-1 key)
+                                            ~value-2' ~(processor.common/tuple-lookup value-2 key)]
                                         ~(if-let [paths' (paths key)]
                                            (interp (schemas key) paths' value-1' value-2' global-options)
                                            (interp [:default] nil value-1' value-2' global-options)))])
                            fields)]
-             ~(common/fields->tuple fields))))))
+             ~(processor.common/fields->tuple fields))))))
 
   (defmethod interp :record [[_ {:keys [type]} schemas] paths value-1 value-2 global-options]
     (macrowbar/macro-context {:gen-syms [value-1' value-2']}
       (if-not paths
         (interp [:default] nil value-1 value-2 global-options)
-        (let [fields (common/record->fields schemas)]
+        (let [fields (processor.common/record->fields schemas)]
           `(let [~@(mapcat (fn [[key value']]
-                             [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
-                                            ~value-2' ~(common/record-lookup value-2 key type)]
+                             [value' `(let [~value-1' ~(processor.common/record-lookup value-1 key type)
+                                            ~value-2' ~(processor.common/record-lookup value-2 key type)]
                                         ~(if-let [paths' (paths key)]
                                            (interp (schemas key) paths' value-1' value-2' global-options)
                                            (interp [:default] nil value-1' value-2' global-options)))])
                            fields)]
-             ~(common/fields->record fields type))))))
+             ~(processor.common/fields->record fields type))))))
 
   (defmethod interp :optional [[_ _ schema'] paths value-1 value-2 global-options]
     `(if (and ~value-1 ~value-2)
@@ -141,7 +141,7 @@
   (defmethod interp :default [_ _ value-1 value-2 {:keys [prefer-first?]}]
     `(if ~prefer-first? ~value-1 ~value-2))
 
-  (defmethod common/processor :interp [_ schema {:keys [interp-paths] :as global-options}]
+  (defmethod processor.common/processor :interp [_ schema {:keys [interp-paths] :as global-options}]
     (macrowbar/with-gensyms [value-1 value-2 prefer-first? time-factor]
       {:args [value-1 value-2 prefer-first? time-factor]
        :body [(interp schema interp-paths value-1 value-2

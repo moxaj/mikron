@@ -43,9 +43,9 @@
     "Returns an integer schema into which `size` can fit."
     [^long size]
     (condp > size
-      256        [:byte]
-      65536      [:short]
-      2147483648 [:int]
+      256        [:ubyte]
+      65536      [:ushort]
+      2147483648 [:uint]
       [:long]))
 
   (defmulti schema-keys

@@ -89,9 +89,9 @@
 
 (def cljs-test-namespaces
   "ClojureScript test namespaces."
-  '[mikron.compiler.core-test
-    mikron.runtime.core-test
-    mikron.runtime.buffer-test])
+  '[mikron.buffer-test
+    mikron.compiler.core-test
+    mikron.runtime.core-test])
 
 (def clj-test-namespaces
   "Clojure test namespaces."

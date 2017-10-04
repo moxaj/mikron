@@ -1,11 +1,11 @@
  (ns mikron.compiler.processor.unpack
   "Unpacker generating functions."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.processor.common :as common]
+            [mikron.buffer :as buffer]
+            [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
-            [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.runtime.buffer :as runtime.buffer]))
+            [mikron.runtime.processor.common :as runtime.processor.common]))
 
 (macrowbar/emit :debug
   (defmulti unpack
@@ -23,46 +23,46 @@
          ~(unpack schema global-options))))
 
   (defmethod unpack :byte [_ {:keys [buffer]}]
-    `(runtime.buffer/take-byte ~buffer))
+    `(buffer/take-byte ~buffer))
 
   (defmethod unpack :ubyte [_ {:keys [buffer]}]
-    `(runtime.buffer/take-ubyte ~buffer))
+    `(buffer/take-ubyte ~buffer))
 
   (defmethod unpack :short [_ {:keys [buffer]}]
-    `(runtime.buffer/take-short ~buffer))
+    `(buffer/take-short ~buffer))
 
   (defmethod unpack :ushort [_ {:keys [buffer]}]
-    `(runtime.buffer/take-ushort ~buffer))
+    `(buffer/take-ushort ~buffer))
 
   (defmethod unpack :int [_ {:keys [buffer]}]
-    `(runtime.buffer/take-int ~buffer))
+    `(buffer/take-int ~buffer))
 
   (defmethod unpack :uint [_ {:keys [buffer]}]
-    `(runtime.buffer/take-uint ~buffer))
+    `(buffer/take-uint ~buffer))
 
   (defmethod unpack :long [_ {:keys [buffer]}]
-    `(runtime.buffer/take-long ~buffer))
+    `(buffer/take-long ~buffer))
 
   (defmethod unpack :varint [_ {:keys [buffer]}]
-    `(runtime.buffer/take-varint ~buffer))
+    `(buffer/take-varint ~buffer))
 
   (defmethod unpack :float [_ {:keys [buffer]}]
-    `(runtime.buffer/take-float ~buffer))
+    `(buffer/take-float ~buffer))
 
   (defmethod unpack :double [_ {:keys [buffer]}]
-    `(runtime.buffer/take-double ~buffer))
+    `(buffer/take-double ~buffer))
 
   (defmethod unpack :char [_ global-options]
     `(runtime.processor.common/int->char ~(unpack [:int] global-options)))
 
   (defmethod unpack :boolean [_ {:keys [buffer]}]
-    `(runtime.buffer/take-boolean ~buffer))
+    `(buffer/take-boolean ~buffer))
 
   (defmethod unpack :nil [_ _]
     nil)
 
   (defmethod unpack :binary [_ {:keys [buffer]}]
-    `(runtime.buffer/take-binary ~buffer))
+    `(buffer/take-binary ~buffer))
 
   (defmethod unpack :string [_ global-options]
     `(runtime.processor.common/binary->string ~(unpack [:binary] global-options)))
@@ -97,53 +97,53 @@
               (apply concat))))
 
   (defmethod unpack :coll [[_ _ schema'] global-options]
-    (common/into! []
-                  true
-                  (unpack [:varint] global-options)
-                  (unpack* schema' global-options)))
+    (processor.common/into! []
+                            true
+                            (unpack [:varint] global-options)
+                            (unpack* schema' global-options)))
 
   (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] global-options]
-    (common/into! (if sorted-by
-                    `(sorted-set-by ~sorted-by)
-                    #{})
-                  (nil? sorted-by)
-                  (unpack [:varint] global-options)
-                  (unpack* schema' global-options)))
+    (processor.common/into! (if sorted-by
+                              `(sorted-set-by ~sorted-by)
+                              #{})
+                            (nil? sorted-by)
+                            (unpack [:varint] global-options)
+                            (unpack* schema' global-options)))
 
   (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
-    (common/into-kv! (if sorted-by
-                       `(sorted-map-by ~sorted-by)
-                       {})
-                     (nil? sorted-by)
-                     (unpack [:varint] global-options)
-                     (unpack key-schema global-options)
-                     (unpack* val-schema global-options)))
+    (processor.common/into-kv! (if sorted-by
+                                 `(sorted-map-by ~sorted-by)
+                                 {})
+                               (nil? sorted-by)
+                               (unpack [:varint] global-options)
+                               (unpack key-schema global-options)
+                               (unpack* val-schema global-options)))
 
   (defmethod unpack :tuple [[_ _ schemas] global-options]
-    (let [fields (common/tuple->fields schemas)]
+    (let [fields (processor.common/tuple->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
                          [value' (unpack* (get schemas key') global-options)])
                        fields)]
-         ~(common/fields->tuple fields))))
+         ~(processor.common/fields->tuple fields))))
 
   (defmethod unpack :record [[_ {:keys [type]} schemas] global-options]
-    (let [fields (common/record->fields schemas)]
+    (let [fields (processor.common/record->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
                          [value' (unpack* (get schemas key') global-options)])
                        fields)]
-         ~(common/fields->record fields type))))
+         ~(processor.common/fields->record fields type))))
 
   (defmethod unpack :custom [schema {:keys [diffed? buffer custom-processors]}]
     `((runtime.processor.common/deref-processor-handle
         ~(get custom-processors [(if diffed? :unpack-diffed :unpack) schema]))
       ~buffer))
 
-  (defmethod common/processor :unpack [_ schema global-options]
+  (defmethod processor.common/processor :unpack [_ schema global-options]
     (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
 
-  (defmethod common/processor :unpack-diffed [_ schema global-options]
+  (defmethod processor.common/processor :unpack-diffed [_ schema global-options]
     (macrowbar/with-gensyms [buffer]
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))

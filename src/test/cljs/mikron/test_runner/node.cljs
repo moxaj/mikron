@@ -2,9 +2,9 @@
   "Node test runner."
   (:require [clojure.test :as test]
             [cljs.nodejs :as nodejs]
+            [mikron.buffer-test]
             [mikron.compiler.core-test]
-            [mikron.runtime.core-test]
-            [mikron.runtime.buffer-test]))
+            [mikron.runtime.core-test]))
 
 (nodejs/enable-util-print!)
 
@@ -12,6 +12,6 @@
   (println "Test summary: " summary)
   (.exit nodejs/process (if (= 0 fail error) 0 1)))
 
-(test/run-tests 'mikron.compiler.core-test
-                'mikron.runtime.core-test
-                'mikron.runtime.buffer-test)
+(test/run-tests 'mikron.buffer-test
+                'mikron.compiler.core-test
+                'mikron.runtime.core-test)

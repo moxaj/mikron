@@ -1,7 +1,7 @@
 (ns mikron.compiler.processor.diff
   "Differ and undiffer generating functions."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.processor.common :as common]
+            [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
@@ -134,10 +134,10 @@
 
   (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 global-options]
     (macrowbar/macro-context {:gen-syms [value-1' value-2']}
-      (let [fields (common/tuple->fields schemas)]
+      (let [fields (processor.common/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(common/tuple-lookup value-1 key)
-                                          ~value-2' ~(common/tuple-lookup value-2 key)]
+                           [value' `(let [~value-1' ~(processor.common/tuple-lookup value-1 key)
+                                          ~value-2' ~(processor.common/tuple-lookup value-2 key)]
                                       ~(if-let [paths' (get paths key)]
                                          (diff* (get schemas key) paths' value-1' value-2' global-options)
                                          (diff [:default] nil value-1' value-2' global-options)))])
@@ -146,14 +146,14 @@
                              `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
                            fields))
              :mikron/nil
-             ~(common/fields->tuple fields))))))
+             ~(processor.common/fields->tuple fields))))))
 
   (defmethod diff :record [[_ {:keys [type]} schemas] paths value-1 value-2 global-options]
     (macrowbar/macro-context {:gen-syms [value-1' value-2']}
-      (let [fields (common/record->fields schemas)]
+      (let [fields (processor.common/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
-                           [value' `(let [~value-1' ~(common/record-lookup value-1 key type)
-                                          ~value-2' ~(common/record-lookup value-2 key type)]
+                           [value' `(let [~value-1' ~(processor.common/record-lookup value-1 key type)
+                                          ~value-2' ~(processor.common/record-lookup value-2 key type)]
                                       ~(if-let [paths' (get paths key)]
                                          (diff* (get schemas key) paths' value-1' value-2' global-options)
                                          (diff [:default] nil value-1' value-2' global-options)))])
@@ -162,7 +162,7 @@
                              `(runtime.processor.common/keyword-identical? :mikron/nil ~value'))
                            fields))
              :mikron/nil
-             ~(common/fields->record fields type))))))
+             ~(processor.common/fields->record fields type))))))
 
   (defmethod diff :custom [schema _ value-1 value-2 {:keys [processor-type custom-processors]}]
     `((runtime.processor.common/deref-processor-handle
@@ -173,12 +173,12 @@
   (defmethod diff :default [_ _ _ value-2 _]
     value-2)
 
-  (defmethod common/processor :diff [_ schema {:keys [diff-paths] :as global-options}]
+  (defmethod processor.common/processor :diff [_ schema {:keys [diff-paths] :as global-options}]
     (macrowbar/with-gensyms [_ value-1 value-2]
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :diff))]}))
 
-  (defmethod common/processor :undiff [_ schema {:keys [diff-paths] :as global-options}]
+  (defmethod processor.common/processor :undiff [_ schema {:keys [diff-paths] :as global-options}]
     (macrowbar/with-gensyms [_ value-1 value-2]
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :undiff))]})))

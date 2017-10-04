@@ -1,11 +1,11 @@
 (ns mikron.compiler.processor.pack
   "Packer generating functions."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.processor.common :as common]
+            [mikron.buffer :as buffer]
+            [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
-            [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.runtime.buffer :as runtime.buffer]))
+            [mikron.runtime.processor.common :as runtime.processor.common]))
 
 (macrowbar/emit :debug
   (defmulti pack
@@ -25,34 +25,34 @@
              ~(pack schema value global-options))))))
 
   (defmethod pack :byte [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-byte ~buffer ~value))
+    `(buffer/put-byte ~buffer ~value))
 
   (defmethod pack :ubyte [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-ubyte ~buffer ~value))
+    `(buffer/put-ubyte ~buffer ~value))
 
   (defmethod pack :short [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-short ~buffer ~value))
+    `(buffer/put-short ~buffer ~value))
 
   (defmethod pack :ushort [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-ushort ~buffer ~value))
+    `(buffer/put-ushort ~buffer ~value))
 
   (defmethod pack :int [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-int ~buffer ~value))
+    `(buffer/put-int ~buffer ~value))
 
   (defmethod pack :uint [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-uint ~buffer ~value))
+    `(buffer/put-uint ~buffer ~value))
 
   (defmethod pack :long [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-long ~buffer ~value))
+    `(buffer/put-long ~buffer ~value))
 
   (defmethod pack :varint [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-varint ~buffer ~value))
+    `(buffer/put-varint ~buffer ~value))
 
   (defmethod pack :float [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-float ~buffer ~value))
+    `(buffer/put-float ~buffer ~value))
 
   (defmethod pack :double [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-double ~buffer ~value))
+    `(buffer/put-double ~buffer ~value))
 
   (defmethod pack :char [_ value global-options]
     (macrowbar/macro-context {:gen-syms [value']}
@@ -60,13 +60,13 @@
          ~(pack [:int] value' global-options))))
 
   (defmethod pack :boolean [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-boolean ~buffer ~value))
+    `(buffer/put-boolean ~buffer ~value))
 
   (defmethod pack :nil [_ _ _]
     nil)
 
   (defmethod pack :binary [_ value {:keys [buffer]}]
-    `(runtime.buffer/put-binary ~buffer ~value))
+    `(buffer/put-binary ~buffer ~value))
 
   (defmethod pack :string [_ value global-options]
     (macrowbar/macro-context {:gen-syms [value']}
@@ -147,15 +147,15 @@
 
   (defmethod pack :tuple [[_ _ schemas] value global-options]
     `(do ~@(map (fn [[key' value']]
-                  `(let [~value' ~(common/tuple-lookup value key')]
+                  `(let [~value' ~(processor.common/tuple-lookup value key')]
                      ~(pack* (get schemas key') value' global-options)))
-                (common/tuple->fields schemas))))
+                (processor.common/tuple->fields schemas))))
 
   (defmethod pack :record [[_ {:keys [type]} schemas] value global-options]
     `(do ~@(map (fn [[key' value']]
-                  `(let [~value' ~(common/record-lookup value key' type)]
+                  `(let [~value' ~(processor.common/record-lookup value key' type)]
                      ~(pack* (get schemas key') value' global-options)))
-                (common/record->fields schemas))))
+                (processor.common/record->fields schemas))))
 
   (defmethod pack :custom [schema value {:keys [diffed? buffer custom-processors]}]
     `((runtime.processor.common/deref-processor-handle
@@ -163,12 +163,12 @@
       ~value
       ~buffer))
 
-  (defmethod common/processor :pack [_ schema global-options]
+  (defmethod processor.common/processor :pack [_ schema global-options]
     (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? false))]}))
 
-  (defmethod common/processor :pack-diffed [_ schema global-options]
+  (defmethod processor.common/processor :pack-diffed [_ schema global-options]
     (macrowbar/with-gensyms [value buffer]
       {:args [value buffer]
        :body [(pack* schema value (assoc global-options :buffer buffer :diffed? true))]})))

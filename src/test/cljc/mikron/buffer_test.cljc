@@ -1,12 +1,12 @@
-(ns mikron.runtime.buffer-test
+(ns mikron.buffer-test
   (:require [clojure.test :as test]
             [clojure.test.check.clojure-test :as tc.test #?@(:cljs [:include-macros true])]
             [clojure.test.check.properties :as tc.prop #?@(:cljs [:include-macros true])]
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
-            [mikron.compiler.schema :as compiler.schema]
-            [mikron.runtime.buffer :as buffer]
-            [mikron.runtime.test-generators :as test-generators]
-            [mikron.runtime.test-util :as test-util]))
+            [mikron.buffer :as buffer]
+            [mikron.test-util :as test-util]
+            [mikron.schema-generators :as schema-generators]
+            [mikron.compiler.schema :as compiler.schema]))
 
 (tc.test/defspec buffer-test 100
   (let [primitive-schemas (disj (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)
@@ -17,7 +17,7 @@
                     (fn [schemas]
                       (tc.gen/tuple (tc.gen/return schemas)
                                     (->> schemas
-                                         (map (comp test-generators/value-generator vector))
+                                         (map (comp schema-generators/value-generator vector))
                                          (apply tc.gen/tuple)))))]
       (let [buffer (buffer/allocate 100000)]
         (doall (map (fn [schema value]

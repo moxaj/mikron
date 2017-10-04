@@ -1,4 +1,4 @@
-(ns mikron.runtime.math
+(ns mikron.math
   "Numeric utility functions."
   (:refer-clojure :exclude [and or not zero? rand rand-int])
   #?(:cljs (:import goog.math.Long)))

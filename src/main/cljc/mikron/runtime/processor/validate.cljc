@@ -1,6 +1,5 @@
 (ns mikron.runtime.processor.validate
-  (:require [mikron.runtime.math :as math]
-            [mikron.runtime.processor.validate-macros :refer [valid-integer?]]))
+  (:require [mikron.runtime.processor.validate-macros :refer [valid-integer?]]))
 
 (defn valid-byte?
   "Returns `true` if `value` is a valid byte."

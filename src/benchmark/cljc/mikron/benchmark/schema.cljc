@@ -1,11 +1,11 @@
 (ns mikron.benchmark.schema
   "Benchmark schemas."
   (:refer-clojure :exclude [doubles])
-  (:require [mikron.runtime.core :as mikron]
-            [cognitect.transit :as transit]
+  (:require [cognitect.transit :as transit]
             [octet.core :as octet]
             #?@(:clj [[abracad.avro :as avro]
-                      [gloss.core :as gloss]])))
+                      [gloss.core :as gloss]])
+            [mikron.runtime.core :as mikron]))
 
 (mikron/defschema ::doubles
   [:vector :double])

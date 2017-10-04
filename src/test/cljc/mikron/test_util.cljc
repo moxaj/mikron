@@ -1,7 +1,7 @@
-(ns mikron.runtime.test-util
+(ns mikron.test-util
   (:require [clojure.walk :as walk]
             [mikron.runtime.processor.validate :as runtime.processor.validate]))
-            
+
 (defn nan?
   "Returns `true` if value is NaN, `false otherwise`."
   [value]

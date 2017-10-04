@@ -1,6 +1,6 @@
 (ns mikron.runtime.processor.gen-macros
   (:require [macrowbar.core :as macrowbar]
-            [mikron.runtime.math :as math])
+            [mikron.math :as math])
   #?(:cljs (:require-macros [mikron.runtime.processor.gen-macros])))
 
 (defmacro gen-integer

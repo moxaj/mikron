@@ -1,9 +1,10 @@
-(ns mikron.runtime.buffer-macro
+(ns mikron.buffer-macro
   "`mikron.runtime.buffer` macro namespace."
   (:require [macrowbar.core :as macrowbar]
-            [mikron.compiler.schema :as compiler.schema]
-            [mikron.runtime.buffer-spec :as buffer-spec])
-  #?(:cljs (:require-macros [mikron.runtime.buffer-macro])))
+            [mikron.util :as util]
+            [mikron.buffer-spec :as buffer-spec]
+            [mikron.compiler.schema :as compiler.schema])
+  #?(:cljs (:require-macros [mikron.buffer-macro])))
 
 (macrowbar/emit :debug
   (defmacro with-delta
@@ -33,22 +34,17 @@
                        (cond-> meta
                          (#{'long 'double} tag) (dissoc :tag)))))
 
-  (defn can-have-metadata?
-    "Returns `true` if `value` can have metadata, `false` otherwise."
-    [value]
-    (or (symbol? value) (coll? value)))
-
   (defn with-runtime-tag
     "Takes the `tag` metadata of `value` and returns a piece of code which reapplies it to what `value` evaluates to."
     [value]
-    `(if-not (can-have-metadata? ~value)
+    `(if-not (util/can-have-meta? ~value)
        ~value
        (vary-meta ~value assoc :tag '~(:tag (meta value)))))
 
   (defmacro definterface+
     "Expands to a `definterface` call in clj, `defprotocol` call in cljs."
     [& args]
-    (let [{:keys [interface-name ops]} (macrowbar/enforce-spec ::buffer-spec/definterface+-args args)]
+    (let [{:keys [interface-name ops]} (util/enforce-spec ::buffer-spec/definterface+-args args)]
       (if (macrowbar/cljs? &env)
         `(defprotocol ~interface-name
            ~@(map (fn [{:keys [op-name args docs]}]

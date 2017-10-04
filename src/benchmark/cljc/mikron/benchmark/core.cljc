@@ -1,22 +1,20 @@
 (ns mikron.benchmark.core
   "Benchmarks."
-  (:require [#?(:clj  clojure.tools.reader ;; TODO jira issue
-                :cljs cljs.tools.reader)
-             :as edn]
-            [mikron.runtime.core :as mikron]
-            [mikron.runtime.util :as runtime.util]
-            [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.benchmark.data :as benchmark.data]
-            [mikron.benchmark.schema :as benchmark.schema]
-            [cognitect.transit :as transit]
-            [octet.core :as octet]
+  (:require [clojure.tools.reader :as edn]
             #?@(:clj [[macrowbar.core :as macrowbar]
                       [criterium.core :as crit]
                       [taoensso.nippy :as nippy]
                       [cheshire.core :as cheshire]
                       [gloss.core :as gloss]
                       [gloss.io]
-                      [abracad.avro :as avro]]))
+                      [abracad.avro :as avro]])
+            [mikron.util :as util]
+            [mikron.runtime.core :as mikron]
+            [mikron.runtime.processor.common :as runtime.processor.common]
+            [mikron.benchmark.data :as benchmark.data]
+            [mikron.benchmark.schema :as benchmark.schema]
+            [cognitect.transit :as transit]
+            [octet.core :as octet])
   #?(:cljs (:require-macros [mikron.benchmark.core :refer [bench]]))
   #?(:clj (:import [java.util Arrays]
                    [java.io ByteArrayInputStream ByteArrayOutputStream ObjectInputStream ObjectOutputStream]
@@ -169,7 +167,7 @@
 
 #?(:cljs
    (defn now []
-     (if (runtime.util/node-env?)
+     (if (util/node-env?)
        (let [[secs nanos] (.hrtime js/process)]
          (+ (* 1000 secs) (/ nanos 1000 1000)))
        (.now js/performance))))
@@ -205,12 +203,12 @@
                  schema (benchmark.schema/get-schema method schema)]
              [method (vec (for [stat stats]
                             (do (println "Measuring" (name method) "|" (name stat))
-                                (runtime.util/safe 0 (measure stat method schema data)))))]))
+                                (util/safe 0 (measure stat method schema data)))))]))
          (sort-by second)
          (vec))))
 
 (comment
-  (benchmark :stats   [:size]
-             ;:methods [:mikron :protobuf :nippy]
-             :schema  ::benchmark.schema/snapshot)
+  (benchmark :stats   [:pack-time]
+             :methods [:mikron :protobuf :nippy]
+             :schema  ::benchmark.schema/snapshot2)
   nil)

@@ -1,5 +1,5 @@
 (ns mikron.runtime.processor.validate-macros
-  (:require [mikron.runtime.math :as math])
+  (:require [mikron.math :as math])
   #?(:cljs (:require-macros [mikron.runtime.processor.validate-macros])))
 
 (defmacro valid-integer?

@@ -1,9 +1,9 @@
-(ns mikron.runtime.test-generators
+(ns mikron.schema-generators
   (:require [clojure.test.check.generators :as tc.gen]
             [macrowbar.core :as macrowbar]
+            [mikron.math :as math]
             [mikron.compiler.schema :as compiler.schema]
-            [mikron.runtime.math :as math]
-            [mikron.runtime.processor.common :as processor.common]))
+            [mikron.runtime.processor.common :as runtime.processor.common]))
 
 (def simple-string-generator
   (tc.gen/fmap (fn [string]
@@ -162,7 +162,7 @@
   (tc.gen/double* {:infinite? true :NaN? false}))
 
 (defmethod value-generator :char [_]
-  (tc.gen/fmap processor.common/int->char
+  (tc.gen/fmap runtime.processor.common/int->char
                (tc.gen/large-integer* (bounds 2 false))))
 
 (defmethod value-generator :boolean [schema]
@@ -172,7 +172,7 @@
   (tc.gen/return nil))
 
 (defmethod value-generator :binary [schema]
-  (tc.gen/fmap processor.common/byte-seq->binary
+  (tc.gen/fmap runtime.processor.common/byte-seq->binary
                (tc.gen/vector (tc.gen/large-integer* (bounds 1 true)))))
 
 (defmethod value-generator :string [_]
