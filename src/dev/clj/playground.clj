@@ -2,12 +2,12 @@
   (:refer-clojure :exclude [doubles])
   (:require [clojure.pprint :as p]
             [clojure.spec.alpha :as s]
-            [clojure.walk :as w]
+            [clojure.walk :as walk]
             [criterium.core :as c]
-            [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff diff* undiff* interp]]
-            [mikron.runtime.buffer :refer :all]
+            [no.disassemble :as d]
+            [mikron.buffer :refer :all]
             [mikron.compiler.core :as compiler]
-            [no.disassemble :as d]))
+            [mikron.runtime.core :as mikron :refer [defschema schema schema* pack unpack gen valid? diff undiff diff* undiff* interp]]))
 
 (set! *warn-on-reflection* true)
 
