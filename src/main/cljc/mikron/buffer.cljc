@@ -168,7 +168,7 @@
 (defn get-bit-buffer
   "Gets the bit buffer of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     (if-not (util/can-have-meta? buffer)
+                     (when-not (util/can-have-meta? buffer)
                        (throw (ex-info "Invalid buffer" {:buffer buffer})))
                      `(.-bit-buffer ~(vary-meta buffer assoc :tag `Buffer)))})
   ^mikron.buffer.IMikronBitBuffer [^Buffer buffer]
@@ -177,7 +177,7 @@
 (defn get-byte-buffer
   "Gets the byte buffer of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     (if-not (util/can-have-meta? buffer)
+                     (when-not (util/can-have-meta? buffer)
                        (throw (ex-info "Invalid buffer" {:buffer buffer})))
                      `(.-byte-buffer ~(vary-meta buffer assoc :tag `Buffer)))})
   ^mikron.buffer.IMikronByteBuffer [^Buffer buffer]
