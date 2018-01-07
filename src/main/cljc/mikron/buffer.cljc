@@ -162,16 +162,16 @@
     #?(:clj  (.order buffer (if value ByteOrder/LITTLE_ENDIAN ByteOrder/BIG_ENDIAN))
        :cljs (set! le value))))
 
-(deftype Buffer [^mikron.buffer.IMikronBitBuffer  bit-buffer
-                 ^mikron.buffer.IMikronByteBuffer byte-buffer])
+(deftype MikronBuffer [^mikron.buffer.IMikronBitBuffer  bit-buffer
+                       ^mikron.buffer.IMikronByteBuffer byte-buffer])
 
 (defn get-bit-buffer
   "Gets the bit buffer of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      (when-not (util/can-have-meta? buffer)
                        (throw (ex-info "Invalid buffer" {:buffer buffer})))
-                     `(.-bit-buffer ~(vary-meta buffer assoc :tag `Buffer)))})
-  ^mikron.buffer.IMikronBitBuffer [^Buffer buffer]
+                     `(.-bit-buffer ~(vary-meta buffer assoc :tag `MikronBuffer)))})
+  ^mikron.buffer.IMikronBitBuffer [^MikronBuffer buffer]
   (.-bit-buffer buffer))
 
 (defn get-byte-buffer
@@ -179,50 +179,50 @@
   #?(:clj {:inline (fn [buffer]
                      (when-not (util/can-have-meta? buffer)
                        (throw (ex-info "Invalid buffer" {:buffer buffer})))
-                     `(.-byte-buffer ~(vary-meta buffer assoc :tag `Buffer)))})
-  ^mikron.buffer.IMikronByteBuffer [^Buffer buffer]
+                     `(.-byte-buffer ~(vary-meta buffer assoc :tag `MikronBuffer)))})
+  ^mikron.buffer.IMikronByteBuffer [^MikronBuffer buffer]
   (.-byte-buffer buffer))
 
 (defn get-bit-position
   "Gets the bit position of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(get-bit-position* (get-bit-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (get-bit-position* (get-bit-buffer buffer)))
 
 (defn set-bit-position
   "Sets the bit position of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
                      `(set-bit-position* (get-bit-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (set-bit-position* (get-bit-buffer buffer) value))
 
 (defn get-bit-index
   "Gets the bit index of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(get-bit-index* (get-bit-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (get-bit-index* (get-bit-buffer buffer)))
 
 (defn set-bit-index
   "Sets the bit index of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
                      `(set-bit-index* (get-bit-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (set-bit-index* (get-bit-buffer buffer) value))
 
 (defn get-bit-value
   "Gets the bit value of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(get-bit-value* (get-bit-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (get-bit-value* (get-bit-buffer buffer)))
 
 (defn set-bit-value
   "Sets the bit value of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
                      `(set-bit-value* (get-bit-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (set-bit-value* (get-bit-buffer buffer) value))
 
 ;; Public delegated operations
@@ -231,133 +231,133 @@
   "Takes a byte from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-byte* (get-byte-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (take-byte* (get-byte-buffer buffer)))
 
 (defn put-byte
   "Puts a byte `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-byte* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-byte* (get-byte-buffer buffer) value))
 
 (defn take-short
   "Takes a short from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-short* (get-byte-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (take-short* (get-byte-buffer buffer)))
 
 (defn put-short
   "Puts a short `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-short* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-short* (get-byte-buffer buffer) value))
 
 (defn take-int
   "Takes an int from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-int* (get-byte-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (take-int* (get-byte-buffer buffer)))
 
 (defn put-int
   "Puts an int `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-int* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-int* (get-byte-buffer buffer) value))
 
 (defn take-long
   "Takes a long from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-long* (get-byte-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (take-long* (get-byte-buffer buffer)))
 
 (defn put-long
   "Puts a long `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-long* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-long* (get-byte-buffer buffer) value))
 
 (defn take-float
   "Takes a float from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-float* (get-byte-buffer ~buffer)))})
-  ^double [^Buffer buffer]
+  ^double [^MikronBuffer buffer]
   (take-float* (get-byte-buffer buffer)))
 
 (defn put-float
   "Puts a float `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-float* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^double value]
+  [^MikronBuffer buffer ^double value]
   (put-float* (get-byte-buffer buffer) value))
 
 (defn take-double
   "Takes a double from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-double* (get-byte-buffer ~buffer)))})
-  ^double [^Buffer buffer]
+  ^double [^MikronBuffer buffer]
   (take-double* (get-byte-buffer buffer)))
 
 (defn put-double
   "Puts a double `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-double* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^double value]
+  [^MikronBuffer buffer ^double value]
   (put-double* (get-byte-buffer buffer) value))
 
 (defn take-bytes
   "Takes `n` bytes from `buffer`."
   #?(:clj {:inline (fn [buffer n]
                      `(take-bytes* (get-byte-buffer ~buffer) ~n))})
-  ^bytes [^Buffer buffer ^long n]
+  ^bytes [^MikronBuffer buffer ^long n]
   (take-bytes* (get-byte-buffer buffer) n))
 
 (defn put-bytes
   "Puts some bytes `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(put-bytes* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^bytes value]
+  [^MikronBuffer buffer ^bytes value]
   (put-bytes* (get-byte-buffer buffer) value))
 
 (defn take-bytes-all
   "Takes all bytes from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(take-bytes-all* (get-byte-buffer ~buffer)))})
-  ^bytes [^Buffer buffer]
+  ^bytes [^MikronBuffer buffer]
   (take-bytes-all* (get-byte-buffer buffer)))
 
 (defn get-position
   "Gets the position of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(get-position* (get-byte-buffer ~buffer)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (get-position* (get-byte-buffer buffer)))
 
 (defn set-position
   "Sets the position of `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(set-position* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (set-position* (get-byte-buffer buffer) value))
 
 (defn get-le
   "Gets the endianness of `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(get-le* (get-byte-buffer ~buffer)))})
-  [^Buffer buffer]
+  [^MikronBuffer buffer]
   (get-le* (get-byte-buffer buffer)))
 
 (defn set-le
   "Sets the endianness of `buffer`."
   #?(:clj {:inline (fn [buffer value]
                      `(set-le* (get-byte-buffer ~buffer) ~value))})
-  [^Buffer buffer value]
+  [^MikronBuffer buffer value]
   (set-le* (get-byte-buffer buffer) value))
 
 ;; Public derived operations
@@ -366,7 +366,7 @@
   "Takes an unsigned byte from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(bit-and (take-byte ~buffer) 0xFF))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
    (bit-and (take-byte buffer) 0xFF))
 
 (defn put-ubyte
@@ -376,14 +376,14 @@
                                                                     (util/can-have-meta? value)
                                                                     (vary-meta assoc :tag 'long))
                                                                  0xFF))))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-byte buffer (unchecked-byte (bit-and value 0xFF))))
 
 (defn take-ushort
   "Takes an unsigned short from `buffer`."
   #?(:clj {:inline (fn [buffer]
                      `(bit-and (take-short ~buffer) 0xFFFF))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (bit-and (take-short buffer) 0xFFFF))
 
 (defn put-ushort
@@ -393,7 +393,7 @@
                                                                       (util/can-have-meta? value)
                                                                       (vary-meta assoc :tag 'long))
                                                                    0xFFFF))))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-short buffer (unchecked-short (bit-and value 0xFFFF))))
 
 (defn take-uint
@@ -401,7 +401,7 @@
   #?(:clj {:inline (fn [buffer]
                      #?(:clj  `(bit-and (take-int ~buffer) 0xFFFFFFFF)
                         :cljs `(unsigned-bit-shift-right (take-int ~buffer) 0)))})
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   #?(:clj  (bit-and (take-int buffer) 0xFFFFFFFF)
      :cljs (unsigned-bit-shift-right (take-int buffer) 0)))
 
@@ -412,12 +412,12 @@
                                                                   (util/can-have-meta? value)
                                                                   (vary-meta assoc :tag 'long))
                                                                0xFFFFFFFF))))})
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (put-int buffer (unchecked-int (bit-and value 0xFFFFFFFF))))
 
 (defn put-byte-at
   "Puts a byte to the given position in `buffer`."
-  [^Buffer buffer ^long position ^long value]
+  [^MikronBuffer buffer ^long position ^long value]
   (let [position' (get-position buffer)]
     (doto buffer
       (set-position position)
@@ -426,7 +426,7 @@
 
 (defn take-boolean
   "Takes a boolean from `buffer`."
-  [^Buffer buffer]
+  [^MikronBuffer buffer]
   (let [bit-index (get-bit-index buffer)]
     (when (== 0 bit-index)
       (set-bit-value buffer (take-byte buffer)))
@@ -436,7 +436,7 @@
 
 (defn put-boolean
   "Puts a boolean `value` to `buffer`."
-  [^Buffer buffer value]
+  [^MikronBuffer buffer value]
   (let [bit-index (get-bit-index buffer)]
     (when (== 0 bit-index)
       (let [bit-position (get-bit-position buffer)]
@@ -455,7 +455,7 @@
 
 (defn take-varint
   "Takes a varint from `buffer`."
-  ^long [^Buffer buffer]
+  ^long [^MikronBuffer buffer]
   (loop [value math/c0
          shift (long 0)]
     (if (>= shift 64)
@@ -470,7 +470,7 @@
 
 (defn put-varint
   "Puts a varint `value` to `buffer`."
-  [^Buffer buffer ^long value]
+  [^MikronBuffer buffer ^long value]
   (loop [value (math/zigzag-encode (math/from value))]
     (if (math/zero? (math/and value math/c-128))
       (put-byte buffer (math/to value))
@@ -483,12 +483,12 @@
 
 (defn take-binary
   "Takes a binary value from `buffer`."
-  ^bytes [^Buffer buffer]
+  ^bytes [^MikronBuffer buffer]
   (take-bytes buffer (take-varint buffer)))
 
 (defn put-binary
   "Puts a binary value `value` to `buffer`."
-  [^Buffer buffer ^bytes value]
+  [^MikronBuffer buffer ^bytes value]
   (doto buffer
     (put-varint #?(:clj  (alength value)
                    :cljs (.-byteLength value)))
@@ -498,7 +498,7 @@
 
 (defn reset
   "Resets `buffer`."
-  ^Buffer [^Buffer buffer]
+  ^MikronBuffer [^MikronBuffer buffer]
   (doto buffer
     (set-position 0)
     (set-bit-position -1)
@@ -507,7 +507,7 @@
 
 (defn finalize
   "Finalizes `buffer`."
-  ^Buffer [^Buffer buffer]
+  ^MikronBuffer [^MikronBuffer buffer]
   (let [bit-position (get-bit-position buffer)]
     (when-not (== -1 bit-position)
       (put-byte-at buffer bit-position (get-bit-value buffer)))
@@ -540,21 +540,22 @@
   [^mikron.buffer.IMikronByteBufferFactory factory]
   {:pre [(byte-buffer-factory? factory)]}
   #?(:clj  (alter-var-root #'byte-buffer-factory (constantly factory))
-     :cljs (set! byte-buffer-factory factory)))
+     :cljs (set! byte-buffer-factory factory))
+  nil)
 
 (defn allocate
   "Allocates a buffer with the size `size`."
-  ^Buffer [^long size]
-  (->Buffer (->MikronBitBuffer 0 0 -1) (allocate* byte-buffer-factory size)))
+  ^MikronBuffer [^long size]
+  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (allocate* byte-buffer-factory size)))
 
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
-  ^Buffer [^bytes binary]
-  (->Buffer (->MikronBitBuffer 0 0 -1) (wrap* byte-buffer-factory binary)))
+  ^MikronBuffer [^bytes binary]
+  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (wrap* byte-buffer-factory binary)))
 
 (defn set-headers
   "Sets the headers of `buffer`."
-  ^Buffer [^Buffer buffer diffed?]
+  ^MikronBuffer [^MikronBuffer buffer diffed?]
   (doto buffer
     (reset)
     (put-boolean (get-le buffer))
@@ -562,7 +563,7 @@
 
 (defn get-headers
   "Gets the headers of `buffer`."
-  [^Buffer buffer]
+  [^MikronBuffer buffer]
   (set-le buffer (take-boolean buffer))
   {:diffed? (take-boolean buffer)})
 
