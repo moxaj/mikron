@@ -25,11 +25,13 @@
   (defn without-tag
     "Removes the `tag` metadata from `value`."
     [value]
+    (assert (util/can-have-meta? value))
     (vary-meta value dissoc :tag))
 
   (defn without-primitive-tag
     "Removes the primitive `tag` metadata from `value`."
     [value]
+    (assert (util/can-have-meta? value))
     (vary-meta value (fn [{:keys [tag] :as meta}]
                        (cond-> meta
                          (#{'long 'double} tag) (dissoc :tag)))))
