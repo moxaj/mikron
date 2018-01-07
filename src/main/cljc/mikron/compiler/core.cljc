@@ -17,7 +17,10 @@
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [schema global-options]
-    #?(:clj (macrowbar/try-loading-compiling-ns))
+    #?(:clj
+       (try
+         (require (ns-name *ns*))
+         (catch Exception e)))
     (let [schema
           (->> schema
                (util/eval-if-not-literal)
