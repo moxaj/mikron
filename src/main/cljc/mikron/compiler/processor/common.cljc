@@ -1,6 +1,7 @@
 (ns mikron.compiler.processor.common
   "Common functions for the compilers."
   (:require [macrowbar.core :as macrowbar]
+            [mikron.util :as util]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
 
@@ -10,8 +11,10 @@
     [record key [class]]
     (if-not class
       `(~record ~key)
-      `(~(symbol (str ".-" (name key)))
-        ~(vary-meta record assoc :tag class))))
+      (do (when-not (util/can-have-meta? record)
+            (throw (ex-info "Invalid record" {:value record})))
+          `(~(symbol (str ".-" (name key)))
+            ~(vary-meta record assoc :tag class)))))
 
   (defn record->fields
     "Returns a map from record keys to generated symbols."

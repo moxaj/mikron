@@ -1,7 +1,8 @@
 (ns mikron.runtime.processor.common
   "Common runtime functions."
   (:refer-clojure :exclude [count nth every? rand-nth #?(:cljs keyword-identical?)])
-  (:require [mikron.math :as math])
+  (:require [mikron.math :as math]
+            [mikron.util :as util])
   #?(:clj (:import [java.nio.charset StandardCharsets]
                    [clojure.lang Indexed Counted]))
   #?(:cljs (:require-macros [mikron.runtime.processor.common])))
@@ -10,14 +11,20 @@
 
 (defn count
   "Returns the length of a vector `coll`."
-  #?(:clj {:inline (fn [coll] `(.count ~(vary-meta coll assoc :tag `Counted)))})
+  #?(:clj {:inline (fn [coll]
+                     (when-not (util/can-have-meta? coll)
+                       (throw (ex-info "Invalid coll" {:value coll})))
+                     `(.count ~(vary-meta coll assoc :tag `Counted)))})
   ^long [coll]
   #?(:clj  (.count ^Counted coll)
      :cljs (cljs.core/-count coll)))
 
 (defn nth
   "Returns the value of a vector `coll` at the position `index`."
-  #?(:clj {:inline (fn [coll index] `(.nth ~(vary-meta coll assoc :tag `Indexed) (unchecked-int ~index)))})
+  #?(:clj {:inline (fn [coll index]
+                     (when-not (util/can-have-meta? coll)
+                       (throw (ex-info "Invalid coll" {:value coll})))
+                     `(.nth ~(vary-meta coll assoc :tag `Indexed) (unchecked-int ~index)))})
   [coll ^long index]
   #?(:clj  (.nth ^Indexed coll (unchecked-int index))
      :cljs (cljs.core/-nth coll (unchecked-int index))))
@@ -92,7 +99,10 @@
 
 (defn string->binary
   "Converts a string `value` to a binary value."
-  #?(:clj {:inline (fn [value] `(.getBytes ~(vary-meta value assoc :tag `String) StandardCharsets/UTF_8))})
+  #?(:clj {:inline (fn [value]
+                     (when-not (util/can-have-meta? value)
+                       (throw (ex-info "Invalid string" {:string value})))
+                     `(.getBytes ~(vary-meta value assoc :tag `String) StandardCharsets/UTF_8))})
   ^bytes [^String value]
   #?(:clj  (.getBytes value StandardCharsets/UTF_8)
      :cljs (if supports-text-encoder-api?
@@ -105,7 +115,10 @@
 
 (defn binary->string
   "Converts a binary value `value` to a string."
-  #?(:clj {:inline (fn [value] `(String. ~(vary-meta value assoc :tag 'bytes) StandardCharsets/UTF_8))})
+  #?(:clj {:inline (fn [value]
+                     (when-not (util/can-have-meta? value)
+                       (throw (ex-info "Invalid binary" {:binary value})))
+                     `(String. ~(vary-meta value assoc :tag 'bytes) StandardCharsets/UTF_8))})
   ^String [^bytes value]
   #?(:clj  (String. value StandardCharsets/UTF_8)
      :cljs (if supports-text-encoder-api?
