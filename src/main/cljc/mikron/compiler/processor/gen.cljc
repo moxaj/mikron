@@ -47,7 +47,7 @@
     `(math/rand))
 
   (defmethod gen :char [_ _]
-    `(char (math/rand-long 10000)))
+    `(char (math/rand-long 50000)))
 
   (defmethod gen :boolean [_ _]
     `(< 0.5 (math/rand)))
