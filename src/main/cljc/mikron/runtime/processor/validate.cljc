@@ -41,6 +41,7 @@
 
 (defn valid-binary?
   "Returns `true` if `value` is a binary value, `false` otherwise."
-  #?(:clj {:inline (fn [value] `(instance? binary-type ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(instance? binary-type ~value))})
   [value]
   (instance? binary-type value))

@@ -40,38 +40,44 @@
 
 (defn keyword->string
   "Converts a keyword `value` to a string."
-  #?(:clj {:inline (fn [value] `(.substring (str ~value) 1))})
+  #?(:clj {:inline (fn [value]
+                     `(.substring (str ~value) 1))})
   ^String [value]
   (.substring (str value) 1))
 
 (defn string->keyword
   "Converts a string `value` to a keyword."
-  #?(:clj {:inline (fn [value] `(keyword ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(keyword ~value))})
   [^String value]
   (keyword value))
 
 (defn symbol->string
   "Converts a symbol `value` to a string."
-  #?(:clj {:inline (fn [value] `(str ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(str ~value))})
   ^String [value]
   (str value))
 
 (defn string->symbol
   "Converts a string `value` to a symbol."
-  #?(:clj {:inline (fn [value] `(symbol ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(symbol ~value))})
   [^String value]
   (symbol value))
 
 (defn char->int
   "Converts a character `value` to an int."
-  #?(:clj {:inline (fn [value] `(unchecked-int ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(unchecked-int ~value))})
   ^long [value]
   #?(:clj  (unchecked-int value)
      :cljs (.charCodeAt value 0)))
 
 (defn int->char
   "Converts an int `value` to a char."
-  #?(:clj {:inline (fn [value] `(char ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(char ~value))})
   [^long value]
   #?(:clj  (char value)
      :cljs (.fromCharCode js/String value)))
@@ -110,14 +116,16 @@
 
 (defn double->float
   "Converts a double `value` to a float."
-  #?(:clj {:inline (fn [value] `(unchecked-float ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(unchecked-float ~value))})
   [^double value]
   #?(:clj  (unchecked-float value)
      :cljs value))
 
 (defn byte-seq->binary
   "Converts a byte sequence to a binary value."
-  #?(:clj {:inline (fn [value] `(byte-array ~value))})
+  #?(:clj {:inline (fn [value]
+                     `(byte-array ~value))})
   [value]
   #?(:clj  (byte-array value)
      :cljs (.-buffer (js/Int8Array. (apply array value)))))
@@ -126,7 +134,8 @@
 
 (defn keyword-identical?
   "Returns `true` if the two keywords are identical, `false` otherwise."
-  #?(:clj {:inline (fn [value-1 value-2] `(identical? ~value-1 ~value-2))})
+  #?(:clj {:inline (fn [value-1 value-2]
+                     `(identical? ~value-1 ~value-2))})
   [value-1 value-2]
   #?(:clj  (identical? value-1 value-2)
      :cljs (clojure.core/keyword-identical? value-1 value-2)))
