@@ -60,7 +60,7 @@
        ~(processor.common/into! []
                                 true
                                 (unchecked-add 2 (math/rand-long 30))
-                                (gen [:ubyte] global-options))))
+                                (gen [:byte] global-options))))
 
   (defmethod gen :string [_ global-options]
     `(apply str ~(processor.common/into! [] true gen-length (gen [:char] global-options))))
