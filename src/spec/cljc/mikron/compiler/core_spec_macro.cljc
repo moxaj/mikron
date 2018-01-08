@@ -10,10 +10,10 @@
     [options & fields]
     `(s/and (s/or ~@(when (empty? fields)
                       [:simple `(s/and keyword? (s/conformer vector))])
-                  :complex (s/and (s/cat :type    keyword?
+                  :complex (s/and (s/cat :name    keyword?
                                          :options (s/? (s/nilable (s/keys :opt-un ~options)))
                                          ~@fields)
-                                  (s/conformer (juxt :type
+                                  (s/conformer (juxt :name
                                                      #(or (:options %) {})
                                                      ~@(take-nth 2 fields)))))
             (s/conformer second))))
