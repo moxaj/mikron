@@ -18,11 +18,8 @@
     (let [schema-name (if (vector? schema)
                         (first schema)
                         schema)]
-      (cond
-        (schema/schema-names schema-name)
+      (if (schema/schema-names schema-name)
         schema-name
-
-        :else
         :custom)))
 
   (defmulti schema-spec
