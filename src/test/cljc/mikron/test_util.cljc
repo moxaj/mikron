@@ -14,7 +14,7 @@
      [value]
      (seq (.from js/Array (js/Int8Array. value)))))
 
-(defn fix-for-equality*
+(defn clean*
   "Returns a more 'equal friendly' value, if necessary."
   [value]
   (condp contains? (type value)
@@ -30,13 +30,13 @@
 
     value))
 
-(defn fix-for-equality
+(defn clean
   "Returns a more 'equal friendly' value, if necessary."
   [value]
-  (walk/postwalk fix-for-equality* value))
+  (walk/postwalk clean* value))
 
 (defn equal?
   "Checks whether the given values are equal."
   [value-1 value-2]
-  (= (fix-for-equality value-1)
-     (fix-for-equality value-2)))
+  (= (clean value-1)
+     (clean value-2)))
