@@ -39,8 +39,18 @@
                  [:optional {} schema])
                inner-generator))
 
+(defrecord Box [value])
+
+(defn box ^Box [value]
+  (->Box value))
+
+(defn unbox [^Box box]
+  (.-value box))
+
 (defmethod compound-schema-generator :wrapped [_ inner-generator]
-  inner-generator)
+  (tc.gen/fmap (fn [schema]
+                 [:wrapped {} unbox box schema])
+               inner-generator))
 
 (defmethod compound-schema-generator :multi [_ inner-generator]
   inner-generator)
@@ -194,8 +204,8 @@
   (tc.gen/one-of [(value-generator [:nil {}])
                   (value-generator schema')]))
 
-(defmethod value-generator :wrapped [_]
-  (tc.gen/return "Not value-generator implemented for :wrapped"))
+(defmethod value-generator :wrapped [[_ _ _ post schema']]
+  (tc.gen/fmap post (value-generator schema')))
 
 (defmethod value-generator :multi [_]
   (tc.gen/return "Not value-generator implemented for :multi"))
