@@ -53,7 +53,9 @@
                inner-generator))
 
 (defmethod compound-schema-generator :multi [_ inner-generator]
-  inner-generator)
+  (tc.gen/fmap (fn [schema]
+                 [:multi {} any? {true schema}])
+               inner-generator))
 
 (defmethod compound-schema-generator :coll [schema-name inner-generator]
   (tc.gen/fmap (fn [schema]
@@ -106,8 +108,10 @@
 (defmethod schema-size :wrapped [[_ _ _ _ schema']]
   (schema-size schema'))
 
-(defmethod schema-size :multi [[_ _ _ schema']]
-  (schema-size schema'))
+(defmethod schema-size :multi [[_ _ _ schemas']]
+  (let [schema-sizes (map schema-size (vals schemas'))]
+    (/ (reduce + schema-sizes)
+       (count schema-sizes))))
 
 (defmethod schema-size :coll [[_ _ schema']]
   (* coll-schema-size-multiplier (schema-size schema')))
@@ -207,8 +211,8 @@
 (defmethod value-generator :wrapped [[_ _ _ post schema']]
   (tc.gen/fmap post (value-generator schema')))
 
-(defmethod value-generator :multi [_]
-  (tc.gen/return "Not value-generator implemented for :multi"))
+(defmethod value-generator :multi [[_ _ _ schemas']]
+  (tc.gen/one-of (map value-generator (vals schemas'))))
 
 (defmethod value-generator :list [[_ _ schema']]
   (tc.gen/list (value-generator schema')))
