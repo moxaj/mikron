@@ -256,8 +256,9 @@
         (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
-              "-e" (str "\"(require '[mikron.runtime.core :as mikron "
-                        ":refer [schema defschema pack unpack gen valid?]])\"")
+              "-e" (str "\""
+                        "(require '[mikron.runtime.core :as mikron :refer [schema defschema pack unpack gen valid?]])"
+                        "\"")
               "-r")))
 
 (deftask generate-docs
