@@ -39,12 +39,12 @@
                  [:optional {} schema])
                inner-generator))
 
-(defrecord Box [value])
+(defrecord Box2 [value])
 
-(defn box ^Box [value]
-  (->Box value))
+(defn box ^Box2 [value]
+  (->Box2 value))
 
-(defn unbox [^Box box]
+(defn unbox [^Box2 box]
   (.-value box))
 
 (defmethod compound-schema-generator :wrapped [_ inner-generator]
