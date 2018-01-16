@@ -7,7 +7,7 @@
                     [org.clojure/clojurescript   "1.9.946"]
 
                     ;; utility
-                    [moxaj/macrowbar             "0.1.2"]
+                    [moxaj/macrowbar             "0.2.0"]
 
                     ;; testing
                     [org.clojure/test.check      "0.10.0-alpha1" :scope "test"]
