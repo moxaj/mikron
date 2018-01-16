@@ -1,14 +1,36 @@
 (merge-env!
-  :init-ns      'user
-  :dependencies '[[seancorfield/boot-tools-deps "0.1.4"]]
-  :repositories [["clojars" {:url      "https://clojars.org/repo"
-                             :username (System/getenv "CLOJARS_USER")
-                             :password (System/getenv "CLOJARS_PASS")}]])
+  :resource-paths #{"src/main/cljc"
+                    "src/spec/cljc"
+                    "src/main/js"}
+  :dependencies   '[;; Clojure and ClojureScript
+                    [org.clojure/clojure         "1.9.0"]
+                    [org.clojure/clojurescript   "1.9.946"]
 
-(require '[boot-tools-deps.core :as boot-tools-deps])
+                    ;; utility
+                    [moxaj/macrowbar             "0.1.2"]
 
-(boot-tools-deps/load-deps {:resolve-aliases   [:build]
-                            :classpath-aliases [:build]})
+                    ;; testing
+                    [org.clojure/test.check      "0.10.0-alpha1" :scope "test"]
+
+                    ;; dev
+                    [nodisassemble               "0.1.3" :scope "test"]
+
+                    ;; documentation
+                    [boot-codox                  "0.10.3" :scope "test"]
+
+                    ;; build script
+                    [adzerk/boot-test            "1.2.0" :scope "test"]
+                    [adzerk/boot-reload          "0.5.1" :scope "test"]
+                    [adzerk/boot-cljs            "2.0.0" :scope "test"]
+                    [adzerk/boot-cljs-repl       "0.3.3" :scope "test"]
+                    [pandeiro/boot-http          "0.8.3" :scope "test"]
+                    [crisptrutski/boot-cljs-test "0.3.0" :scope "test"]
+                    [com.cemerick/piggieback     "0.2.1" :scope "test"]
+                    [weasel                      "0.7.0" :scope "test"]
+                    [org.clojure/tools.nrepl     "0.2.13" :scope "test"]]
+  :repositories   [["clojars" {:url      "https://clojars.org/repo"
+                               :username (System/getenv "CLOJARS_USER")
+                               :password (System/getenv "CLOJARS_PASS")}]])
 
 (require '[boot.util :as boot-util]
          '[adzerk.boot-test :as boot-test]
@@ -77,21 +99,48 @@
 
 ;; Tasks
 
+(deftask testing
+  "Adds the test files to the fileset."
+  []
+  (merge-env! :resource-paths #{"src/test/cljc"
+                                "src/test/cljs"
+                                "src/test/resources"})
+  identity)
+
+(deftask benchmarking
+  "Adds the benchmark files to the fileset."
+  []
+  (merge-env! :resource-paths #{"src/benchmark/cljc"
+                                "src/benchmark/java"
+                                "src/benchmark/resources"}
+              :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
+                                [com.cognitect/transit-cljs        "0.8.239"]
+                                [com.damballa/abracad              "0.4.14-alpha2"]
+                                [gloss                             "0.2.6"]
+                                [cheshire                          "5.7.1"]
+                                [funcool/octet                     "1.0.1"]
+                                [com.google.protobuf/protobuf-java "3.3.1"]
+                                [com.taoensso/nippy                "2.14.0-alpha1"]
+                                [criterium                         "0.4.4"]])
+  identity)
+
 (deftask dev
   "Dev task for proto-repl."
   []
-  (boot-tools-deps/load-deps {:resolve-aliases   [:dev]
-                              :classpath-aliases [:dev]})
+  (merge-env! :init-ns        'user
+              :resource-paths #{"src/dev/clj"}
+              :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
+                                [proto-repl                  "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
-  (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs)
-         (get-env :directories))
-  (comp (boot-tools-deps/deps :aliases [:test :benchmark :dev])
+  (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
+  (comp (testing)
+        (benchmarking)
         (javac)))
 
 (deftask test-clj
   "Runs the tests on JVM."
   []
-  (comp (boot-tools-deps/deps :aliases [:test])
+  (comp (testing)
         (boot-test/test :namespaces clj-test-namespaces)))
 
 (deftask test-node
@@ -99,7 +148,7 @@
   [o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
   (let [opt (or opt :none)]
-    (comp (boot-tools-deps/deps :aliases [:test])
+    (comp (testing)
           (if self-hosted?
             (with-pass-thru fileset
               (proc "lumo"
@@ -122,7 +171,7 @@
    e js-env VAL kw "The js environment."]
   (let [opt    (or opt :none)
         js-env (or js-env :slimer)]
-    (comp (boot-tools-deps/deps :aliases [:test])
+    (comp (testing)
           (boot-cljs-test/test-cljs :js-env        js-env
                                     :namespaces    cljs-test-namespaces
                                     :optimizations opt
@@ -188,7 +237,8 @@
      - (boot-cljs-repl/start-repl)
    localhost:3000"
   [o opt VAL kw  "The compiler optimization level."]
-  (comp (boot-tools-deps/deps :aliases [:test :benchmark])
+  (comp (benchmarking)
+        (testing)
         (javac)
         (boot-http/serve :dir "target/browser")
         (watch)
@@ -201,7 +251,8 @@
 (deftask run-node-repl
   "Runs a node repl."
   []
-  (comp (boot-tools-deps/deps :aliases [:test :benchmark])
+  (comp (testing)
+        (benchmarking)
         (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
