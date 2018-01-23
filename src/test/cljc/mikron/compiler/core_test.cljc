@@ -7,18 +7,18 @@
   (test/testing "Non-seqable values are literal"
     (test/are [value] (util/literal? value)
       0
+      0.0
       :x
       "x"
-      true))
+      true
+      false))
   (test/testing "Vectors, sets, and maps are literal"
     (test/are [value] (util/literal? value)
       [0]
-      #{:x}
-      {"x" false}
-      [#{1 2 :x [{true [1] :false #{2}}]}]))
-  (test/testing "Lists are not literal"
+      #{0}
+      {0 0}))
+  (test/testing "Lists and symbols are not literal"
     (test/are [value] (not (util/literal? value))
-      '(1 2 3)
+      '(0)
       'x
-      ''x
-      [1 2 '(3 4 5)])))
+      'x/x)))
