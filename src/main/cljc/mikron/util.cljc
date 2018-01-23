@@ -45,10 +45,3 @@
          (or (not (or (sequential? value)
                       (map? value)))
              (every? literal? value)))))
-
-(macrowbar/emit :debug-self-hosted
-  (defn eval-if-not-literal
-    "If the argument is a literal, returns it, otherwise returns what it evaluates to."
-    [arg]
-    (cond-> arg
-      (not (literal? arg)) (macrowbar/eval))))

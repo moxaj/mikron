@@ -14,6 +14,12 @@
             [mikron.compiler.processor.interp]))
 
 (macrowbar/emit :debug-self-hosted
+  (defn maybe-eval
+    "If `arg` is literal, returns it, otherwise returns what it evaluates to."
+    [arg]
+    (cond-> arg
+      (not (util/literal? arg)) (macrowbar/eval)))
+
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [schema global-options]
@@ -22,14 +28,10 @@
          (require (ns-name *ns*))
          (catch Exception e)))
     (let [schema
-          (->> schema
-               (util/eval-if-not-literal)
-               (util/enforce-spec ::compiler.core-spec/schema))
+          (util/enforce-spec ::compiler.core-spec/schema (maybe-eval schema))
 
           {:keys [processor-types] :as global-options}
-          (->> global-options
-               (util/eval-if-not-literal)
-               (util/enforce-spec ::compiler.core-spec/global-options))
+          (util/enforce-spec ::compiler.core-spec/global-options (maybe-eval global-options))
 
           processor-types
           (cond-> (->> compiler.processor.common/processor (methods) (keys) (set))
