@@ -551,20 +551,6 @@
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
   ^MikronBuffer [^bytes binary]
-
-(defn set-headers
-  "Sets the headers of `buffer`."
-  ^MikronBuffer [^MikronBuffer buffer diffed?]
-  (doto buffer
-    (reset)
-    (put-boolean (get-le buffer))
-    (put-boolean diffed?)))
-
-(defn get-headers
-  "Gets the headers of `buffer`."
-  [^MikronBuffer buffer]
-  (set-le buffer (take-boolean buffer))
-  {:diffed? (take-boolean buffer)})
   (->MikronBuffer (->MikronBitBuffer 0 0 -1) (-wrap byte-buffer-factory binary)))
 
 ;; Multimethod abstractions for other consumers (e.g. tests)

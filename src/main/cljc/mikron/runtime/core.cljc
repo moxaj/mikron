@@ -100,6 +100,20 @@
   `(binding [*buffer* ~buffer]
      ~@body))
 
+(defn ^:private get-buffer-headers
+  "Gets the headers of `buffer`."
+  [^mikron.buffer.MikronBuffer buffer]
+  (buffer/set-le buffer (buffer/take-boolean buffer))
+  {:diffed? (buffer/take-boolean buffer)})
+
+(defn ^:private set-buffer-headers
+  "Sets the headers of `buffer`."
+  ^mikron.buffer.MikronBuffer [^mikron.buffer.MikronBuffer buffer diffed?]
+  (doto buffer
+    (buffer/reset)
+    (buffer/put-boolean (buffer/get-le buffer))
+    (buffer/put-boolean diffed?)))
+
 (defrecord DiffedValue [value])
 
 (defn ^:private diffed?
@@ -113,7 +127,7 @@
   (let [buffer    *buffer*
         diffed?   (diffed? value)
         processor ((.-processors (resolve-schema schema)) (if diffed? :pack-diffed :pack))]
-    (buffer/set-headers buffer diffed?)
+    (set-buffer-headers buffer diffed?)
     (processor (if diffed? (.-value ^DiffedValue value) value) buffer)
     (buffer/finalize buffer)
     (buffer/take-bytes-all buffer)))
@@ -123,7 +137,7 @@
   [schema ^bytes binary]
   (util/safe :mikron/invalid
     (let [buffer    (buffer/wrap binary)
-          headers   (buffer/get-headers buffer)
+          headers   (get-buffer-headers buffer)
           diffed?   (headers :diffed?)
           processor ((.-processors (resolve-schema schema)) (if diffed? :unpack-diffed :unpack))]
       (cond-> (processor buffer)
