@@ -5,7 +5,7 @@
             [clojure.test.check.generators :as tc.gen #?@(:cljs [:include-macros true])]
             [mikron.buffer :as buffer]
             [mikron.test-util :as test-util]
-            [mikron.schema-generators :as schema-generators]
+            [mikron.test-generator.value :as test-generator.value]
             [mikron.compiler.schema :as compiler.schema]))
 
 (tc.test/defspec buffer-test 100
@@ -17,7 +17,7 @@
                     (fn [schemas]
                       (tc.gen/tuple (tc.gen/return schemas)
                                     (->> schemas
-                                         (map (comp schema-generators/value-generator vector))
+                                         (map (comp test-generator.value/value-generator vector))
                                          (apply tc.gen/tuple)))))]
       (let [buffer (buffer/allocate 100000)]
         (doall (map (fn [schema value]

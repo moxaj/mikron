@@ -1,7 +1,6 @@
 (ns mikron.runtime.core-test-macro
   "Helper macros namespace for generative testing."
   (:require [clojure.test :as test]
-            [macrowbar.core :as macrowbar]
             [mikron.runtime.core :as mikron])
   #?(:cljs (:require-macros [mikron.runtime.core-test-macro])))
 

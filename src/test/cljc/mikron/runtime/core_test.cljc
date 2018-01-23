@@ -4,7 +4,7 @@
             [mikron.test-util :as test-util]
             [mikron.runtime.core :as mikron]
             [mikron.runtime.core-test-macro :refer [compile-schemas]]))
-            
+
 (def buffer (mikron/allocate-buffer 100000))
 
 (defmulti test-mikron
