@@ -9,63 +9,63 @@
   #?(:clj (:import [java.nio ByteBuffer ByteOrder])))
 
 (definterface+ IMikronBitBuffer
-  (^long   get-bit-position* []            "Gets the current position of the buffer.")
-  (^Object set-bit-position* [^long value] "Sets the current position of the buffer.")
+  (^long   -get-bit-position []            "Gets the current position of the buffer.")
+  (^Object -set-bit-position [^long value] "Sets the current position of the buffer.")
 
-  (^long   get-bit-index* []            "Gets the current index of the buffer.")
-  (^Object set-bit-index* [^long value] "Sets the current index of the buffer.")
+  (^long   -get-bit-index []            "Gets the current index of the buffer.")
+  (^Object -set-bit-index [^long value] "Sets the current index of the buffer.")
 
-  (^long   get-bit-value* []            "Gets the current value at the index.")
-  (^Object set-bit-value* [^long value] "Sets the current value at the index."))
+  (^long   -get-bit-value []            "Gets the current value at the index.")
+  (^Object -set-bit-value [^long value] "Sets the current value at the index."))
 
 (deftype MikronBitBuffer [^long ^:unsynchronized-mutable value
                           ^long ^:unsynchronized-mutable index
                           ^long ^:unsynchronized-mutable position]
   IMikronBitBuffer
-  (get-bit-position* [_]
+  (-get-bit-position [_]
     position)
-  (set-bit-position* [_ value']
+  (-set-bit-position [_ value']
     (set! position (unchecked-long value')) nil)
 
-  (get-bit-index* [_]
+  (-get-bit-index [_]
     index)
-  (set-bit-index* [_ value']
+  (-set-bit-index [_ value']
     (set! index (unchecked-long value')) nil)
 
-  (get-bit-value* [_]
+  (-get-bit-value [_]
     value)
-  (set-bit-value* [_ value']
+  (-set-bit-value [_ value']
     (set! value (unchecked-long value')) nil))
 
 (definterface+ IMikronByteBuffer
-  (^long   take-byte* []            "Takes a byte from the buffer.")
-  (^Object put-byte*  [^long value] "Puts a byte into the buffer.")
+  (^long   -take-byte []            "Takes a byte from the buffer.")
+  (^Object -put-byte  [^long value] "Puts a byte into the buffer.")
 
-  (^long   take-short* []           "Takes a short from the buffer.")
-  (^Object put-short*  [^long value] "Puts a short into the buffer.")
+  (^long   -take-short []           "Takes a short from the buffer.")
+  (^Object -put-short  [^long value] "Puts a short into the buffer.")
 
-  (^long   take-int* []            "Takes an int from the buffer.")
-  (^Object put-int*  [^long value] "Puts an int into the buffer.")
+  (^long   -take-int []            "Takes an int from the buffer.")
+  (^Object -put-int  [^long value] "Puts an int into the buffer.")
 
-  (^long   take-long* []            "Takes a long from the buffer.")
-  (^Object put-long*  [^long value] "Puts a long into the buffer.")
+  (^long   -take-long []            "Takes a long from the buffer.")
+  (^Object -put-long  [^long value] "Puts a long into the buffer.")
 
-  (^double take-float* []               "Takes a float from the buffer.")
-  (^Object put-float*  [^double value] "Puts a float into the buffer.")
+  (^double -take-float []               "Takes a float from the buffer.")
+  (^Object -put-float  [^double value] "Puts a float into the buffer.")
 
-  (^double take-double* []              "Takes a double from the buffer.")
-  (^Object put-double*  [^double value] "Puts a double into the buffer.")
+  (^double -take-double []              "Takes a double from the buffer.")
+  (^Object -put-double  [^double value] "Puts a double into the buffer.")
 
-  (^bytes  take-bytes* [^long n]      "Takes a given number of bytes from the buffer.")
-  (^Object put-bytes*  [^bytes value] "Puts a given number of bytes into the buffer.")
+  (^bytes  -take-bytes [^long n]      "Takes a given number of bytes from the buffer.")
+  (^Object -put-bytes  [^bytes value] "Puts a given number of bytes into the buffer.")
 
-  (^bytes  take-bytes-all* [] "Takes all written bytes from the buffer.")
+  (^bytes  -take-bytes-all [] "Takes all written bytes from the buffer.")
 
-  (^long   get-position* []            "Gets the current positio of the buffer.")
-  (^Object set-position* [^long value] "Sets the current position of the buffer.")
+  (^long   -get-position []            "Gets the current positio of the buffer.")
+  (^Object -set-position [^long value] "Sets the current position of the buffer.")
 
-  (^Object get-le* []              "Gets the current endianness of the buffer.")
-  (^Object set-le* [^Object value] "Sets the current endianness of the buffer."))
+  (^Object -get-le []              "Gets the current endianness of the buffer.")
+  (^Object -set-le [^Object value] "Sets the current endianness of the buffer."))
 
 #?(:cljs
    (def NativeJsBuffer
@@ -79,56 +79,56 @@
             ^long ^:unsynchronized-mutable position
             ^boolean ^:unsynchronized-mutable le])
   IMikronByteBuffer
-  (take-byte* [_]
+  (-take-byte [_]
     #?(:clj  (unchecked-long (.get buffer))
        :cljs (with-delta position 1 (.readInt8 buffer position true))))
-  (put-byte* [_ value]
+  (-put-byte [_ value]
     #?(:clj  (.put buffer (unchecked-byte value))
        :cljs (with-delta position 1 (.writeInt8 buffer value position true))))
 
-  (take-short* [_]
+  (-take-short [_]
     #?(:clj  (unchecked-long (.getShort buffer))
        :cljs (with-delta position 2 (with-le le (.readInt16 buffer position true)))))
-  (put-short* [_ value]
+  (-put-short [_ value]
     #?(:clj  (.putShort buffer (unchecked-short value))
        :cljs (with-delta position 2 (with-le le (.writeInt16 buffer value position true)))))
 
-  (take-int* [_]
+  (-take-int [_]
     #?(:clj  (.getInt buffer)
        :cljs (with-delta position 4 (with-le le (.readInt32 buffer position true)))))
-  (put-int* [_ value]
+  (-put-int [_ value]
     #?(:clj  (.putInt buffer (unchecked-int value))
        :cljs (with-delta position 4 (with-le le (.writeInt32 buffer value position true)))))
 
-  (take-long* [this]
+  (-take-long [this]
     #?(:clj  (.getLong buffer)
-       :cljs (math/to (let [u (take-int* this)
-                            v (take-int* this)]
+       :cljs (math/to (let [u (-take-int this)
+                            v (-take-int this)]
                         (if le (math/from u v) (math/from v u))))))
-  (put-long* [this value]
+  (-put-long [this value]
     #?(:clj  (.putLong buffer value)
        :cljs (let [value (math/from value)
                    low   (.getLowBits value)
                    high  (.getHighBits value)]
                (if le
-                 (do (put-int* this low)  (put-int* this high))
-                 (do (put-int* this high) (put-int* this low))))))
+                 (do (-put-int this low)  (-put-int this high))
+                 (do (-put-int this high) (-put-int this low))))))
 
-  (take-float* [_]
+  (-take-float [_]
     #?(:clj  (double (.getFloat buffer))
        :cljs (with-delta position 4 (with-le le (.readFloat buffer position true)))))
-  (put-float* [_ value]
+  (-put-float [_ value]
     #?(:clj  (.putFloat buffer (unchecked-float value))
        :cljs (with-delta position 4 (with-le le (.writeFloat buffer value position true)))))
 
-  (take-double* [_]
+  (-take-double [_]
     #?(:clj  (.getDouble buffer)
        :cljs (with-delta position 8 (with-le le (.readDouble buffer position true)))))
-  (put-double* [_ value]
+  (-put-double [_ value]
     #?(:clj  (.putDouble buffer value)
        :cljs (with-delta position 8 (with-le le (.writeDouble buffer value position true)))))
 
-  (take-bytes* [_ n]
+  (-take-bytes [_ n]
     #?(:clj  (let [value (byte-array n)]
                (.get buffer value)
                value)
@@ -136,29 +136,29 @@
                    to   (unchecked-add position n)]
                (set! position to)
                (.slice (.-buffer buffer) from to))))
-  (put-bytes* [_ value]
+  (-put-bytes [_ value]
     #?(:clj  (.put buffer value)
        :cljs (do (.copy (.from NativeJsBuffer value) buffer position)
                  (set! position (unchecked-add position (.-byteLength value))))))
 
-  (take-bytes-all* [_]
+  (-take-bytes-all [_]
     #?(:clj  (let [bytes (byte-array (.position buffer))]
                (.position buffer (unchecked-int 0))
                (.get buffer bytes)
                bytes)
        :cljs (.slice (.-buffer buffer) 0 position)))
 
-  (get-position* [_]
+  (-get-position [_]
     #?(:clj  (.position buffer)
        :cljs position))
-  (set-position* [_ value]
+  (-set-position [_ value]
     #?(:clj  (.position buffer (unchecked-int value))
        :cljs (set! position value)))
 
-  (get-le* [_]
+  (-get-le [_]
     #?(:clj  (identical? ByteOrder/LITTLE_ENDIAN (.order buffer))
        :cljs le))
-  (set-le* [_ value]
+  (-set-le [_ value]
     #?(:clj  (.order buffer (if value ByteOrder/LITTLE_ENDIAN ByteOrder/BIG_ENDIAN))
        :cljs (set! le value))))
 
@@ -186,179 +186,179 @@
 (defn get-bit-position
   "Gets the bit position of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(get-bit-position* (get-bit-buffer ~buffer)))})
+                     `(-get-bit-position (get-bit-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (get-bit-position* (get-bit-buffer buffer)))
+  (-get-bit-position (get-bit-buffer buffer)))
 
 (defn set-bit-position
   "Sets the bit position of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
-                     `(set-bit-position* (get-bit-buffer ~buffer) ~value))})
+                     `(-set-bit-position (get-bit-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (set-bit-position* (get-bit-buffer buffer) value))
+  (-set-bit-position (get-bit-buffer buffer) value))
 
 (defn get-bit-index
   "Gets the bit index of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(get-bit-index* (get-bit-buffer ~buffer)))})
+                     `(-get-bit-index (get-bit-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (get-bit-index* (get-bit-buffer buffer)))
+  (-get-bit-index (get-bit-buffer buffer)))
 
 (defn set-bit-index
   "Sets the bit index of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
-                     `(set-bit-index* (get-bit-buffer ~buffer) ~value))})
+                     `(-set-bit-index (get-bit-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (set-bit-index* (get-bit-buffer buffer) value))
+  (-set-bit-index (get-bit-buffer buffer) value))
 
 (defn get-bit-value
   "Gets the bit value of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(get-bit-value* (get-bit-buffer ~buffer)))})
+                     `(-get-bit-value (get-bit-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (get-bit-value* (get-bit-buffer buffer)))
+  (-get-bit-value (get-bit-buffer buffer)))
 
 (defn set-bit-value
   "Sets the bit value of `buffer` to `value`."
   #?(:clj {:inline (fn [buffer value]
-                     `(set-bit-value* (get-bit-buffer ~buffer) ~value))})
+                     `(-set-bit-value (get-bit-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (set-bit-value* (get-bit-buffer buffer) value))
+  (-set-bit-value (get-bit-buffer buffer) value))
 
 ;; Public delegated operations
 
 (defn take-byte
   "Takes a byte from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-byte* (get-byte-buffer ~buffer)))})
+                     `(-take-byte (get-byte-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (take-byte* (get-byte-buffer buffer)))
+  (-take-byte (get-byte-buffer buffer)))
 
 (defn put-byte
   "Puts a byte `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-byte* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-byte (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (put-byte* (get-byte-buffer buffer) value))
+  (-put-byte (get-byte-buffer buffer) value))
 
 (defn take-short
   "Takes a short from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-short* (get-byte-buffer ~buffer)))})
+                     `(-take-short (get-byte-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (take-short* (get-byte-buffer buffer)))
+  (-take-short (get-byte-buffer buffer)))
 
 (defn put-short
   "Puts a short `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-short* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-short (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (put-short* (get-byte-buffer buffer) value))
+  (-put-short (get-byte-buffer buffer) value))
 
 (defn take-int
   "Takes an int from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-int* (get-byte-buffer ~buffer)))})
+                     `(-take-int (get-byte-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (take-int* (get-byte-buffer buffer)))
+  (-take-int (get-byte-buffer buffer)))
 
 (defn put-int
   "Puts an int `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-int* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-int (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (put-int* (get-byte-buffer buffer) value))
+  (-put-int (get-byte-buffer buffer) value))
 
 (defn take-long
   "Takes a long from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-long* (get-byte-buffer ~buffer)))})
+                     `(-take-long (get-byte-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (take-long* (get-byte-buffer buffer)))
+  (-take-long (get-byte-buffer buffer)))
 
 (defn put-long
   "Puts a long `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-long* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-long (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (put-long* (get-byte-buffer buffer) value))
+  (-put-long (get-byte-buffer buffer) value))
 
 (defn take-float
   "Takes a float from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-float* (get-byte-buffer ~buffer)))})
+                     `(-take-float (get-byte-buffer ~buffer)))})
   ^double [^MikronBuffer buffer]
-  (take-float* (get-byte-buffer buffer)))
+  (-take-float (get-byte-buffer buffer)))
 
 (defn put-float
   "Puts a float `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-float* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-float (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^double value]
-  (put-float* (get-byte-buffer buffer) value))
+  (-put-float (get-byte-buffer buffer) value))
 
 (defn take-double
   "Takes a double from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-double* (get-byte-buffer ~buffer)))})
+                     `(-take-double (get-byte-buffer ~buffer)))})
   ^double [^MikronBuffer buffer]
-  (take-double* (get-byte-buffer buffer)))
+  (-take-double (get-byte-buffer buffer)))
 
 (defn put-double
   "Puts a double `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-double* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-double (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^double value]
-  (put-double* (get-byte-buffer buffer) value))
+  (-put-double (get-byte-buffer buffer) value))
 
 (defn take-bytes
   "Takes `n` bytes from `buffer`."
   #?(:clj {:inline (fn [buffer n]
-                     `(take-bytes* (get-byte-buffer ~buffer) ~n))})
+                     `(-take-bytes (get-byte-buffer ~buffer) ~n))})
   ^bytes [^MikronBuffer buffer ^long n]
-  (take-bytes* (get-byte-buffer buffer) n))
+  (-take-bytes (get-byte-buffer buffer) n))
 
 (defn put-bytes
   "Puts some bytes `value` to `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(put-bytes* (get-byte-buffer ~buffer) ~value))})
+                     `(-put-bytes (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^bytes value]
-  (put-bytes* (get-byte-buffer buffer) value))
+  (-put-bytes (get-byte-buffer buffer) value))
 
 (defn take-bytes-all
   "Takes all bytes from `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(take-bytes-all* (get-byte-buffer ~buffer)))})
+                     `(-take-bytes-all (get-byte-buffer ~buffer)))})
   ^bytes [^MikronBuffer buffer]
-  (take-bytes-all* (get-byte-buffer buffer)))
+  (-take-bytes-all (get-byte-buffer buffer)))
 
 (defn get-position
   "Gets the position of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(get-position* (get-byte-buffer ~buffer)))})
+                     `(-get-position (get-byte-buffer ~buffer)))})
   ^long [^MikronBuffer buffer]
-  (get-position* (get-byte-buffer buffer)))
+  (-get-position (get-byte-buffer buffer)))
 
 (defn set-position
   "Sets the position of `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(set-position* (get-byte-buffer ~buffer) ~value))})
+                     `(-set-position (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer ^long value]
-  (set-position* (get-byte-buffer buffer) value))
+  (-set-position (get-byte-buffer buffer) value))
 
 (defn get-le
   "Gets the endianness of `buffer`."
   #?(:clj {:inline (fn [buffer]
-                     `(get-le* (get-byte-buffer ~buffer)))})
+                     `(-get-le (get-byte-buffer ~buffer)))})
   [^MikronBuffer buffer]
-  (get-le* (get-byte-buffer buffer)))
+  (-get-le (get-byte-buffer buffer)))
 
 (defn set-le
   "Sets the endianness of `buffer`."
   #?(:clj {:inline (fn [buffer value]
-                     `(set-le* (get-byte-buffer ~buffer) ~value))})
+                     `(-set-le (get-byte-buffer ~buffer) ~value))})
   [^MikronBuffer buffer value]
-  (set-le* (get-byte-buffer buffer) value))
+  (-set-le (get-byte-buffer buffer) value))
 
 ;; Public derived operations
 
@@ -514,8 +514,8 @@
     buffer))
 
 (definterface+ IMikronByteBufferFactory
-  (^mikron.buffer.IMikronByteBuffer allocate* [^long size]    "Allocates a buffer with size `size`.")
-  (^mikron.buffer.IMikronByteBuffer wrap*     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
+  (^mikron.buffer.IMikronByteBuffer -allocate [^long size]    "Allocates a buffer with size `size`.")
+  (^mikron.buffer.IMikronByteBuffer -wrap     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 
 (defn byte-buffer-factory?
   "Returns `true` if `value` is an instance of `IMikronByteBufferFactory`, `false` otherwise."
@@ -524,10 +524,10 @@
 
 (deftype MikronByteBufferFactory []
   IMikronByteBufferFactory
-  (allocate* [_ size]
+  (-allocate [_ size]
     #?(:clj  (->MikronByteBuffer (.order (ByteBuffer/allocateDirect size) (ByteOrder/nativeOrder)))
        :cljs (->MikronByteBuffer (.allocUnsafe NativeJsBuffer size) 0 true)))
-  (wrap* [_ binary]
+  (-wrap [_ binary]
     #?(:clj  (->MikronByteBuffer (ByteBuffer/wrap binary))
        :cljs (->MikronByteBuffer (.from NativeJsBuffer binary) 0 true))))
 
@@ -546,12 +546,11 @@
 (defn allocate
   "Allocates a buffer with the size `size`."
   ^MikronBuffer [^long size]
-  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (allocate* byte-buffer-factory size)))
+  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (-allocate byte-buffer-factory size)))
 
 (defn wrap
   "Wraps a binary value `binary` with a buffer."
   ^MikronBuffer [^bytes binary]
-  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (wrap* byte-buffer-factory binary)))
 
 (defn set-headers
   "Sets the headers of `buffer`."
@@ -566,6 +565,7 @@
   [^MikronBuffer buffer]
   (set-le buffer (take-boolean buffer))
   {:diffed? (take-boolean buffer)})
+  (->MikronBuffer (->MikronBitBuffer 0 0 -1) (-wrap byte-buffer-factory binary)))
 
 ;; Multimethod abstractions for other consumers (e.g. tests)
 
