@@ -65,7 +65,7 @@
   (defmacro schema
     "Returns a reified schema for the given schema definition."
     [& args]
-    (macrowbar/macro-context {:gen-syms [rschema]}
+    (macrowbar/with-syms {:gen [rschema]}
       (let [{:keys [schema-name schema global-options]} (util/enforce-spec ::runtime.core-spec/schema-args args)]
         (if-not schema-name
           (schema* schema global-options)

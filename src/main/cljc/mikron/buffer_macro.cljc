@@ -10,7 +10,7 @@
   (defmacro with-delta
     "Executes `body` and updates the position `pos` with the delta `delta`."
     [pos delta body]
-    (macrowbar/macro-context {:gen-syms [value]}
+    (macrowbar/with-syms {:gen [value]}
       `(let [~value ~body]
          (set! ~pos (unchecked-add ~pos ~delta))
          ~value)))
@@ -78,7 +78,7 @@
   (defmacro def-put-abstractions
     "Syntactic macro to define an abstraction layer above `put-*` functions."
     [multi-fn]
-    (macrowbar/macro-context {:gen-syms [_ buffer value]}
+    (macrowbar/with-syms {:gen [_ buffer value]}
       `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
                `(defmethod ~multi-fn ~schema
                   [~_ ~buffer ~value]
@@ -89,7 +89,7 @@
   (defmacro def-take-abstractions
     "Syntactic macro to define an abstraction layer above `take-*` functions."
     [multi-fn]
-    (macrowbar/macro-context {:gen-syms [_ buffer]}
+    (macrowbar/with-syms {:gen [_ buffer]}
       `(do ~@(for [schema (compiler.schema/leaf-descendants compiler.schema/hierarchy :primitive)]
                `(defmethod ~multi-fn ~schema
                   [~_ ~buffer]

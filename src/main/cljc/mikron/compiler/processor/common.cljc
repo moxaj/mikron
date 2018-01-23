@@ -56,7 +56,7 @@
     "Repeatedly evaluates `expr` `n` times, collecting the results into
     a collection `coll`. Uses transient operations if `transient?` is `true`."
     [coll transient? n expr]
-    (macrowbar/macro-context {:eval-syms [coll n]}
+    (macrowbar/with-syms {:bind [coll n]}
       `(loop [~n    (long ~n)
               ~coll ~(if transient? `(transient ~coll) coll)]
          (if (== 0 ~n)
@@ -68,7 +68,7 @@
     "Repeatedly evaluates `key-expr` and `value-expr` `n` times, collecting the results into
     a map `coll`. Uses transient operations if `transient?` is `true`."
     [coll transient? n key-expr value-expr]
-    (macrowbar/macro-context {:eval-syms [coll n]}
+    (macrowbar/with-syms {:bind [coll n]}
       `(loop [~n    (long ~n)
               ~coll ~(if transient? `(transient ~coll) coll)]
          (if (== 0 ~n)

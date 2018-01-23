@@ -139,11 +139,11 @@
       ~buffer))
 
   (defmethod processor.common/processor :unpack [_ schema global-options]
-    (macrowbar/with-gensyms [buffer]
+    (macrowbar/with-syms {:gen [buffer]}
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
 
   (defmethod processor.common/processor :unpack-diffed [_ schema global-options]
-    (macrowbar/with-gensyms [buffer]
+    (macrowbar/with-syms {:gen [buffer]}
       {:args [buffer]
        :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))

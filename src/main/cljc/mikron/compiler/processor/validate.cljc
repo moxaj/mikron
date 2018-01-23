@@ -73,7 +73,7 @@
          ~(valid? schema' value global-options)))
 
   (defmethod valid? :wrapped [[_ _ pre _ schema'] value global-options]
-    (macrowbar/macro-context {:gen-syms [value']}
+    (macrowbar/with-syms {:gen [value']}
       `(let [~value' (util/safe :mikron/invalid (~pre ~value))]
          (and (not (runtime.processor.common/keyword-identical? :mikron/invalid ~value'))
               ~(valid? schema' value' global-options)))))
@@ -86,28 +86,28 @@
        false))
 
   (defmethod valid? :list [[_ _ schema'] value global-options]
-    (macrowbar/macro-context {:gen-syms [value']}
+    (macrowbar/with-syms {:gen [value']}
       `(and (sequential? ~value)
             (every? (fn [~value']
                       ~(valid? schema' value' global-options))
                     ~value))))
 
   (defmethod valid? :vector [[_ _ schema'] value global-options]
-    (macrowbar/macro-context {:gen-syms [value']}
+    (macrowbar/with-syms {:gen [value']}
       `(and (vector? ~value)
             (runtime.processor.common/every? (fn [~value']
                                                ~(valid? schema' value' global-options))
                                              ~value))))
 
   (defmethod valid? :set [[_ _ schema'] value global-options]
-    (macrowbar/macro-context {:gen-syms [value']}
+    (macrowbar/with-syms {:gen [value']}
       `(and (set? ~value)
             (every? (fn [~value']
                       ~(valid? schema' value' global-options))
                     ~value))))
 
   (defmethod valid? :map [[_ _ key-schema val-schema] value global-options]
-    (macrowbar/macro-context {:gen-syms [entry' key' value']}
+    (macrowbar/with-syms {:gen [entry' key' value']}
       `(and (map? ~value)
             (every? (fn [~entry']
                       (let [~key'   (key ~entry')
@@ -139,6 +139,6 @@
       ~value))
 
   (defmethod processor.common/processor :valid? [_ schema global-options]
-    (macrowbar/with-gensyms [value]
+    (macrowbar/with-syms {:gen [value]}
       {:args [value]
        :body [`(boolean ~(valid? schema value global-options))]})))

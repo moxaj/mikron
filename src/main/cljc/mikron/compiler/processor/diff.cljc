@@ -64,7 +64,7 @@
        ~(diff [:default] nil value-1 value-2 global-options)))
 
   (defmethod diff :multi [[_ _ selector schemas'] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [case-1 case-2]}
+    (macrowbar/with-syms {:gen [case-1 case-2]}
       `(let [~case-1 (~selector ~value-1)
              ~case-2 (~selector ~value-2)]
          (if (not= ~case-1 ~case-2)
@@ -77,13 +77,13 @@
                        schemas'))))))
 
   (defmethod diff :list [[_ options schema'] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [value-1-vec value-2-vec]}
+    (macrowbar/with-syms {:gen [value-1-vec value-2-vec]}
       `(let [~value-1-vec (vec ~value-1)
              ~value-2-vec (vec ~value-2)]
          ~(diff [:vector options schema'] paths value-1-vec value-2-vec global-options))))
 
   (defmethod diff :vector [[_ _ schema'] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]}
+    (macrowbar/with-syms {:gen [index value-1' value-2' value value' length-1 length-2 same-length? all-dnil?]}
       (let [paths' (:all paths)]
         (if-not paths'
           (diff [:default] nil value-1 value-2 global-options)
@@ -107,7 +107,7 @@
                           (and ~all-dnil? (runtime.processor.common/keyword-identical? :mikron/nil ~value')))))))))))
 
   (defmethod diff :map [[_ {:keys [sorted-by]} _ val-schema] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [value-1' value-2' entry-1 key-2 keys-2 value value'
+    (macrowbar/with-syms {:gen [value-1' value-2' entry-1 key-2 keys-2 value value'
                                          length-1 length-2 same-length? all-dnil?]}
       (let [paths' (:all paths)]
         (if-not paths'
@@ -133,7 +133,7 @@
                           (and ~all-dnil? ~entry-1 (runtime.processor.common/keyword-identical? :mikron/nil ~value')))))))))))
 
   (defmethod diff :tuple [[_ _ schemas] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [value-1' value-2']}
+    (macrowbar/with-syms {:gen [value-1' value-2']}
       (let [fields (processor.common/tuple->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
                            [value' `(let [~value-1' ~(processor.common/tuple-lookup value-1 key)
@@ -149,7 +149,7 @@
              ~(processor.common/fields->tuple fields))))))
 
   (defmethod diff :record [[_ {:keys [type]} schemas] paths value-1 value-2 global-options]
-    (macrowbar/macro-context {:gen-syms [value-1' value-2']}
+    (macrowbar/with-syms {:gen [value-1' value-2']}
       (let [fields (processor.common/record->fields schemas)]
         `(let [~@(mapcat (fn [[key value']]
                            [value' `(let [~value-1' ~(processor.common/record-lookup value-1 key type)
@@ -174,11 +174,11 @@
     value-2)
 
   (defmethod processor.common/processor :diff [_ schema {:keys [diff-paths] :as global-options}]
-    (macrowbar/with-gensyms [_ value-1 value-2]
+    (macrowbar/with-syms {:gen [_ value-1 value-2]}
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :diff))]}))
 
   (defmethod processor.common/processor :undiff [_ schema {:keys [diff-paths] :as global-options}]
-    (macrowbar/with-gensyms [_ value-1 value-2]
+    (macrowbar/with-syms {:gen [_ value-1 value-2]}
       {:args [value-1 value-2]
        :body [(diff* schema diff-paths value-1 value-2 (assoc global-options :processor-type :undiff))]})))

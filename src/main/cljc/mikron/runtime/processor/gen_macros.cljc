@@ -6,7 +6,7 @@
 (defmacro gen-integer
   "Generates an integer."
   [bytes signed?]
-  (macrowbar/macro-context {:gen-syms [r]}
+  (macrowbar/with-syms {:gen [r]}
     `(let [~r (math/rand)]
        (-> (* ~r ~(math/upper-bound bytes signed?))
            (+ (* (- 1 ~r) ~(math/lower-bound bytes signed?)))
