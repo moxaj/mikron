@@ -34,7 +34,7 @@
 (defn ^{:tag #?(:clj nil :cljs boolean)} valid-long?
   "Returns `true` if `value` is a valid long."
   [value]
-  (valid-integer? value 8 true))
+  (int? value))
 
 (def binary-type #?(:clj  (Class/forName "[B")
                     :cljs js/ArrayBuffer))

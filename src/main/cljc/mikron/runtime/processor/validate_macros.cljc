@@ -5,7 +5,7 @@
 (defmacro valid-integer?
   "Returns `true` if `value` is a valid integer."
   [value bytes signed?]
-  `(and (integer? ~value)
+  `(and (int? ~value)
         (let [~value (unchecked-long ~value)]
           (and (>= ~value ~(math/lower-bound bytes signed?))
                (<  ~value ~(math/upper-bound bytes signed?))))))
