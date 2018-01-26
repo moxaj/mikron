@@ -15,7 +15,7 @@
 
 (macrowbar/emit :debug-self-hosted
   (defn maybe-eval
-    "If `arg` is literal, returns it, otherwise returns what it evaluates to."
+    "Returns `arg` if it is literal, otherwise returns what it evaluates to."
     [arg]
     (cond-> arg
       (not (util/literal? arg)) (macrowbar/eval)))
