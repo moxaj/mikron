@@ -424,7 +424,7 @@
       (put-byte value)
       (set-position position'))))
 
-(defn take-boolean
+(defn ^{:tag #?(:clj nil :cljs boolean)} take-boolean
   "Takes a boolean from `buffer`."
   [^MikronBuffer buffer]
   (let [bit-index (get-bit-index buffer)]
@@ -517,7 +517,7 @@
   (^mikron.buffer.IMikronByteBuffer -allocate [^long size]    "Allocates a buffer with size `size`.")
   (^mikron.buffer.IMikronByteBuffer -wrap     [^bytes binary] "Wraps a binary value `binary` with a buffer."))
 
-(defn byte-buffer-factory?
+(defn ^{:tag #?(:clj nil :cljs boolean)} byte-buffer-factory?
   "Returns `true` if `value` is an instance of `IMikronByteBufferFactory`, `false` otherwise."
   [value]
   (instance? mikron.buffer.IMikronByteBufferFactory value))

@@ -14,7 +14,7 @@
        ~ex-value)))
 
 #?(:cljs
-   (defn node-env?
+   (defn ^boolean node-env?
      "Returns `true` if compiled for Node.js, `false` otherwise."
      []
      (= "nodejs" cljs.core/*target*)))
@@ -44,4 +44,13 @@
          (not (seq? value))
          (or (not (or (sequential? value)
                       (map? value)))
-             (every? literal? value)))))
+             (every? literal? value))))
+
+  (defmacro as-boolean
+    "Applies a boolean type hint to `value`, if possible."
+    [value]
+    (macrowbar/with-syms {:gen [^boolean value']}
+      (if-not (macrowbar/cljs? &env)
+        value
+        `(let [~value' ~value]
+           ~value')))))

@@ -91,7 +91,7 @@
   #?(:clj  x
      :cljs (.toNumber x)))
 
-(defn zero?
+(defn ^{:tag #?(:clj nil :cljs boolean)} zero?
   "Returns `true` if a long `x` is zero, `false` otherwise."
   #?(:clj {:inline (fn [x] `(== 0 ~x))})
   [^long x]
@@ -168,14 +168,14 @@
 
 (defn lower-bound
   "Returns the lower bound for an integer type"
-  [^long bytes signed?]
+  [^long bytes ^{:tag #?(:clj nil :cljs boolean)} signed?]
   (if signed?
     (- (pow 2 (dec (* bytes 8))))
     0))
 
 (defn upper-bound
   "Returns the upper bound for an integer type"
-  [^long bytes signed?]
+  [^long bytes ^{:tag #?(:clj nil :cljs boolean)} signed?]
   (let [m (pow 2 (* bytes 8))]
     (if signed?
       (/ m 2)

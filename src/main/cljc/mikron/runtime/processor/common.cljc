@@ -34,13 +34,13 @@
   [coll]
   (nth coll (math/rand-long (count coll))))
 
-(defn every?
+(defn ^{:tag #?(:clj nil :cljs boolean)} every?
   "Returns `true` if `pred` returns `true` for each element of a vector `coll`, `false` otherwise."
   [pred coll]
   (let [length (count coll)]
     (loop [index (long 0)]
       (or (== index length)
-          (and (pred (nth coll index))
+          (and (util/as-boolean (pred (nth coll index)))
                (recur (unchecked-inc index)))))))
 
 ;; converters
@@ -145,7 +145,7 @@
 
 ;; diff
 
-(defn keyword-identical?
+(defn ^{:tag #?(:clj nil :cljs boolean)} keyword-identical?
   "Returns `true` if the two keywords are identical, `false` otherwise."
   #?(:clj {:inline (fn [value-1 value-2]
                      `(identical? ~value-1 ~value-2))})

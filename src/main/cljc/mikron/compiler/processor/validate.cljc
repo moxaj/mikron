@@ -66,7 +66,7 @@
     true)
 
   (defmethod valid? :enum [[_ _ enum-values] value _]
-    `(~(set enum-values) ~value))
+    `(util/as-boolean (~(set enum-values) ~value)))
 
   (defmethod valid? :optional [[_ _ schema'] value global-options]
     `(or (nil? ~value)

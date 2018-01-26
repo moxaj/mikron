@@ -12,7 +12,7 @@
 
 (defrecord Schema [processors global-options])
 
-(defn schema?
+(defn ^{:tag #?(:clj nil :cljs boolean)} schema?
   "Returns `true` if `arg` is an instance of `Schema`, `false` otherwise."
   [arg]
   (instance? Schema arg))
