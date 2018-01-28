@@ -57,23 +57,29 @@
              "List test"     [:list :byte]
              "Vector test"   [:vector :int]
              "Set test"      [:set :short]
-             "Set < test"    [:set {:sorted-by '<} :short]
-             "Set > test"    [:set {:sorted-by '>} :int]
+             "Set < test"    [:set {:sorted-by <} :short]
+             "Set > test"    [:set {:sorted-by >} :int]
              "Map test"      [:map :byte :string]
-             "Map < test"    [:map {:sorted-by '<} :byte :string]
-             "Map > test"    [:map {:sorted-by '>} :byte :string]
+             "Map < test"    [:map {:sorted-by <} :byte :string]
+             "Map > test"    [:map {:sorted-by >} :byte :string]
              "Optional test" [:optional :byte]
              "Enum test"     [:enum #{:cat :dog :measurement :error}]
              "Tuple test"    [:tuple [:int :string :double]]
              "Record test"   [:record {:a :int :b :string :c :byte}]
-             "Multi test"    [:multi 'number? {true :int false :string}]
-             "Wrapped test"  [:wrapped 'unchecked-inc-int 'unchecked-dec-int :int]})]
+             "Multi test"    [:multi number? {true :int false :string}]
+             "Wrapped test"  [:wrapped unchecked-inc-int unchecked-dec-int :int]})]
     (let [values (repeatedly 100 #(mikron/gen schema))]
       (test/testing test-name
         (doseq [test-method (keys (methods test-mikron))]
           (test-mikron test-method schema values)))))
   (test/testing "Self-referential test"
     (let [schema (mikron/schema ::s [:tuple [:byte [:optional ::s]]])
+          values (repeatedly 100 #(mikron/gen schema))]
+      (doseq [test-method (keys (methods test-mikron))]
+        (test-mikron test-method schema values))))
+  (test/testing "Partial eval test"
+    (let [schema (mikron/schema ::s [:record ^eval (zipmap (map (comp keyword str) (range))
+                                                           (repeat 5 :int))])
           values (repeatedly 100 #(mikron/gen schema))]
       (doseq [test-method (keys (methods test-mikron))]
         (test-mikron test-method schema values)))))

@@ -37,15 +37,6 @@
     #?(:clj  (instance? clojure.lang.IMeta arg)
        :cljs (satisfies? IMeta arg)))
 
-  (defn literal?
-    "Returns `true` if the given value is a literal (evaluates to itself), `false` otherwise."
-    [value]
-    (and (not (symbol? value))
-         (not (seq? value))
-         (or (not (or (sequential? value)
-                      (map? value)))
-             (every? literal? value))))
-
   (defmacro as-boolean
     "Applies a boolean type hint to `value`, if possible."
     [value]

@@ -48,18 +48,18 @@
 (defrecord Snapshot [^long time bodies])
 
 (mikron/defschema ::coord2
-  [:record {:type '[Coord x y]}
+  [:record {:type [Coord x y]}
            {:x :double :y :double}])
 
 (mikron/defschema ::fixture2
-  [:record {:type '[Fixture user-data coords]}
-           {:user-data [:record {:type '[FixtureUserData color]}
+  [:record {:type [Fixture user-data coords]}
+           {:user-data [:record {:type [FixtureUserData color]}
                                 {:color :int}]
             :coords    [:vector ::coord2]}])
 
 (mikron/defschema ::body2
-  [:record {:type '[Body user-data position angle body-type fixtures]}
-           {:user-data [:record {:type '[BodyUserData id]}
+  [:record {:type [Body user-data position angle body-type fixtures]}
+           {:user-data [:record {:type [BodyUserData id]}
                                 {:id :int}]
             :position  ::coord2
             :angle     :double
@@ -67,7 +67,7 @@
             :fixtures  [:vector ::fixture2]}])
 
 (mikron/defschema ::snapshot2
-  [:record {:type '[Snapshot time bodies]}
+  [:record {:type [Snapshot time bodies]}
            {:time   :long
             :bodies [:vector ::body2]}])
 

@@ -1,24 +1,12 @@
 (ns mikron.compiler.core-test
   (:require [clojure.test :as test]
-            [mikron.util :as util]
             [mikron.compiler.core :as mikron]))
 
-(test/deftest literal?-test
-  (test/testing "Non-seqable values are literal"
-    (test/are [value] (util/literal? value)
-      0
-      0.0
-      :x
-      "x"
-      true
-      false))
-  (test/testing "Vectors, sets, and maps are literal"
-    (test/are [value] (util/literal? value)
-      [0]
-      #{0}
-      {0 0}))
-  (test/testing "Lists and symbols are not literal"
-    (test/are [value] (not (util/literal? value))
-      '(0)
-      'x
-      'x/x)))
+(test/deftest partial-eval-test
+  (test/testing "Without ^eval, no evaluation occurs"
+    (test/are [value] (= value (mikron/partial-eval value))
+      '(1 2 3 a)
+      '(1 2 3 (4 5 6))))
+  (test/testing "With ^eval, evaluation occurs"
+    (test/is (= `(1 2 ~+) (mikron/partial-eval '(1 2 ^eval +))))
+    (test/is (= `(1 2 ~(+ 1 2)) (mikron/partial-eval '(1 2 ^eval (+ 1 2)))))))

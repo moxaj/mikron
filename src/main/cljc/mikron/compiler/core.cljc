@@ -1,6 +1,7 @@
 (ns mikron.compiler.core
   "Main compiler namespace."
   (:require [clojure.set :as set]
+            [clojure.walk :as walk]
             [macrowbar.core :as macrowbar]
             [mikron.util :as util]
             [mikron.compiler.core-spec :as compiler.core-spec]
@@ -14,11 +15,14 @@
             [mikron.compiler.processor.interp]))
 
 (macrowbar/emit :debug-self-hosted
-  (defn maybe-eval
-    "Returns `arg` if it is literal, otherwise returns what it evaluates to."
-    [arg]
-    (cond-> arg
-      (not (util/literal? arg)) (macrowbar/eval)))
+  (defn partial-eval
+    "Prewalks the given value, and evaluates each subvalue marked with an `'eval` tag."
+    [value]
+    (walk/prewalk (fn [value']
+                    (cond-> value'
+                      (= 'eval (:tag (meta value')))
+                      (macrowbar/eval)))
+                  value))
 
   (defn compile-schema
     "Returns a compiled schema for the given args."
@@ -28,10 +32,10 @@
          (require (ns-name *ns*))
          (catch Exception e)))
     (let [schema
-          (util/enforce-spec ::compiler.core-spec/schema (maybe-eval schema))
+          (util/enforce-spec ::compiler.core-spec/schema (partial-eval schema))
 
           {:keys [processor-types] :as global-options}
-          (util/enforce-spec ::compiler.core-spec/global-options (maybe-eval global-options))
+          (util/enforce-spec ::compiler.core-spec/global-options (partial-eval global-options))
 
           processor-types
           (cond-> (->> compiler.processor.common/processor (methods) (keys) (set))
