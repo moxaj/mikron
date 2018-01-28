@@ -14,11 +14,11 @@
 
 (defonce ^:private registry-ref (atom {}))
 
-(defn registered-schema!
+(defn register-schema!
   "Registers a reified schema with the given name."
   [schema-name ^Schema schema]
   (swap! registry-ref assoc schema-name schema)
-  schema)
+  schema-name)
 
 (defonce ^:private local-registry-ref (atom {}))
 
@@ -72,7 +72,7 @@
     "Globally registers a reified schema for the given schema definition, with the given name."
     [& args]
     (let [{:keys [schema-name schema global-options]} (util/enforce-spec ::runtime.core-spec/defschema-args args)]
-      `(registered-schema! ~schema-name ~(schema* schema global-options)))))
+      `(register-schema! ~schema-name ~(schema* schema global-options)))))
 
 (def ^:dynamic ^:private *buffer*
   "The default buffer with a 10Kb size."
