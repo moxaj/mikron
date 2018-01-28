@@ -12,11 +12,6 @@
 
 (defrecord Schema [processors global-options])
 
-(defn ^{:tag #?(:clj nil :cljs boolean)} schema?
-  "Returns `true` if `arg` is an instance of `Schema`, `false` otherwise."
-  [arg]
-  (instance? Schema arg))
-
 (defonce ^:private registry-ref (atom {}))
 
 (defn registered-schema!
@@ -36,7 +31,7 @@
 (defn resolve-schema
   "Returns a reified schema for the given argument."
   ^Schema [arg]
-  (or (and (schema? arg) arg)
+  (or (and (instance? Schema arg) arg)
       (@registry-ref arg)
       (@local-registry-ref arg)
       (throw (ex-info "Invalid schema" {:arg arg}))))
