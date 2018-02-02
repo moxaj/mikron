@@ -1,7 +1,6 @@
 (ns mikron.compiler.core
   "Main compiler namespace."
   (:require [clojure.set :as set]
-            [clojure.walk :as walk]
             [macrowbar.core :as macrowbar]
             [mikron.util :as util]
             [mikron.compiler.core-spec :as compiler.core-spec]
@@ -15,15 +14,6 @@
             [mikron.compiler.processor.interp]))
 
 (macrowbar/emit :debug-self-hosted
-  (defn partial-eval
-    "Prewalks the given value, and evaluates each subvalue marked with an `'eval` tag."
-    [value]
-    (walk/prewalk (fn [value']
-                    (cond-> value'
-                      (= 'eval (:tag (meta value')))
-                      (macrowbar/eval)))
-                  value))
-
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [schema global-options]
@@ -31,35 +21,36 @@
        (try
          (require (ns-name *ns*))
          (catch Exception e)))
-    (let [schema
-          (util/enforce-spec ::compiler.core-spec/schema (partial-eval schema))
+    (macrowbar/with-syms {:eval [schema global-options]}
+      (let [schema
+            (util/enforce-spec ::compiler.core-spec/schema schema)
 
-          {:keys [processor-types] :as global-options}
-          (util/enforce-spec ::compiler.core-spec/global-options (partial-eval global-options))
+            {:keys [processor-types] :as global-options}
+            (util/enforce-spec ::compiler.core-spec/global-options global-options)
 
-          processor-types
-          (cond-> (->> compiler.processor.common/processor (methods) (keys) (set))
-            (some? processor-types) (set/intersection processor-types))
+            processor-types
+            (cond-> (->> compiler.processor.common/processor (methods) (keys) (set))
+              (some? processor-types) (set/intersection processor-types))
 
-          custom-processors
-          (->> (for [processor-type processor-types
-                     custom-schema  (compiler.schema/custom-schemas schema)]
-                 [[processor-type custom-schema]
-                  (compiler.processor.common/processor-name processor-type custom-schema)])
-               (into {}))
+            custom-processors
+            (->> (for [processor-type processor-types
+                       custom-schema  (compiler.schema/custom-schemas schema)]
+                   [[processor-type custom-schema]
+                    (compiler.processor.common/processor-name processor-type custom-schema)])
+                 (into {}))
 
-          global-options
-          (-> global-options
-              (assoc :custom-processors custom-processors)
-              (update :diff-paths compiler.schema/expand-paths schema)
-              (update :interp-paths compiler.schema/expand-paths schema))
+            global-options
+            (-> global-options
+                (assoc :custom-processors custom-processors)
+                (update :diff-paths compiler.schema/expand-paths schema)
+                (update :interp-paths compiler.schema/expand-paths schema))
 
-          processors
-          (->> processor-types
-               (map (fn [processor-type]
-                      [processor-type
-                       (compiler.processor.common/processor processor-type schema global-options)]))
-               (into {}))]
-      {:processors        processors
-       :custom-processors custom-processors
-       :global-options    global-options})))
+            processors
+            (->> processor-types
+                 (map (fn [processor-type]
+                        [processor-type
+                         (compiler.processor.common/processor processor-type schema global-options)]))
+                 (into {}))]
+        {:processors        processors
+         :custom-processors custom-processors
+         :global-options    global-options}))))
