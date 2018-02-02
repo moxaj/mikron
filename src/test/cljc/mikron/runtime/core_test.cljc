@@ -21,7 +21,18 @@
 (defmethod test-mikron :diff [_ schema values]
   (doseq [[value-1 value-2] (partition 2 values)]
     (test/is (test-util/equal? value-2 (->> value-2
+                                            (mikron/diff* schema value-1)
+                                            (mikron/undiff* schema value-1))))
+    (test/is (test-util/equal? value-2 (->> value-2
                                             (mikron/diff schema value-1)
+                                            (mikron/undiff schema value-1))))))
+
+(defmethod test-mikron :pack+diff [_ schema values]
+  (doseq [[value-1 value-2] (partition 2 values)]
+    (test/is (test-util/equal? value-2 (->> value-2
+                                            (mikron/diff schema value-1)
+                                            (mikron/pack schema)
+                                            (mikron/unpack schema)
                                             (mikron/undiff schema value-1))))))
 
 (defmethod test-mikron :valid? [_ schema values]
