@@ -19,7 +19,7 @@
     (macrowbar/with-syms {:gen [value-dnil?]}
       (if-not diffed?
         (pack schema value global-options)
-        `(let [~value-dnil? (identical? :mikron/nil ~value)]
+        `(let [~value-dnil? (runtime.processor.common/keyword-identical? :mikron/nil ~value)]
            ~(pack [:boolean] value-dnil? global-options)
            (when-not ~value-dnil?
              ~(pack schema value global-options))))))
