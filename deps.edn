@@ -3,7 +3,7 @@
              "src/spec/cljc"]
  :deps      {org.clojure/clojure       {:mvn/version "1.9.0"}
              org.clojure/clojurescript {:mvn/version "1.9.946"}
-             moxaj/macrowbar           {:mvn/version "0.2.3"}}
+             moxaj/macrowbar           {:mvn/version "0.2.4"}}
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://clojars.org/repo"}}
  :aliases   {:test      {:extra-paths ["src/test/cljc"
