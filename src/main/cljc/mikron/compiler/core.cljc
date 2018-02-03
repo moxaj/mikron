@@ -17,10 +17,6 @@
   (defn compile-schema
     "Returns a compiled schema for the given args."
     [schema global-options]
-    #?(:clj
-       (try
-         (require (ns-name *ns*))
-         (catch Exception e)))
     (macrowbar/with-syms {:eval [schema global-options]}
       (let [schema
             (util/enforce-spec ::compiler.core-spec/schema schema)
