@@ -152,15 +152,3 @@
   [value-1 value-2]
   #?(:clj  (identical? value-1 value-2)
      :cljs (clojure.core/keyword-identical? value-1 value-2)))
-
-;; processor
-
-(defmacro create-processor-handle
-  "Creates a handle through which a processor can be obtained."
-  [processor]
-  `(delay ~processor))
-
-(defn deref-processor-handle
-  "Obtains a processor through the handle."
-  [processor-handle]
-  @processor-handle)

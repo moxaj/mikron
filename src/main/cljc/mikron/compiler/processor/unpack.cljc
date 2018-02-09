@@ -15,135 +15,140 @@
 
   (defn unpack*
     "Returns the generated unpacker code for a given schema."
-    [schema {:keys [diffed?] :as global-options}]
-    (if-not diffed?
-      (unpack schema global-options)
-      `(if ~(unpack [:boolean] global-options)
+    [schema]
+    (if (not= :unpack-diffed (:processor-type processor.common/*processor-options*))
+      (unpack schema)
+      `(if ~(unpack [:boolean])
          :mikron/nil
-         ~(unpack schema global-options))))
+         ~(unpack schema))))
 
-  (defmethod unpack :byte [_ {:keys [buffer]}]
-    `(buffer/take-byte ~buffer))
+  (defmethod unpack :byte [_]
+    `(buffer/take-byte ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :ubyte [_ {:keys [buffer]}]
-    `(buffer/take-ubyte ~buffer))
+  (defmethod unpack :ubyte [_]
+    `(buffer/take-ubyte ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :short [_ {:keys [buffer]}]
-    `(buffer/take-short ~buffer))
+  (defmethod unpack :short [_]
+    `(buffer/take-short ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :ushort [_ {:keys [buffer]}]
-    `(buffer/take-ushort ~buffer))
+  (defmethod unpack :ushort [_]
+    `(buffer/take-ushort ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :int [_ {:keys [buffer]}]
-    `(buffer/take-int ~buffer))
+  (defmethod unpack :int [_]
+    `(buffer/take-int ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :uint [_ {:keys [buffer]}]
-    `(buffer/take-uint ~buffer))
+  (defmethod unpack :uint [_]
+    `(buffer/take-uint ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :long [_ {:keys [buffer]}]
-    `(buffer/take-long ~buffer))
+  (defmethod unpack :long [_]
+    `(buffer/take-long ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :varint [_ {:keys [buffer]}]
-    `(buffer/take-varint ~buffer))
+  (defmethod unpack :varint [_]
+    `(buffer/take-varint ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :float [_ {:keys [buffer]}]
-    `(buffer/take-float ~buffer))
+  (defmethod unpack :float [_]
+    `(buffer/take-float ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :double [_ {:keys [buffer]}]
-    `(buffer/take-double ~buffer))
+  (defmethod unpack :double [_]
+    `(buffer/take-double ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :char [_ global-options]
-    `(runtime.processor.common/int->char ~(unpack [:int] global-options)))
+  (defmethod unpack :char [_]
+    `(runtime.processor.common/int->char ~(unpack [:int])))
 
-  (defmethod unpack :boolean [_ {:keys [buffer]}]
-    `(buffer/take-boolean ~buffer))
+  (defmethod unpack :boolean [_]
+    `(buffer/take-boolean ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :nil [_ _]
+  (defmethod unpack :nil [_]
     nil)
 
-  (defmethod unpack :binary [_ {:keys [buffer]}]
-    `(buffer/take-binary ~buffer))
+  (defmethod unpack :binary [_]
+    `(buffer/take-binary ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod unpack :string [_ global-options]
-    `(runtime.processor.common/binary->string ~(unpack [:binary] global-options)))
+  (defmethod unpack :string [_]
+    `(runtime.processor.common/binary->string ~(unpack [:binary])))
 
-  (defmethod unpack :keyword [_ global-options]
-    `(runtime.processor.common/string->keyword ~(unpack [:string] global-options)))
+  (defmethod unpack :keyword [_]
+    `(runtime.processor.common/string->keyword ~(unpack [:string])))
 
-  (defmethod unpack :symbol [_ global-options]
-    `(runtime.processor.common/string->symbol ~(unpack [:string] global-options)))
+  (defmethod unpack :symbol [_]
+    `(runtime.processor.common/string->symbol ~(unpack [:string])))
 
-  (defmethod unpack :any [_ global-options]
+  (defmethod unpack :any [_]
     nil)
 
-  (defmethod unpack :enum [[_ _ enum-values] global-options]
+  (defmethod unpack :enum [[_ _ enum-values]]
     `(runtime.processor.common/nth ~(vec (sort enum-values))
-                                   ~(unpack (compiler.schema/integer-schema (count enum-values)) global-options)))
+                                   ~(unpack (compiler.schema/integer-schema (count enum-values)))))
 
-  (defmethod unpack :optional [[_ _ schema'] global-options]
-    `(when ~(unpack [:boolean] global-options)
-       ~(unpack schema' global-options)))
+  (defmethod unpack :optional [[_ _ schema']]
+    `(when ~(unpack [:boolean])
+       ~(unpack schema')))
 
-  (defmethod unpack :wrapped [[_ _ _ post schema'] global-options]
-    `(~post ~(unpack schema' global-options)))
+  (defmethod unpack :wrapped [[_ _ _ post schema']]
+    `(~post ~(unpack schema')))
 
-  (defmethod unpack :multi [[_ _ _ schemas'] global-options]
-    `(case ~(unpack (compiler.schema/integer-schema (count schemas')) global-options)
+  (defmethod unpack :multi [[_ _ _ schemas']]
+    `(case ~(unpack (compiler.schema/integer-schema (count schemas')))
        ~@(->> schemas'
               (keys)
               (sort)
               (map-indexed (fn [index key']
-                             [index (unpack (get schemas' key') global-options)]))
+                             [index (unpack (get schemas' key'))]))
               (apply concat))))
 
-  (defmethod unpack :coll [[_ _ schema'] global-options]
+  (defmethod unpack :coll [[_ _ schema']]
     (processor.common/into! []
                             true
-                            (unpack [:varint] global-options)
-                            (unpack* schema' global-options)))
+                            (unpack [:varint])
+                            (unpack* schema')))
 
-  (defmethod unpack :set [[_ {:keys [sorted-by]} schema'] global-options]
+  (defmethod unpack :set [[_ {:keys [sorted-by]} schema']]
     (processor.common/into! (if sorted-by
                               `(sorted-set-by ~sorted-by)
                               #{})
                             (nil? sorted-by)
-                            (unpack [:varint] global-options)
-                            (unpack* schema' global-options)))
+                            (unpack [:varint])
+                            (unpack* schema')))
 
-  (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
+  (defmethod unpack :map [[_ {:keys [sorted-by]} key-schema val-schema]]
     (processor.common/into-kv! (if sorted-by
                                  `(sorted-map-by ~sorted-by)
                                  {})
                                (nil? sorted-by)
-                               (unpack [:varint] global-options)
-                               (unpack key-schema global-options)
-                               (unpack* val-schema global-options)))
+                               (unpack [:varint])
+                               (unpack key-schema)
+                               (unpack* val-schema)))
 
-  (defmethod unpack :tuple [[_ _ schemas] global-options]
+  (defmethod unpack :tuple [[_ _ schemas]]
     (let [fields (processor.common/tuple->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (unpack* (get schemas key') global-options)])
+                         [value' (unpack* (get schemas key'))])
                        fields)]
          ~(processor.common/fields->tuple fields))))
 
-  (defmethod unpack :record [[_ {:keys [type]} schemas] global-options]
+  (defmethod unpack :record [[_ {:keys [type]} schemas]]
     (let [fields (processor.common/record->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (unpack* (get schemas key') global-options)])
+                         [value' (unpack* (get schemas key'))])
                        fields)]
          ~(processor.common/fields->record fields type))))
 
-  (defmethod unpack :custom [schema {:keys [diffed? buffer custom-processors]}]
-    `((runtime.processor.common/deref-processor-handle
-        ~(get custom-processors [(if diffed? :unpack-diffed :unpack) schema]))
-      ~buffer))
+  (defmethod unpack :custom [schema]
+    `(~(processor.common/custom-processor-name schema)
+      ~(:buffer processor.common/*processor-options*)))
 
-  (defmethod processor.common/processor :unpack [_ schema global-options]
+  (defmethod processor.common/processor* :unpack [_ schema]
     (macrowbar/with-syms {:gen [buffer]}
-      {:args [buffer]
-       :body [(unpack* schema (assoc global-options :diffed? false :buffer buffer))]}))
+      (binding [processor.common/*processor-options*
+                (assoc processor.common/*processor-options* :buffer buffer)]
+        {:args [buffer]
+         :body (processor.common/force-lazy
+                 (unpack* schema))})))
 
-  (defmethod processor.common/processor :unpack-diffed [_ schema global-options]
+  (defmethod processor.common/processor* :unpack-diffed [_ schema]
     (macrowbar/with-syms {:gen [buffer]}
-      {:args [buffer]
-       :body [(unpack* schema (assoc global-options :diffed? true :buffer buffer))]})))
+      (binding [processor.common/*processor-options*
+                (assoc processor.common/*processor-options* :buffer buffer)]
+        {:args [buffer]
+         :body (processor.common/force-lazy
+                 (unpack* schema))}))))

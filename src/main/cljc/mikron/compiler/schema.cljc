@@ -145,8 +145,8 @@
         (recur (into children schemas)
                (mapcat schema-children* schemas)))))
 
-  (defn custom-schemas
-    "Returns the custom schemas used by `schema`."
+  (defn custom-schema-names
+    "Returns the custom schema names used by `schema`."
     [schema]
     (->> schema
        (schema-children)

@@ -1,11 +1,14 @@
 (ns mikron.compiler.processor.common
   "Common functions for the compilers."
-  (:require [macrowbar.core :as macrowbar]
+  (:require [clojure.walk :as walk]
+            [macrowbar.core :as macrowbar]
             [mikron.util :as util]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]))
 
 (macrowbar/emit :debug
+  ;; generic functions
+
   (defn record-lookup
     "Generates code for record value lookup."
     [record key [class]]
@@ -76,11 +79,36 @@
            (recur (unchecked-dec ~n)
                   (~(if transient? `assoc! `assoc) ~coll ~key-expr ~value-expr))))))
 
-  (defmulti processor
+  ;; processor related functions
+
+  (defn force-lazy
+    "Walks the given datastructure and forces all lazy evaluations."
+    [expr]
+    (walk/postwalk identity expr))
+
+  (def ^:dynamic *processor-options*
+    "The constant processor level options."
+    {})
+
+  (defmulti processor*
     "Generates processor code."
-    (fn [processor-type schema global-options] processor-type))
+    (fn [processor-type schema] processor-type))
+
+  (defn processor
+    "Generates processor code."
+    [processor-type schema {:keys [processor-name] :as processor-options}]
+    (binding [*processor-options* processor-options]
+      (assoc (processor* processor-type schema) :name processor-name)))
 
   (defn processor-name
     "Generates a symbol for a processor name."
     [processor-type schema-name]
-    (gensym (str (name processor-type) "-" (name schema-name)))))
+    (gensym (str (name processor-type) "-" (name schema-name))))
+
+  (defn custom-processor-name
+    "Returns a piece of code which referenced a custom processor."
+    [custom-schema-name]
+    (let [{:keys [schema-name processor-type processor-name custom-processor-names]} *processor-options*]
+      (if (= custom-schema-name schema-name)
+        processor-name
+        `(deref ~(get custom-processor-names [processor-type custom-schema-name]))))))

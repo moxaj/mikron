@@ -15,160 +15,164 @@
 
   (defn pack*
     "Returns the generated packer code for a given schema."
-    [schema value {:keys [diffed?] :as global-options}]
+    [schema value]
     (macrowbar/with-syms {:gen [value-dnil?]}
-      (if-not diffed?
-        (pack schema value global-options)
+      (if (not= :pack-diffed (:processor-type processor.common/*processor-options*))
+        (pack schema value)
         `(let [~value-dnil? (runtime.processor.common/keyword-identical? :mikron/nil ~value)]
-           ~(pack [:boolean] value-dnil? global-options)
+           ~(pack [:boolean] value-dnil?)
            (when-not ~value-dnil?
-             ~(pack schema value global-options))))))
+             ~(pack schema value))))))
 
-  (defmethod pack :byte [_ value {:keys [buffer]}]
-    `(buffer/put-byte ~buffer ~value))
+  (defmethod pack :byte [_ value]
+    `(buffer/put-byte ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :ubyte [_ value {:keys [buffer]}]
-    `(buffer/put-ubyte ~buffer ~value))
+  (defmethod pack :ubyte [_ value]
+    `(buffer/put-ubyte ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :short [_ value {:keys [buffer]}]
-    `(buffer/put-short ~buffer ~value))
+  (defmethod pack :short [_ value]
+    `(buffer/put-short ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :ushort [_ value {:keys [buffer]}]
-    `(buffer/put-ushort ~buffer ~value))
+  (defmethod pack :ushort [_ value]
+    `(buffer/put-ushort ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :int [_ value {:keys [buffer]}]
-    `(buffer/put-int ~buffer ~value))
+  (defmethod pack :int [_ value]
+    `(buffer/put-int ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :uint [_ value {:keys [buffer]}]
-    `(buffer/put-uint ~buffer ~value))
+  (defmethod pack :uint [_ value]
+    `(buffer/put-uint ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :long [_ value {:keys [buffer]}]
-    `(buffer/put-long ~buffer ~value))
+  (defmethod pack :long [_ value]
+    `(buffer/put-long ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :varint [_ value {:keys [buffer]}]
-    `(buffer/put-varint ~buffer ~value))
+  (defmethod pack :varint [_ value]
+    `(buffer/put-varint ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :float [_ value {:keys [buffer]}]
-    `(buffer/put-float ~buffer ~value))
+  (defmethod pack :float [_ value]
+    `(buffer/put-float ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :double [_ value {:keys [buffer]}]
-    `(buffer/put-double ~buffer ~value))
+  (defmethod pack :double [_ value]
+    `(buffer/put-double ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :char [_ value global-options]
+  (defmethod pack :char [_ value]
     (macrowbar/with-syms {:gen [value']}
       `(let [~value' (runtime.processor.common/char->int ~value)]
-         ~(pack [:int] value' global-options))))
+         ~(pack [:int] value'))))
 
-  (defmethod pack :boolean [_ value {:keys [buffer]}]
-    `(buffer/put-boolean ~buffer ~value))
+  (defmethod pack :boolean [_ value]
+    `(buffer/put-boolean ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :nil [_ _ _]
+  (defmethod pack :nil [_ _]
     nil)
 
-  (defmethod pack :binary [_ value {:keys [buffer]}]
-    `(buffer/put-binary ~buffer ~value))
+  (defmethod pack :binary [_ value]
+    `(buffer/put-binary ~(:buffer processor.common/*processor-options*) ~value))
 
-  (defmethod pack :string [_ value global-options]
+  (defmethod pack :string [_ value]
     (macrowbar/with-syms {:gen [value']}
       `(let [~value' (runtime.processor.common/string->binary ~value)]
-         ~(pack [:binary] value' global-options))))
+         ~(pack [:binary] value'))))
 
-  (defmethod pack :keyword [_ value global-options]
+  (defmethod pack :keyword [_ value]
     (macrowbar/with-syms {:gen [value']}
       `(let [~value' (runtime.processor.common/keyword->string ~value)]
-         ~(pack [:string] value' global-options))))
+         ~(pack [:string] value'))))
 
-  (defmethod pack :symbol [_ value global-options]
+  (defmethod pack :symbol [_ value]
     (macrowbar/with-syms {:gen [value']}
       `(let [~value' (runtime.processor.common/symbol->string ~value)]
-         ~(pack [:string] value' global-options))))
+         ~(pack [:string] value'))))
 
-  (defmethod pack :any [_ value global-options]
+  (defmethod pack :any [_ value]
     nil)
 
-  (defmethod pack :enum [[_ _ enum-values] value global-options]
+  (defmethod pack :enum [[_ _ enum-values] value]
     (pack (compiler.schema/integer-schema (count enum-values))
           `(case ~value
              ~@(->> enum-values
                     (sort)
-                    (map-indexed (fn [index enum-value]
+                    (map-indexed (fn [index enum-value] ;; TODO mapcat (range)
                                    [enum-value index]))
-                    (apply concat)))
-          global-options))
+                    (apply concat)))))
 
-  (defmethod pack :optional [[_ _ schema'] value global-options]
+  (defmethod pack :optional [[_ _ schema'] value]
     (macrowbar/with-syms {:gen [value-some?]}
       `(let [~value-some? (some? ~value)]
-         ~(pack [:boolean] value-some? global-options)
+         ~(pack [:boolean] value-some?)
          (when ~value-some?
-           ~(pack schema' value global-options)))))
+           ~(pack schema' value)))))
 
-  (defmethod pack :wrapped [[_ _ pre _ schema'] value global-options]
+  (defmethod pack :wrapped [[_ _ pre _ schema'] value]
     (macrowbar/with-syms {:gen [value']}
       `(let [~value' (~pre ~value)]
-         ~(pack schema' value' global-options))))
+         ~(pack schema' value'))))
 
-  (defmethod pack :multi [[_ _ selector schemas'] value global-options]
+  (defmethod pack :multi [[_ _ selector schemas'] value]
     `(case (~selector ~value)
        ~@(->> schemas'
               (keys)
               (sort)
               (map-indexed (fn [index key']
-                             [key' `(do ~(pack (compiler.schema/integer-schema (count schemas')) index global-options)
-                                        ~(pack (get schemas' key') value global-options))]))
+                             [key' `(do ~(pack (compiler.schema/integer-schema (count schemas')) index)
+                                        ~(pack (get schemas' key') value))]))
               (apply concat))))
 
-  (defmethod pack :vector [[_ _ schema'] value global-options]
+  (defmethod pack :vector [[_ _ schema'] value]
     (macrowbar/with-syms {:gen [length value' index]}
       `(let [~length (runtime.processor.common/count ~value)]
-         ~(pack [:varint] length global-options)
+         ~(pack [:varint] length)
          (dotimes [~index ~length]
            (let [~value' (runtime.processor.common/nth ~value ~index)]
-             ~(pack* schema' value' global-options))))))
+             ~(pack* schema' value'))))))
 
-  (defmethod pack :coll [[_ options schema'] value global-options]
+  (defmethod pack :coll [[_ options schema'] value]
     (macrowbar/with-syms {:gen [length value']}
       `(let [~length (count ~value)]
-         (do ~(pack [:varint] length global-options)
+         (do ~(pack [:varint] length)
              (run! (fn [~value']
-                     ~(pack* schema' value' global-options))
+                     ~(pack* schema' value'))
                    ~value)))))
 
-  (defmethod pack :map [[_ _ key-schema val-schema] value global-options]
+  (defmethod pack :map [[_ _ key-schema val-schema] value]
     (macrowbar/with-syms {:gen [length entry' key' value']}
       `(let [~length (runtime.processor.common/count ~value)]
-         (do ~(pack [:varint] length global-options)
+         (do ~(pack [:varint] length)
              (run! (fn [~entry']
                      (let [~key'   (key ~entry')
                            ~value' (val ~entry')]
-                       ~(pack key-schema key' global-options)
-                       ~(pack* val-schema value' global-options)))
+                       ~(pack key-schema key')
+                       ~(pack* val-schema value')))
                    ~value)))))
 
-  (defmethod pack :tuple [[_ _ schemas] value global-options]
+  (defmethod pack :tuple [[_ _ schemas] value]
     `(do ~@(map (fn [[key' value']]
                   `(let [~value' ~(processor.common/tuple-lookup value key')]
-                     ~(pack* (get schemas key') value' global-options)))
+                     ~(pack* (get schemas key') value')))
                 (processor.common/tuple->fields schemas))))
 
-  (defmethod pack :record [[_ {:keys [type]} schemas] value global-options]
+  (defmethod pack :record [[_ {:keys [type]} schemas] value]
     `(do ~@(map (fn [[key' value']]
                   `(let [~value' ~(processor.common/record-lookup value key' type)]
-                     ~(pack* (get schemas key') value' global-options)))
+                     ~(pack* (get schemas key') value')))
                 (processor.common/record->fields schemas))))
 
-  (defmethod pack :custom [schema value {:keys [diffed? buffer custom-processors]}]
-    `((runtime.processor.common/deref-processor-handle
-        ~(get custom-processors [(if diffed? :pack-diffed :pack) schema]))
-      ~value
-      ~buffer))
+  (defmethod pack :custom [schema value]
+    `(~(processor.common/custom-processor-name schema)
+      ~(:buffer processor.common/*processor-options*)
+      ~value))
 
-  (defmethod processor.common/processor :pack [_ schema global-options]
-    (macrowbar/with-syms {:gen [value buffer]}
-      {:args [value buffer]
-       :body [(pack* schema value (assoc global-options :buffer buffer :diffed? false))]}))
+  (defmethod processor.common/processor* :pack [_ schema]
+    (macrowbar/with-syms {:gen [buffer value]}
+      (binding [processor.common/*processor-options*
+                (assoc processor.common/*processor-options* :buffer buffer)]
+        {:args [buffer value]
+         :body (processor.common/force-lazy
+                 (pack* schema value))})))
 
-  (defmethod processor.common/processor :pack-diffed [_ schema global-options]
-    (macrowbar/with-syms {:gen [value buffer]}
-      {:args [value buffer]
-       :body [(pack* schema value (assoc global-options :buffer buffer :diffed? true))]})))
+  (defmethod processor.common/processor* :pack-diffed [_ schema]
+    (macrowbar/with-syms {:gen [buffer value]}
+      (binding [processor.common/*processor-options*
+                (assoc processor.common/*processor-options* :buffer buffer)]
+        {:args [buffer value]
+         :body (processor.common/force-lazy
+                 (pack* schema value))}))))

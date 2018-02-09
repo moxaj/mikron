@@ -16,119 +16,119 @@
     compiler.schema/schema-name
     :hierarchy #'compiler.schema/hierarchy)
 
-  (defmethod gen :byte [_ _]
+  (defmethod gen :byte [_]
     `(runtime.processor.gen/gen-byte))
 
-  (defmethod gen :ubyte [_ _]
+  (defmethod gen :ubyte [_]
     `(runtime.processor.gen/gen-ubyte))
 
-  (defmethod gen :short [_ _]
+  (defmethod gen :short [_]
     `(runtime.processor.gen/gen-short))
 
-  (defmethod gen :ushort [_ _]
+  (defmethod gen :ushort [_]
     `(runtime.processor.gen/gen-ushort))
 
-  (defmethod gen :int [_ _]
+  (defmethod gen :int [_]
     `(runtime.processor.gen/gen-int))
 
-  (defmethod gen :uint [_ _]
+  (defmethod gen :uint [_]
     `(runtime.processor.gen/gen-uint))
 
-  (defmethod gen :long [_ _]
+  (defmethod gen :long [_]
     `(runtime.processor.gen/gen-long))
 
-  (defmethod gen :varint [_ global-options]
-    (gen [:long] global-options))
+  (defmethod gen :varint [_]
+    (gen [:long]))
 
-  (defmethod gen :float [_ _]
+  (defmethod gen :float [_]
     `(runtime.processor.common/double->float (math/rand)))
 
-  (defmethod gen :double [_ _]
+  (defmethod gen :double [_]
     `(math/rand))
 
-  (defmethod gen :char [_ _]
+  (defmethod gen :char [_]
     `(char (math/rand-long 50000)))
 
-  (defmethod gen :boolean [_ _]
+  (defmethod gen :boolean [_]
     `(< 0.5 (math/rand)))
 
-  (defmethod gen :nil [_ _]
+  (defmethod gen :nil [_]
     nil)
 
-  (defmethod gen :binary [_ global-options]
+  (defmethod gen :binary [_]
     `(runtime.processor.common/byte-seq->binary
        ~(processor.common/into! []
                                 true
                                 (unchecked-add 2 (math/rand-long 30))
-                                (gen [:byte] global-options))))
+                                (gen [:byte]))))
 
-  (defmethod gen :string [_ global-options]
-    `(apply str ~(processor.common/into! [] true gen-length (gen [:char] global-options))))
+  (defmethod gen :string [_]
+    `(apply str ~(processor.common/into! [] true gen-length (gen [:char]))))
 
-  (defmethod gen :keyword [_ global-options]
-    `(runtime.processor.common/string->keyword ~(gen [:string] global-options)))
+  (defmethod gen :keyword [_]
+    `(runtime.processor.common/string->keyword ~(gen [:string])))
 
-  (defmethod gen :symbol [_ global-options]
-    `(symbol ~(gen [:string] global-options)))
+  (defmethod gen :symbol [_]
+    `(symbol ~(gen [:string])))
 
-  (defmethod gen :any [_ _]
+  (defmethod gen :any [_]
     nil)
 
-  (defmethod gen :enum [[_ _ enum-values] _]
+  (defmethod gen :enum [[_ _ enum-values]]
     `(runtime.processor.common/rand-nth ~(vec enum-values)))
 
-  (defmethod gen :optional [[_ _ schema'] global-options]
-    `(when ~(gen [:boolean] global-options)
-       ~(gen schema' global-options)))
+  (defmethod gen :optional [[_ _ schema']]
+    `(when ~(gen [:boolean])
+       ~(gen schema')))
 
-  (defmethod gen :wrapped [[_ _ _ post schema'] global-options]
-    `(~post ~(gen schema' global-options)))
+  (defmethod gen :wrapped [[_ _ _ post schema']]
+    `(~post ~(gen schema')))
 
-  (defmethod gen :multi [[_ _ _ schemas'] global-options]
+  (defmethod gen :multi [[_ _ _ schemas']]
     `(case (math/rand-long ~(count schemas'))
        ~@(->> schemas'
               (map-indexed (fn [index [_ schema']]
-                             [index (gen schema' global-options)]))
+                             [index (gen schema')]))
               (apply concat))))
 
-  (defmethod gen :coll [[_ _ schema'] global-options]
-    (processor.common/into! [] true gen-length (gen schema' global-options)))
+  (defmethod gen :coll [[_ _ schema']]
+    (processor.common/into! [] true gen-length (gen schema')))
 
-  (defmethod gen :set [[_ {:keys [sorted-by]} schema'] global-options]
+  (defmethod gen :set [[_ {:keys [sorted-by]} schema']]
     (processor.common/into! (if (some? sorted-by)
                               `(sorted-set-by ~sorted-by)
                               #{})
                             (nil? sorted-by)
                             gen-length
-                            (gen schema' global-options)))
+                            (gen schema')))
 
-  (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema] global-options]
+  (defmethod gen :map [[_ {:keys [sorted-by]} key-schema val-schema]]
     (processor.common/into-kv! (if (some? sorted-by)
                                  `(sorted-map-by ~sorted-by)
                                  {})
                                (nil? sorted-by)
                                gen-length
-                               (gen key-schema global-options)
-                               (gen val-schema global-options)))
+                               (gen key-schema)
+                               (gen val-schema)))
 
-  (defmethod gen :tuple [[_ _ schemas] global-options]
+  (defmethod gen :tuple [[_ _ schemas]]
     (let [fields (processor.common/tuple->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (gen (get schemas key') global-options)])
+                         [value' (gen (get schemas key'))])
                        fields)]
          ~(processor.common/fields->tuple fields))))
 
-  (defmethod gen :record [[_ {:keys [type]} schemas] global-options]
+  (defmethod gen :record [[_ {:keys [type]} schemas]]
     (let [fields (processor.common/record->fields schemas)]
       `(let [~@(mapcat (fn [[key' value']]
-                         [value' (gen (get schemas key') global-options)])
+                         [value' (gen (get schemas key'))])
                        fields)]
          ~(processor.common/fields->record fields type))))
 
-  (defmethod gen :custom [schema {:keys [custom-processors]}]
-    `((runtime.processor.common/deref-processor-handle
-        ~(get custom-processors [:gen schema]))))
+  (defmethod gen :custom [schema]
+    `(~(processor.common/custom-processor-name schema)))
 
-  (defmethod processor.common/processor :gen [_ schema global-options]
+  (defmethod processor.common/processor* :gen [_ schema]
     {:args []
-     :body [(gen schema global-options)]}))
+     :body (processor.common/force-lazy
+             (gen schema))}))
