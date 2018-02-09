@@ -1,45 +1,25 @@
 (merge-env!
+  :init-ns        'user
   :resource-paths #{"src/main/cljc"
                     "src/spec/cljc"
                     "src/main/js"}
-  :dependencies   '[;; Clojure and ClojureScript
-                    [org.clojure/clojure         "1.9.0"]
-                    [org.clojure/clojurescript   "1.9.946"]
-
-                    ;; utility
-                    [moxaj/macrowbar             "0.2.3"]
-
-                    ;; testing
-                    [org.clojure/test.check      "0.10.0-alpha1" :scope "test"]
-
-                    ;; dev
-                    [nodisassemble               "0.1.3" :scope "test"]
-
-                    ;; documentation
-                    [boot-codox                  "0.10.3" :scope "test"]
-
-                    ;; build script
-                    [adzerk/boot-test            "1.2.0" :scope "test"]
-                    [adzerk/boot-reload          "0.5.1" :scope "test"]
-                    [adzerk/boot-cljs            "2.0.0" :scope "test"]
-                    [adzerk/boot-cljs-repl       "0.3.3" :scope "test"]
-                    [pandeiro/boot-http          "0.8.3" :scope "test"]
-                    [crisptrutski/boot-cljs-test "0.3.0" :scope "test"]
-                    [com.cemerick/piggieback     "0.2.1" :scope "test"]
-                    [weasel                      "0.7.0" :scope "test"]
-                    [org.clojure/tools.nrepl     "0.2.13" :scope "test"]]
+  :dependencies   '[[seancorfield/boot-tools-deps "0.4.1" :scope "test"]]
   :repositories   [["clojars" {:url      "https://clojars.org/repo"
                                :username (System/getenv "CLOJARS_USER")
                                :password (System/getenv "CLOJARS_PASS")}]])
 
-(require '[boot.util :as boot-util]
+(require '[boot-tools-deps.core :as boot-tools-deps])
+(boot-tools-deps/load-deps {:resolve-aliases [:build] :quick-merge true})
+
+(require '[clojure.string :as string]
+         '[boot.util :as boot-util]
+         '[boot-tools-deps.core :as boot-tools-deps]
          '[adzerk.boot-test :as boot-test]
          '[adzerk.boot-reload :as boot-reload]
          '[adzerk.boot-cljs :as boot-cljs]
          '[adzerk.boot-cljs-repl :as boot-cljs-repl]
          '[pandeiro.boot-http :as boot-http]
-         '[crisptrutski.boot-cljs-test :as boot-cljs-test]
-         '[codox.boot :as boot-codox])
+         '[crisptrutski.boot-cljs-test :as boot-cljs-test])
 
 (task-options!
   pom  {:project     'moxaj/mikron
@@ -99,48 +79,18 @@
 
 ;; Tasks
 
-(deftask testing
-  "Adds the test files to the fileset."
-  []
-  (merge-env! :resource-paths #{"src/test/cljc"
-                                "src/test/cljs"
-                                "src/test/resources"})
-  identity)
-
-(deftask benchmarking
-  "Adds the benchmark files to the fileset."
-  []
-  (merge-env! :resource-paths #{"src/benchmark/cljc"
-                                "src/benchmark/java"
-                                "src/benchmark/resources"}
-              :dependencies   '[[com.cognitect/transit-clj         "0.8.300"]
-                                [com.cognitect/transit-cljs        "0.8.239"]
-                                [com.damballa/abracad              "0.4.14-alpha2"]
-                                [gloss                             "0.2.6"]
-                                [cheshire                          "5.7.1"]
-                                [funcool/octet                     "1.0.1"]
-                                [com.google.protobuf/protobuf-java "3.3.1"]
-                                [com.taoensso/nippy                "2.14.0-alpha1"]
-                                [criterium                         "0.4.4"]])
-  identity)
-
 (deftask dev
   "Dev task for proto-repl."
   []
-  (merge-env! :init-ns        'user
-              :resource-paths #{"src/dev/clj"}
-              :dependencies   '[[org.clojure/tools.namespace "0.2.11"]
-                                [proto-repl                  "0.3.1" :exclusions [org.clojure/core.async]]])
   (require 'clojure.tools.namespace.repl)
   (apply (resolve 'clojure.tools.namespace.repl/set-refresh-dirs) (get-env :directories))
-  (comp (testing)
-        (benchmarking)
+  (comp (boot-tools-deps/deps :aliases [:test :benchmark :dev] :quick-merge true)
         (javac)))
 
 (deftask test-clj
   "Runs the tests on JVM."
   []
-  (comp (testing)
+  (comp (boot-tools-deps/deps :aliases [:test] :quick-merge true)
         (boot-test/test :namespaces clj-test-namespaces)))
 
 (deftask test-node
@@ -148,7 +98,7 @@
   [o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
   (let [opt (or opt :none)]
-    (comp (testing)
+    (comp (boot-tools-deps/deps :aliases [:test] :quick-merge true)
           (if self-hosted?
             (with-pass-thru fileset
               (proc "lumo"
@@ -171,7 +121,7 @@
    e js-env VAL kw "The js environment."]
   (let [opt    (or opt :none)
         js-env (or js-env :slimer)]
-    (comp (testing)
+    (comp (boot-tools-deps/deps :aliases [:test] :quick-merge true)
           (boot-cljs-test/test-cljs :js-env        js-env
                                     :namespaces    cljs-test-namespaces
                                     :optimizations opt
@@ -183,36 +133,32 @@
    t target       VAL kw   "The target for the cljs compiler."
    o opt          VAL kw   "The optimization level for the cljs compiler."
    s self-hosted?     bool "True if self-hosted."]
-  (let [platform (or platform :clj)
-        target   (or target :browser)]
-    (case platform
-      :clj  (test-clj)
-      :cljs (case target
-              :browser (test-browser :opt    opt
-                                     :js-env :slimer)
-              :nodejs  (test-node :opt          opt
-                                  :self-hosted? self-hosted?)))))
+  (let [platform (or platform :clj)]
+    (comp (with-pass-thru _
+            (println "Testing" platform target opt self-hosted?))
+          (case platform
+            :clj  (test-clj)
+            :cljs (case (or target :browser)
+                    :browser (test-browser :opt    opt
+                                           :js-env :slimer)
+                    :nodejs  (test-node :opt          opt
+                                        :self-hosted? self-hosted?))))))
 
 (deftask test-all
   "Runs all test."
   []
-  (comp (with-pass-thru _ (println "======= Testing clj"))
-        (test :platform     :clj)
-
-        (with-pass-thru _ (println "======= Testing cljs | browser"))
+  (comp (test :platform     :clj)
         (test :platform     :cljs
               :target       :browser)
-
-        (with-pass-thru _ (println "======= Testing cljs | browser | advanced"))
         (test :platform     :cljs
               :target       :browser
               :opt          :advanced)
-
-        (with-pass-thru _ (println "======= Testing cljs | node"))
         (test :platform     :cljs
               :target       :nodejs)
-
-        (with-pass-thru _ (println "======= Testing cljs | node | self-hosted"))
+        ;; TODO externs for node.js?
+        #_(test :platform     :cljs
+                :target       :nodejs
+                :opt          :advanced)
         (test :platform     :cljs
               :target       :nodejs
               :self-hosted? true)))
@@ -237,8 +183,7 @@
      - (boot-cljs-repl/start-repl)
    localhost:3000"
   [o opt VAL kw  "The compiler optimization level."]
-  (comp (benchmarking)
-        (testing)
+  (comp (boot-tools-deps/deps :aliases [:test :benchmark] :quick-merge true)
         (javac)
         (boot-http/serve :dir "target/browser")
         (watch)
@@ -251,37 +196,27 @@
 (deftask run-node-repl
   "Runs a node repl."
   []
-  (comp (testing)
-        (benchmarking)
-        (proc "lumo"
+  (comp (boot-tools-deps/deps :aliases [:test :benchmark] :quick-merge true)
+        (with-pass-thru _
+          (proc "lumo"
               "-c" (str "\"" (System/getProperty "fake.class.path") "\"")
               "-k" "lumo_cache"
               "-e" (str "\""
                         "(require '[mikron.runtime.core :as mikron :refer [schema defschema pack unpack gen valid?]])"
                         "\"")
-              "-r")))
-
-(deftask generate-docs
-  "Generates the documentation using codox."
-  []
-  (comp (boot-codox/codox
-          :name         "moxaj/mikron"
-          :metadata     {:doc/format :markdown}
-          :output-path  "docs"
-          :source-paths (get-env :resource-paths)
-          :exclude-vars #"^((map)?->\p{Upper}|(get|set|put|take).*\*)")
-        (sift :move {#"docs" "../docs"})
-        (target)))
+              "-r"))))
 
 (deftask local-deploy
   "Installs the artifact into the local maven repository."
   []
-  (comp (pom)
+  (comp (boot-tools-deps/deps :overwrite-boot-deps true)
+        (pom)
         (jar)
         (install)))
 
 (deftask deploy
   "Installs the artifact into the local maven repository and pushes to clojars."
   []
-  (comp (local-deploy)
+  (comp (boot-tools-deps/deps :overwrite-boot-deps true)
+        (local-deploy)
         (push)))
