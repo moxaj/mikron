@@ -12,19 +12,19 @@
   (s/def ::type
     (s/+ symbol?))
 
-  (defn raw-schema-name
+  (defn schema-name
     "Returns the name of `schema`."
     [schema]
-    (let [schema-name (if (vector? schema)
-                        (first schema)
-                        schema)]
-      (if (schema/schema-names schema-name)
-        schema-name
+    (let [name (if (vector? schema)
+                 (first schema)
+                 schema)]
+      (if (schema/schema-names name)
+        name
         :custom)))
 
   (defmulti schema-spec
     "Returns a spec for a schema definition."
-    raw-schema-name :hierarchy #'schema/extended-hierarchy)
+    schema-name :hierarchy #'schema/extended-hierarchy)
 
   (defmethod schema-spec :simple [_]
     (schema-spec* []))
