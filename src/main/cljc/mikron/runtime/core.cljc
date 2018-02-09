@@ -53,9 +53,7 @@
   (defmacro schema
     "Returns a reified schema for the given schema definition."
     [& args]
-    (let [{:keys [schema-name schema global-options]
-           :or   {schema-name :mikron.runtime.core/anonymous}}
-          (util/enforce-spec ::runtime.core-spec/schema-args args)]
+    (let [{:keys [schema-name schema global-options]} (util/enforce-spec ::runtime.core-spec/schema-args args)]
       (schema* schema-name schema global-options)))
 
   (defmacro defschema
