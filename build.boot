@@ -23,7 +23,7 @@
 
 (task-options!
   pom  {:project     'moxaj/mikron
-        :version     "0.6.3-SNAPSHOT"
+        :version     "0.6.4-SNAPSHOT"
         :description "mikron is a schema-based serialization library for Clojure and ClojureScript"
         :url         "http://github.com/moxaj/mikron"
         :license     {"Eclipse Public License" "http://www.eclipse.org/legal/epl-v10.html"}}
