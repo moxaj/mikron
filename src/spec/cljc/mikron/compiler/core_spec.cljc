@@ -82,7 +82,7 @@
                  :record      (s/map-of keyword? ::paths)
                  :multi       (s/map-of any? ::paths)
                  :coll-or-map (s/keys :req-un [:paths/all])
-                 :true        true?)
+                 :boolean     boolean?)
            (s/conformer second)))
 
   (s/def :paths/all
