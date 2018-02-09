@@ -76,6 +76,9 @@
   (defmethod unpack :any [_]
     nil)
 
+  (defmethod unpack :constant [[_ _ constant-value]]
+    constant-value)
+
   (defmethod unpack :enum [[_ _ enum-values]]
     `(runtime.processor.common/nth ~(vec (sort enum-values))
                                    ~(unpack (compiler.schema/integer-schema (count enum-values)))))

@@ -83,7 +83,10 @@
       `(let [~value' (runtime.processor.common/symbol->string ~value)]
          ~(pack [:string] value'))))
 
-  (defmethod pack :any [_ value]
+  (defmethod pack :any [_ _]
+    nil)
+
+  (defmethod pack :constant [_ _]
     nil)
 
   (defmethod pack :enum [[_ _ enum-values] value]

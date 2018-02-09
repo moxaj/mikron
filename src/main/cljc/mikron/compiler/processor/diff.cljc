@@ -58,6 +58,11 @@
                  ~value-2)
       :undiff value-2))
 
+  (defmethod diff :constant [[_ _ constant-value] _ _ _]
+    (case (:processor-type processor.common/*processor-options*)
+      :diff   :mikron/nil
+      :undiff constant-value))
+
   (defmethod diff :optional [[_ _ schema'] paths value-1 value-2]
     `(if (and ~value-1 ~value-2)
        ~(diff schema' paths value-1 value-2)

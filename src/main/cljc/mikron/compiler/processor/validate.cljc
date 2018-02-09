@@ -65,6 +65,9 @@
   (defmethod valid? :any [_ value]
     true)
 
+  (defmethod valid? :constant [[_ _ constant-value] value]
+    `(= ~constant-value ~value))
+
   (defmethod valid? :enum [[_ _ enum-values] value]
     `(util/as-boolean (~(set enum-values) ~value)))
 

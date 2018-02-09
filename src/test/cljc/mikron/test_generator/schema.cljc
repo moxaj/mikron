@@ -17,6 +17,12 @@
 (defmethod scalar-schema-generator :simple [schema-name]
   (tc.gen/return [schema-name {}]))
 
+(defmethod scalar-schema-generator :constant [_]
+  (tc.gen/fmap (fn [constant-value]
+                 [:constant {} constant-value])
+               ;; TODO valid edn values
+               (tc.gen/return 42)))
+
 (defmethod scalar-schema-generator :enum [_]
   (tc.gen/fmap (fn [enum-values]
                  [:enum {} enum-values])
@@ -59,15 +65,15 @@
                  [:map {} key-schema value-schema])
                (tc.gen/tuple inner-generator inner-generator)))
 
-(defmethod compound-schema-generator :record [_ inner-generator]
-  (tc.gen/fmap (fn [schemas]
-                 [:record {} schemas])
-               (tc.gen/map test-generator.common/simple-keyword-generator inner-generator)))
-
 (defmethod compound-schema-generator :tuple [_ inner-generator]
   (tc.gen/fmap (fn [schemas]
                  [:tuple {} schemas])
                (tc.gen/vector inner-generator)))
+
+(defmethod compound-schema-generator :record [_ inner-generator]
+  (tc.gen/fmap (fn [schemas]
+                 [:record {} schemas])
+               (tc.gen/map test-generator.common/simple-keyword-generator inner-generator)))
 
 (def schema-generator*
   (tc.gen/recursive-gen

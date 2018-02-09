@@ -29,6 +29,32 @@
   (defmethod interp :char [_ _ value-1 value-2]
     (interp [:default] nil value-1 value-2))
 
+  (defmethod interp :optional [[_ _ schema'] paths value-1 value-2]
+    `(if (and ~value-1 ~value-2)
+       ~(interp schema' paths value-1 value-2)
+       ~(interp [:default] nil value-1 value-2)))
+
+  (defmethod interp :wrapped [[_ _ pre post schema'] paths value-1 value-2]
+    (macrowbar/with-syms {:gen [value-1' value-2']}
+      `(let [~value-1' (~pre ~value-1)
+             ~value-2' (~pre ~value-2)]
+         (~post ~(interp schema' paths value-1' value-2')))))
+
+  (defmethod interp :multi [[_ _ selector schemas'] paths value-1 value-2]
+    (macrowbar/with-syms {:gen [case-1 case-2]}
+      (if-not paths
+        (interp [:default] nil value-1 value-2)
+        `(let [~case-1 (~selector ~value-1)
+               ~case-2 (~selector ~value-2)]
+           (if-not (= ~case-1 ~case-2)
+             ~(interp [:default] nil value-1 value-2)
+             (case ~case-1
+               ~@(mapcat (fn [[key' schema']]
+                           [key' (if-let [paths' (paths key')]
+                                   (interp schema' paths' value-1 value-2)
+                                   (interp [:default] nil value-1 value-2))])
+                         schemas')))))))
+
   (defmethod interp :list [[_ options schema'] paths value-1 value-2]
     (macrowbar/with-syms {:gen [value-1-vec value-2-vec]}
       (if-not (:all paths)
@@ -103,32 +129,6 @@
                                            (interp [:default] nil value-1' value-2')))])
                            fields)]
              ~(processor.common/fields->record fields type))))))
-
-  (defmethod interp :optional [[_ _ schema'] paths value-1 value-2]
-    `(if (and ~value-1 ~value-2)
-       ~(interp schema' paths value-1 value-2)
-       ~(interp [:default] nil value-1 value-2)))
-
-  (defmethod interp :multi [[_ _ selector schemas'] paths value-1 value-2]
-    (macrowbar/with-syms {:gen [case-1 case-2]}
-      (if-not paths
-        (interp [:default] nil value-1 value-2)
-        `(let [~case-1 (~selector ~value-1)
-               ~case-2 (~selector ~value-2)]
-           (if-not (= ~case-1 ~case-2)
-             ~(interp [:default] nil value-1 value-2)
-             (case ~case-1
-               ~@(mapcat (fn [[key' schema']]
-                           [key' (if-let [paths' (paths key')]
-                                   (interp schema' paths' value-1 value-2)
-                                   (interp [:default] nil value-1 value-2))])
-                         schemas')))))))
-
-  (defmethod interp :wrapped [[_ _ pre post schema'] paths value-1 value-2]
-    (macrowbar/with-syms {:gen [value-1' value-2']}
-      `(let [~value-1' (~pre ~value-1)
-             ~value-2' (~pre ~value-2)]
-         (~post ~(interp schema' paths value-1' value-2')))))
 
   (defmethod interp :custom [schema _ value-1 value-2]
     `(~(processor.common/custom-processor-name schema)

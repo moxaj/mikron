@@ -70,6 +70,9 @@
 (defmethod value-generator :any [_]
   (tc.gen/return nil))
 
+(defmethod value-generator :constant [[_ _ constant-value]]
+  (tc.gen/return constant-value))
+
 (defmethod value-generator :enum [[_ _ enum-values]]
   (tc.gen/elements enum-values))
 
@@ -95,6 +98,9 @@
 (defmethod value-generator :map [[_ _ key-schema value-schema]]
   (tc.gen/map (value-generator key-schema)
               (value-generator value-schema)))
+              
+(defmethod value-generator :tuple [[_ _ schemas]]
+  (apply tc.gen/tuple (map value-generator schemas)))
 
 (defmethod value-generator :record [[_ _ schemas]]
   (let [schemas' (sort schemas)]
@@ -103,6 +109,3 @@
          (apply tc.gen/tuple)
          (tc.gen/fmap (fn [values]
                         (zipmap (map first schemas') values))))))
-
-(defmethod value-generator :tuple [[_ _ schemas]]
-  (apply tc.gen/tuple (map value-generator schemas)))

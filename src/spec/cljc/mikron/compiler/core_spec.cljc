@@ -29,6 +29,9 @@
   (defmethod schema-spec :simple [_]
     (schema-spec* []))
 
+  (defmethod schema-spec :constant [_]
+    (schema-spec* [] :value any?))
+
   (defmethod schema-spec :enum [_]
     (schema-spec* [] :values (s/coll-of keyword? :kind set?)))
 

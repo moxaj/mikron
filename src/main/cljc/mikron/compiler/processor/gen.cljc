@@ -74,6 +74,9 @@
   (defmethod gen :any [_]
     nil)
 
+  (defmethod gen :constant [[_ _ constant-value]]
+    constant-value)
+
   (defmethod gen :enum [[_ _ enum-values]]
     `(runtime.processor.common/rand-nth ~(vec enum-values)))
 

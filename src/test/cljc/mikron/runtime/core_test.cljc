@@ -48,23 +48,28 @@
   (doseq [[test-name schema]
           (compile-schemas
             {"Byte test"     :byte
+             "Ubyte test"    :ubyte
              "Short test"    :short
+             "Ushort test"   :ushort
              "Int test"      :int
+             "Uint test"     :uint
              "Long test"     :long
+             "Varint test"   :varint
              #?@(:clj ["Float test" :float])
              "Double test"   :double
-             "Boolean test"  :boolean
              "Char test"     :char
-             "Ubyte test"    :ubyte
-             "Ushort test"   :ushort
-             "Uint test"     :uint
-             "Varint test"   :varint
+             "Boolean test"  :boolean
+             "Nil test"      :nil
+             "Binary test"   :binary
              "String test"   :string
              "Keyword test"  :keyword
              "Symbol test"   :symbol
-             "Nil test"      :nil
-             "Binary test"   :binary
              "Any test"      :any
+             "Constant test" [:constant {:foo "bar"}]
+             "Enum test"     [:enum #{:cat :dog :measurement :error}]
+             "Optional test" [:optional :byte]
+             "Wrapped test"  [:wrapped unchecked-inc-int unchecked-dec-int :int]
+             "Multi test"    [:multi number? {true :int false :string}]
              "List test"     [:list :byte]
              "Vector test"   [:vector :int]
              "Set test"      [:set :short]
@@ -73,12 +78,8 @@
              "Map test"      [:map :byte :string]
              "Map < test"    [:map {:sorted-by <} :byte :string]
              "Map > test"    [:map {:sorted-by >} :byte :string]
-             "Optional test" [:optional :byte]
-             "Enum test"     [:enum #{:cat :dog :measurement :error}]
              "Tuple test"    [:tuple [:int :string :double]]
-             "Record test"   [:record {:a :int :b :string :c :byte}]
-             "Multi test"    [:multi number? {true :int false :string}]
-             "Wrapped test"  [:wrapped unchecked-inc-int unchecked-dec-int :int]})]
+             "Record test"   [:record {:a :int :b :string :c :byte}]})]
     (let [values (repeatedly 100 #(mikron/gen schema))]
       (test/testing test-name
         (doseq [test-method (keys (methods test-mikron))]
