@@ -91,9 +91,9 @@
           `(case ~value
              ~@(->> enum-values
                     (sort)
-                    (map-indexed (fn [index enum-value] ;; TODO mapcat (range)
-                                   [enum-value index]))
-                    (apply concat)))))
+                    (mapcat (fn [index enum-value]
+                              [enum-value index])
+                            (range))))))
 
   (defmethod pack :optional [[_ _ schema'] value]
     (macrowbar/with-syms {:gen [value-some?]}
@@ -112,10 +112,10 @@
        ~@(->> schemas'
               (keys)
               (sort)
-              (map-indexed (fn [index key']
-                             [key' `(do ~(pack (compiler.schema/integer-schema (count schemas')) index)
-                                        ~(pack (get schemas' key') value))]))
-              (apply concat))))
+              (mapcat (fn [index key']
+                        [key' `(do ~(pack (compiler.schema/integer-schema (count schemas')) index)
+                                   ~(pack (get schemas' key') value))])
+                      (range)))))
 
   (defmethod pack :vector [[_ _ schema'] value]
     (macrowbar/with-syms {:gen [length value' index]}

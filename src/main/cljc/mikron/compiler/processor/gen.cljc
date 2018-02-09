@@ -87,9 +87,9 @@
   (defmethod gen :multi [[_ _ _ schemas']]
     `(case (math/rand-long ~(count schemas'))
        ~@(->> schemas'
-              (map-indexed (fn [index [_ schema']]
-                             [index (gen schema')]))
-              (apply concat))))
+              (mapcat (fn [index [_ schema']]
+                        [index (gen schema')])
+                      (range)))))
 
   (defmethod gen :coll [[_ _ schema']]
     (processor.common/into! [] true gen-length (gen schema')))

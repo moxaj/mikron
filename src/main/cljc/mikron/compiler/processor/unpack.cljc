@@ -92,9 +92,9 @@
        ~@(->> schemas'
               (keys)
               (sort)
-              (map-indexed (fn [index key']
-                             [index (unpack (get schemas' key'))]))
-              (apply concat))))
+              (mapcat (fn [index key']
+                        [index (unpack (get schemas' key'))])
+                      (range)))))
 
   (defmethod unpack :coll [[_ _ schema']]
     (processor.common/into! []
