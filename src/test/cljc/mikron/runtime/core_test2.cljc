@@ -13,7 +13,7 @@
 (macrowbar/emit :debug-self-hosted
   (def buffer (mikron/allocate-buffer 100000))
 
-  (tc.test/defspec core-test-property-based 100
+  (tc.test/defspec property-based-test 100
     (tc.prop/for-all
       [[schema value]
        (tc.gen/bind

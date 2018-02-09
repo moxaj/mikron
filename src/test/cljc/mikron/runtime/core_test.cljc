@@ -44,7 +44,7 @@
     ;; We don't actually test anything here
     (test/is (any? (mikron/interp schema value-1 value-2 0 1 0.5)))))
 
-(test/deftest core-test-generative
+(test/deftest generative-test
   (doseq [[test-name schema]
           (compile-schemas
             {"Byte test"     :byte
