@@ -70,7 +70,6 @@
 (def cljs-test-namespaces
   "ClojureScript test namespaces."
   '[mikron.buffer-test
-    mikron.compiler.core-test
     mikron.runtime.core-test])
 
 (def clj-test-namespaces
