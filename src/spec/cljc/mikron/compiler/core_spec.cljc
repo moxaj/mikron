@@ -30,7 +30,7 @@
     (schema-spec* []))
 
   (defmethod schema-spec :constant [_]
-    (schema-spec* [] :value any?))
+    (schema-spec* [] :constant-value any?))
 
   (defmethod schema-spec :enum [_]
     (schema-spec* [] :values (s/coll-of keyword? :kind set?)))
