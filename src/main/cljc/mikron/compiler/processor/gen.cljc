@@ -56,11 +56,7 @@
     nil)
 
   (defmethod gen :binary [_]
-    `(runtime.processor.common/byte-seq->binary
-       ~(processor.common/into! []
-                                true
-                                (unchecked-add 2 (math/rand-long 30))
-                                (gen [:byte]))))
+    `(runtime.processor.gen/gen-binary))
 
   (defmethod gen :string [_]
     `(apply str ~(processor.common/into! [] true gen-length (gen [:char]))))
