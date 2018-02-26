@@ -1,12 +1,12 @@
 (ns mikron.compiler.processor.gen
   "Generator generating functions."
   (:require [macrowbar.core :as macrowbar]
+            [mikron.math :as math]
             [mikron.compiler.processor.common :as processor.common]
             [mikron.compiler.schema :as compiler.schema]
             ;; Runtime
             [mikron.runtime.processor.common :as runtime.processor.common]
-            [mikron.runtime.processor.gen :as runtime.processor.gen]
-            [mikron.math :as math]))
+            [mikron.runtime.processor.gen :as runtime.processor.gen]))
 
 (macrowbar/emit :debug
   (def ^:const gen-length 4)
